@@ -399,7 +399,7 @@ public class Blueshift {
             return trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams);
 
         } else {
-            Log.e(LOG_TAG, "Error (identifyUserByEmail) : Basic credentials validation failed.");
+            Log.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
             return false;
         }
     }
