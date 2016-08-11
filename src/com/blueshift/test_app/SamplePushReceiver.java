@@ -1,4 +1,4 @@
-package com.blueshift;
+package com.blueshift.test_app;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

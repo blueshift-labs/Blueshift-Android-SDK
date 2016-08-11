@@ -1,8 +1,6 @@
-package com.blueshift;
+package com.blueshift.test_app;
 
 import android.app.Application;
-import com.blueshift.model.Configuration;
-import com.blueshift.model.UserInfo;
 
 /**
  * Created by rahul on 19/2/15.

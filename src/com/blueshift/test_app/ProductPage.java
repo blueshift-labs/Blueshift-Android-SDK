@@ -1,4 +1,4 @@
-package com.blueshift;
+package com.blueshift.test_app;
 
 import android.app.Activity;
 import android.os.Bundle;

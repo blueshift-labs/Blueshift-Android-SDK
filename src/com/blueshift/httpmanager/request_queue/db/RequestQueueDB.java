@@ -1,12 +1,12 @@
-package ch.bullfin.httpmanager.request_queue.db;
+package com.blueshift.httpmanager.request_queue.db;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import ch.bullfin.httpmanager.Method;
-import ch.bullfin.httpmanager.Request;
+import com.blueshift.httpmanager.Method;
+import com.blueshift.httpmanager.Request;
 
 import java.util.HashMap;
 

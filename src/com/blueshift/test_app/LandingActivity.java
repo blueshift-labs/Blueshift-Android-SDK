@@ -1,8 +1,8 @@
-package com.blueshift;
+package com.blueshift.test_app;
 
 import android.app.Activity;
 import android.os.Bundle;
-import com.blueshift.model.Product;
+import com.blueshift.R;
 
 /**
  * This class is used for testing the SDK. Will be removed in the end.

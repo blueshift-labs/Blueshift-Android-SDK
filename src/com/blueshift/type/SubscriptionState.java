@@ -1,4 +1,4 @@
-package com.blueshift;
+package com.blueshift.type;
 
 /**
  * Created by rahul on 5/3/15.

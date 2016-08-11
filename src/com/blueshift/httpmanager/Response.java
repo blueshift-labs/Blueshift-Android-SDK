@@ -1,4 +1,4 @@
-package ch.bullfin.httpmanager;
+package com.blueshift.httpmanager;
 
 import java.util.List;
 import java.util.Map;

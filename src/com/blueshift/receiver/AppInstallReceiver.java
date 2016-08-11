@@ -3,11 +3,9 @@ package com.blueshift.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import com.blueshift.Blueshift;
-import com.google.gson.Gson;
 
 /**
  * Created by rahul on 17/3/15.
