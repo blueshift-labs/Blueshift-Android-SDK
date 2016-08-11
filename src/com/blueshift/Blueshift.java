@@ -349,16 +349,16 @@ public class Blueshift {
     /**
      * Helps trigger identify user api call using key 'device_identifier'.
      *
-     * @param AndroidAdId android ad id provided by host/customer app.
+     * @param androidAdId android ad id provided by host/customer app.
      * @param details optional additional parameters
      * @return true/false based on execution of identifyUser()
      */
-    public boolean identifyUserByDeviceId(String AndroidAdId, HashMap<String, Object> details) {
-        if (TextUtils.isEmpty(AndroidAdId)) {
+    public boolean identifyUserByDeviceId(String androidAdId, HashMap<String, Object> details) {
+        if (TextUtils.isEmpty(androidAdId)) {
             Log.w(LOG_TAG, "identifyUserByAdId() - The Android Ad ID provided is empty.");
         }
 
-        return identifyUser(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, AndroidAdId, details);
+        return identifyUser(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId, details);
     }
 
     /**
