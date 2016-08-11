@@ -330,14 +330,68 @@ public class Blueshift {
         }
     }
 
-    public boolean identifyUser(String email, HashMap<String, Object> details) {
+    /**
+     * Helps trigger identify user api call using key 'retailer_customer_id'.
+     *
+     * @param customerId if provided, replaces existing one (taken from UserInfo) inside request params.
+     * @param details optional additional parameters
+     * @return true/false based on execution of identifyUser()
+     */
+    public boolean identifyUserByCustomerId(String customerId, HashMap<String, Object> details) {
+        if (TextUtils.isEmpty(customerId)) {
+            Log.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
+        }
+
+        return identifyUser(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, customerId, details);
+    }
+
+    /**
+     * Helps trigger identify user api call using key 'device_identifier'.
+     *
+     * @param AndroidAdId android ad id provided by host/customer app.
+     * @param details optional additional parameters
+     * @return true/false based on execution of identifyUser()
+     */
+    public boolean identifyUserByDeviceId(String AndroidAdId, HashMap<String, Object> details) {
+        if (TextUtils.isEmpty(AndroidAdId)) {
+            Log.w(LOG_TAG, "identifyUserByAdId() - The Android Ad ID provided is empty.");
+        }
+
+        return identifyUser(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, AndroidAdId, details);
+    }
+
+    /**
+     * Helps trigger identify user api call using key 'email'.
+     *
+     * @param email registered email address provided by host/customer app
+     * @param details optional additional parameters
+     * @return true/false based on execution of identifyUser()
+     */
+    public boolean identifyUserByEmail(String email, HashMap<String, Object> details) {
+        if (email == null || email.isEmpty() || !(android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())) {
+            Log.w(LOG_TAG, "identifyUserByEmail() - The email address provided is invalid.");
+        }
+
+        return identifyUser(BlueshiftConstants.KEY_EMAIL, email, details);
+    }
+
+    /**
+     * Triggers identify user api call. If either key or value is null or empty,
+     * that key value pair will be  ignored.
+     *
+     * @param key the key used for identify user. Ex: email, device_identifier, retailer_customer_id
+     * @param value the corresponding value for 'key'
+     * @param details optional additional parameters
+     * @return true if trackEvent is success, false if valid credentials are unavailable or trackEvent fails.
+     */
+    public boolean identifyUser(String key, String value, HashMap<String, Object> details) {
         if (hasValidCredentials()) {
-            if (email == null || email.isEmpty() || !(android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())) {
-                Log.w(LOG_TAG, "The email address provided in identifyUser method is invalid.");
+            HashMap<String, Object> userParams = new HashMap<String, Object>();
+
+            if (!TextUtils.isEmpty(key) && !TextUtils.isEmpty(value)) {
+                userParams.put(key, value);
             }
 
-            HashMap<String, Object> userParams = new HashMap<String, Object>();
-            userParams.put(BlueshiftConstants.KEY_EMAIL, email);
             if (details != null) {
                 userParams.putAll(details);
             }
@@ -345,7 +399,7 @@ public class Blueshift {
             return trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams);
 
         } else {
-            Log.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
+            Log.e(LOG_TAG, "Error (identifyUserByEmail) : Basic credentials validation failed.");
             return false;
         }
     }
