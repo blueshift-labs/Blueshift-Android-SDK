@@ -26,8 +26,8 @@ public class LandingActivity extends Activity {
         /*
 
         Blueshift.getInstance(this).trackScreenView(this);
-        Blueshift.getInstance(this).trackEmailListSubscription("rahul.pmna@gmail.com");
-        Blueshift.getInstance(this).trackEmailListUnsubscription("rahul.pmna@gmail.com");
+        Blueshift.getInstance(this).trackEmailListSubscription("test_user@gmail.com");
+        Blueshift.getInstance(this).trackEmailListUnsubscription("test_user@gmail.com");
         Blueshift.getInstance(this).trackProductView("E29090", 1);
         Blueshift.getInstance(this).trackAddToCart("E29090", 1);
 
