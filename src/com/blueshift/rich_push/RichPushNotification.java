@@ -11,7 +11,7 @@ import android.os.Environment;
 import android.util.Log;
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
-import com.blueshift.Util.NetworkUtils;
+import com.blueshift.util.NetworkUtils;
 
 import java.io.File;
 

@@ -2,8 +2,8 @@ package com.blueshift.model;
 
 import android.content.Context;
 import android.util.Log;
-import com.blueshift.SubscriptionState;
-import com.blueshift.Util.StorageUtils;
+import com.blueshift.type.SubscriptionState;
+import com.blueshift.util.StorageUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 

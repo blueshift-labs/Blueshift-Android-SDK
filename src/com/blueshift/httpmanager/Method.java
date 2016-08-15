@@ -1,4 +1,4 @@
-package ch.bullfin.httpmanager;
+package com.blueshift.httpmanager;
 
 public enum Method {
     GET,

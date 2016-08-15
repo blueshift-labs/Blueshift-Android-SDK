@@ -1,4 +1,4 @@
-package ch.bullfin.httpmanager.request_queue.db;
+package com.blueshift.httpmanager.request_queue.db;
 
 import android.content.ContentValues;
 import android.content.Context;

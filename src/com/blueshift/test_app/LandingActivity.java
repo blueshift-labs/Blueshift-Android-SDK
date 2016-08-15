@@ -1,8 +1,8 @@
-package com.blueshift;
+package com.blueshift.test_app;
 
 import android.app.Activity;
 import android.os.Bundle;
-import com.blueshift.model.Product;
+import com.blueshift.R;
 
 /**
  * This class is used for testing the SDK. Will be removed in the end.
@@ -26,8 +26,8 @@ public class LandingActivity extends Activity {
         /*
 
         Blueshift.getInstance(this).trackScreenView(this);
-        Blueshift.getInstance(this).trackEmailListSubscription("rahul.pmna@gmail.com");
-        Blueshift.getInstance(this).trackEmailListUnsubscription("rahul.pmna@gmail.com");
+        Blueshift.getInstance(this).trackEmailListSubscription("test_user@gmail.com");
+        Blueshift.getInstance(this).trackEmailListUnsubscription("test_user@gmail.com");
         Blueshift.getInstance(this).trackProductView("E29090", 1);
         Blueshift.getInstance(this).trackAddToCart("E29090", 1);
 

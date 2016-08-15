@@ -1,8 +1,6 @@
-package com.blueshift;
+package com.blueshift.test_app;
 
 import android.app.Application;
-import com.blueshift.model.Configuration;
-import com.blueshift.model.UserInfo;
 
 /**
  * Created by rahul on 19/2/15.
@@ -23,7 +21,7 @@ public class BFApplication extends Application {
         configuration.setProductPage(ProductPage.class);
         configuration.setCartPage(ProductPage.class);
         configuration.setOfferDisplayPage(ProductPage.class);
-        configuration.setApiKey("5be04919d8773728197f8bd0e2fedce2");
+        configuration.setApiKey("api_key_from_blueshift");
 
         UserInfo userInfo = UserInfo.getInstance(this);
         userInfo.setRetailerCustomerId("909090");

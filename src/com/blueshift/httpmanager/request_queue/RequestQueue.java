@@ -1,18 +1,16 @@
-package ch.bullfin.httpmanager.request_queue;
+package com.blueshift.httpmanager.request_queue;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
-import ch.bullfin.httpmanager.HTTPManager;
-import ch.bullfin.httpmanager.Request;
-import ch.bullfin.httpmanager.Response;
-import ch.bullfin.httpmanager.request_queue.db.RequestQueueDB;
 import com.blueshift.Blueshift;
+import com.blueshift.httpmanager.HTTPManager;
+import com.blueshift.httpmanager.Request;
+import com.blueshift.httpmanager.Response;
+import com.blueshift.httpmanager.request_queue.db.RequestQueueDB;
 import com.blueshift.model.Configuration;
-
-import java.util.ArrayList;
 
 /**
  * Created by rahul on 26/2/15.

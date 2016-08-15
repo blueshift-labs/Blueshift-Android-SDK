@@ -1,4 +1,4 @@
-package ch.bullfin.httpmanager;
+package com.blueshift.httpmanager;
 
 import android.util.Base64;
 import android.util.Log;
@@ -22,8 +22,7 @@ import java.util.Map;
 /**
  * Abstraction for TCP/IP communication.
  *
- * Author : Asif CH (asif@bullfin.ch)
- * Bullfinch Software Pvt Ltd
+ * Author : Asif CH
  */
 
 public class HTTPManager {

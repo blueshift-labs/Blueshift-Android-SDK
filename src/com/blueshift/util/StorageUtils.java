@@ -1,4 +1,4 @@
-package com.blueshift.Util;
+package com.blueshift.util;
 
 import android.content.Context;
 

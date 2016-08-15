@@ -1,4 +1,4 @@
-package com.blueshift.Util;
+package com.blueshift.util;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
