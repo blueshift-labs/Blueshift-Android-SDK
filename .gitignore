@@ -1,7 +1,7 @@
 *.iml
-local.properties
+.gradle
+/local.properties
 /.idea
-/out
-/gen
-/bin
-build.xml
+.DS_Store
+/build
+/captures
