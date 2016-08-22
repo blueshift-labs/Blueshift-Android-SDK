@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
@@ -32,7 +33,7 @@ public class RichPushNotification {
     private static void buildAndShowNotification(Context context, Message message) {
         int notificationID = 0;
 
-        Notification.Builder builder = new Notification.Builder(context);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         builder.setDefaults(Notification.DEFAULT_SOUND);
         builder.setAutoCancel(true);
 
@@ -52,7 +53,7 @@ public class RichPushNotification {
                     builder.addAction(0, "View", pendingIntent);
                 }
 
-                if (configuration.getCartPage() !=null) {
+                if (configuration.getCartPage() != null) {
                     Intent intent = new Intent(RichPushConstants.ACTION_BUY(context));
                     intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
                     intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
@@ -63,7 +64,7 @@ public class RichPushNotification {
                 }
             } else if (message.category.equals(Message.CATEGORY_VIEW_CART)) {
                 notificationID = 200;
-                if (configuration.getCartPage() !=null) {
+                if (configuration.getCartPage() != null) {
                     Intent intent = new Intent(RichPushConstants.ACTION_OPEN_CART(context));
                     intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
                     intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
@@ -93,9 +94,9 @@ public class RichPushNotification {
             String destinationPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/temp.jpg";
             if (NetworkUtils.downloadFile(message.getImage_url(), destinationPath)) {
                 Bitmap bitmap = BitmapFactory.decodeFile(destinationPath);
-                builder.setStyle(new Notification.BigPictureStyle().bigPicture(bitmap));
+                builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap));
                 File file = new File(destinationPath);
-                Log.d(LOG_TAG, "Deleting cached image " + (file.delete() ? "success." : "failed." ));
+                Log.d(LOG_TAG, "Deleting cached image " + (file.delete() ? "success." : "failed."));
             }
         }
 
