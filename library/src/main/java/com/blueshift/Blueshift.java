@@ -1,15 +1,19 @@
 package com.blueshift;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -261,10 +265,18 @@ public class Blueshift {
                         // setting the last known location parameters.
                         LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
                         if (locationManager != null) {
-                            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                            if (location != null) {
-                                requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
-                                requestParams.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
+                            if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                                    && ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                // Location permission is not available. The client app needs to grand permission.
+                                Log.w(LOG_TAG, "Location access permission unavailable. Require " +
+                                        Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
+                                        Manifest.permission.ACCESS_COARSE_LOCATION);
+                            } else {
+                                Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                                if (location != null) {
+                                    requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
+                                    requestParams.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
+                                }
                             }
                         }
 
