@@ -10,7 +10,7 @@ import com.blueshift.Blueshift;
 import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
-import com.blueshift.httpmanager.request_queue.db.RequestQueueDB;
+import com.blueshift.httpmanager.request_queue.db.RequestQueueTable;
 import com.blueshift.model.Configuration;
 
 /**
@@ -43,7 +43,7 @@ public class RequestQueue {
     public void add(Request request) {
         if (request != null) {
             Log.d(LOG_TAG, "Adding new request to the Queue.");
-            RequestQueueDB db = new RequestQueueDB(mContext);
+            RequestQueueTable db = RequestQueueTable.getInstance(mContext);
             db.insert(request);
             db.close();
             sync();
@@ -53,7 +53,7 @@ public class RequestQueue {
     public void remove(Request request) {
         if (request != null) {
             Log.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
-            RequestQueueDB db = new RequestQueueDB(mContext);
+            RequestQueueTable db = RequestQueueTable.getInstance(mContext);
             db.delete(request);
             db.close();
         }
@@ -63,7 +63,7 @@ public class RequestQueue {
         synchronized (lock) {
             mStatus = Status.BUSY;
             Request request = null;
-            RequestQueueDB db = new RequestQueueDB(mContext);
+            RequestQueueTable db = RequestQueueTable.getInstance(mContext);
             Object reqObject = db.getNextRequest();
             if (reqObject != null) {
                 request = (Request) reqObject;
