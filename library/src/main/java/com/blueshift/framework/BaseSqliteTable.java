@@ -1,4 +1,4 @@
-package com.blueshift.httpmanager.request_queue.db;
+package com.blueshift.framework;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
+
+import com.blueshift.httpmanager.request_queue.RequestQueueTable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +41,23 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    /**
+     * This method should return the sql query needed to create the table.
+     * To do that, override this method in inherited table class.
+     * Inside the method call {@link #generateCreateTableQuery(String, HashMap)}
+     * @return SQL query for creating table.
+     */
+    public String getCreateTableQuery() {
+        return null;
+    }
+
+    /**
+     * Generates SQL query to create a table with provided name and fields' details.
+     *
+     * @param tableName Name of the table
+     * @param fieldTypeMap Field Name -> DataType map.
+     * @return valid create table SQL query if valid arguments given, else null.
+     */
     protected String generateCreateTableQuery(String tableName, HashMap<String, FieldType> fieldTypeMap) {
         String query = null;
 
@@ -305,8 +324,6 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     abstract protected HashMap<String, FieldType> getFields();
 
     abstract protected Long getId(T object);
-
-    abstract protected String getCreateTableQuery();
 
     protected enum FieldType {
         String,

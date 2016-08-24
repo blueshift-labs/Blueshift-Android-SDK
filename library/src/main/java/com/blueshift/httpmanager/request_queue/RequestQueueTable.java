@@ -1,4 +1,4 @@
-package com.blueshift.httpmanager.request_queue.db;
+package com.blueshift.httpmanager.request_queue;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.blueshift.framework.BaseSqliteTable;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 
@@ -110,7 +111,7 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
     }
 
     @Override
-    protected String getCreateTableQuery() {
+    public String getCreateTableQuery() {
         return generateCreateTableQuery(TABLE_NAME, getFields());
     }
 
