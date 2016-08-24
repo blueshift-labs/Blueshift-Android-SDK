@@ -31,7 +31,11 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(RequestQueueTable.getInstance(getContext()).getCreateTableQuery());
+        // create table for - RequestQueue
+        String createTableRequestQueue = RequestQueueTable.getInstance(getContext()).getCreateTableQuery();
+        if (!TextUtils.isEmpty(createTableRequestQueue)) {
+            db.execSQL(createTableRequestQueue);
+        }
     }
 
     @Override
@@ -42,9 +46,19 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     }
 
     /**
-     * This method should return the sql query needed to create the table.
-     * To do that, override this method in inherited table class.
-     * Inside the method call {@link #generateCreateTableQuery(String, HashMap)}
+     * <p>
+     * This method should be overridden in child class if we need to create a new table.
+     * The result of this method should be used inside {@link #onCreate(SQLiteDatabase)}
+     * of this class as an argument to db.execSQL() method.
+     * </p>
+     *
+     * <p>
+     * To generate valid 'CREATE TABLE' SQL query, follow these simple steps.<br>
+     * Step 1: Override this method in child class.<br>
+     * Step 2: Inside the method, call {@link #generateCreateTableQuery(String, HashMap)}
+     * with arguments {@link #getTableName()} and {@link #getFields()} and return it's result.
+     * </p>
+     *
      * @return SQL query for creating table.
      */
     public String getCreateTableQuery() {
@@ -55,7 +69,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
      * Generates SQL query to create a table with provided name and fields' details.
      *
      * @param tableName Name of the table
-     * @param fieldTypeMap Field Name -> DataType map.
+     * @param fieldTypeMap Field Name -> Field Type map.
      * @return valid create table SQL query if valid arguments given, else null.
      */
     protected String generateCreateTableQuery(String tableName, HashMap<String, FieldType> fieldTypeMap) {
