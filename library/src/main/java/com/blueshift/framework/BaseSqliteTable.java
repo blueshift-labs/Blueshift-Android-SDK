@@ -1,45 +1,102 @@
-package com.blueshift.httpmanager.request_queue.db;
+package com.blueshift.framework;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
+
+import com.blueshift.httpmanager.request_queue.RequestQueueTable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Created by asif on 21/11/13.
  */
-public abstract class BFSqliteTable extends SQLiteOpenHelper {
+public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     private static final Boolean lock = true;
 
-    public BFSqliteTable(Context context, String name, int version) {
-        super(context, name, null, version);
+    private static final int DB_VERSION = 1;
+    private static final String DB_NAME = "blueshift_db.sqlite3";
+
+    private Context mContext;
+
+    public BaseSqliteTable(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+        mContext = context;
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String query = "CREATE TABLE " + getTableName() + " (";
-
-        HashMap<String, FieldType> fields = getFields();
-        for (String key : fields.keySet()) {
-            query = query.concat(key + " " + fields.get(key).toString() + ",");
+        // create table for - RequestQueue
+        String createTableRequestQueue = RequestQueueTable.getInstance(getContext()).getCreateTableQuery();
+        if (!TextUtils.isEmpty(createTableRequestQueue)) {
+            db.execSQL(createTableRequestQueue);
         }
-
-        query = query.substring(0, query.length() - 2); // to remove the last comma
-        query = query.concat(")");
-        db.execSQL(query);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE " + getTableName());
+        db.execSQL("DROP TABLE " + RequestQueueTable.TABLE_NAME);
+
         onCreate(db);
     }
 
-    public void insert(Object item) {
+    /**
+     * <p>
+     * This method should be overridden in child class if we need to create a new table.
+     * The result of this method should be used inside {@link #onCreate(SQLiteDatabase)}
+     * of this class as an argument to db.execSQL() method.
+     * </p>
+     *
+     * <p>
+     * To generate valid 'CREATE TABLE' SQL query, follow these simple steps.<br>
+     * Step 1: Override this method in child class.<br>
+     * Step 2: Inside the method, call {@link #generateCreateTableQuery(String, HashMap)}
+     * with arguments {@link #getTableName()} and {@link #getFields()} and return it's result.
+     * </p>
+     *
+     * @return SQL query for creating table.
+     */
+    public String getCreateTableQuery() {
+        return null;
+    }
+
+    /**
+     * Generates SQL query to create a table with provided name and fields' details.
+     *
+     * @param tableName Name of the table
+     * @param fieldTypeMap Field Name -> Field Type map.
+     * @return valid create table SQL query if valid arguments given, else null.
+     */
+    protected String generateCreateTableQuery(String tableName, HashMap<String, FieldType> fieldTypeMap) {
+        String query = null;
+
+        if (!TextUtils.isEmpty(tableName) && fieldTypeMap != null && fieldTypeMap.size() != 0) {
+            String createTableQuery = "CREATE TABLE " + tableName + "(";
+
+            Set<String> fieldNames = fieldTypeMap.keySet();
+            for (String fieldName : fieldNames) {
+                String dataType = fieldTypeMap.get(fieldName).toString();
+                createTableQuery += (fieldName + " " + dataType + ",");
+            }
+
+            int len = createTableQuery.length();
+            createTableQuery = createTableQuery.substring(0, len - 2); // replace last comma
+            query = createTableQuery + ")";
+        }
+
+        return query;
+    }
+
+    public Context getContext() {
+        return mContext;
+    }
+
+    public void insert(T item) {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
 
@@ -50,12 +107,12 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         }
     }
 
-    public void update(Object item) {
+    public void update(T item) {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
 
             if (db != null && getId(item) != null) {
-                db.update(getTableName(), getContentValues(item), "id="+getId(item), null);
+                db.update(getTableName(), getContentValues(item), "id=" + getId(item), null);
                 db.close();
             }
         }
@@ -83,10 +140,12 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         }
     }
 
-    /** finder methods **/
+    /**
+     * finder methods
+     **/
 
-    public ArrayList<Object> findAll() {
-        ArrayList<Object> result = new ArrayList<Object>();
+    public ArrayList<T> findAll() {
+        ArrayList<T> result = new ArrayList<>();
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -105,8 +164,8 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         return result;
     }
 
-    public Object findByField(String fieldName, String value) {
-        Object object = null;
+    public T findByField(String fieldName, String value) {
+        T object = null;
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -124,8 +183,8 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         return object;
     }
 
-    public Object findByField(String fieldName, long value) {
-        Object object = null;
+    public T findByField(String fieldName, long value) {
+        T object = null;
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -143,8 +202,8 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         return object;
     }
 
-    public Object findRandomByField(String fieldName, long value) {
-        Object object = null;
+    public T findRandomByField(String fieldName, long value) {
+        T object = null;
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -162,8 +221,8 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         return object;
     }
 
-    public ArrayList<Object> findAllByField(String fieldName, String value) {
-        ArrayList<Object> result = new ArrayList<Object>();
+    public ArrayList<T> findAllByField(String fieldName, String value) {
+        ArrayList<T> result = new ArrayList<>();
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -182,8 +241,8 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         return result;
     }
 
-    public ArrayList<Object> findAllByField(String[] fieldNames, String[] values) {
-        ArrayList<Object> result = new ArrayList<Object>();
+    public ArrayList<T> findAllByField(String[] fieldNames, String[] values) {
+        ArrayList<T> result = new ArrayList<>();
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -208,8 +267,8 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
     }
 
 
-    public ArrayList<Object> findAllByField(String[] fieldNames, String[] values, int pageNo, String order) {
-        ArrayList<Object> result = new ArrayList<Object>();
+    public ArrayList<T> findAllByField(String[] fieldNames, String[] values, int pageNo, String order) {
+        ArrayList<T> result = new ArrayList<>();
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -233,8 +292,8 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         return result;
     }
 
-    public ArrayList<Object> findAllByField(String[] fieldNames, String[] values, int pageNo, String order, String search) {
-        ArrayList<Object> result = new ArrayList<Object>();
+    public ArrayList<T> findAllByField(String[] fieldNames, String[] values, int pageNo, String order, String search) {
+        ArrayList<T> result = new ArrayList<T>();
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -259,9 +318,9 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
         return result;
     }
 
-    public Object getFirstRecord() {
+    public T getFirstRecord() {
         synchronized (lock) {
-            ArrayList<Object> results = findAll();
+            ArrayList<T> results = findAll();
             if (results != null && results.size() > 0) {
                 return results.get(0);
             }
@@ -272,13 +331,13 @@ public abstract class BFSqliteTable extends SQLiteOpenHelper {
 
     abstract protected String getTableName();
 
-    abstract protected Object loadObject(Cursor cursor);
+    abstract protected T loadObject(Cursor cursor);
 
-    abstract protected ContentValues getContentValues(Object object);
+    abstract protected ContentValues getContentValues(T object);
 
     abstract protected HashMap<String, FieldType> getFields();
 
-    abstract protected Long getId(Object object);
+    abstract protected Long getId(T object);
 
     protected enum FieldType {
         String,

@@ -1,4 +1,4 @@
-package com.blueshift.httpmanager.request_queue.db;
+package com.blueshift.httpmanager.request_queue;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.blueshift.framework.BaseSqliteTable;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 
@@ -14,13 +15,12 @@ import java.util.HashMap;
 /**
  * Created by rahul on 26/5/15.
  */
-public class RequestQueueDB extends BFSqliteTable {
-    private static final String LOG_TAG = RequestQueueDB.class.getSimpleName();
+public class RequestQueueTable extends BaseSqliteTable<Request> {
+    private static final String LOG_TAG = RequestQueueTable.class.getSimpleName();
 
-    private static final int VERSION = 1;
-    private static final String TABLE_NAME = "request_queue";
+    public static final String TABLE_NAME = "request_queue";
 
-    public static final String FIELD_REQUEST_ID = "id";
+    private static final String FIELD_REQUEST_ID = "id";
     private static final String FIELD_REQUEST_URL = "url";
     private static final String FIELD_REQUEST_METHOD = "method";
     private static final String FIELD_IS_MULTIPART = "multipart";
@@ -31,8 +31,18 @@ public class RequestQueueDB extends BFSqliteTable {
     private static final String FIELD_PENDING_RETRY_COUNT = "pending_retry_count";
     private static final String FIELD_NEXT_RETRY_TIME = "next_retry_time";
 
-    public RequestQueueDB(Context context) {
-        super(context, TABLE_NAME, VERSION);
+    private static RequestQueueTable sInstance;
+
+    private RequestQueueTable(Context context) {
+        super(context);
+    }
+
+    public static RequestQueueTable getInstance(Context context) {
+        if (sInstance == null) {
+            sInstance = new RequestQueueTable(context);
+        }
+
+        return sInstance;
     }
 
     @Override
@@ -43,36 +53,43 @@ public class RequestQueueDB extends BFSqliteTable {
     @Override
     protected Request loadObject(Cursor cursor) {
         Request request = new Request();
-        request.setId(cursor.getLong(cursor.getColumnIndex(FIELD_REQUEST_ID)));
-        request.setUrl(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_URL)));
-        request.setMethod(Method.valueOf(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_METHOD))));
-        request.setFilePath(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_FILE_PATH)));
-        request.setParamJson(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_PARAMS_JSON)));
-        request.setRequestType(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_TYPE)));
-        request.setUrlParams(cursor.getString(cursor.getColumnIndex(FIELD_URL_PARAMS)));
-        request.setPendingRetryCount(cursor.getInt(cursor.getColumnIndex(FIELD_PENDING_RETRY_COUNT)));
-        request.setNextRetryTime(cursor.getLong(cursor.getColumnIndex(FIELD_NEXT_RETRY_TIME)));
+
+        if (cursor != null && !cursor.isAfterLast()) {
+            request.setId(cursor.getLong(cursor.getColumnIndex(FIELD_REQUEST_ID)));
+            request.setUrl(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_URL)));
+            request.setMethod(Method.valueOf(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_METHOD))));
+            request.setFilePath(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_FILE_PATH)));
+            request.setParamJson(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_PARAMS_JSON)));
+            request.setRequestType(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_TYPE)));
+            request.setUrlParams(cursor.getString(cursor.getColumnIndex(FIELD_URL_PARAMS)));
+            request.setPendingRetryCount(cursor.getInt(cursor.getColumnIndex(FIELD_PENDING_RETRY_COUNT)));
+            request.setNextRetryTime(cursor.getLong(cursor.getColumnIndex(FIELD_NEXT_RETRY_TIME)));
+        }
+
         return request;
     }
 
     @Override
-    protected ContentValues getContentValues(Object object) {
-        Request request = (Request) object;
+    protected ContentValues getContentValues(Request request) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(FIELD_REQUEST_URL, request.getUrl());
-        contentValues.put(FIELD_REQUEST_METHOD, request.getMethod().toString());
-        contentValues.put(FIELD_REQUEST_FILE_PATH, request.getFilePath());
-        contentValues.put(FIELD_REQUEST_PARAMS_JSON, request.getParamJson());
-        contentValues.put(FIELD_REQUEST_TYPE, request.getRequestType());
-        contentValues.put(FIELD_URL_PARAMS, request.getUrlParamsAsJSON());
-        contentValues.put(FIELD_PENDING_RETRY_COUNT, request.getPendingRetryCount());
-        contentValues.put(FIELD_NEXT_RETRY_TIME, request.getNextRetryTime());
+
+        if (request != null) {
+            contentValues.put(FIELD_REQUEST_URL, request.getUrl());
+            contentValues.put(FIELD_REQUEST_METHOD, request.getMethod().toString());
+            contentValues.put(FIELD_REQUEST_FILE_PATH, request.getFilePath());
+            contentValues.put(FIELD_REQUEST_PARAMS_JSON, request.getParamJson());
+            contentValues.put(FIELD_REQUEST_TYPE, request.getRequestType());
+            contentValues.put(FIELD_URL_PARAMS, request.getUrlParamsAsJSON());
+            contentValues.put(FIELD_PENDING_RETRY_COUNT, request.getPendingRetryCount());
+            contentValues.put(FIELD_NEXT_RETRY_TIME, request.getNextRetryTime());
+        }
+
         return contentValues;
     }
 
     @Override
     protected HashMap<String, FieldType> getFields() {
-        HashMap<String, FieldType> fieldInfo = new HashMap<String, FieldType>();
+        HashMap<String, FieldType> fieldInfo = new HashMap<>();
         fieldInfo.put(FIELD_REQUEST_ID, FieldType.Autoincrement);
         fieldInfo.put(FIELD_REQUEST_URL, FieldType.String);
         fieldInfo.put(FIELD_REQUEST_METHOD, FieldType.String);
@@ -86,11 +103,16 @@ public class RequestQueueDB extends BFSqliteTable {
     }
 
     @Override
-    protected Long getId(Object object) {
-        if (object != null) {
-            return ((Request) object).getId();
+    protected Long getId(Request request) {
+        if (request != null) {
+            return request.getId();
         }
         return null;
+    }
+
+    @Override
+    public String getCreateTableQuery() {
+        return generateCreateTableQuery(getTableName(), getFields());
     }
 
     public void delete(Request request) {
