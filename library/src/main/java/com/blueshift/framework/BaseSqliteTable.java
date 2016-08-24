@@ -35,13 +35,13 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // create table for - RequestQueue
-        String createTableRequestQueue = RequestQueueTable.getInstance(getContext()).getCreateTableQuery();
+        String createTableRequestQueue = RequestQueueTable.getInstance(getContext()).generateCreateTableQuery();
         if (!TextUtils.isEmpty(createTableRequestQueue)) {
             db.execSQL(createTableRequestQueue);
         }
 
         // create table for - Events
-        String createTableEvent = EventsTable.getInstance(getContext()).getCreateTableQuery();
+        String createTableEvent = EventsTable.getInstance(getContext()).generateCreateTableQuery();
         if (!TextUtils.isEmpty(createTableEvent)) {
             db.execSQL(createTableEvent);
         }
@@ -56,45 +56,33 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     }
 
     /**
-     * <p>
-     * This method should be overridden in child class if we need to create a new table.
-     * The result of this method should be used inside {@link #onCreate(SQLiteDatabase)}
-     * of this class as an argument to db.execSQL() method.
-     * </p>
-     * <p>
-     * To generate valid 'CREATE TABLE' SQL query, follow these simple steps.<br>
-     * Step 1: Override this method in child class.<br>
-     * Step 2: Inside the method, call {@link #generateCreateTableQuery(String, HashMap)}
-     * with arguments {@link #getTableName()} and {@link #getFields()} and return it's result.
-     * </p>
+     * Generates SQL query to create a table with available tableName and field-Type HashMap.
      *
-     * @return SQL query for creating table.
-     */
-    public String getCreateTableQuery() {
-        return null;
-    }
-
-    /**
-     * Generates SQL query to create a table with provided name and fields' details.
-     *
-     * @param tableName    Name of the table
-     * @param fieldTypeMap Field Name -> Field Type map.
      * @return valid create table SQL query if valid arguments given, else null.
      */
-    protected String generateCreateTableQuery(String tableName, HashMap<String, FieldType> fieldTypeMap) {
+    protected String generateCreateTableQuery() {
         String query = null;
+
+        String tableName = getTableName();
+        HashMap<String, FieldType> fieldTypeMap = getFields();
 
         if (!TextUtils.isEmpty(tableName) && fieldTypeMap != null && fieldTypeMap.size() != 0) {
             String createTableQuery = "CREATE TABLE " + tableName + "(";
 
             Set<String> fieldNames = fieldTypeMap.keySet();
+            boolean isFirstIteration = true;
+
             for (String fieldName : fieldNames) {
+                if (isFirstIteration) {
+                    isFirstIteration = false;
+                } else {
+                    createTableQuery += ",";
+                }
+
                 String dataType = fieldTypeMap.get(fieldName).toString();
-                createTableQuery += (fieldName + " " + dataType + ",");
+                createTableQuery += (fieldName + " " + dataType);
             }
 
-            int len = createTableQuery.length();
-            createTableQuery = createTableQuery.substring(0, len - 1); // replace last comma
             query = createTableQuery + ")";
         }
 

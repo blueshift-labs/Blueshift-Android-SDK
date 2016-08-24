@@ -36,11 +36,6 @@ public class EventsTable extends BaseSqliteTable<Event> {
     }
 
     @Override
-    public String getCreateTableQuery() {
-        return generateCreateTableQuery(getTableName(), getFields());
-    }
-
-    @Override
     protected String getTableName() {
         return TABLE_NAME;
     }

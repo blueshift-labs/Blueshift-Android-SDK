@@ -110,11 +110,6 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
         return null;
     }
 
-    @Override
-    public String getCreateTableQuery() {
-        return generateCreateTableQuery(getTableName(), getFields());
-    }
-
     public void delete(Request request) {
         delete(FIELD_REQUEST_ID, String.valueOf(getId(request)));
     }
