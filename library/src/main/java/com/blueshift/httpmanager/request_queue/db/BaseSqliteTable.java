@@ -14,7 +14,7 @@ import java.util.Set;
 /**
  * Created by asif on 21/11/13.
  */
-public abstract class BFSqliteTable<T> extends SQLiteOpenHelper {
+public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     private static final Boolean lock = true;
 
     private static final int DB_VERSION = 1;
@@ -22,7 +22,7 @@ public abstract class BFSqliteTable<T> extends SQLiteOpenHelper {
 
     private Context mContext;
 
-    public BFSqliteTable(Context context) {
+    public BaseSqliteTable(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
         mContext = context;
     }

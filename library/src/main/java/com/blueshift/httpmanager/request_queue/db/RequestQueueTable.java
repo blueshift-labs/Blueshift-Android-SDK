@@ -14,7 +14,7 @@ import java.util.HashMap;
 /**
  * Created by rahul on 26/5/15.
  */
-public class RequestQueueTable extends BFSqliteTable<Request> {
+public class RequestQueueTable extends BaseSqliteTable<Request> {
     private static final String LOG_TAG = RequestQueueTable.class.getSimpleName();
 
     public static final String TABLE_NAME = "request_queue";
