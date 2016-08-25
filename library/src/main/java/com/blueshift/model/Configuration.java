@@ -1,5 +1,7 @@
 package com.blueshift.model;
 
+import android.app.AlarmManager;
+
 /**
  * Created by rahul on 19/2/15.
  */
@@ -9,6 +11,11 @@ public class Configuration {
     Class cartPage;
     Class offerDisplayPage;
     String apiKey;
+    long batchInterval;
+
+    public Configuration() {
+        batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
+    }
 
     public int getAppIcon() {
         return appIcon;
@@ -48,5 +55,19 @@ public class Configuration {
 
     public void setOfferDisplayPage(Class offerDisplayPage) {
         this.offerDisplayPage = offerDisplayPage;
+    }
+
+    public long getBatchInterval() {
+        return batchInterval;
+    }
+
+    /**
+     * Set interval between bulk event api calls here.
+     * Default value is AlarmManager.INTERVAL_HALF_HOUR
+     *
+     * @param batchInterval batch interval in milliseconds
+     */
+    public void setBatchInterval(long batchInterval) {
+        this.batchInterval = batchInterval;
     }
 }
