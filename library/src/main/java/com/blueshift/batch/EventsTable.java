@@ -79,17 +79,17 @@ public class EventsTable extends BaseSqliteTable<Event> {
     }
 
     /**
-     * Bulk event api takes max 100 events (for now. the actual limit is max 1MB).
+     * Bulk event api takes max 1MB of events.
      * This method is used for generating an array of event request parameter JSONs.
-     * This method will retrieve and delete the first 100 records from db. Then will create
+     * This method will retrieve and delete the first batchSize amount of records from db. Then will create
      * an ArrayList of Strings, where each element will be on event request's parameters as JSON.
      *
      * @return array of event request parameter JSONs
      */
-    public ArrayList<String> getBulkEventParameters() {
+    public ArrayList<String> getBulkEventParameters(int batchSize) {
         ArrayList<String> result = new ArrayList<>();
 
-        ArrayList<Event> events = findWithLimit(100);
+        ArrayList<Event> events = findWithLimit(batchSize);
         if (events.size() > 0) {
             ArrayList<String> idList = new ArrayList<>();
 
