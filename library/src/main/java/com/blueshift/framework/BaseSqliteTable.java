@@ -6,7 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
+import android.util.Log;
 
+import com.blueshift.batch.EventsTable;
+import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.request_queue.RequestQueueTable;
 
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
     private static final int DB_VERSION = 1;
     private static final String DB_NAME = "blueshift_db.sqlite3";
+    private static final String LOG_TAG = "BaseSqliteTable";
 
     private Context mContext;
 
@@ -32,60 +36,61 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // create table for - RequestQueue
-        String createTableRequestQueue = RequestQueueTable.getInstance(getContext()).getCreateTableQuery();
+        String createTableRequestQueue = RequestQueueTable.getInstance(getContext()).generateCreateTableQuery();
         if (!TextUtils.isEmpty(createTableRequestQueue)) {
             db.execSQL(createTableRequestQueue);
+        }
+
+        // create table for - Events
+        String createTableEvent = EventsTable.getInstance(getContext()).generateCreateTableQuery();
+        if (!TextUtils.isEmpty(createTableEvent)) {
+            db.execSQL(createTableEvent);
+        }
+
+        // create table for - Failed Events
+        String createTableFailedEvent = FailedEventsTable.getInstance(getContext()).generateCreateTableQuery();
+        if (!TextUtils.isEmpty(createTableFailedEvent)) {
+            db.execSQL(createTableFailedEvent);
         }
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE " + RequestQueueTable.TABLE_NAME);
+        db.execSQL("DROP TABLE " + EventsTable.TABLE_NAME);
+        db.execSQL("DROP TABLE " + FailedEventsTable.TABLE_NAME);
 
         onCreate(db);
     }
 
     /**
-     * <p>
-     * This method should be overridden in child class if we need to create a new table.
-     * The result of this method should be used inside {@link #onCreate(SQLiteDatabase)}
-     * of this class as an argument to db.execSQL() method.
-     * </p>
+     * Generates SQL query to create a table with available tableName and field-Type HashMap.
      *
-     * <p>
-     * To generate valid 'CREATE TABLE' SQL query, follow these simple steps.<br>
-     * Step 1: Override this method in child class.<br>
-     * Step 2: Inside the method, call {@link #generateCreateTableQuery(String, HashMap)}
-     * with arguments {@link #getTableName()} and {@link #getFields()} and return it's result.
-     * </p>
-     *
-     * @return SQL query for creating table.
-     */
-    public String getCreateTableQuery() {
-        return null;
-    }
-
-    /**
-     * Generates SQL query to create a table with provided name and fields' details.
-     *
-     * @param tableName Name of the table
-     * @param fieldTypeMap Field Name -> Field Type map.
      * @return valid create table SQL query if valid arguments given, else null.
      */
-    protected String generateCreateTableQuery(String tableName, HashMap<String, FieldType> fieldTypeMap) {
+    protected String generateCreateTableQuery() {
         String query = null;
+
+        String tableName = getTableName();
+        HashMap<String, FieldType> fieldTypeMap = getFields();
 
         if (!TextUtils.isEmpty(tableName) && fieldTypeMap != null && fieldTypeMap.size() != 0) {
             String createTableQuery = "CREATE TABLE " + tableName + "(";
 
             Set<String> fieldNames = fieldTypeMap.keySet();
+            boolean isFirstIteration = true;
+
             for (String fieldName : fieldNames) {
+                if (isFirstIteration) {
+                    isFirstIteration = false;
+                } else {
+                    createTableQuery += ",";
+                }
+
                 String dataType = fieldTypeMap.get(fieldName).toString();
-                createTableQuery += (fieldName + " " + dataType + ",");
+                createTableQuery += (fieldName + " " + dataType);
             }
 
-            int len = createTableQuery.length();
-            createTableQuery = createTableQuery.substring(0, len - 2); // replace last comma
             query = createTableQuery + ")";
         }
 
@@ -129,6 +134,39 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         }
     }
 
+    protected int delete(String key, ArrayList<String> values) {
+        int count = 0;
+
+        if (!TextUtils.isEmpty(key) && values != null && values.size() > 0) {
+            String[] valuesArray = new String[values.size()];
+            values.toArray(valuesArray);
+
+            count = delete(key, valuesArray);
+        }
+
+        return count;
+    }
+
+    protected int delete(String fieldName, String[] values) {
+        int count = 0;
+
+        if (!TextUtils.isEmpty(fieldName) && values != null && values.length > 0) {
+            String valuesCSV = TextUtils.join(",", values);
+            if (!TextUtils.isEmpty(valuesCSV)) {
+                synchronized (lock) {
+                    SQLiteDatabase db = getWritableDatabase();
+                    if (db != null) {
+                        Log.d(LOG_TAG, "Deleting records with '" + fieldName + "' IN (" + valuesCSV + ")");
+                        count = db.delete(getTableName(), fieldName + " IN (" + valuesCSV + ")", null);
+                        db.close();
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
+
     public void deleteAll() {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
@@ -158,6 +196,31 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
                         cursor.moveToNext();
                     }
                 }
+            }
+        }
+
+        return result;
+    }
+
+    public ArrayList<T> findWithLimit(int limit) {
+        ArrayList<T> result = new ArrayList<>();
+
+        synchronized (lock) {
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = db.rawQuery("SELECT * FROM " + getTableName() + " LIMIT " + limit, null);
+                if (cursor != null) {
+                    cursor.moveToFirst();
+
+                    while (!cursor.isAfterLast()) {
+                        result.add(loadObject(cursor));
+                        cursor.moveToNext();
+                    }
+
+                    cursor.close();
+                }
+
+                db.close();
             }
         }
 
@@ -293,7 +356,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     }
 
     public ArrayList<T> findAllByField(String[] fieldNames, String[] values, int pageNo, String order, String search) {
-        ArrayList<T> result = new ArrayList<T>();
+        ArrayList<T> result = new ArrayList<>();
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
@@ -333,11 +396,11 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
     abstract protected T loadObject(Cursor cursor);
 
-    abstract protected ContentValues getContentValues(T object);
+    abstract protected ContentValues getContentValues(T t);
 
     abstract protected HashMap<String, FieldType> getFields();
 
-    abstract protected Long getId(T object);
+    abstract protected Long getId(T t);
 
     protected enum FieldType {
         String,
