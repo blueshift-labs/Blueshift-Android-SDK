@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.batch.EventsTable;
+import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.request_queue.RequestQueueTable;
 
 import java.util.ArrayList;
@@ -45,12 +46,19 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         if (!TextUtils.isEmpty(createTableEvent)) {
             db.execSQL(createTableEvent);
         }
+
+        // create table for - Failed Events
+        String createTableFailedEvent = FailedEventsTable.getInstance(getContext()).generateCreateTableQuery();
+        if (!TextUtils.isEmpty(createTableFailedEvent)) {
+            db.execSQL(createTableFailedEvent);
+        }
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE " + RequestQueueTable.TABLE_NAME);
         db.execSQL("DROP TABLE " + EventsTable.TABLE_NAME);
+        db.execSQL("DROP TABLE " + FailedEventsTable.TABLE_NAME);
 
         onCreate(db);
     }
