@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
@@ -14,6 +15,9 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
+import com.google.gson.Gson;
+
+import java.util.HashMap;
 
 /**
  * Created by rahul on 26/2/15.
@@ -175,11 +179,20 @@ public class RequestQueue {
 
                 if (BlueshiftConstants.EVENT_API_URL.equals(api)) {
                     // this is a case where request sent to non-bulk events api fails.
-                    Event event = new Event();
-                    event.setEventParamsJson(mRequest.getUrlParamsAsJSON());
+                    HashMap<String, Object> paramsMap = new HashMap<>();
+                    String paramsJson = mRequest.getUrlParamsAsJSON();
 
-                    FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
-                    failedEventsTable.insert(event);
+                    if (!TextUtils.isEmpty(paramsJson)) {
+                        paramsMap = new Gson().fromJson(paramsJson, paramsMap.getClass());
+
+                        Event event = new Event();
+                        event.setEventParams(paramsMap);
+
+                        Log.d(LOG_TAG, "Adding failed request to failed events table");
+
+                        FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
+                        failedEventsTable.insert(event);
+                    }
                 } else {
                     int retryCount = mRequest.getPendingRetryCount() - 1;
                     if (retryCount > 0) {

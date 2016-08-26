@@ -275,7 +275,9 @@ public class Blueshift {
 
                         if (canBatchThisEvent) {
                             Event event = new Event();
-                            event.setEventParamsJson(reqParamsJSON);
+                            event.setEventParams(requestParams);
+
+                            Log.d(LOG_TAG, "Adding event to events table for batching");
 
                             EventsTable.getInstance(mContext).insert(event);
                         } else {
@@ -308,16 +310,21 @@ public class Blueshift {
      *
      * @param eventName name of the event
      * @param params    hash map with valid parameters
-     * @return true if request is successfully added to queue, els false
      */
-    public boolean trackEvent(@NotNull String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
-        HashMap<String, Object> eventParams = new HashMap<>();
+    public void trackEvent(@NotNull String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
+        final HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
         if (params != null) {
             eventParams.putAll(params);
         }
 
-        return sendEvent(eventParams, canBatchThisEvent);
+        // running on a non-UI thread to avoid possible ANR.
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sendEvent(eventParams, canBatchThisEvent);
+            }
+        }).run();
     }
 
     /**
@@ -349,14 +356,13 @@ public class Blueshift {
      *
      * @param customerId if provided, replaces existing one (taken from UserInfo) inside request params.
      * @param details    optional additional parameters
-     * @return true/false based on execution of identifyUser()
      */
-    public boolean identifyUserByCustomerId(String customerId, HashMap<String, Object> details, boolean canBatchThisEvent) {
+    public void identifyUserByCustomerId(String customerId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(customerId)) {
             Log.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
         }
 
-        return identifyUser(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, customerId, details, canBatchThisEvent);
+        identifyUser(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, customerId, details, canBatchThisEvent);
     }
 
     /**
@@ -364,14 +370,13 @@ public class Blueshift {
      *
      * @param androidAdId android ad id provided by host/customer app.
      * @param details     optional additional parameters
-     * @return true/false based on execution of identifyUser()
      */
-    public boolean identifyUserByDeviceId(String androidAdId, HashMap<String, Object> details, boolean canBatchThisEvent) {
+    public void identifyUserByDeviceId(String androidAdId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(androidAdId)) {
             Log.w(LOG_TAG, "identifyUserByAdId() - The Android Ad ID provided is empty.");
         }
 
-        return identifyUser(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId, details, canBatchThisEvent);
+        identifyUser(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId, details, canBatchThisEvent);
     }
 
     /**
@@ -379,14 +384,13 @@ public class Blueshift {
      *
      * @param email   registered email address provided by host/customer app
      * @param details optional additional parameters
-     * @return true/false based on execution of identifyUser()
      */
-    public boolean identifyUserByEmail(String email, HashMap<String, Object> details, boolean canBatchThisEvent) {
+    public void identifyUserByEmail(String email, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (email == null || email.isEmpty() || !(android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())) {
             Log.w(LOG_TAG, "identifyUserByEmail() - The email address provided is invalid.");
         }
 
-        return identifyUser(BlueshiftConstants.KEY_EMAIL, email, details, canBatchThisEvent);
+        identifyUser(BlueshiftConstants.KEY_EMAIL, email, details, canBatchThisEvent);
     }
 
     /**
@@ -396,9 +400,8 @@ public class Blueshift {
      * @param key     the key used for identify user. Ex: email, device_identifier, retailer_customer_id
      * @param value   the corresponding value for 'key'
      * @param details optional additional parameters
-     * @return true if trackEvent is success, false if valid credentials are unavailable or trackEvent fails.
      */
-    public boolean identifyUser(String key, String value, HashMap<String, Object> details, boolean canBatchThisEvent) {
+    public void identifyUser(String key, String value, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (hasValidCredentials()) {
             HashMap<String, Object> userParams = new HashMap<>();
 
@@ -410,11 +413,10 @@ public class Blueshift {
                 userParams.putAll(details);
             }
 
-            return trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams, canBatchThisEvent);
+            trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams, canBatchThisEvent);
 
         } else {
             Log.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
-            return false;
         }
     }
 
@@ -584,11 +586,11 @@ public class Blueshift {
         trackEvent(BlueshiftConstants.EVENT_UNSUBSCRIBE, eventParams, canBatchThisEvent);
     }
 
-    public boolean trackSubscriptionInitialization(SubscriptionState subscriptionState, String cycleType, int cycleLength, String subscriptionType, float price, long startDate, boolean canBatchThisEvent) {
-        return trackSubscriptionInitialization(subscriptionState, cycleType, cycleLength, subscriptionType, price, startDate, null, canBatchThisEvent);
+    public void trackSubscriptionInitialization(SubscriptionState subscriptionState, String cycleType, int cycleLength, String subscriptionType, float price, long startDate, boolean canBatchThisEvent) {
+        trackSubscriptionInitialization(subscriptionState, cycleType, cycleLength, subscriptionType, price, startDate, null, canBatchThisEvent);
     }
 
-    public boolean trackSubscriptionInitialization(SubscriptionState subscriptionState, String cycleType, int cycleLength, @NotNull String subscriptionType, float price, long startDate, HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackSubscriptionInitialization(SubscriptionState subscriptionState, String cycleType, int cycleLength, @NotNull String subscriptionType, float price, long startDate, HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         subscription.setSubscriptionState(subscriptionState);
         subscription.setCycleType(cycleType);
@@ -614,24 +616,19 @@ public class Blueshift {
             switch (subscriptionState) {
                 case START:
                 case UPGRADE:
-                    return trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_UPGRADE, eventParams, canBatchThisEvent);
+                    trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_UPGRADE, eventParams, canBatchThisEvent);
 
                 case DOWNGRADE:
-                    return trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_DOWNGRADE, eventParams, canBatchThisEvent);
-
-                default:
-                    return false;
+                    trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_DOWNGRADE, eventParams, canBatchThisEvent);
             }
         }
-
-        return false;
     }
 
-    public boolean trackSubscriptionPause(boolean canBatchThisEvent) {
-        return trackSubscriptionPause(null, canBatchThisEvent);
+    public void trackSubscriptionPause(boolean canBatchThisEvent) {
+        trackSubscriptionPause(null, canBatchThisEvent);
     }
 
-    public boolean trackSubscriptionPause(HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackSubscriptionPause(HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         if (subscription.hasValidSubscription()) {
             HashMap<String, Object> eventParams = new HashMap<>();
@@ -645,18 +642,17 @@ public class Blueshift {
                 eventParams.putAll(params);
             }
 
-            return trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_DOWNGRADE, eventParams, canBatchThisEvent);
+            trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_DOWNGRADE, eventParams, canBatchThisEvent);
         } else {
             Log.e(LOG_TAG, "No valid subscription was found to pause.");
-            return false;
         }
     }
 
-    public boolean trackSubscriptionUnpause(boolean canBatchThisEvent) {
-        return trackSubscriptionUnpause(null, canBatchThisEvent);
+    public void trackSubscriptionUnpause(boolean canBatchThisEvent) {
+        trackSubscriptionUnpause(null, canBatchThisEvent);
     }
 
-    public boolean trackSubscriptionUnpause(HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackSubscriptionUnpause(HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         if (subscription.hasValidSubscription()) {
             HashMap<String, Object> eventParams = new HashMap<>();
@@ -670,18 +666,17 @@ public class Blueshift {
                 eventParams.putAll(params);
             }
 
-            return trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_UPGRADE, eventParams, canBatchThisEvent);
+            trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_UPGRADE, eventParams, canBatchThisEvent);
         } else {
             Log.e(LOG_TAG, "No valid subscription was found to unpause.");
-            return false;
         }
     }
 
-    public boolean trackSubscriptionCancel(boolean canBatchThisEvent) {
-        return trackSubscriptionCancel(null, canBatchThisEvent);
+    public void trackSubscriptionCancel(boolean canBatchThisEvent) {
+        trackSubscriptionCancel(null, canBatchThisEvent);
     }
 
-    public boolean trackSubscriptionCancel(HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackSubscriptionCancel(HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         if (subscription.hasValidSubscription()) {
             HashMap<String, Object> eventParams = new HashMap<>();
@@ -692,10 +687,9 @@ public class Blueshift {
                 eventParams.putAll(params);
             }
 
-            return trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_CANCEL, eventParams, canBatchThisEvent);
+            trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_CANCEL, eventParams, canBatchThisEvent);
         } else {
             Log.e(LOG_TAG, "No valid subscription was found to cancel.");
-            return false;
         }
     }
 
