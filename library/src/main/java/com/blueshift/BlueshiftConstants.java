@@ -8,8 +8,9 @@ public class BlueshiftConstants {
     /**
      * URLs for server communication
      */
-    public static final String BASE_URL = "https://api.getblueshift.com";
-    public static final String EVENT_API_URL = BASE_URL + "/api/v1/event";
+    public static final String BASE_URL = "https://api.getblueshift.com/api/v1";
+    public static final String EVENT_API_URL = BASE_URL + "/event";
+    public static final String BULK_EVENT_API_URL = BASE_URL + "/bulkevents";
 
     /**
      * Event names sent to Blueshift server
@@ -94,4 +95,9 @@ public class BlueshiftConstants {
     public static final String STATUS_PAUSED = "paused";
     public static final String STATUS_ACTIVE = "active";
     public static final String STATUS_CANCELED = "canceled";
+
+    /**
+     * Bulk Event
+     */
+    public static final int BULK_EVENT_PAGE_SIZE = 100;
 }
