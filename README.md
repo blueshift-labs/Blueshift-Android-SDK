@@ -10,7 +10,7 @@ Blueshift Android SDK - description goes here.
     * [Track App Install] (#app_install_tracking)
     * [Initializing SDK] (#initialize_sdk)
     * [Setting user info] (#set_user_info)
-   * [Track Events] (#track_events)
+  * [Track Events] (#track_events)
   
 <a name="prerequisites"></a>
 # Prerequisites
