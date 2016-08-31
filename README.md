@@ -15,7 +15,8 @@ Blueshift Android SDK - description goes here.
 # Setup
 
 <a name="permissions"></a>
-## Permissions
+
+## Permissions required
 
 Add the following permissions to your `AndroidManifest.xml`
 
@@ -103,12 +104,15 @@ If you wish to override the notifications received by the SDK, then add the foll
 </receiver>
 ```
 
-## Batch Events And Install Tracking ##
-Add this receiver inside `<application>` tag to enable batch events support. This is important. If this is missing in AndroidManifest.xml, the event tracking will not happen properly.
+## Batching Events ##
+
+Add this receiver inside `<application>` tag to enable batch events support. This is important! If this is missing in AndroidManifest.xml, the event tracking will not happen properly. All events marked for batching will not be sent.
 
 ```xml
 <receiver android:name="com.blueshift.batch.AlarmReceiver"/>
 ```
+
+##  App Install Tracking  ##
 
 Add the following block inside `<application>` tag to enable app install tracking by SDK.
 
@@ -151,7 +155,8 @@ configuration.setApiKey("YOUR_BLUESHIFT_API_KEY");
 Blueshift.getInstance(this).initialize(configuration);
 ```
 
-## Set user info ##
+## Setting user info ##
+
 The `UserInfo` class helps sending the user related details to Blueshift. If the values are set after sign in, then they will be used for building the events params next time onwards. Here is an example of setting retailer customer id and email after user sign in.
 
 ```java
@@ -162,3 +167,13 @@ userInfo.setEmail(email);
 // It is important to save the instance once an updation is made on UserInfo
 userInfo.save(context);
 ```
+
+## Track Events ##
+
+The SDK supports basically two types of events tracking. One is real-time and the other one is bulk events. Real-time events will be sent right away if there is internet available. Bulk events will be queued and sent in a batch during a particular time interval set by developer/SDK. To switch between these, you can make the parameter `canBatchThisEvent` set to `false` for realtime and `true` for bulk events.
+
+```java
+Blueshift.getInstance(context).trackEvent("event_name", eventParams, canBatchThisEvent)
+```
+
+Above example helps you in sending custom events. There are a bunch of APIs provided by the SDK to track predefined events like "pageload", "view" etc. You can find them under `Blueshift` class's instance.'
