@@ -38,7 +38,7 @@ public class UserInfo {
     private static UserInfo instance = null;
 
     private UserInfo() {
-        unsubscribed = true;
+        unsubscribed = false;
     }
 
     public static UserInfo getInstance(Context context) {
