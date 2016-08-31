@@ -319,12 +319,18 @@ public class Blueshift {
         }
 
         // running on a non-UI thread to avoid possible ANR.
-        new Thread(new Runnable() {
+        new AsyncTask<Void, Void, Boolean>() {
             @Override
-            public void run() {
-                sendEvent(eventParams, canBatchThisEvent);
+            protected Boolean doInBackground(Void... params) {
+                // call send event and return its result.
+                return sendEvent(eventParams, canBatchThisEvent);
             }
-        }).run();
+
+            @Override
+            protected void onPostExecute(Boolean isSuccess) {
+                Log.d(LOG_TAG, "Event creation " + (isSuccess ? "success." : "failed."));
+            }
+        };
     }
 
     /**
