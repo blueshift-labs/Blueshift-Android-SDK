@@ -3,6 +3,7 @@ Blueshift Android SDK - description goes here.
 
 # Contents
   * [Prerequisites] (#prerequisites)
+  * [Install SDK] (#install)
   * [Setup] (#setup)
     * [Permissions Required] (#permissions)
     * [Rich Push Notification] (#rich_push)
@@ -17,8 +18,19 @@ Blueshift Android SDK - description goes here.
   * Android API 14 (Android 4.0 - ICS) or above.
   * API key provided by Blueshift
 
+<a name="install"></a>
+# Install SDK
+
+TODO: We need to provide one/all of the following options to install SDK here.
+
+1. Provide a compile link to mavenCentral/jCenter repo
+2. Download .aar and include in project
+3. Clone project and add as a module to client project
+
 <a name="setup"></a>
 # Setup
+
+Follow these steps one by one to integrate the SDK completely into your application.
 
 <a name="permissions"></a>
 ## Permissions required
