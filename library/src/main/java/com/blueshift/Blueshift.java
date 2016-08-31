@@ -330,7 +330,7 @@ public class Blueshift {
             protected void onPostExecute(Boolean isSuccess) {
                 Log.d(LOG_TAG, "Event creation " + (isSuccess ? "success." : "failed."));
             }
-        };
+        }.execute();
     }
 
     /**
