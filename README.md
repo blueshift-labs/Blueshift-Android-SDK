@@ -4,7 +4,13 @@ Blueshift Android SDK - description goes here.
 # Contents
   * [Prerequisites] (#prerequisites)
   * [Setup] (#setup)
-    * [Permissions] (#permissions)
+    * [Permissions Required] (#permissions)
+    * [Rich Push Notification] (#rich_push)
+    * [Bulk Events Support] (#bulk_event)
+    * [Track App Install] (#app_install_tracking)
+    * [Initializing SDK] (#initialize_sdk)
+    * [Setting user info] (#set_user_info)
+   * [Track Events] (#track_events)
   
 <a name="prerequisites"></a>
 # Prerequisites
@@ -15,7 +21,6 @@ Blueshift Android SDK - description goes here.
 # Setup
 
 <a name="permissions"></a>
-
 ## Permissions required
 
 Add the following permissions to your `AndroidManifest.xml`
@@ -45,6 +50,7 @@ Add the following permissions to your `AndroidManifest.xml`
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 ```
 
+<a name="rich_push"></a>
 ## Rich push notification ##
 
 Add the following block inside `<application>` tag. This part is required to receive GCM push messages in your app.
@@ -104,7 +110,8 @@ If you wish to override the notifications received by the SDK, then add the foll
 </receiver>
 ```
 
-## Batching Events ##
+<a name="bulk_event"></a>
+## Bulk Events Support ##
 
 Add this receiver inside `<application>` tag to enable batch events support. This is important! If this is missing in AndroidManifest.xml, the event tracking will not happen properly. All events marked for batching will not be sent.
 
@@ -112,6 +119,7 @@ Add this receiver inside `<application>` tag to enable batch events support. Thi
 <receiver android:name="com.blueshift.batch.AlarmReceiver"/>
 ```
 
+<a name="app_install_tracking"></a>
 ##  App Install Tracking  ##
 
 Add the following block inside `<application>` tag to enable app install tracking by SDK.
@@ -128,6 +136,7 @@ Add the following block inside `<application>` tag to enable app install trackin
 </receiver>
 ```
 
+<a name="initialize_sdk"></a>
 ## Initializing SDK ##
 
 To initialize the SDK, add the following code inside `onCreate()` of your `Application` file.
@@ -155,6 +164,7 @@ configuration.setApiKey("YOUR_BLUESHIFT_API_KEY");
 Blueshift.getInstance(this).initialize(configuration);
 ```
 
+<a name="set_user_info"></a>
 ## Setting user info ##
 
 The `UserInfo` class helps sending the user related details to Blueshift. If the values are set after sign in, then they will be used for building the events params next time onwards. Here is an example of setting retailer customer id and email after user sign in.
@@ -168,7 +178,8 @@ userInfo.setEmail(email);
 userInfo.save(context);
 ```
 
-## Track Events ##
+<a name="track_events"></a>
+# Track Events #
 
 The SDK supports basically two types of events tracking. One is real-time and the other one is bulk events. Real-time events will be sent right away if there is internet available. Bulk events will be queued and sent in a batch during a particular time interval set by developer/SDK. To switch between these, you can make the parameter `canBatchThisEvent` set to `false` for realtime and `true` for bulk events.
 
