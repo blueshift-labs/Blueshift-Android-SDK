@@ -3,9 +3,11 @@ package com.blueshift.batch;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.framework.BaseSqliteTable;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +48,13 @@ public class EventsTable extends BaseSqliteTable<Event> {
 
         if (cursor != null && !cursor.isAfterLast()) {
             event.setId(cursor.getLong(cursor.getColumnIndex(FIELD_ID)));
-            event.setEventParamsJson(cursor.getString(cursor.getColumnIndex(FIELD_EVENT_PARAMS_JSON)));
+
+            String json = cursor.getString(cursor.getColumnIndex(FIELD_EVENT_PARAMS_JSON));
+            HashMap<String, Object> paramsMap = new HashMap<>();
+            if (!TextUtils.isEmpty(json)) {
+                paramsMap = new Gson().fromJson(json, paramsMap.getClass());
+            }
+            event.setEventParams(paramsMap);
         }
 
         return event;
@@ -86,8 +94,8 @@ public class EventsTable extends BaseSqliteTable<Event> {
      *
      * @return array of event request parameter JSONs
      */
-    public ArrayList<String> getBulkEventParameters(int batchSize) {
-        ArrayList<String> result = new ArrayList<>();
+    public ArrayList<HashMap<String,Object>> getBulkEventParameters(int batchSize) {
+        ArrayList<HashMap<String,Object>> result = new ArrayList<>();
 
         ArrayList<Event> events = findWithLimit(batchSize);
         if (events.size() > 0) {
@@ -95,7 +103,7 @@ public class EventsTable extends BaseSqliteTable<Event> {
 
             for (Event event : events) {
                 // get the event parameter
-                result.add(event.getEventParamsJson());
+                result.add(event.getEventParams());
 
                 // get id for deleting the item.
                 idList.add(String.valueOf(event.getId()));

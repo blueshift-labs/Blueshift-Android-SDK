@@ -4,21 +4,29 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftConstants;
+import com.blueshift.batch.Event;
+import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
+import com.google.gson.Gson;
+
+import java.util.HashMap;
 
 /**
  * Created by rahul on 26/2/15.
  */
 public class RequestQueue {
+    public static final int DEFAULT_RETRY_COUNT = 3;
+
     private static final String LOG_TAG = RequestQueue.class.getSimpleName();
     private static final Boolean lock = true;
-
     private static final long RETRY_INTERVAL = 5 * 60 * 1000;
 
     private static Status mStatus;
@@ -166,14 +174,35 @@ public class RequestQueue {
         protected void onPostExecute(Boolean status) {
             remove(mRequest);
             if (!status) {
-                int retryCount = mRequest.getPendingRetryCount() - 1;
-                if (retryCount > 0) {
-                    mRequest.setPendingRetryCount(retryCount);
-                    // setting a retry time 5 minutes from now.
-                    long nextRetryTime = (RETRY_INTERVAL) + System.currentTimeMillis();
-                    mRequest.setNextRetryTime(nextRetryTime);
+                // check if it is a failed high priority event.
+                String api = mRequest.getUrl();
 
-                    add(mRequest);
+                if (BlueshiftConstants.EVENT_API_URL.equals(api)) {
+                    // this is a case where request sent to non-bulk events api fails.
+                    HashMap<String, Object> paramsMap = new HashMap<>();
+                    String paramsJson = mRequest.getUrlParamsAsJSON();
+
+                    if (!TextUtils.isEmpty(paramsJson)) {
+                        paramsMap = new Gson().fromJson(paramsJson, paramsMap.getClass());
+
+                        Event event = new Event();
+                        event.setEventParams(paramsMap);
+
+                        Log.d(LOG_TAG, "Adding failed request to failed events table");
+
+                        FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
+                        failedEventsTable.insert(event);
+                    }
+                } else {
+                    int retryCount = mRequest.getPendingRetryCount() - 1;
+                    if (retryCount > 0) {
+                        mRequest.setPendingRetryCount(retryCount);
+                        // setting a retry time 5 minutes from now.
+                        long nextRetryTime = (RETRY_INTERVAL) + System.currentTimeMillis();
+                        mRequest.setNextRetryTime(nextRetryTime);
+
+                        add(mRequest);
+                    }
                 }
             }
             mStatus = RequestQueue.Status.AVAILABLE;

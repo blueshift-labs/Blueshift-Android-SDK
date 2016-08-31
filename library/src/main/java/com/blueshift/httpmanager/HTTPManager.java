@@ -52,7 +52,7 @@ public class HTTPManager {
         mIgnoreHostnameVerification = false;
         mAuthToken = null;
 
-        addRequestProperty("User-Agent", "Mozilla/five.0 ( compatible ) ");
+        addRequestProperty("User-Agent", System.getProperty("http.agent"));
         addRequestProperty("Accept", "application/json");
         addRequestProperty("Connection", "close");
     }

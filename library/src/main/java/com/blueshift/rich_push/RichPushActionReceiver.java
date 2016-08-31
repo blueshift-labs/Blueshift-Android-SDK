@@ -32,7 +32,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel(intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0));
 
-            Blueshift.getInstance(context).trackNotificationClick(message.getId());
+            Blueshift.getInstance(context).trackNotificationClick(message.getId(), true);
 
             context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
         }
@@ -94,6 +94,6 @@ public class RichPushActionReceiver extends BroadcastReceiver {
     }
 
     protected void trackAppOpen(Context context, String pushId) {
-        Blueshift.getInstance(context).trackNotificationPageOpen(pushId);
+        Blueshift.getInstance(context).trackNotificationPageOpen(pushId, true);
     }
 }
