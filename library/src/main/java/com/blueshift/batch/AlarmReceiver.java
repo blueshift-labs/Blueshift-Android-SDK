@@ -29,10 +29,12 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        // Log.d(LOG_TAG, "Received alarm for batch creation.");
+
         FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(context);
         ArrayList<HashMap<String, Object>> bulkEventsApiParams = failedEventsTable.getBulkEventParameters(BlueshiftConstants.BULK_EVENT_PAGE_SIZE);
 
-        Log.d(LOG_TAG, "Found " + bulkEventsApiParams.size() + " items inside failed events table.");
+        // Log.d(LOG_TAG, "Found " + bulkEventsApiParams.size() + " items inside failed events table.");
 
         int spaceAvailableInBatch = BlueshiftConstants.BULK_EVENT_PAGE_SIZE - bulkEventsApiParams.size();
 
@@ -41,7 +43,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             EventsTable eventsTable = EventsTable.getInstance(context);
             ArrayList<HashMap<String, Object>> eventParams = eventsTable.getBulkEventParameters(spaceAvailableInBatch);
 
-            Log.d(LOG_TAG, "Found " + eventParams.size() + " items inside batch events table.");
+            // Log.d(LOG_TAG, "Found " + eventParams.size() + " items inside batch events table.");
 
             bulkEventsApiParams.addAll(eventParams);
         }
