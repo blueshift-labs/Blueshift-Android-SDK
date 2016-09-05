@@ -40,7 +40,7 @@ public class BlueshiftConstants {
      */
 
     // Device
-    public static final String KEY_DEVICE_IDENTIFIER = "device_identifier";
+    public static final String KEY_DEVICE_IDENTIFIER = "device_id";
     public static final String KEY_DEVICE_TYPE = "device_type";
     public static final String KEY_DEVICE_TOKEN = "device_token";
     public static final String KEY_DEVICE_IDFA = "device_idfa";
