@@ -7,7 +7,6 @@ Blueshift Android SDK - description goes here.
   * [Setup] (#setup)
     * [Permissions Required] (#permissions)
     * [Rich Push Notification] (#rich_push)
-    * [Bulk Events Support] (#bulk_event)
     * [Track App Install] (#app_install_tracking)
     * [Initializing SDK] (#initialize_sdk)
     * [Setting user info] (#set_user_info)
@@ -121,15 +120,6 @@ If you wish to override the notifications received by the SDK, then add the foll
         <action android:name="com.blueshift.sampleapp.ACTION_PUSH_RECEIVED" />
     </intent-filter>
 </receiver>
-```
-
-<a name="bulk_event"></a>
-## Bulk Events Support ##
-
-Add this receiver inside `<application>` tag to enable batch events support. This is important! If this is missing in AndroidManifest.xml, the event tracking will not happen properly. All events marked for batching will not be sent.
-
-```xml
-<receiver android:name="com.blueshift.batch.AlarmReceiver"/>
 ```
 
 <a name="app_install_tracking"></a>

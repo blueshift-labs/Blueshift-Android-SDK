@@ -23,18 +23,38 @@ import java.io.File;
 public class RichPushNotification {
     private final static String LOG_TAG = RichPushNotification.class.getSimpleName();
 
-    public static void handleMessage(Context context, Message message) {
+    public static void handleMessage(final Context context, final Message message) {
         switch (message.getNotificationType()) {
             case AlertDialog:
+                buildAndShowAlertDialog(context, message);
                 break;
 
             case Notification:
-                buildAndShowNotification(context, message);
+                /**
+                 * The rich push rendering require network access (ex: image download)
+                 * Since network operations are not allowed in main thread, we
+                 * are rendering the push message in a different thread.
+                 */
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        buildAndShowNotification(context, message);
+                    }
+                }).run();
+
                 break;
         }
 
         // Tracking the notification display.
         Blueshift.getInstance(context).trackNotificationView(message.getId(), true);
+    }
+
+    private static void buildAndShowAlertDialog(Context context, Message message) {
+        Intent notificationIntent = new Intent(context, NotificationActivity.class);
+        notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        // notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(notificationIntent);
     }
 
     private static void buildAndShowNotification(Context context, Message message) {

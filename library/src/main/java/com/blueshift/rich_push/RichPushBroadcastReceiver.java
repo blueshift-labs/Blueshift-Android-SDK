@@ -21,18 +21,8 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
         String messageJSON = intent.getStringExtra(RichPushConstants.EXTRA_MESSAGE);
         if (messageJSON != null) {
             try {
-                final Message message = new Gson().fromJson(messageJSON, Message.class);
-                /**
-                 * The rich push rendering require network access (ex: image download)
-                 * Since network operations are not allowed in main thread, we
-                 * are rendering the push message in a different thread.
-                 */
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        RichPushNotification.handleMessage(context, message);
-                    }
-                }).start();
+                Message message = new Gson().fromJson(messageJSON, Message.class);
+                RichPushNotification.handleMessage(context, message);
             } catch (JsonSyntaxException e) {
                 Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
             }
