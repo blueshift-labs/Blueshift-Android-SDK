@@ -24,7 +24,14 @@ public class RichPushNotification {
     private final static String LOG_TAG = RichPushNotification.class.getSimpleName();
 
     public static void handleMessage(Context context, Message message) {
-        buildAndShowNotification(context, message);
+        switch (message.getNotificationType()) {
+            case AlertDialog:
+                break;
+
+            case Notification:
+                buildAndShowNotification(context, message);
+                break;
+        }
 
         // Tracking the notification display.
         Blueshift.getInstance(context).trackNotificationView(message.getId(), true);
@@ -41,49 +48,70 @@ public class RichPushNotification {
         if (configuration != null) {
             builder.setSmallIcon(configuration.getAppIcon());
 
-            if (message.category.equals(Message.CATEGORY_BUY)) {
-                notificationID = 100;
-                if (configuration.getProductPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_VIEW(context));
-                    intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                    intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                            0, intent, PendingIntent.FLAG_ONE_SHOT);
+            switch (message.getCategory()) {
+                case Buy:
+                    notificationID = NotificationCategory.Buy.getNotificationId();
+                    if (configuration.getProductPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_VIEW(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-                    builder.addAction(0, "View", pendingIntent);
-                }
+                        builder.addAction(0, "View", pendingIntent);
+                    }
 
-                if (configuration.getCartPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_BUY(context));
-                    intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                    intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                            0, intent, PendingIntent.FLAG_ONE_SHOT);
+                    if (configuration.getCartPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_BUY(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-                    builder.addAction(0, "Buy", pendingIntent);
-                }
-            } else if (message.category.equals(Message.CATEGORY_VIEW_CART)) {
-                notificationID = 200;
-                if (configuration.getCartPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_OPEN_CART(context));
-                    intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                    intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                            0, intent, PendingIntent.FLAG_ONE_SHOT);
+                        builder.addAction(0, "Buy", pendingIntent);
+                    }
 
-                    builder.addAction(0, "Open Cart", pendingIntent);
-                }
-            } else if (message.category.equals(Message.CATEGORY_OFFER)) {
-                notificationID = 300;
-                if (configuration.getOfferDisplayPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context));
+                    break;
+
+                case ViewCart:
+                    notificationID = NotificationCategory.ViewCart.getNotificationId();
+                    if (configuration.getCartPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_OPEN_CART(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+                        builder.addAction(0, "Open Cart", pendingIntent);
+                    }
+
+                    break;
+
+                case Promotion:
+                    notificationID = NotificationCategory.Promotion.getNotificationId();
+                    if (configuration.getOfferDisplayPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+                        builder.setContentIntent(pendingIntent);
+                    }
+
+                    break;
+
+                default:
+                    /**
+                     * Default action is to open app and send all details as extra inside intent
+                     */
+                    Intent intent = new Intent(RichPushConstants.ACTION_OPEN_APP(context));
                     intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
                     intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
                     PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
                             0, intent, PendingIntent.FLAG_ONE_SHOT);
 
                     builder.setContentIntent(pendingIntent);
-                }
             }
         }
 

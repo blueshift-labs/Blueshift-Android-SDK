@@ -4,6 +4,8 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
@@ -15,6 +17,8 @@ public class RichPushActionReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d("RichPushActionReceiver", "onReceive - " + intent.getAction());
+
         String action = intent.getAction();
         Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
         if (action != null && message != null) {
@@ -26,6 +30,8 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                 displayCartPage(context, message);
             } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context))) {
                 displayOfferDisplayPage(context, message);
+            } else if (action.equals(RichPushConstants.ACTION_OPEN_APP(context))) {
+                openApp(context, message);
             }
 
             NotificationManager notificationManager =
@@ -88,6 +94,18 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             pageLauncherIntent.putExtra("data", message.getData());
             pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(pageLauncherIntent);
+
+            trackAppOpen(context, message.getId());
+        }
+    }
+
+    protected void openApp(Context context, Message message) {
+        if (context != null) {
+            PackageManager packageManager = context.getPackageManager();
+            Intent launcherIntent  = packageManager.getLaunchIntentForPackage(context.getPackageName());
+            launcherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+            launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(launcherIntent);
 
             trackAppOpen(context, message.getId());
         }

@@ -16,6 +16,7 @@ public final class RichPushConstants {
     public static String ACTION_BUY(Context context) { return context.getPackageName() + ".ACTION_BUY"; }
     public static String ACTION_OPEN_CART(Context context) { return context.getPackageName() + ".ACTION_OPEN_CART"; }
     public static String ACTION_OPEN_OFFER_PAGE(Context context) { return context.getPackageName() + ".ACTION_OPEN_OFFER_PAGE"; }
+    public static String ACTION_OPEN_APP(Context context) { return context.getPackageName() + ".ACTION_OPEN_APP"; }
 
     /**
      * Action sent to host app for handling the push message at the user end.
