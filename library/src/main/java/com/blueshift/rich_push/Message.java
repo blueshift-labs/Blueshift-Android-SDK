@@ -8,7 +8,7 @@ import java.util.HashMap;
  */
 public class Message implements Serializable {
     public final static String CATEGORY_BUY = "buy";
-    public final static String CATEGORY_OFFER = "offer";
+    public final static String CATEGORY_OFFER = "promotion";
     public final static String CATEGORY_VIEW_CART = "view cart";
 
     String id;
