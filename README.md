@@ -106,6 +106,7 @@ Add the following block inside `<application>` tag to enable deeplinking from no
         <action android:name="com.blueshift.sampleapp.ACTION_BUY" />
         <action android:name="com.blueshift.sampleapp.ACTION_OPEN_CART" />
         <action android:name="com.blueshift.sampleapp.ACTION_OPEN_OFFER_PAGE" />
+        <action android:name="com.blueshift.sampleapp.ACTION_OPEN_APP" />
 
         <category android:name="com.blueshift.sampleapp" />
     </intent-filter>
