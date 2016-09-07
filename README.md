@@ -7,10 +7,11 @@ Blueshift Android SDK - description goes here.
   * [Setup] (#setup)
     * [Permissions Required] (#permissions)
     * [Rich Push Notification] (#rich_push)
-    * [Track App Install] (#app_install_tracking)
     * [Initializing SDK] (#initialize_sdk)
     * [Setting user info] (#set_user_info)
   * [Track Events] (#track_events)
+  * [Track App Install] (#app_install_tracking)
+  * [Bulk Events] (#bulk_events)
   
 <a name="prerequisites"></a>
 # Prerequisites
@@ -122,23 +123,6 @@ If you wish to override the notifications received by the SDK, then add the foll
 </receiver>
 ```
 
-<a name="app_install_tracking"></a>
-##  App Install Tracking  ##
-
-Add the following block inside `<application>` tag to enable app install tracking by SDK.
-
-```xml
-<receiver
-    android:name="com.blueshift.receiver.AppInstallReceiver"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="com.android.vending.INSTALL_REFERRER" />
-
-        <data android:scheme="package" />
-    </intent-filter>
-</receiver>
-```
-
 <a name="initialize_sdk"></a>
 ## Initializing SDK ##
 
@@ -153,7 +137,7 @@ configuration.setProductPage(ProductActivity.class);            // provide produ
 configuration.setCartPage(CartActivity.class);                  // provide cart activity class
 configuration.setOfferDisplayPage(OfferDisplayActivity.class);  // provide offers activity class
 
-// This time is used as batch interval. 30 min if not set.
+// This time is used as batch interval for bulk events api call. 30 min if not set.
 // It is recommended to use one of the following for API < 19 devices.
 // AlarmManager.INTERVAL_FIFTEEN_MINUTES
 // AlarmManager.INTERVAL_HALF_HOUR
@@ -191,3 +175,13 @@ Blueshift.getInstance(context).trackEvent("event_name", eventParams, canBatchThi
 ```
 
 Above example helps you in sending custom events. There are a bunch of APIs provided by the SDK to track predefined events like "pageload", "view" etc. You can find them under `Blueshift` class's instance.'
+
+<a name="app_install_tracking"></a>
+##  App Install Tracking  ##
+
+The SDK will track the app installs and will send the utm values as app_install event to the server.
+
+<a name="bulk_events"></a>
+##  Bulk Events  ##
+
+The SDK supports real-time events and batched events. The batched events are sent in an interval of 30min (if `setBatchInterval()` is not called by the developer during [sdk initialization] (#initialize_sdk)). The developer can specify each event whether to be sent with a batch or in real-time using the flad provided with each event method.
