@@ -22,7 +22,16 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
         if (messageJSON != null) {
             try {
                 Message message = new Gson().fromJson(messageJSON, Message.class);
-                RichPushNotification.handleMessage(context, message);
+                if (message.isSilentPush()) {
+                    /**
+                     * This is a silent push to track uninstalls.
+                     * SDK has nothing to do with this. If this push was not delivered,
+                     * server will track GCM registrations fails and will decide if the app is uninstalled or not.
+                     */
+                    Log.i(LOG_TAG, "A silent push received.");
+                } else {
+                    RichPushNotification.handleMessage(context, message);
+                }
             } catch (JsonSyntaxException e) {
                 Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
             }

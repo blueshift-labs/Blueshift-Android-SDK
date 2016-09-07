@@ -9,6 +9,7 @@ public enum NotificationCategory {
     Promotion,
     AlertBoxOpenDismiss,
     AlertBoxDismiss,
+    SilentPush,
     Unknown;
 
     public static NotificationCategory fromString(String notificationCategory) {
@@ -28,6 +29,9 @@ public enum NotificationCategory {
 
                 case "alert_box_1_button":
                     return AlertBoxDismiss;
+
+                case "silent_push":
+                    return SilentPush;
 
                 default:
                     return Unknown;

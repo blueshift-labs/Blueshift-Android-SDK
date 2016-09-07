@@ -67,4 +67,8 @@ public class Message implements Serializable {
     public HashMap<String, Object> getData() {
         return data;
     }
+
+    public boolean isSilentPush() {
+        return getNotificationType() == NotificationType.Notification && getCategory() == NotificationCategory.SilentPush;
+    }
 }

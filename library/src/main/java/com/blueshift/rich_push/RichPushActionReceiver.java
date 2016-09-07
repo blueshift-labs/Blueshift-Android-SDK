@@ -90,8 +90,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration != null && configuration.getOfferDisplayPage() != null) {
             Intent pageLauncherIntent = new Intent(context, configuration.getOfferDisplayPage());
-            pageLauncherIntent.putExtra("image_url", message.getImage_url());
-            pageLauncherIntent.putExtra("data", message.getData());
+            pageLauncherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
             pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(pageLauncherIntent);
 
