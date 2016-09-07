@@ -16,6 +16,18 @@
         <receiver android:name="com.blueshift.batch.AlarmReceiver"/>
         <!--End - Events batching-->
 
+        <!--App install tracking-->
+        <receiver
+            android:name="com.blueshift.receiver.AppInstallReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER" />
+
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+        <!--End - App install tracking-->
+
     </application>
 
 </manifest>
