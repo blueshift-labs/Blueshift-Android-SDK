@@ -44,7 +44,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
         }
     }
 
-    protected void displayProductPage(Context context, Message message) {
+    public void displayProductPage(Context context, Message message) {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration != null && configuration.getProductPage() != null) {
             Intent pageLauncherIntent = new Intent(context, configuration.getProductPage());
@@ -59,7 +59,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
         }
     }
 
-    protected void addToCart(Context context, Message message) {
+    public void addToCart(Context context, Message message) {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration != null && configuration.getCartPage() != null) {
             Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
@@ -74,7 +74,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
         }
     }
 
-    protected void displayCartPage(Context context, Message message) {
+    public void displayCartPage(Context context, Message message) {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration != null && configuration.getCartPage() != null) {
             Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
@@ -86,7 +86,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
         }
     }
 
-    protected void displayOfferDisplayPage(Context context, Message message) {
+    public void displayOfferDisplayPage(Context context, Message message) {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration != null && configuration.getOfferDisplayPage() != null) {
             Intent pageLauncherIntent = new Intent(context, configuration.getOfferDisplayPage());
@@ -98,7 +98,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
         }
     }
 
-    protected void openApp(Context context, Message message) {
+    public void openApp(Context context, Message message) {
         if (context != null) {
             PackageManager packageManager = context.getPackageManager();
             Intent launcherIntent  = packageManager.getLaunchIntentForPackage(context.getPackageName());
