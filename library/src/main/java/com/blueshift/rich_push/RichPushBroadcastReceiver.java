@@ -21,18 +21,17 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
         String messageJSON = intent.getStringExtra(RichPushConstants.EXTRA_MESSAGE);
         if (messageJSON != null) {
             try {
-                final Message message = new Gson().fromJson(messageJSON, Message.class);
-                /**
-                 * The rich push rendering require network access (ex: image download)
-                 * Since network operations are not allowed in main thread, we
-                 * are rendering the push message in a different thread.
-                 */
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        RichPushNotification.handleMessage(context, message);
-                    }
-                }).start();
+                Message message = new Gson().fromJson(messageJSON, Message.class);
+                if (message.isSilentPush()) {
+                    /**
+                     * This is a silent push to track uninstalls.
+                     * SDK has nothing to do with this. If this push was not delivered,
+                     * server will track GCM registrations fails and will decide if the app is uninstalled or not.
+                     */
+                    Log.i(LOG_TAG, "A silent push received.");
+                } else {
+                    RichPushNotification.handleMessage(context, message);
+                }
             } catch (JsonSyntaxException e) {
                 Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
             }

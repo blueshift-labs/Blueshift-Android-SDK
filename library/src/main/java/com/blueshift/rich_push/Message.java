@@ -7,18 +7,15 @@ import java.util.HashMap;
  * Created by rahul on 18/2/15.
  */
 public class Message implements Serializable {
-    public final static String CATEGORY_BUY = "buy";
-    public final static String CATEGORY_OFFER = "offer";
-    public final static String CATEGORY_VIEW_CART = "view cart";
-
     String id;
-    String type;
+    String notification_type;
     String title;
     String body;
     String category;
     String sku;
     String mrp;
     String price;
+    String url;
     String image_url;
     long expiry;
     HashMap<String, Object> data;
@@ -27,8 +24,8 @@ public class Message implements Serializable {
         return id;
     }
 
-    public String getType() {
-        return type;
+    public NotificationType getNotificationType() {
+        return NotificationType.fromString(notification_type);
     }
 
     public String getTitle() {
@@ -39,8 +36,8 @@ public class Message implements Serializable {
         return body;
     }
 
-    public String getCategory() {
-        return category;
+    public NotificationCategory getCategory() {
+        return NotificationCategory.fromString(category);
     }
 
     public String getSku() {
@@ -55,6 +52,10 @@ public class Message implements Serializable {
         return price;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
     public String getImage_url() {
         return image_url;
     }
@@ -65,5 +66,9 @@ public class Message implements Serializable {
 
     public HashMap<String, Object> getData() {
         return data;
+    }
+
+    public boolean isSilentPush() {
+        return getNotificationType() == NotificationType.Notification && getCategory() == NotificationCategory.SilentPush;
     }
 }

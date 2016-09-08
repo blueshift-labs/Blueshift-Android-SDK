@@ -23,11 +23,38 @@ import java.io.File;
 public class RichPushNotification {
     private final static String LOG_TAG = RichPushNotification.class.getSimpleName();
 
-    public static void handleMessage(Context context, Message message) {
-        buildAndShowNotification(context, message);
+    public static void handleMessage(final Context context, final Message message) {
+        switch (message.getNotificationType()) {
+            case AlertDialog:
+                buildAndShowAlertDialog(context, message);
+                break;
+
+            case Notification:
+                /**
+                 * The rich push rendering require network access (ex: image download)
+                 * Since network operations are not allowed in main thread, we
+                 * are rendering the push message in a different thread.
+                 */
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        buildAndShowNotification(context, message);
+                    }
+                }).run();
+
+                break;
+        }
 
         // Tracking the notification display.
         Blueshift.getInstance(context).trackNotificationView(message.getId(), true);
+    }
+
+    private static void buildAndShowAlertDialog(Context context, Message message) {
+        Intent notificationIntent = new Intent(context, NotificationActivity.class);
+        notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        // notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(notificationIntent);
     }
 
     private static void buildAndShowNotification(Context context, Message message) {
@@ -41,49 +68,70 @@ public class RichPushNotification {
         if (configuration != null) {
             builder.setSmallIcon(configuration.getAppIcon());
 
-            if (message.category.equals(Message.CATEGORY_BUY)) {
-                notificationID = 100;
-                if (configuration.getProductPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_VIEW(context));
-                    intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                    intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                            0, intent, PendingIntent.FLAG_ONE_SHOT);
+            switch (message.getCategory()) {
+                case Buy:
+                    notificationID = NotificationCategory.Buy.getNotificationId();
+                    if (configuration.getProductPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_VIEW(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-                    builder.addAction(0, "View", pendingIntent);
-                }
+                        builder.addAction(0, "View", pendingIntent);
+                    }
 
-                if (configuration.getCartPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_BUY(context));
-                    intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                    intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                            0, intent, PendingIntent.FLAG_ONE_SHOT);
+                    if (configuration.getCartPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_BUY(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-                    builder.addAction(0, "Buy", pendingIntent);
-                }
-            } else if (message.category.equals(Message.CATEGORY_VIEW_CART)) {
-                notificationID = 200;
-                if (configuration.getCartPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_OPEN_CART(context));
-                    intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                    intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                            0, intent, PendingIntent.FLAG_ONE_SHOT);
+                        builder.addAction(0, "Buy", pendingIntent);
+                    }
 
-                    builder.addAction(0, "Open Cart", pendingIntent);
-                }
-            } else if (message.category.equals(Message.CATEGORY_OFFER)) {
-                notificationID = 300;
-                if (configuration.getOfferDisplayPage() != null) {
-                    Intent intent = new Intent(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context));
+                    break;
+
+                case ViewCart:
+                    notificationID = NotificationCategory.ViewCart.getNotificationId();
+                    if (configuration.getCartPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_OPEN_CART(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+                        builder.addAction(0, "Open Cart", pendingIntent);
+                    }
+
+                    break;
+
+                case Promotion:
+                    notificationID = NotificationCategory.Promotion.getNotificationId();
+                    if (configuration.getOfferDisplayPage() != null) {
+                        Intent intent = new Intent(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context));
+                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                                0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+                        builder.setContentIntent(pendingIntent);
+                    }
+
+                    break;
+
+                default:
+                    /**
+                     * Default action is to open app and send all details as extra inside intent
+                     */
+                    Intent intent = new Intent(RichPushConstants.ACTION_OPEN_APP(context));
                     intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
                     intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
                     PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
                             0, intent, PendingIntent.FLAG_ONE_SHOT);
 
                     builder.setContentIntent(pendingIntent);
-                }
             }
         }
 

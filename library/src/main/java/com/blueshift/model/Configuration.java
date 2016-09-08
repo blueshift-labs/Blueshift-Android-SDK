@@ -12,6 +12,7 @@ public class Configuration {
     Class offerDisplayPage;
     String apiKey;
     long batchInterval;
+    int dialogTheme;
 
     public Configuration() {
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
@@ -69,5 +70,19 @@ public class Configuration {
      */
     public void setBatchInterval(long batchInterval) {
         this.batchInterval = batchInterval;
+    }
+
+    public int getDialogTheme() {
+        return dialogTheme;
+    }
+
+    /**
+     * Theme used for creating dialog type notifications.
+     * Default value is `Theme.AppCompat.Dialog.Alert`
+     *
+     * @param dialogTheme user define theme's reference id
+     */
+    public void setDialogTheme(int dialogTheme) {
+        this.dialogTheme = dialogTheme;
     }
 }
