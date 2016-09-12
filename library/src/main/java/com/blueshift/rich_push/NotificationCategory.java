@@ -1,5 +1,7 @@
 package com.blueshift.rich_push;
 
+import android.util.Log;
+
 /**
  * Created by rahul on 6/9/16.
  */
@@ -34,6 +36,8 @@ public enum NotificationCategory {
                     return SilentPush;
 
                 default:
+                    Log.w("NotificationCategory", "Unknown notification_type found: " + notificationCategory);
+
                     return Unknown;
             }
         } else {
