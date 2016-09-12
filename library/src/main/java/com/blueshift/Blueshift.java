@@ -232,6 +232,14 @@ public class Blueshift {
                         // Appending params with the device dependant details.
                         requestParams.putAll(params);
 
+                        // check if device id (Android Ad Id) is available in parameters' list.
+                        // if not found, try to get it now and fill it in.
+                        Object deviceId = requestParams.get(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
+                        if (deviceId == null) {
+                            String adId = DeviceUtils.getAdvertisingID(mContext);
+                            requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
+                        }
+
                         // Appending email and customer id.
                         UserInfo userInfo = UserInfo.getInstance(mContext);
                         if (userInfo != null) {
@@ -742,6 +750,21 @@ public class Blueshift {
         }
 
         trackEvent(BlueshiftConstants.EVENT_APP_OPEN, eventParams, canBatchThisEvent);
+    }
+
+    public void trackAlertDismiss(String notificationId, boolean canBatchThisEvent) {
+        trackAlertDismiss(notificationId, null, canBatchThisEvent);
+    }
+
+    public void trackAlertDismiss(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
+        HashMap<String, Object> eventParams = new HashMap<>();
+        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+
+        if (params != null) {
+            eventParams.putAll(params);
+        }
+
+        trackEvent(BlueshiftConstants.EVENT_DISMISS_ALERT, eventParams, canBatchThisEvent);
     }
 
     /**

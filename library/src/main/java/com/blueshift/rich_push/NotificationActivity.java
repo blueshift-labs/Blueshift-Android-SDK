@@ -22,6 +22,7 @@ import com.blueshift.model.Configuration;
 public class NotificationActivity extends AppCompatActivity {
 
     private Context mContext;
+    private Message mMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +32,9 @@ public class NotificationActivity extends AppCompatActivity {
 
         mContext = this;
 
-        Message message = (Message) getIntent().getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+        mMessage = (Message) getIntent().getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
 
-        if (message != null) {
+        if (mMessage != null) {
             int theme = 0;
 
             /**
@@ -55,8 +56,8 @@ public class NotificationActivity extends AppCompatActivity {
                 builder = new AlertDialog.Builder(mContext, theme);
             }
 
-            builder.setTitle(message.getTitle());
-            builder.setMessage(message.getBody());
+            builder.setTitle(mMessage.getTitle());
+            builder.setMessage(mMessage.getBody());
 
             builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
@@ -72,9 +73,12 @@ public class NotificationActivity extends AppCompatActivity {
                 }
             });
 
-            builder = setActions(builder, message);
+            builder = setActions(builder);
 
             builder.create().show();
+
+            // Tracking the notification display.
+            Blueshift.getInstance(mContext).trackNotificationView(mMessage.getId(), true);
         } else {
             finish();
         }
@@ -84,38 +88,48 @@ public class NotificationActivity extends AppCompatActivity {
      * This method adds action buttons to the builder based on available category
      *
      * @param builder builder on which the atcions to be attached.
-     * @param message the message object that contains the category. this is also used as extra to launching activity
      * @return updated builder object
      */
-    private AlertDialog.Builder setActions(AlertDialog.Builder builder, final Message message) {
-        switch (message.getCategory()) {
+    private AlertDialog.Builder setActions(AlertDialog.Builder builder) {
+        switch (mMessage.getCategory()) {
             case AlertBoxOpenDismiss:
                 builder.setPositiveButton(R.string.dialog_button_open, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
+                        Blueshift.getInstance(mContext).trackNotificationClick(mMessage.getId(), true);
+
                         PackageManager packageManager = getPackageManager();
                         Intent launcherIntent = packageManager.getLaunchIntentForPackage(getPackageName());
-                        launcherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                        launcherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, mMessage);
                         launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(launcherIntent);
 
-                        Blueshift.getInstance(mContext).trackNotificationPageOpen(message.id, true);
+                        Blueshift.getInstance(mContext).trackNotificationPageOpen(mMessage.getId(), true);
 
-                        finish();
+                        dialog.dismiss();
                     }
                 });
 
-                builder.setNegativeButton(R.string.dialog_button_dismiss, null);
+                builder.setNegativeButton(R.string.dialog_button_dismiss, mOnDismissClickListener);
 
                 break;
 
             case AlertBoxDismiss:
-                builder.setNegativeButton(R.string.dialog_button_dismiss, null);
+                builder.setNegativeButton(R.string.dialog_button_dismiss, mOnDismissClickListener);
 
                 break;
         }
 
         return builder;
     }
+
+    private DialogInterface.OnClickListener mOnDismissClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            Blueshift.getInstance(mContext).trackAlertDismiss(mMessage.getId(), true);
+
+            dialog.dismiss();
+        }
+    };
 }
