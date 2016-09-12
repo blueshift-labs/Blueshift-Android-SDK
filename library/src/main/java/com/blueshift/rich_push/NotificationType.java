@@ -10,6 +10,8 @@ public enum NotificationType {
     Notification,
     Unknown;
 
+    private static final String LOG_TAG = "NotificationType";
+
     public static NotificationType fromString(String notificationType) {
         if (notificationType != null) {
             switch (notificationType) {
@@ -20,11 +22,13 @@ public enum NotificationType {
                     return Notification;
 
                 default:
-                    Log.w("NotificationType", "Unknown notification_type found: " + notificationType);
+                    Log.w(LOG_TAG, "Unknown 'notification_type' found: " + notificationType);
 
                     return Unknown;
             }
         } else {
+            Log.w(LOG_TAG, "'notification_type' is not available inside 'message'.");
+
             return Unknown;
         }
     }

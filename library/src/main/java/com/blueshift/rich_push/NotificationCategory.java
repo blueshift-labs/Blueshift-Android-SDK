@@ -14,6 +14,8 @@ public enum NotificationCategory {
     SilentPush,
     Unknown;
 
+    private static final String LOG_TAG = "NotificationCategory";
+
     public static NotificationCategory fromString(String notificationCategory) {
         if (notificationCategory != null) {
             switch (notificationCategory) {
@@ -36,11 +38,13 @@ public enum NotificationCategory {
                     return SilentPush;
 
                 default:
-                    Log.w("NotificationCategory", "Unknown notification_type found: " + notificationCategory);
+                    Log.w(LOG_TAG, "Unknown 'category' found: " + notificationCategory);
 
                     return Unknown;
             }
         } else {
+            Log.w(LOG_TAG, "'category' is not available inside 'message'.");
+
             return Unknown;
         }
     }
