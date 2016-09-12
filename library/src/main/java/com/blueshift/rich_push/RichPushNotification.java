@@ -8,15 +8,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.support.v7.app.NotificationCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
-import com.blueshift.util.NetworkUtils;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 
 /**
  * Created by rahul on 18/2/15.
@@ -138,15 +138,15 @@ public class RichPushNotification {
         builder.setContentTitle(message.getTitle());
         builder.setContentText(message.getBody());
 
-        if (message.getImage_url() != null && !message.getImage_url().isEmpty()) {
-            String destinationPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/temp.jpg";
-            Log.i(LOG_TAG, "Image getting downloaded to: " + destinationPath);
-
-            if (NetworkUtils.downloadFile(message.getImage_url(), destinationPath)) {
-                Bitmap bitmap = BitmapFactory.decodeFile(destinationPath);
-                builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap));
-                File file = new File(destinationPath);
-                Log.d(LOG_TAG, "Deleting cached image " + (file.delete() ? "success." : "failed."));
+        if (!TextUtils.isEmpty(message.getImage_url())) {
+            try {
+                URL imageURL = new URL(message.getImage_url());
+                Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+                if (bitmap != null) {
+                    builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap));
+                }
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Could not load image. " + e.getMessage());
             }
         }
 
