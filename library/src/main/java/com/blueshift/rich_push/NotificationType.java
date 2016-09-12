@@ -1,5 +1,7 @@
 package com.blueshift.rich_push;
 
+import android.util.Log;
+
 /**
  * Created by rahul on 6/9/16.
  */
@@ -18,6 +20,8 @@ public enum NotificationType {
                     return Notification;
 
                 default:
+                    Log.w("NotificationType", "Unknown notification_type found: " + notificationType);
+
                     return Unknown;
             }
         } else {
