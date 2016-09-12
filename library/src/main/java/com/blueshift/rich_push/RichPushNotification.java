@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -35,18 +36,17 @@ public class RichPushNotification {
                  * Since network operations are not allowed in main thread, we
                  * are rendering the push message in a different thread.
                  */
-                new Thread(new Runnable() {
+                new AsyncTask<Void, Void, Boolean>() {
                     @Override
-                    public void run() {
+                    protected Boolean doInBackground(Void... params) {
                         buildAndShowNotification(context, message);
+
+                        return null;
                     }
-                }).run();
+                }.execute();
 
                 break;
         }
-
-        // Tracking the notification display.
-        Blueshift.getInstance(context).trackNotificationView(message.getId(), true);
     }
 
     private static void buildAndShowAlertDialog(Context context, Message message) {
@@ -140,6 +140,8 @@ public class RichPushNotification {
 
         if (message.getImage_url() != null && !message.getImage_url().isEmpty()) {
             String destinationPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/temp.jpg";
+            Log.i(LOG_TAG, "Image getting downloaded to: " + destinationPath);
+
             if (NetworkUtils.downloadFile(message.getImage_url(), destinationPath)) {
                 Bitmap bitmap = BitmapFactory.decodeFile(destinationPath);
                 builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap));
@@ -151,5 +153,8 @@ public class RichPushNotification {
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(notificationID, builder.build());
+
+        // Tracking the notification display.
+        Blueshift.getInstance(context).trackNotificationView(message.getId(), true);
     }
 }
