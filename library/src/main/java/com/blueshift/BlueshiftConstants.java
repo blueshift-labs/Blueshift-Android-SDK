@@ -34,6 +34,7 @@ public class BlueshiftConstants {
     public static final String EVENT_APP_INSTALL = "app_install";
     public static final String EVENT_PUSH_VIEW  = "push_view";
     public static final String EVENT_PUSH_CLICK  = "push_click";
+    public static final String EVENT_DISMISS_ALERT = "dismiss_alert";
 
     /**
      * Names of parameters (key) we send to Blueshift server along with events

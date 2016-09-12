@@ -752,6 +752,21 @@ public class Blueshift {
         trackEvent(BlueshiftConstants.EVENT_APP_OPEN, eventParams, canBatchThisEvent);
     }
 
+    public void trackAlertDismiss(String notificationId, boolean canBatchThisEvent) {
+        trackAlertDismiss(notificationId, null, canBatchThisEvent);
+    }
+
+    public void trackAlertDismiss(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
+        HashMap<String, Object> eventParams = new HashMap<>();
+        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+
+        if (params != null) {
+            eventParams.putAll(params);
+        }
+
+        trackEvent(BlueshiftConstants.EVENT_DISMISS_ALERT, eventParams, canBatchThisEvent);
+    }
+
     /**
      * Updates the mDeviceParams with advertising ID
      */
