@@ -232,6 +232,14 @@ public class Blueshift {
                         // Appending params with the device dependant details.
                         requestParams.putAll(params);
 
+                        // check if device id (Android Ad Id) is available in parameters' list.
+                        // if not found, try to get it now and fill it in.
+                        Object deviceId = requestParams.get(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
+                        if (deviceId == null) {
+                            String adId = DeviceUtils.getAdvertisingID(mContext);
+                            requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
+                        }
+
                         // Appending email and customer id.
                         UserInfo userInfo = UserInfo.getInstance(mContext);
                         if (userInfo != null) {
