@@ -155,6 +155,6 @@ public class RichPushNotification {
         notificationManager.notify(notificationID, builder.build());
 
         // Tracking the notification display.
-        Blueshift.getInstance(context).trackNotificationView(message.getId(), true);
+        Blueshift.getInstance(context).trackNotificationView(message, true);
     }
 }

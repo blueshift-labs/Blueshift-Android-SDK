@@ -78,7 +78,7 @@ public class NotificationActivity extends AppCompatActivity {
             builder.create().show();
 
             // Tracking the notification display.
-            Blueshift.getInstance(mContext).trackNotificationView(mMessage.getId(), true);
+            Blueshift.getInstance(mContext).trackNotificationView(mMessage, true);
         } else {
             finish();
         }
@@ -97,7 +97,7 @@ public class NotificationActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        Blueshift.getInstance(mContext).trackNotificationClick(mMessage.getId(), true);
+                        Blueshift.getInstance(mContext).trackNotificationClick(mMessage, true);
 
                         PackageManager packageManager = getPackageManager();
                         Intent launcherIntent = packageManager.getLaunchIntentForPackage(getPackageName());
@@ -105,7 +105,7 @@ public class NotificationActivity extends AppCompatActivity {
                         launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(launcherIntent);
 
-                        Blueshift.getInstance(mContext).trackNotificationPageOpen(mMessage.getId(), true);
+                        Blueshift.getInstance(mContext).trackNotificationPageOpen(mMessage, true);
 
                         dialog.dismiss();
                     }
@@ -127,7 +127,7 @@ public class NotificationActivity extends AppCompatActivity {
     private DialogInterface.OnClickListener mOnDismissClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
-            Blueshift.getInstance(mContext).trackAlertDismiss(mMessage.getId(), true);
+            Blueshift.getInstance(mContext).trackAlertDismiss(mMessage, true);
 
             dialog.dismiss();
         }

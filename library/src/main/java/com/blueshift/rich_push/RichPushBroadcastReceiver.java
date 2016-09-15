@@ -18,19 +18,31 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         Log.v(LOG_TAG, "onReceive: " + intent.getAction());
 
-        String messageJSON = intent.getStringExtra(RichPushConstants.EXTRA_MESSAGE);
+        String messageJSON = intent.getStringExtra(Message.EXTRA_MESSAGE);
         if (messageJSON != null) {
             try {
                 Message message = new Gson().fromJson(messageJSON, Message.class);
-                if (message.isSilentPush()) {
-                    /**
-                     * This is a silent push to track uninstalls.
-                     * SDK has nothing to do with this. If this push was not delivered,
-                     * server will track GCM registrations fails and will decide if the app is uninstalled or not.
-                     */
-                    Log.i(LOG_TAG, "A silent push received.");
+                if (message != null) {
+                    // trying to fetch campaign params
+                    String experimentUUID = intent.getStringExtra(Message.EXTRA_BSFT_EXPERIMENT_UUID);
+                    String userUUID = intent.getStringExtra(Message.EXTRA_BSFT_USER_UUID);
+
+                    // adding campaign parameters inside message.
+                    message.setBsftExperimentUuid(experimentUUID);
+                    message.setBsftUserUuid(userUUID);
+
+                    if (message.isSilentPush()) {
+                        /**
+                         * This is a silent push to track uninstalls.
+                         * SDK has nothing to do with this. If this push was not delivered,
+                         * server will track GCM registrations fails and will decide if the app is uninstalled or not.
+                         */
+                        Log.i(LOG_TAG, "A silent push received.");
+                    } else {
+                        RichPushNotification.handleMessage(context, message);
+                    }
                 } else {
-                    RichPushNotification.handleMessage(context, message);
+                    Log.e(LOG_TAG, "Null message found in push message.");
                 }
             } catch (JsonSyntaxException e) {
                 Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
