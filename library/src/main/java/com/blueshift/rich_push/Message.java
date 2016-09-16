@@ -49,7 +49,7 @@ public class Message implements Serializable {
     }
 
     public boolean isCampaignPush() {
-        return !TextUtils.isEmpty(bsft_experiment_uuid) || !TextUtils.isEmpty(bsft_user_uuid);
+        return !TextUtils.isEmpty(bsft_experiment_uuid) && !TextUtils.isEmpty(bsft_user_uuid);
     }
 
     public HashMap<String, Object> getCampaignAttr() {
