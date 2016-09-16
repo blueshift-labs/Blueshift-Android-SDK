@@ -38,7 +38,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel(intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0));
 
-            Blueshift.getInstance(context).trackNotificationClick(message.getId(), true);
+            Blueshift.getInstance(context).trackNotificationClick(message, true);
 
             context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
         }
@@ -55,7 +55,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(pageLauncherIntent);
 
-            trackAppOpen(context, message.getId());
+            trackAppOpen(context, message);
         }
     }
 
@@ -70,7 +70,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(pageLauncherIntent);
 
-            trackAppOpen(context, message.getId());
+            trackAppOpen(context, message);
         }
     }
 
@@ -82,7 +82,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(pageLauncherIntent);
 
-            trackAppOpen(context, message.getId());
+            trackAppOpen(context, message);
         }
     }
 
@@ -94,7 +94,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(pageLauncherIntent);
 
-            trackAppOpen(context, message.getId());
+            trackAppOpen(context, message);
         }
     }
 
@@ -106,11 +106,11 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launcherIntent);
 
-            trackAppOpen(context, message.getId());
+            trackAppOpen(context, message);
         }
     }
 
-    protected void trackAppOpen(Context context, String pushId) {
-        Blueshift.getInstance(context).trackNotificationPageOpen(pushId, true);
+    protected void trackAppOpen(Context context, Message message) {
+        Blueshift.getInstance(context).trackNotificationPageOpen(message, true);
     }
 }

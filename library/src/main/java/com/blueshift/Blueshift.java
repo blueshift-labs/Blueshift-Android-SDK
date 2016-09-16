@@ -27,6 +27,7 @@ import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
 import com.blueshift.model.UserInfo;
+import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
 import com.google.gson.Gson;
@@ -707,6 +708,14 @@ public class Blueshift {
         }
     }
 
+    public void trackNotificationView(Message message, boolean canBatchThisEvent) {
+        if (message != null) {
+            trackNotificationView(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+        } else {
+            Log.e(LOG_TAG, "No message available");
+        }
+    }
+
     public void trackNotificationView(String notificationId, boolean canBatchThisEvent) {
         trackNotificationView(notificationId, null, canBatchThisEvent);
     }
@@ -720,6 +729,14 @@ public class Blueshift {
         }
 
         trackEvent(BlueshiftConstants.EVENT_PUSH_VIEW, eventParams, canBatchThisEvent);
+    }
+
+    public void trackNotificationClick(Message message, boolean canBatchThisEvent) {
+        if (message != null) {
+            trackNotificationClick(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+        } else {
+            Log.e(LOG_TAG, "No message available");
+        }
     }
 
     public void trackNotificationClick(String notificationId, boolean canBatchThisEvent) {
@@ -737,6 +754,14 @@ public class Blueshift {
         trackEvent(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, canBatchThisEvent);
     }
 
+    public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
+        if (message != null) {
+            trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+        } else {
+            Log.e(LOG_TAG, "No message available");
+        }
+    }
+
     public void trackNotificationPageOpen(String notificationId, boolean canBatchThisEvent) {
         trackNotificationPageOpen(notificationId, null, canBatchThisEvent);
     }
@@ -750,6 +775,14 @@ public class Blueshift {
         }
 
         trackEvent(BlueshiftConstants.EVENT_APP_OPEN, eventParams, canBatchThisEvent);
+    }
+
+    public void trackAlertDismiss(Message message, boolean canBatchThisEvent) {
+        if (message != null) {
+            trackAlertDismiss(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+        } else {
+            Log.e(LOG_TAG, "No message available");
+        }
     }
 
     public void trackAlertDismiss(String notificationId, boolean canBatchThisEvent) {
