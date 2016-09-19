@@ -31,6 +31,7 @@ public class Message implements Serializable {
     private String image_url;
     private long expiry;
     private HashMap<String, Object> data;
+    private CarouselElement[] carousel_elements;
 
     public String getBsftExperimentUuid() {
         return bsft_experiment_uuid;
@@ -114,5 +115,9 @@ public class Message implements Serializable {
 
     public boolean isSilentPush() {
         return getNotificationType() == NotificationType.Notification && getCategory() == NotificationCategory.SilentPush;
+    }
+
+    public CarouselElement[] getCarouselElements() {
+        return carousel_elements;
     }
 }

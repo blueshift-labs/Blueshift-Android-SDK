@@ -8,6 +8,7 @@ import android.util.Log;
 public enum NotificationType {
     AlertDialog,
     Notification,
+    CustomNotification,
     Unknown;
 
     private static final String LOG_TAG = "NotificationType";
@@ -20,6 +21,9 @@ public enum NotificationType {
 
                 case "notification":
                     return Notification;
+
+                case "custom_notification":
+                    return CustomNotification;
 
                 default:
                     Log.w(LOG_TAG, "Unknown 'notification_type' found: " + notificationType);

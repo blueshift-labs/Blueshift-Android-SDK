@@ -46,6 +46,21 @@ public class RichPushNotification {
                 }.execute();
 
                 break;
+
+            case CustomNotification:
+                new AsyncTask<Void, Void, Boolean>() {
+                    @Override
+                    protected Boolean doInBackground(Void... params) {
+                        buildAndShowCustomNotifications(context, message);
+
+                        return null;
+                    }
+                }.execute();
+
+                break;
+
+            default:
+                Log.e(LOG_TAG, "Unknown notification type");
         }
     }
 
@@ -156,5 +171,21 @@ public class RichPushNotification {
 
         // Tracking the notification display.
         Blueshift.getInstance(context).trackNotificationView(message, true);
+    }
+
+    private static void buildAndShowCustomNotifications(Context context, Message message) {
+        CustomNotificationFactory notificationFactory = CustomNotificationFactory.getInstance();
+
+        switch (message.getCategory()) {
+            case AnimatedCarousel:
+                notificationFactory.createAndShowAnimatedCarousel(context, message);
+                break;
+
+            case Carousel:
+                break;
+
+            case GifNotification:
+                break;
+        }
     }
 }
