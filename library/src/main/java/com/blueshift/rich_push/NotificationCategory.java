@@ -76,11 +76,14 @@ public enum NotificationCategory {
             case Promotion:
                 return 300;
 
-            case AlertBoxOpenDismiss:
+            case AnimatedCarousel:
                 return 400;
 
-            case AlertBoxDismiss:
+            case Carousel:
                 return 500;
+
+            case GifNotification:
+                return 600;
 
             default:
                 return 0;

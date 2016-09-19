@@ -2,7 +2,9 @@ package com.blueshift.rich_push;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -52,7 +54,7 @@ public class CustomNotificationFactory {
             }
 
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(500, notification);
+            manager.notify(message.getCategory().getNotificationId(), notification);
         }
     }
 
@@ -101,6 +103,7 @@ public class CustomNotificationFactory {
                     Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
                     remoteViews.setImageViewBitmap(resId, bitmap);
+                    remoteViews.setOnClickPendingIntent(resId, getImageClickPendingIntent(context, message, element));
                 }
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Could not download image" + e.getMessage());
@@ -126,5 +129,13 @@ public class CustomNotificationFactory {
         }
 
         return -1;
+    }
+
+    private PendingIntent getImageClickPendingIntent(Context context, Message message, CarouselElement carouselElement) {
+        Intent bcIntent = new Intent(RichPushConstants.buildAction(context, carouselElement.getAction()));
+        bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, message.getCategory().getNotificationId());
+        bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+
+        return PendingIntent.getBroadcast(context, 0, bcIntent, PendingIntent.FLAG_ONE_SHOT);
     }
 }
