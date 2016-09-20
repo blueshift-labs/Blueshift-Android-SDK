@@ -59,7 +59,62 @@ public class CustomNotificationFactory {
     }
 
     public void createAndShowCarousel(Context context, Message message) {
+        NotificationCompat.Builder builder = createBasicNotification(context, message);
+        if (builder != null) {
+            Notification notification = builder.build();
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                notification.bigContentView = getCarouselImage(context, message);
+            }
+
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.notify(message.getCategory().getNotificationId(), notification);
+        }
+    }
+
+    private RemoteViews getCarouselImage(Context context, Message message) {
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
+        remoteViews.setViewVisibility(R.id.big_picture, View.VISIBLE);
+
+        if (message != null && message.getCarouselLength() > 0) {
+            int index = message.getCarouselCurrentIndex();
+            CarouselElement[] elements = message.getCarouselElements();
+            if (index < elements.length) {
+                CarouselElement element = elements[index];
+
+                // temporary image loading. need to cache them
+                try {
+                    URL imageURL = new URL(element.getImageUrl());
+                    Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+
+                    remoteViews.setImageViewBitmap(R.id.big_picture, bitmap);
+
+                    remoteViews.setOnClickPendingIntent(
+                            R.id.next,
+                            getNavigationPendingIntent(context, message, message.getNextCarouselIndex())
+                    );
+
+                    remoteViews.setOnClickPendingIntent(
+                            R.id.prev,
+                            getNavigationPendingIntent(context, message, message.getPrevCarouselIndex())
+                    );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return remoteViews;
+    }
+
+    private PendingIntent getNavigationPendingIntent(Context context, Message message, int targetIndex) {
+        Intent intent = new Intent(context, NotificationWorker.class);
+        intent.setAction(NotificationWorker.ACTION_CAROUSEL_IMG_CHANGE);
+
+        intent.putExtra(RichPushConstants.EXTRA_CAROUSEL_INDEX, targetIndex);
+        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+
+        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private NotificationCompat.Builder createBasicNotification(Context context, Message message) {
@@ -68,6 +123,8 @@ public class CustomNotificationFactory {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration != null) {
             builder = new NotificationCompat.Builder(context);
+            builder.setDefaults(Notification.DEFAULT_ALL);
+
             // set basic items
             builder.setSmallIcon(configuration.getAppIcon());
             builder.setContentTitle(message.getTitle());

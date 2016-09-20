@@ -19,6 +19,24 @@
             layout="@layout/carousel_view_flipper"
             android:visibility="gone" />
 
+        <Button
+            android:id="@+id/prev"
+            android:text="prev"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true" />
+
+        <Button
+            android:id="@+id/next"
+            android:text="next"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true" />
+
     </RelativeLayout>
 
 </FrameLayout>

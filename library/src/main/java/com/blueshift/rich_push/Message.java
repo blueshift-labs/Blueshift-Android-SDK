@@ -137,6 +137,48 @@ public class Message implements Serializable {
         return carousel_elements;
     }
 
+    public int getCarouselLength() {
+        int length = 0;
+
+        if (carousel_elements != null) {
+            length = carousel_elements.length;
+        }
+
+        return length;
+    }
+
+    public int getNextCarouselIndex() {
+        int index = carousel_current_index;
+
+        if (index == (getCarouselLength() - 1)) {
+            index = 0;
+        } else {
+            index++;
+        }
+
+        return index;
+    }
+
+    public int getPrevCarouselIndex() {
+        int index = carousel_current_index;
+
+        if (index == 0) {
+            index = getCarouselLength() - 1;
+        } else {
+            index--;
+        }
+
+        return index;
+    }
+
+    public int getCarouselCurrentIndex() {
+        return carousel_current_index;
+    }
+
+    public void setCarouselCurrentIndex(int carouselCurrentIndex) {
+        this.carousel_current_index = carouselCurrentIndex;
+    }
+
     /**
      * Following are the methods that helps the sdk to understand the type of the notification.
      */

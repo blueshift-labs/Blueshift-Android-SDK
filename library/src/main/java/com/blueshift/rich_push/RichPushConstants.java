@@ -8,6 +8,7 @@ import android.content.Context;
 public final class RichPushConstants {
     public static final String EXTRA_MESSAGE = "message";
     public static final String EXTRA_NOTIFICATION_ID = "notification_id";
+    public static final String EXTRA_CAROUSEL_INDEX = "carousel_index";
 
     /**
      * Actions for the push categories handled by SDK.
