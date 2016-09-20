@@ -16,6 +16,7 @@ import android.widget.RemoteViews;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.NotificationUtils;
 
 import java.io.IOException;
 import java.net.URL;
@@ -82,25 +83,30 @@ public class CustomNotificationFactory {
             if (index < elements.length) {
                 CarouselElement element = elements[index];
 
-                // temporary image loading. need to cache them
-                try {
-                    URL imageURL = new URL(element.getImageUrl());
-                    Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+                String imageFileName = NotificationUtils.getImageFileName(element.getImageUrl());
+                Bitmap bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
 
-                    remoteViews.setImageViewBitmap(R.id.big_picture, bitmap);
+                if (bitmap == null) {
+                    // image is unavailable. update the image cache.
+                    NotificationUtils.downloadCarouselImages(context, message);
 
-                    remoteViews.setOnClickPendingIntent(
-                            R.id.next,
-                            getNavigationPendingIntent(context, message, message.getNextCarouselIndex())
-                    );
-
-                    remoteViews.setOnClickPendingIntent(
-                            R.id.prev,
-                            getNavigationPendingIntent(context, message, message.getPrevCarouselIndex())
-                    );
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
+                    if (bitmap == null) {
+                        Log.e(LOG_TAG, "Could not load image for carousel.");
+                    }
                 }
+
+                remoteViews.setImageViewBitmap(R.id.big_picture, bitmap);
+
+                remoteViews.setOnClickPendingIntent(
+                        R.id.next,
+                        getNavigationPendingIntent(context, message, message.getNextCarouselIndex())
+                );
+
+                remoteViews.setOnClickPendingIntent(
+                        R.id.prev,
+                        getNavigationPendingIntent(context, message, message.getPrevCarouselIndex())
+                );
             }
         }
 
@@ -124,6 +130,10 @@ public class CustomNotificationFactory {
         if (configuration != null) {
             builder = new NotificationCompat.Builder(context);
             builder.setDefaults(Notification.DEFAULT_ALL);
+
+            if (message.isUpdateNotification()) {
+                builder.setDefaults(0);
+            }
 
             // set basic items
             builder.setSmallIcon(configuration.getAppIcon());

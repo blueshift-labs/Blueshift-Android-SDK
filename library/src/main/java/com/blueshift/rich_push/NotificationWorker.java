@@ -35,6 +35,7 @@ public class NotificationWorker extends IntentService {
             case ACTION_CAROUSEL_IMG_CHANGE:
                 int targetIndex = intent.getIntExtra(RichPushConstants.EXTRA_CAROUSEL_INDEX, 0);
                 message.setCarouselCurrentIndex(targetIndex);
+                message.setUpdateNotification(true);
 
                 updateCarouselNotification(message);
 

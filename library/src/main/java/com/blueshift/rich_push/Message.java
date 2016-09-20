@@ -46,7 +46,7 @@ public class Message implements Serializable {
      * a carousel type notification. helps the sdk to implement actions of 'next' & 'prev' buttons
      */
     private int carousel_current_index = 0;
-
+    private boolean update_notification = false;
 
     /**
      * The following are the get / set methods for the above declared variables.
@@ -177,6 +177,14 @@ public class Message implements Serializable {
 
     public void setCarouselCurrentIndex(int carouselCurrentIndex) {
         this.carousel_current_index = carouselCurrentIndex;
+    }
+
+    public boolean isUpdateNotification() {
+        return update_notification;
+    }
+
+    public void setUpdateNotification(boolean updateNotification) {
+        this.update_notification = updateNotification;
     }
 
     /**
