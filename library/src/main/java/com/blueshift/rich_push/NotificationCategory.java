@@ -12,6 +12,9 @@ public enum NotificationCategory {
     AlertBoxOpenDismiss,
     AlertBoxDismiss,
     SilentPush,
+    AnimatedCarousel,
+    Carousel,
+    GifNotification,
     Unknown;
 
     private static final String LOG_TAG = "NotificationCategory";
@@ -19,6 +22,7 @@ public enum NotificationCategory {
     public static NotificationCategory fromString(String notificationCategory) {
         if (notificationCategory != null) {
             switch (notificationCategory) {
+                // for regular notifications
                 case "buy":
                     return Buy;
 
@@ -28,14 +32,26 @@ public enum NotificationCategory {
                 case "promotion":
                     return Promotion;
 
+                // for dialog notifications
                 case "alert_box":
                     return AlertBoxOpenDismiss;
 
                 case "alert_box_1_button":
                     return AlertBoxDismiss;
 
+                // silent push
                 case "silent_push":
                     return SilentPush;
+
+                // custom notifications
+                case "animated_carousel":
+                    return AnimatedCarousel;
+
+                case "carousel":
+                    return Carousel;
+
+                case "gif":
+                    return GifNotification;
 
                 default:
                     Log.w(LOG_TAG, "Unknown 'category' found: " + notificationCategory);
@@ -60,11 +76,14 @@ public enum NotificationCategory {
             case Promotion:
                 return 300;
 
-            case AlertBoxOpenDismiss:
+            case AnimatedCarousel:
                 return 400;
 
-            case AlertBoxDismiss:
+            case Carousel:
                 return 500;
+
+            case GifNotification:
+                return 600;
 
             default:
                 return 0;

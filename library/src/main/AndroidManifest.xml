@@ -28,6 +28,10 @@
         </receiver>
         <!--End - App install tracking-->
 
+        <service
+            android:name=".rich_push.NotificationWorker"
+            android:exported="false" />
+
     </application>
 
 </manifest>
