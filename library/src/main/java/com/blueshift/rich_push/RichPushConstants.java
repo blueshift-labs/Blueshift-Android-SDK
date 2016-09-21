@@ -40,7 +40,9 @@ public final class RichPushConstants {
     }
 
     public static String buildAction(Context context, String action) {
-        if (context == null || action == null) return null;
+        if (context == null) return null;
+
+        if (action == null) return ACTION_OPEN_APP(context);
 
         switch (action) {
             case sActionView:

@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.NotificationUtils;
 
 /**
  * Created by rahul on 25/2/15.
@@ -33,6 +34,9 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             } else if (action.equals(RichPushConstants.ACTION_OPEN_APP(context))) {
                 openApp(context, message);
             }
+
+            // remove cached images(if any) for this notification
+            NotificationUtils.removeCachedCarouselImages(context, message);
 
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

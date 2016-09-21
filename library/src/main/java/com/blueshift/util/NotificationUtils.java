@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 
 import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
@@ -36,7 +37,8 @@ public class NotificationUtils {
                         URL imageURL = new URL(element.getImageUrl());
                         Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
-                        // todo: resize image
+                        // resize image
+                        bitmap = resizeImageForDevice(context, bitmap);
 
                         // save image
                         String imageUrl = element.getImageUrl();
@@ -62,6 +64,24 @@ public class NotificationUtils {
         }
     }
 
+    public static Bitmap resizeImageForDevice(Context context, Bitmap sourceBitmap) {
+        Bitmap resizedBitmap = null;
+
+        if (sourceBitmap != null) {
+            if (sourceBitmap.getWidth() > sourceBitmap.getHeight()) {
+                DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+
+                // ideal image aspect ratio for notification is 2:1
+                int newWidth = displayMetrics.widthPixels;
+                int newHeight = newWidth / 2;
+
+                resizedBitmap = Bitmap.createScaledBitmap(sourceBitmap, newWidth, newHeight, true);
+            }
+        }
+
+        return resizedBitmap;
+    }
+
     public static Bitmap loadImageFromDisc(Context context, String fileName) {
         Bitmap bitmap = null;
 
@@ -76,5 +96,23 @@ public class NotificationUtils {
         }
 
         return bitmap;
+    }
+
+    public static void removeImageFromDisc(Context context, String fileName) {
+        if (context != null && !TextUtils.isEmpty(fileName)) {
+            context.deleteFile(fileName);
+        }
+    }
+
+    public static void removeCachedCarouselImages(Context context, Message message) {
+        if (context != null && message != null) {
+            CarouselElement[] carouselElements = message.getCarouselElements();
+            if (carouselElements != null && carouselElements.length > 0) {
+                for (CarouselElement element : carouselElements) {
+                    String fileName = getImageFileName(element.getImageUrl());
+                    removeImageFromDisc(context, fileName);
+                }
+            }
+        }
     }
 }

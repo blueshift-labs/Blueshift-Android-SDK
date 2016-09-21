@@ -182,6 +182,7 @@ public class RichPushNotification {
                 break;
 
             case Carousel:
+                notificationFactory.createAndShowCarousel(context, message);
                 break;
 
             case GifNotification:
