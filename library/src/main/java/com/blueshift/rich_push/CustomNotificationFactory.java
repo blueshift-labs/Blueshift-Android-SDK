@@ -25,7 +25,10 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Created by rahul on 16/9/16.
+ * This class is responsible for building custom notifications supported by the sdk.
+ * Ex: Carousel Notifications.
+ * <p>
+ * Created by Rahul on 16/9/16.
  */
 public class CustomNotificationFactory {
 
@@ -45,6 +48,13 @@ public class CustomNotificationFactory {
         return sInstance;
     }
 
+    /**
+     * Method to create and display notification with carousel with images displayed
+     * one after another with fade in/out animation.
+     *
+     * @param context valid context object.
+     * @param message message object with valid carousel elements.
+     */
     public void createAndShowAnimatedCarousel(Context context, Message message) {
         NotificationCompat.Builder builder = createBasicNotification(context, message);
         if (builder != null) {
@@ -61,6 +71,13 @@ public class CustomNotificationFactory {
         }
     }
 
+    /**
+     * Method to display notification with image carousel. This one will have 2 buttons.
+     * Next and Previous buttons to navigate through images.
+     *
+     * @param context valid context object.
+     * @param message message object with valid carousel elements.
+     */
     public void createAndShowCarousel(Context context, Message message) {
         NotificationCompat.Builder builder = createBasicNotification(context, message);
         if (builder != null) {
@@ -77,6 +94,13 @@ public class CustomNotificationFactory {
         }
     }
 
+    /**
+     * Method that creates view required by the non-animated image carousel notification.
+     *
+     * @param context valid context object.
+     * @param message message object with valid carousel elements.
+     * @return RemoteView object with notification details filled in.
+     */
     private RemoteViews getCarouselImage(Context context, Message message) {
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
         remoteViews.setViewVisibility(R.id.big_picture, View.VISIBLE);
@@ -127,6 +151,14 @@ public class CustomNotificationFactory {
         return remoteViews;
     }
 
+    /**
+     * Method to fill basic notification details like title, content, icon etc.
+     * This is required by both normal and expanded view creation methods of notification.
+     *
+     * @param context     valid context object
+     * @param message     valid message object
+     * @param contentView contentView on which the basic details should be filled in
+     */
     private void setBasicNotificationData(Context context, Message message, RemoteViews contentView) {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
 
@@ -139,6 +171,16 @@ public class CustomNotificationFactory {
         contentView.setTextViewText(R.id.notification_time, notificationTime);
     }
 
+    /**
+     * Created the basic notification (unexpanded view) and returns
+     * the builder object with the generated view attached to it as
+     * content view. The onClick action is to open the app and pass
+     * the message object in it.
+     *
+     * @param context valid context object
+     * @param message valid message object
+     * @return {@link NotificationCompat.Builder} object with basic values filled in
+     */
     private NotificationCompat.Builder createBasicNotification(Context context, Message message) {
         NotificationCompat.Builder builder = null;
 
@@ -169,6 +211,16 @@ public class CustomNotificationFactory {
         return builder;
     }
 
+    /**
+     * This method is responsible for inflating the animated carousel view.
+     * This method will download the images and will add actions to it.
+     * The developers can add actions in payload JSON inside carousel element array item.
+     * If no actions given, then app will be opened and 'message' object will be passed in.
+     *
+     * @param context valid {@link Context} object
+     * @param message valid {@link Message} object
+     * @return {@link RemoteViews} object with carousel set ready
+     */
     private RemoteViews createAnimatedCarousal(Context context, Message message) {
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
         remoteViews.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
@@ -201,6 +253,12 @@ public class CustomNotificationFactory {
         return remoteViews;
     }
 
+    /**
+     * Helper method to tell the view id for carousel image (based on index)
+     *
+     * @param index valid index (0-3).
+     * @return valid resource id of {@link android.widget.ImageView} in carousel layout.
+     */
     private int getImageViewResId(int index) {
         switch (index) {
             case 0:
@@ -219,6 +277,15 @@ public class CustomNotificationFactory {
         return -1;
     }
 
+    /**
+     * Helper method to return pending intent required by the onClick
+     * action on Next/Previous button on Carousel Notification.
+     *
+     * @param context     valid context
+     * @param message     valid message
+     * @param targetIndex the index of next image to be displayed in carousel
+     * @return {@link PendingIntent}
+     */
     private PendingIntent getNavigationPendingIntent(Context context, Message message, int targetIndex) {
         Intent intent = new Intent(context, NotificationWorker.class);
         intent.setAction(NotificationWorker.ACTION_CAROUSEL_IMG_CHANGE);
@@ -229,6 +296,15 @@ public class CustomNotificationFactory {
         return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    /**
+     * Helper method to return valid pending intent to notify the clicks on notifications.
+     * This uses the same actions we have given for normal notification clicks.
+     *
+     * @param action  actions that {@link RichPushActionReceiver} supports
+     * @param context valid context object
+     * @param message valid message object
+     * @return {@link PendingIntent}
+     */
     private PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message) {
         Intent bcIntent = new Intent(action);
 
@@ -238,6 +314,13 @@ public class CustomNotificationFactory {
         return PendingIntent.getBroadcast(context, 0, bcIntent, PendingIntent.FLAG_ONE_SHOT);
     }
 
+    /**
+     * This method generated the pending intent to be called when notification is deleted.
+     *
+     * @param context valid context object
+     * @param message valid message object
+     * @return {@link PendingIntent}
+     */
     private PendingIntent getNotificationDeleteIntent(Context context, Message message) {
         Intent delIntent = new Intent(context, NotificationWorker.class);
         delIntent.setAction(NotificationWorker.ACTION_NOTIFICATION_DELETE);
