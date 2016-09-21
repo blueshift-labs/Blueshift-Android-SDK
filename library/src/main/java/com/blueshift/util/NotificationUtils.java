@@ -17,15 +17,30 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
- * Created by rahul on 20/9/16 @ 3:55 PM.
+ * A class with helper methods to show custom notification.
+ * <p>
+ * Created by Rahul on 20/9/16 @ 3:55 PM.
  */
 public class NotificationUtils {
+
+    /**
+     * Extracts the file name from the image file url
+     *
+     * @param url a valid image url
+     * @return the file name of the image the url referring to
+     */
     public static String getImageFileName(String url) {
         if (url == null) return null;
 
         return url.substring(url.lastIndexOf('/') + 1);
     }
 
+    /**
+     * Downloads all carousel images and stores them inside app's private file location after compressing them.
+     *
+     * @param context valid context object
+     * @param message message object with valid carousel elements
+     */
     public static void downloadCarouselImages(Context context, Message message) {
         if (context != null && message != null) {
             CarouselElement[] carouselElements = message.getCarouselElements();
@@ -64,6 +79,13 @@ public class NotificationUtils {
         }
     }
 
+    /**
+     * This method re-sizes the bitmap to have aspect ration 2:1 based on the device's dimension.
+     *
+     * @param context      valid context object
+     * @param sourceBitmap the image to resize
+     * @return resized image
+     */
     public static Bitmap resizeImageForDevice(Context context, Bitmap sourceBitmap) {
         Bitmap resizedBitmap = null;
 
@@ -82,6 +104,13 @@ public class NotificationUtils {
         return resizedBitmap;
     }
 
+    /**
+     * Loads the image stored inside app's private file location
+     *
+     * @param context  valid context object
+     * @param fileName name of the image to be retrieved
+     * @return bitmap image with given filename (if exists)
+     */
     public static Bitmap loadImageFromDisc(Context context, String fileName) {
         Bitmap bitmap = null;
 
@@ -98,12 +127,24 @@ public class NotificationUtils {
         return bitmap;
     }
 
+    /**
+     * Remove file with given name from app's private files directory.
+     *
+     * @param context  valid context object
+     * @param fileName the name of the file to be removed.
+     */
     public static void removeImageFromDisc(Context context, String fileName) {
         if (context != null && !TextUtils.isEmpty(fileName)) {
             context.deleteFile(fileName);
         }
     }
 
+    /**
+     * Method to remove all carousel images cached.
+     *
+     * @param context valid context object
+     * @param message message with valid carousel elements
+     */
     public static void removeCachedCarouselImages(Context context, Message message) {
         if (context != null && message != null) {
             CarouselElement[] carouselElements = message.getCarouselElements();
