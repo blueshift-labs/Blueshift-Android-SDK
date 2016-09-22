@@ -157,7 +157,8 @@ public class RequestQueue {
                 }
 
                 if (response != null) {
-                    if (response.getStatusCode() / 100 == 2) {
+                    int responseCode = response.getStatusCode();
+                    if (responseCode >= 200 && responseCode < 300) {
                         Log.d(LOG_TAG, "Request success for request (id: " + mRequest.getId() + "). Status code: " + response.getStatusCode());
                         return true;
                     } else {
@@ -172,7 +173,10 @@ public class RequestQueue {
 
         @Override
         protected void onPostExecute(Boolean status) {
+            // we will be re-adding this to queue if the request was failed.
+            // this is to avoid blocking the queue when a request fails continuously.
             remove(mRequest);
+
             if (!status) {
                 // check if it is a failed high priority event.
                 String api = mRequest.getUrl();
