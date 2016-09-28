@@ -1,6 +1,7 @@
 package com.blueshift.rich_push;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 
 import com.blueshift.util.NotificationUtils;
@@ -37,10 +38,8 @@ public class NotificationWorker extends IntentService {
         switch (action) {
             case ACTION_CAROUSEL_IMG_CHANGE:
                 int targetIndex = intent.getIntExtra(RichPushConstants.EXTRA_CAROUSEL_INDEX, 0);
-                message.setCarouselCurrentIndex(targetIndex);
-                message.setUpdateNotification(true);
 
-                updateCarouselNotification(message);
+                updateCarouselNotification(this, message, targetIndex);
 
                 break;
 
@@ -54,7 +53,9 @@ public class NotificationWorker extends IntentService {
         }
     }
 
-    private void updateCarouselNotification(Message message) {
-        CustomNotificationFactory.getInstance().createAndShowCarousel(this, message);
+    private void updateCarouselNotification(Context context, Message message, int newIndex) {
+        CustomNotificationFactory
+                .getInstance()
+                .createAndShowCarousel(context, message, true, newIndex);
     }
 }
