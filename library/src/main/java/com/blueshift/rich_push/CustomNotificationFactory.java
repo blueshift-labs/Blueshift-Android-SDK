@@ -56,7 +56,7 @@ public class CustomNotificationFactory {
      * @param message message object with valid carousel elements.
      */
     public void createAndShowAnimatedCarousel(Context context, Message message) {
-        NotificationCompat.Builder builder = createBasicNotification(context, message);
+        NotificationCompat.Builder builder = createBasicNotification(context, message, false);
         if (builder != null) {
             Notification notification = builder.build();
 
@@ -79,12 +79,24 @@ public class CustomNotificationFactory {
      * @param message message object with valid carousel elements.
      */
     public void createAndShowCarousel(Context context, Message message) {
-        NotificationCompat.Builder builder = createBasicNotification(context, message);
+        createAndShowCarousel(context, message, false, 0);
+    }
+
+    /**
+     * This method creates and displays a carousal notification with an image at the given index.
+     *
+     * @param context     valid {@link Context} object
+     * @param message     valid {@link Message} object with carousel elements
+     * @param isUpdating  flag to indicate id the notification should be created or updated
+     * @param targetIndex index of the image to be shown in carousel - carousel element index
+     */
+    public void createAndShowCarousel(Context context, Message message, boolean isUpdating, int targetIndex) {
+        NotificationCompat.Builder builder = createBasicNotification(context, message, isUpdating);
         if (builder != null) {
             Notification notification = builder.build();
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                notification.bigContentView = getCarouselImage(context, message);
+                notification.bigContentView = getCarouselImage(context, message, isUpdating, targetIndex);
             }
 
             builder.setDeleteIntent(getNotificationDeleteIntent(context, message));
@@ -101,7 +113,7 @@ public class CustomNotificationFactory {
      * @param message message object with valid carousel elements.
      * @return RemoteView object with notification details filled in.
      */
-    private RemoteViews getCarouselImage(Context context, Message message) {
+    private RemoteViews getCarouselImage(Context context, Message message, boolean isUpdating, int currentIndex) {
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
         remoteViews.setViewVisibility(R.id.big_picture, View.VISIBLE);
         remoteViews.setViewVisibility(R.id.next_button, View.VISIBLE);
@@ -110,15 +122,16 @@ public class CustomNotificationFactory {
         setBasicNotificationData(context, message, remoteViews);
 
         if (message != null && message.getCarouselLength() > 0) {
-            int index = message.getCarouselCurrentIndex();
             CarouselElement[] elements = message.getCarouselElements();
-            if (index < elements.length) {
-                CarouselElement element = elements[index];
+            if (currentIndex < elements.length) {
+                CarouselElement element = elements[currentIndex];
 
                 String imageFileName = NotificationUtils.getImageFileName(element.getImageUrl());
                 Bitmap bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
 
-                if (bitmap == null) {
+                // if the image is null and we are creating the notification for the first time,
+                // it means the cache is empty. so let's try downloading the images.
+                if (bitmap == null && !isUpdating) {
                     // image is unavailable. update the image cache.
                     NotificationUtils.downloadCarouselImages(context, message);
 
@@ -128,7 +141,15 @@ public class CustomNotificationFactory {
                     }
                 }
 
-                remoteViews.setImageViewBitmap(R.id.big_picture, bitmap);
+                if (bitmap != null) {
+                    remoteViews.setImageViewBitmap(R.id.big_picture, bitmap);
+                } else {
+                    // show the app icon as place holder for corrupted image
+                    Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+                    if (configuration != null) {
+                        remoteViews.setImageViewResource(R.id.big_picture, configuration.getAppIcon());
+                    }
+                }
 
                 String action = RichPushConstants.ACTION_OPEN_APP(context);
                 remoteViews.setOnClickPendingIntent(
@@ -138,12 +159,12 @@ public class CustomNotificationFactory {
 
                 remoteViews.setOnClickPendingIntent(
                         R.id.next_button,
-                        getNavigationPendingIntent(context, message, message.getNextCarouselIndex())
+                        getNavigationPendingIntent(context, message, message.getNextCarouselIndex(currentIndex))
                 );
 
                 remoteViews.setOnClickPendingIntent(
                         R.id.prev_button,
-                        getNavigationPendingIntent(context, message, message.getPrevCarouselIndex())
+                        getNavigationPendingIntent(context, message, message.getPrevCarouselIndex(currentIndex))
                 );
             }
         }
@@ -181,7 +202,7 @@ public class CustomNotificationFactory {
      * @param message valid message object
      * @return {@link NotificationCompat.Builder} object with basic values filled in
      */
-    private NotificationCompat.Builder createBasicNotification(Context context, Message message) {
+    private NotificationCompat.Builder createBasicNotification(Context context, Message message, boolean isUpdating) {
         NotificationCompat.Builder builder = null;
 
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
@@ -189,7 +210,7 @@ public class CustomNotificationFactory {
             builder = new NotificationCompat.Builder(context);
             builder.setDefaults(Notification.DEFAULT_ALL);
 
-            if (message.isUpdateNotification()) {
+            if (isUpdating) {
                 builder.setDefaults(0);
             }
 
@@ -246,7 +267,7 @@ public class CustomNotificationFactory {
                     );
                 }
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Could not download image" + e.getMessage());
+                Log.e(LOG_TAG, "Could not download image. " + e.getMessage());
             }
         }
 
