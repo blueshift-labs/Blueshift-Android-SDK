@@ -216,7 +216,7 @@ public class Message implements Serializable {
         return url;
     }
 
-    public String getImage_url() {
+    public String getImageUrl() {
         return image_url;
     }
 
