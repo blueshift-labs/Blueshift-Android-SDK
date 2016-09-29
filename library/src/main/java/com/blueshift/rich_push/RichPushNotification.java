@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * Created by rahul on 18/2/15.
+ * @author Rahul Raveendran V P
+ *         Created on 18/2/15 @ 12:22 PM
+ *         https://github.com/rahulrvp
  */
 public class RichPushNotification {
     private final static String LOG_TAG = RichPushNotification.class.getSimpleName();
@@ -150,8 +152,8 @@ public class RichPushNotification {
             }
         }
 
-        builder.setContentTitle(message.getTitle());
-        builder.setContentText(message.getBody());
+        builder.setContentTitle(message.getContentTitle());
+        builder.setContentText(message.getContentText());
 
         if (!TextUtils.isEmpty(message.getImage_url())) {
             try {

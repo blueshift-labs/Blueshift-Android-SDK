@@ -3,7 +3,9 @@ package com.blueshift.rich_push;
 import android.util.Log;
 
 /**
- * Created by rahul on 6/9/16.
+ * @author Rahul Raveendran V P
+ *         Created on 6/9/16 @ 12:22 PM
+ *         https://github.com/rahulrvp
  */
 public enum NotificationCategory {
     Buy,
@@ -26,7 +28,7 @@ public enum NotificationCategory {
                 case "buy":
                     return Buy;
 
-                case "view cart":
+                case "view_cart":
                     return ViewCart;
 
                 case "promotion":
