@@ -220,6 +220,7 @@ public class CustomNotificationFactory {
         if (configuration != null) {
             builder = new NotificationCompat.Builder(context);
             builder.setDefaults(Notification.DEFAULT_ALL);
+            builder.setAutoCancel(true);
 
             if (isUpdating) {
                 builder.setDefaults(0);
