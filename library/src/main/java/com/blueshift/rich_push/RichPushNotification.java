@@ -83,7 +83,12 @@ public class RichPushNotification {
 
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration != null) {
-            builder.setSmallIcon(configuration.getAppIcon());
+            builder.setSmallIcon(configuration.getSmallIconResId());
+
+            Bitmap bigIcon = BitmapFactory.decodeResource(context.getResources(), configuration.getLargeIconResId());
+            if (bigIcon != null) {
+                builder.setLargeIcon(bigIcon);
+            }
 
             switch (message.getCategory()) {
                 case Buy:
@@ -154,13 +159,25 @@ public class RichPushNotification {
 
         builder.setContentTitle(message.getContentTitle());
         builder.setContentText(message.getContentText());
+        builder.setSubText(message.getContentSubText());
 
-        if (!TextUtils.isEmpty(message.getImage_url())) {
+        if (!TextUtils.isEmpty(message.getImageUrl())) {
             try {
-                URL imageURL = new URL(message.getImage_url());
+                URL imageURL = new URL(message.getImageUrl());
                 Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
                 if (bitmap != null) {
-                    builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap));
+                    NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
+                    bigPictureStyle.bigPicture(bitmap);
+
+                    if (message.getBigContentTitle() != null) {
+                        bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
+                    }
+
+                    if (message.getBigContentSummaryText() != null) {
+                        bigPictureStyle.setSummaryText(message.getBigContentSummaryText());
+                    }
+
+                    builder.setStyle(bigPictureStyle);
                 }
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Could not load image. " + e.getMessage());

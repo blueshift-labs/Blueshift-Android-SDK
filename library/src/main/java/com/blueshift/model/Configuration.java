@@ -3,16 +3,27 @@ package com.blueshift.model;
 import android.app.AlarmManager;
 
 /**
- * Created by rahul on 19/2/15.
+ * @author Rahul Raveendran V P
+ *         Created on 19/2/15 @ 1:01 PM
+ *         https://github.com/rahulrvp
  */
 public class Configuration {
-    int appIcon;
-    Class productPage;
-    Class cartPage;
-    Class offerDisplayPage;
-    String apiKey;
-    long batchInterval;
-    int dialogTheme;
+    // common
+    private int appIcon;
+    private String apiKey;
+
+    // deep linking
+    private Class productPage;
+    private Class cartPage;
+    private Class offerDisplayPage;
+
+    // bulk event
+    private long batchInterval;
+
+    // notifications
+    private int dialogTheme;
+    private int smallIconResId;
+    private int largeIconResId;
 
     public Configuration() {
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
@@ -84,5 +95,21 @@ public class Configuration {
      */
     public void setDialogTheme(int dialogTheme) {
         this.dialogTheme = dialogTheme;
+    }
+
+    public int getSmallIconResId() {
+        return smallIconResId == 0 ? appIcon : smallIconResId;
+    }
+
+    public void setSmallIconResId(int smallIconResId) {
+        this.smallIconResId = smallIconResId;
+    }
+
+    public int getLargeIconResId() {
+        return largeIconResId == 0 ? appIcon : largeIconResId;
+    }
+
+    public void setLargeIconResId(int largeIconResId) {
+        this.largeIconResId = largeIconResId;
     }
 }
