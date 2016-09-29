@@ -187,8 +187,8 @@ public class CustomNotificationFactory {
                 .format(new Date(System.currentTimeMillis()));
 
         contentView.setImageViewResource(R.id.notification_icon, configuration.getAppIcon());
-        contentView.setTextViewText(R.id.notification_content_title, message.getTitle());
-        contentView.setTextViewText(R.id.notification_content_text, message.getBody());
+        contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
+        contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
         contentView.setTextViewText(R.id.notification_time, notificationTime);
     }
 
@@ -216,8 +216,8 @@ public class CustomNotificationFactory {
 
             // set basic items
             builder.setSmallIcon(configuration.getAppIcon());
-            builder.setContentTitle(message.getTitle());
-            builder.setContentText(message.getBody());
+            builder.setContentTitle(message.getContentTitle());
+            builder.setContentText(message.getContentText());
 
             RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_basic_layout);
             builder.setContent(contentView);
