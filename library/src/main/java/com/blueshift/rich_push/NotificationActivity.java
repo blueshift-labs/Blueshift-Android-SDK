@@ -56,8 +56,8 @@ public class NotificationActivity extends AppCompatActivity {
                 builder = new AlertDialog.Builder(mContext, theme);
             }
 
-            builder.setTitle(mMessage.getTitle());
-            builder.setMessage(mMessage.getBody());
+            builder.setTitle(mMessage.getContentTitle());
+            builder.setMessage(mMessage.getContentText());
 
             builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override

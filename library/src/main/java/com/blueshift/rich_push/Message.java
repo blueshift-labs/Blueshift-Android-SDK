@@ -6,7 +6,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 /**
- * Created by rahul on 18/2/15.
+ * @author Rahul Raveendran V P
+ *         Created on 18/2/15 @ 12:20 PM
+ *         https://github.com/rahulrvp
  */
 public class Message implements Serializable {
     public static final String EXTRA_MESSAGE = "message";
@@ -25,19 +27,109 @@ public class Message implements Serializable {
      * The following variables are used for parsing the 'message' payload.
      * They are the values used for creating the notification.
      */
+
+    /**
+     * id used for tracking the notification events
+     */
     private String id;
+
+    /**
+     * ** mandatory **
+     * used for defining the type of notification. currently takes 2 values.
+     * <p>
+     * <b>notification</b>
+     * represents default system notifications
+     * <p>
+     * <b>alert</b>
+     * represents notification shown using alert dialogs
+     * <p>
+     * <b>custom_notification</b>
+     * represents notifications with custom UI.
+     */
     private String notification_type;
-    private String title;
-    private String body;
+
+    /**
+     * ** mandatory **
+     * used for determining the feature provided by the notification. Takes following values.
+     * <p>
+     * <b>silent_push</b>
+     * push message to track uninstalls. sdk will skip this notification.
+     * <p>
+     * <b>buy</b>
+     * displays notification with 2 action buttons. used with notification_type notification
+     * 1. View - deep link to product details page
+     * 2. Buy - deep link to cart page
+     * <p>
+     * <b>view_cart</b>
+     * displays notification with one action button. used with notification_type notification
+     * 1. View Cart - deep link to cart page
+     * <p>
+     * <b>promotion</b>
+     * displays notification with deep link to launcher activity (opens app).
+     * used with notification_type notification
+     * <p>
+     * alert
+     * <b>alert_box</b>
+     * displays an alert box notification with 2 action buttons.
+     * used with notification_type alert
+     * 1. Open - deep link to launcher activity (opens app)
+     * 2. Dismiss - close the notification.
+     * <p>
+     * <b>alert_box_1_button</b>
+     * displays an alert box notification with only dismiss button. clicking on dismiss will
+     * close the dialog. used with notification_type alert
+     * <p>
+     * <b>animated_carousel</b>
+     * shows a carousel notification with animation. used with notification_type custom_notification.
+     * <p>
+     * <b>carousel</b>
+     * shows a carousel notification with next/prev buttons to change pics.
+     * used with notification_type custom_notification.
+     * <p>
+     * <b>gif</b>
+     * shows a notification with GIF image. used with notification_type custom_notification.
+     */
     private String category;
+
+    /**
+     * Basics notification contents (text)
+     */
+    private String content_title;
+    private String content_text;
+    private String content_sub_text;
+
+    /**
+     * Big Notification contents (text)
+     */
+    private String big_content_title;
+    private String big_content_summary_text;
+
+    /**
+     * This image URL is used for creating notifications with images (both bitmap & GIF)
+     */
+    private String image_url;
+
+    /**
+     * The array of carousel elements. Required to create carousel notifications.
+     */
+    private CarouselElement[] carousel_elements;
+
+    /**
+     * URL used when running promotions.
+     */
+    private String url;
+
+    /**
+     * Following are optional product info parameters.
+     */
     private String sku;
     private String mrp;
     private String price;
-    private String url;
-    private String image_url;
-    private long expiry;
+
+    /**
+     * Optional additional data as key value pair.
+     */
     private HashMap<String, Object> data;
-    private CarouselElement[] carousel_elements;
 
     /**
      * The following are the get / set methods for the above declared variables.
@@ -84,16 +176,28 @@ public class Message implements Serializable {
         return NotificationType.fromString(notification_type);
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
     public NotificationCategory getCategory() {
         return NotificationCategory.fromString(category);
+    }
+
+    public String getContentTitle() {
+        return content_title;
+    }
+
+    public String getContentText() {
+        return content_text;
+    }
+
+    public String getContentSubText() {
+        return content_sub_text;
+    }
+
+    public String getBigContentTitle() {
+        return big_content_title;
+    }
+
+    public String getBigContentSummaryText() {
+        return big_content_summary_text;
     }
 
     public String getSku() {
@@ -112,12 +216,8 @@ public class Message implements Serializable {
         return url;
     }
 
-    public String getImage_url() {
+    public String getImageUrl() {
         return image_url;
-    }
-
-    public long getExpiry() {
-        return expiry;
     }
 
     public HashMap<String, Object> getData() {
