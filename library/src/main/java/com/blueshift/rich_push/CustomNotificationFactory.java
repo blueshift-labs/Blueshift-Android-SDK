@@ -119,7 +119,7 @@ public class CustomNotificationFactory {
         remoteViews.setViewVisibility(R.id.next_button, View.VISIBLE);
         remoteViews.setViewVisibility(R.id.prev_button, View.VISIBLE);
 
-        setBasicNotificationData(context, message, remoteViews);
+        setBasicNotificationData(context, message, remoteViews, true);
 
         if (message != null && message.getCarouselLength() > 0) {
             CarouselElement[] elements = message.getCarouselElements();
@@ -179,16 +179,27 @@ public class CustomNotificationFactory {
      * @param context     valid context object
      * @param message     valid message object
      * @param contentView contentView on which the basic details should be filled in
+     * @param isExpanded  flag to indicate if the basic notification is for expanded notification or not
      */
-    private void setBasicNotificationData(Context context, Message message, RemoteViews contentView) {
+    private void setBasicNotificationData(Context context, Message message, RemoteViews contentView, boolean isExpanded) {
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
 
         String notificationTime = new SimpleDateFormat("hh:mm aa", Locale.getDefault())
                 .format(new Date(System.currentTimeMillis()));
 
-        contentView.setImageViewResource(R.id.notification_icon, configuration.getAppIcon());
-        contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
+        contentView.setImageViewResource(R.id.notification_icon, configuration.getLargeIconResId());
+        contentView.setImageViewResource(R.id.notification_small_icon, configuration.getSmallIconResId());
+
         contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
+
+        if (isExpanded) {
+            contentView.setTextViewText(R.id.notification_content_title, message.getBigContentTitle());
+            contentView.setTextViewText(R.id.notification_sub_text, message.getBigContentSummaryText());
+        } else {
+            contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
+            contentView.setTextViewText(R.id.notification_sub_text, message.getContentSubText());
+        }
+
         contentView.setTextViewText(R.id.notification_time, notificationTime);
     }
 
@@ -222,7 +233,7 @@ public class CustomNotificationFactory {
             RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_basic_layout);
             builder.setContent(contentView);
 
-            setBasicNotificationData(context, message, contentView);
+            setBasicNotificationData(context, message, contentView, false);
 
             // set notification click action as 'app open' by default
             String action = RichPushConstants.ACTION_OPEN_APP(context);
@@ -246,7 +257,7 @@ public class CustomNotificationFactory {
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
         remoteViews.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
 
-        setBasicNotificationData(context, message, remoteViews);
+        setBasicNotificationData(context, message, remoteViews, true);
 
         int index = 0;
 
