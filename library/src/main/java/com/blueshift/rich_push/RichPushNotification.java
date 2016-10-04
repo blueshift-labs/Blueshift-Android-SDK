@@ -201,6 +201,8 @@ public class RichPushNotification {
                 if (message.getContentText() != null) {
                     bigTextStyle.bigText(message.getContentText());
                 }
+
+                builder.setStyle(bigTextStyle);
             }
 
             NotificationManager notificationManager =
