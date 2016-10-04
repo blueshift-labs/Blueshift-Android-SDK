@@ -56,18 +56,20 @@ public class CustomNotificationFactory {
      * @param message message object with valid carousel elements.
      */
     public void createAndShowAnimatedCarousel(Context context, Message message) {
-        NotificationCompat.Builder builder = createBasicNotification(context, message, false);
-        if (builder != null) {
-            Notification notification = builder.build();
+        if (context != null && message != null) {
+            NotificationCompat.Builder builder = createBasicNotification(context, message, false);
+            if (builder != null) {
+                Notification notification = builder.build();
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                notification.bigContentView = createAnimatedCarousal(context, message);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    notification.bigContentView = createAnimatedCarousal(context, message);
+                }
+
+                builder.setDeleteIntent(getNotificationDeleteIntent(context, message));
+
+                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(message.getCategory().getNotificationId(), notification);
             }
-
-            builder.setDeleteIntent(getNotificationDeleteIntent(context, message));
-
-            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(message.getCategory().getNotificationId(), notification);
         }
     }
 
@@ -91,18 +93,20 @@ public class CustomNotificationFactory {
      * @param targetIndex index of the image to be shown in carousel - carousel element index
      */
     public void createAndShowCarousel(Context context, Message message, boolean isUpdating, int targetIndex) {
-        NotificationCompat.Builder builder = createBasicNotification(context, message, isUpdating);
-        if (builder != null) {
-            Notification notification = builder.build();
+        if (context != null && message != null) {
+            NotificationCompat.Builder builder = createBasicNotification(context, message, isUpdating);
+            if (builder != null) {
+                Notification notification = builder.build();
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                notification.bigContentView = getCarouselImage(context, message, isUpdating, targetIndex);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    notification.bigContentView = getCarouselImage(context, message, isUpdating, targetIndex);
+                }
+
+                builder.setDeleteIntent(getNotificationDeleteIntent(context, message));
+
+                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(message.getCategory().getNotificationId(), notification);
             }
-
-            builder.setDeleteIntent(getNotificationDeleteIntent(context, message));
-
-            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(message.getCategory().getNotificationId(), notification);
         }
     }
 
@@ -114,62 +118,67 @@ public class CustomNotificationFactory {
      * @return RemoteView object with notification details filled in.
      */
     private RemoteViews getCarouselImage(Context context, Message message, boolean isUpdating, int currentIndex) {
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
-        remoteViews.setViewVisibility(R.id.big_picture, View.VISIBLE);
-        remoteViews.setViewVisibility(R.id.next_button, View.VISIBLE);
-        remoteViews.setViewVisibility(R.id.prev_button, View.VISIBLE);
+        RemoteViews contentView = null;
 
-        setBasicNotificationData(context, message, remoteViews, true);
+        if (context != null) {
+            contentView = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
 
-        if (message != null && message.getCarouselLength() > 0) {
-            CarouselElement[] elements = message.getCarouselElements();
-            if (currentIndex < elements.length) {
-                CarouselElement element = elements[currentIndex];
+            contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
+            contentView.setViewVisibility(R.id.next_button, View.VISIBLE);
+            contentView.setViewVisibility(R.id.prev_button, View.VISIBLE);
 
-                String imageFileName = NotificationUtils.getImageFileName(element.getImageUrl());
-                Bitmap bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
+            setBasicNotificationData(context, message, contentView, true);
 
-                // if the image is null and we are creating the notification for the first time,
-                // it means the cache is empty. so let's try downloading the images.
-                if (bitmap == null && !isUpdating) {
-                    // image is unavailable. update the image cache.
-                    NotificationUtils.downloadCarouselImages(context, message);
+            if (message != null && message.getCarouselLength() > 0) {
+                CarouselElement[] elements = message.getCarouselElements();
+                if (currentIndex < elements.length) {
+                    CarouselElement element = elements[currentIndex];
 
-                    bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
-                    if (bitmap == null) {
-                        Log.e(LOG_TAG, "Could not load image for carousel.");
+                    String imageFileName = NotificationUtils.getImageFileName(element.getImageUrl());
+                    Bitmap bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
+
+                    // if the image is null and we are creating the notification for the first time,
+                    // it means the cache is empty. so let's try downloading the images.
+                    if (bitmap == null && !isUpdating) {
+                        // image is unavailable. update the image cache.
+                        NotificationUtils.downloadCarouselImages(context, message);
+
+                        bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
+                        if (bitmap == null) {
+                            Log.e(LOG_TAG, "Could not load image for carousel.");
+                        }
                     }
-                }
 
-                if (bitmap != null) {
-                    remoteViews.setImageViewBitmap(R.id.big_picture, bitmap);
-                } else {
-                    // show the app icon as place holder for corrupted image
-                    Configuration configuration = Blueshift.getInstance(context).getConfiguration();
-                    if (configuration != null) {
-                        remoteViews.setImageViewResource(R.id.big_picture, configuration.getAppIcon());
+                    if (bitmap != null) {
+                        contentView.setImageViewBitmap(R.id.big_picture, bitmap);
+                    } else {
+                        // show the app icon as place holder for corrupted image
+                        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+                        if (configuration != null) {
+                            contentView.setImageViewResource(R.id.big_picture, configuration.getAppIcon());
+                        }
                     }
+
+                    String action = RichPushConstants.ACTION_OPEN_APP(context);
+                    contentView.setOnClickPendingIntent(
+                            R.id.big_picture,
+                            getNotificationClickPendingIntent(action, context, message)
+                    );
+
+                    contentView.setOnClickPendingIntent(
+                            R.id.next_button,
+                            getNavigationPendingIntent(context, message, message.getNextCarouselIndex(currentIndex))
+                    );
+
+                    contentView.setOnClickPendingIntent(
+                            R.id.prev_button,
+                            getNavigationPendingIntent(context, message, message.getPrevCarouselIndex(currentIndex))
+                    );
                 }
-
-                String action = RichPushConstants.ACTION_OPEN_APP(context);
-                remoteViews.setOnClickPendingIntent(
-                        R.id.big_picture,
-                        getNotificationClickPendingIntent(action, context, message)
-                );
-
-                remoteViews.setOnClickPendingIntent(
-                        R.id.next_button,
-                        getNavigationPendingIntent(context, message, message.getNextCarouselIndex(currentIndex))
-                );
-
-                remoteViews.setOnClickPendingIntent(
-                        R.id.prev_button,
-                        getNavigationPendingIntent(context, message, message.getPrevCarouselIndex(currentIndex))
-                );
             }
         }
 
-        return remoteViews;
+        return contentView;
     }
 
     /**
@@ -182,25 +191,27 @@ public class CustomNotificationFactory {
      * @param isExpanded  flag to indicate if the basic notification is for expanded notification or not
      */
     private void setBasicNotificationData(Context context, Message message, RemoteViews contentView, boolean isExpanded) {
-        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+        if (context != null && message != null && contentView != null) {
+            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
 
-        String notificationTime = new SimpleDateFormat("hh:mm aa", Locale.getDefault())
-                .format(new Date(System.currentTimeMillis()));
+            String notificationTime = new SimpleDateFormat("hh:mm aa", Locale.getDefault())
+                    .format(new Date(System.currentTimeMillis()));
 
-        contentView.setImageViewResource(R.id.notification_icon, configuration.getLargeIconResId());
-        contentView.setImageViewResource(R.id.notification_small_icon, configuration.getSmallIconResId());
+            contentView.setImageViewResource(R.id.notification_icon, configuration.getLargeIconResId());
+            contentView.setImageViewResource(R.id.notification_small_icon, configuration.getSmallIconResId());
 
-        contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
+            contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
 
-        if (isExpanded) {
-            contentView.setTextViewText(R.id.notification_content_title, message.getBigContentTitle());
-            contentView.setTextViewText(R.id.notification_sub_text, message.getBigContentSummaryText());
-        } else {
-            contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
-            contentView.setTextViewText(R.id.notification_sub_text, message.getContentSubText());
+            if (isExpanded) {
+                contentView.setTextViewText(R.id.notification_content_title, message.getBigContentTitle());
+                contentView.setTextViewText(R.id.notification_sub_text, message.getBigContentSummaryText());
+            } else {
+                contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
+                contentView.setTextViewText(R.id.notification_sub_text, message.getContentSubText());
+            }
+
+            contentView.setTextViewText(R.id.notification_time, notificationTime);
         }
-
-        contentView.setTextViewText(R.id.notification_time, notificationTime);
     }
 
     /**
@@ -216,29 +227,31 @@ public class CustomNotificationFactory {
     private NotificationCompat.Builder createBasicNotification(Context context, Message message, boolean isUpdating) {
         NotificationCompat.Builder builder = null;
 
-        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
-        if (configuration != null) {
-            builder = new NotificationCompat.Builder(context);
-            builder.setDefaults(Notification.DEFAULT_ALL);
-            builder.setAutoCancel(true);
+        if (context != null && message != null) {
+            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            if (configuration != null) {
+                builder = new NotificationCompat.Builder(context);
+                builder.setDefaults(Notification.DEFAULT_ALL);
+                builder.setAutoCancel(true);
 
-            if (isUpdating) {
-                builder.setDefaults(0);
+                if (isUpdating) {
+                    builder.setDefaults(0);
+                }
+
+                // set basic items
+                builder.setSmallIcon(configuration.getAppIcon());
+                builder.setContentTitle(message.getContentTitle());
+                builder.setContentText(message.getContentText());
+
+                RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_basic_layout);
+                builder.setContent(contentView);
+
+                setBasicNotificationData(context, message, contentView, false);
+
+                // set notification click action as 'app open' by default
+                String action = RichPushConstants.ACTION_OPEN_APP(context);
+                builder.setContentIntent(getNotificationClickPendingIntent(action, context, message));
             }
-
-            // set basic items
-            builder.setSmallIcon(configuration.getAppIcon());
-            builder.setContentTitle(message.getContentTitle());
-            builder.setContentText(message.getContentText());
-
-            RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_basic_layout);
-            builder.setContent(contentView);
-
-            setBasicNotificationData(context, message, contentView, false);
-
-            // set notification click action as 'app open' by default
-            String action = RichPushConstants.ACTION_OPEN_APP(context);
-            builder.setContentIntent(getNotificationClickPendingIntent(action, context, message));
         }
 
         return builder;
@@ -255,35 +268,40 @@ public class CustomNotificationFactory {
      * @return {@link RemoteViews} object with carousel set ready
      */
     private RemoteViews createAnimatedCarousal(Context context, Message message) {
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
-        remoteViews.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
+        RemoteViews contentView = null;
 
-        setBasicNotificationData(context, message, remoteViews, true);
+        if (context != null && message != null) {
+            contentView = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
 
-        int index = 0;
+            contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
 
-        CarouselElement[] elements = message.getCarouselElements();
-        for (CarouselElement element : elements) {
-            try {
-                int resId = getImageViewResId(index++);
-                if (resId != -1) {
-                    URL imageURL = new URL(element.getImageUrl());
-                    Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+            setBasicNotificationData(context, message, contentView, true);
 
-                    remoteViews.setImageViewBitmap(resId, bitmap);
+            int index = 0;
 
-                    String action = RichPushConstants.buildAction(context, element.getAction());
-                    remoteViews.setOnClickPendingIntent(
-                            resId,
-                            getNotificationClickPendingIntent(action, context, message)
-                    );
+            CarouselElement[] elements = message.getCarouselElements();
+            for (CarouselElement element : elements) {
+                try {
+                    int resId = getImageViewResId(index++);
+                    if (resId != -1) {
+                        URL imageURL = new URL(element.getImageUrl());
+                        Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+
+                        contentView.setImageViewBitmap(resId, bitmap);
+
+                        String action = RichPushConstants.buildAction(context, element.getAction());
+                        contentView.setOnClickPendingIntent(
+                                resId,
+                                getNotificationClickPendingIntent(action, context, message)
+                        );
+                    }
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Could not download image. " + e.getMessage());
                 }
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Could not download image. " + e.getMessage());
             }
         }
 
-        return remoteViews;
+        return contentView;
     }
 
     /**
