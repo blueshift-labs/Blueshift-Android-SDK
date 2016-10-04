@@ -58,9 +58,9 @@ public class DeviceUtils {
             if (info != null) {
                 if (info.isLimitAdTrackingEnabled()) {
                     Log.w(LOG_TAG, "User has limit ad tracking enabled.");
-                } else {
-                    advertisingId = info.getId();
                 }
+
+                advertisingId = info.getId();
             }
         } catch (IOException e) {
             Log.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
