@@ -186,6 +186,21 @@ public class RichPushNotification {
                 } catch (IOException e) {
                     Log.e(LOG_TAG, "Could not load image. " + e.getMessage());
                 }
+            } else {
+                // enable big text style
+                NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
+
+                if (message.getBigContentTitle() != null) {
+                    bigTextStyle.setBigContentTitle(message.getBigContentTitle());
+                }
+
+                if (message.getBigContentSummaryText() != null) {
+                    bigTextStyle.setSummaryText(message.getBigContentSummaryText());
+                }
+
+                if (message.getContentText() != null) {
+                    bigTextStyle.bigText(message.getContentText());
+                }
             }
 
             NotificationManager notificationManager =
