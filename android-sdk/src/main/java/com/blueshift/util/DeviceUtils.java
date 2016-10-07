@@ -62,13 +62,13 @@ public class DeviceUtils {
                 advertisingId = info.getId();
             }
         } catch (IOException e) {
-            Log.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
+            SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
         } catch (GooglePlayServicesNotAvailableException e) {
             Log.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
 
             installNewGooglePlayServicesApp(context);
         } catch (GooglePlayServicesRepairableException e) {
-            Log.e(LOG_TAG, e.getMessage());
+            SdkLog.e(LOG_TAG, e.getMessage());
         }
 
         return advertisingId;
@@ -88,7 +88,7 @@ public class DeviceUtils {
                 }
             }
         } catch (SocketException e) {
-            Log.e(LOG_TAG, e.getMessage());
+            SdkLog.e(LOG_TAG, e.getMessage());
         }
 
         return null;

@@ -4,11 +4,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import com.blueshift.framework.BaseSqliteTable;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
+import com.blueshift.util.SdkLog;
 
 import java.util.HashMap;
 
@@ -131,6 +131,6 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
 
     public void clearAll() {
         deleteAll();
-        Log.i(LOG_TAG, "Request queue cleared" );
+        SdkLog.i(LOG_TAG, "Request queue cleared" );
     }
 }

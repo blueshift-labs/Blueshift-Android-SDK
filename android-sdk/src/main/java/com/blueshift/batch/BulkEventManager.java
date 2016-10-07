@@ -32,7 +32,7 @@ public class BulkEventManager {
 
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration == null) {
-            Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+            SdkLog.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
         } else {
             long interval = configuration.getBatchInterval();
 

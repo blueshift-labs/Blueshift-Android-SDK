@@ -148,7 +148,7 @@ public class RequestQueue {
                 if (config != null && config.getApiKey() != null) {
                     httpManager.addBasicAuthentication(config.getApiKey(), "");
                 } else {
-                    Log.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
+                    SdkLog.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
                 }
 
                 Response response = null;

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.util.SdkLog;
 
 /**
  * @author Rahul Raveendran V P
@@ -28,7 +29,7 @@ public class AppInstallReceiver extends BroadcastReceiver {
                 Log.w(LOG_TAG, "The referrer url parameters are not found in the INSTALL_REFERRER broadcast message.");
             }
         } else {
-            Log.w(LOG_TAG, "The broadcast message does not contain any extras.");
+            SdkLog.w(LOG_TAG, "The broadcast message does not contain any extras.");
         }
     }
 }
