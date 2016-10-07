@@ -10,10 +10,10 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.SdkLog;
 
 import java.io.IOException;
 import java.net.URL;
@@ -63,7 +63,7 @@ public class RichPushNotification {
                     break;
 
                 default:
-                    Log.e(LOG_TAG, "Unknown notification type");
+                    SdkLog.e(LOG_TAG, "Unknown notification type");
             }
         }
     }
@@ -184,7 +184,7 @@ public class RichPushNotification {
                         builder.setStyle(bigPictureStyle);
                     }
                 } catch (IOException e) {
-                    Log.e(LOG_TAG, "Could not load image. " + e.getMessage());
+                    SdkLog.e(LOG_TAG, "Could not load image. " + e.getMessage());
                 }
             } else {
                 // enable big text style

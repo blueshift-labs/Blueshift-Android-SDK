@@ -2,6 +2,8 @@ package com.blueshift.rich_push;
 
 import android.util.Log;
 
+import com.blueshift.util.SdkLog;
+
 /**
  * @author Rahul Raveendran V P
  *         Created on 6/9/16 @ 3:03 PM
@@ -28,7 +30,7 @@ public enum NotificationType {
                     return CustomNotification;
 
                 default:
-                    Log.w(LOG_TAG, "Unknown 'notification_type' found: " + notificationType);
+                    SdkLog.w(LOG_TAG, "Unknown 'notification_type' found: " + notificationType);
 
                     return Unknown;
             }

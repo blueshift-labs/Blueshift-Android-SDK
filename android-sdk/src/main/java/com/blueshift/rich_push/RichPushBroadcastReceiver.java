@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -18,7 +19,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
-        Log.v(LOG_TAG, "onReceive: " + intent.getAction());
+        SdkLog.d(LOG_TAG, "onReceive: " + intent.getAction());
 
         String messageJSON = intent.getStringExtra(Message.EXTRA_MESSAGE);
         if (messageJSON != null) {
@@ -39,7 +40,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                          * SDK has nothing to do with this. If this push was not delivered,
                          * server will track GCM registrations fails and will decide if the app is uninstalled or not.
                          */
-                        Log.i(LOG_TAG, "A silent push received.");
+                        SdkLog.i(LOG_TAG, "A silent push received.");
                     } else {
                         RichPushNotification.handleMessage(context, message);
                     }
@@ -50,7 +51,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                 Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
             }
         } else {
-            Log.d(LOG_TAG, "Message not found. Passing the push message to host app via broadcast.");
+            SdkLog.d(LOG_TAG, "Message not found. Passing the push message to host app via broadcast.");
             /**
              * Handing over the push message to host app if message is not found.
              */

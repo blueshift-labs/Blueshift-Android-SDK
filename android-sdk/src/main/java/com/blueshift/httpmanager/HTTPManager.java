@@ -1,7 +1,8 @@
 package com.blueshift.httpmanager;
 
 import android.util.Base64;
-import android.util.Log;
+
+import com.blueshift.util.SdkLog;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -165,7 +166,7 @@ public class HTTPManager {
 
     private Response getResponse() {
         Response response = new Response();
-        Log.d(LOG_TAG, mUrlConnection.getRequestMethod() + " " + mUrl);
+        SdkLog.d(LOG_TAG, mUrlConnection.getRequestMethod() + " " + mUrl);
 
         try {
             response.setStatusCode(mUrlConnection.getResponseCode());

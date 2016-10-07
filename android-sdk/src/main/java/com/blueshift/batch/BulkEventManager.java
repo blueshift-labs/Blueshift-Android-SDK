@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.SdkLog;
 
 /**
  * @author Rahul Raveendran V P
@@ -24,18 +25,18 @@ public class BulkEventManager {
     }
 
     public static void startAlarmManager(Context context) {
-        // Log.d(LOG_TAG, "Starting alarm service");
+        SdkLog.i(LOG_TAG, "Starting alarm service");
 
         // stop alarm manager if it is already running
         stopAlarmManager(context);
 
         Configuration configuration = Blueshift.getInstance(context).getConfiguration();
         if (configuration == null) {
-            Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+            SdkLog.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
         } else {
             long interval = configuration.getBatchInterval();
 
-            Log.d(LOG_TAG, "Bulk event time interval: " + (interval / 1000f) / 60f + " min.");
+            SdkLog.i(LOG_TAG, "Bulk event time interval: " + (interval / 1000f) / 60f + " min.");
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null) {
@@ -54,7 +55,7 @@ public class BulkEventManager {
         // then simply return null instead of creating it.
         PendingIntent alarmIntent = getAlarmPendingIntent(context, PendingIntent.FLAG_NO_CREATE);
         if (alarmIntent != null) {
-            Log.d(LOG_TAG, "Found an existing alarm. Cancelling it.");
+            SdkLog.i(LOG_TAG, "Found an existing alarm. Cancelling it.");
 
             // we have an intent in alarm manager.
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

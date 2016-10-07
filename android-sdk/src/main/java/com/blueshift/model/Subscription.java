@@ -1,9 +1,9 @@
 package com.blueshift.model;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.blueshift.type.SubscriptionState;
+import com.blueshift.util.SdkLog;
 import com.blueshift.util.StorageUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -49,7 +49,7 @@ public class Subscription {
             try {
                 return new Gson().fromJson(json, Subscription.class);
             } catch (JsonSyntaxException e) {
-                Log.e(LOG_TAG, "Invalid JSON: " + json);
+                SdkLog.e(LOG_TAG, "Invalid JSON: " + json);
             }
         }
 

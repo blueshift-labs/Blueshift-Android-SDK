@@ -15,6 +15,7 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
 import java.util.HashMap;
@@ -51,7 +52,8 @@ public class RequestQueue {
 
     public void add(Request request) {
         if (request != null) {
-            Log.d(LOG_TAG, "Adding new request to the Queue.");
+            SdkLog.d(LOG_TAG, "Adding new request to the Queue.");
+
             RequestQueueTable db = RequestQueueTable.getInstance(mContext);
             db.insert(request);
             db.close();
@@ -61,7 +63,8 @@ public class RequestQueue {
 
     public void remove(Request request) {
         if (request != null) {
-            Log.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
+            SdkLog.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
+
             RequestQueueTable db = RequestQueueTable.getInstance(mContext);
             db.delete(request);
             db.close();
@@ -105,7 +108,8 @@ public class RequestQueue {
                         mStatus = Status.AVAILABLE;
                     }
                 } else {
-                    Log.d(LOG_TAG, "Request queue is empty.");
+                    SdkLog.d(LOG_TAG, "Request queue is empty.");
+
                     mStatus = Status.AVAILABLE;
                 }
             }
@@ -136,35 +140,36 @@ public class RequestQueue {
         @Override
         protected Boolean doInBackground(Void... params) {
             if (mRequest != null) {
-                Log.d(LOG_TAG, "Processing request (id: " + mRequest.getId() + ").");
+                SdkLog.d(LOG_TAG, "Processing request (id: " + mRequest.getId() + ").");
+
                 HTTPManager httpManager = new HTTPManager(mRequest.getUrl());
 
                 Configuration config = Blueshift.getInstance(mContext).getConfiguration();
                 if (config != null && config.getApiKey() != null) {
                     httpManager.addBasicAuthentication(config.getApiKey(), "");
                 } else {
-                    Log.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
+                    SdkLog.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
                 }
 
                 Response response = null;
                 switch (mRequest.getMethod()) {
                     case POST:
-                        // testing log. need to remove this.
-                        Log.d(LOG_TAG, "Request params JSON: " + mRequest.getParamJson());
+                        SdkLog.d(LOG_TAG, "Request params JSON: " + mRequest.getParamJson());
+
                         response = httpManager.post(mRequest.getParamJson());
                         break;
 
                     default:
-                        Log.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
+                        SdkLog.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
                 }
 
                 if (response != null) {
                     int responseCode = response.getStatusCode();
                     if (responseCode >= 200 && responseCode < 300) {
-                        Log.d(LOG_TAG, "Request success for request (id: " + mRequest.getId() + "). Status code: " + response.getStatusCode());
+                        SdkLog.d(LOG_TAG, "Request success for request (id: " + mRequest.getId() + "). Status code: " + response.getStatusCode());
                         return true;
                     } else {
-                        Log.d(LOG_TAG, "Request failed for request (id: " + mRequest.getId() + "). Status code: " + response.getStatusCode() + ". Response: " + response.getResponseBody());
+                        SdkLog.d(LOG_TAG, "Request failed for request (id: " + mRequest.getId() + "). Status code: " + response.getStatusCode() + ". Response: " + response.getResponseBody());
                         return false;
                     }
                 }
@@ -194,7 +199,7 @@ public class RequestQueue {
                         Event event = new Event();
                         event.setEventParams(paramsMap);
 
-                        Log.d(LOG_TAG, "Adding failed request to failed events table");
+                        SdkLog.d(LOG_TAG, "Adding failed request to failed events table");
 
                         FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
                         failedEventsTable.insert(event);

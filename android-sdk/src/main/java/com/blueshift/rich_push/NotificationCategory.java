@@ -2,6 +2,8 @@ package com.blueshift.rich_push;
 
 import android.util.Log;
 
+import com.blueshift.util.SdkLog;
+
 /**
  * @author Rahul Raveendran V P
  *         Created on 6/9/16 @ 12:22 PM
@@ -56,7 +58,7 @@ public enum NotificationCategory {
                     return GifNotification;
 
                 default:
-                    Log.w(LOG_TAG, "Unknown 'category' found: " + notificationCategory);
+                    SdkLog.w(LOG_TAG, "Unknown 'category' found: " + notificationCategory);
 
                     return Unknown;
             }

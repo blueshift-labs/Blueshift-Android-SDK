@@ -30,6 +30,7 @@ import com.blueshift.model.UserInfo;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
@@ -289,7 +290,7 @@ public class Blueshift {
                             Event event = new Event();
                             event.setEventParams(requestParams);
 
-                            Log.d(LOG_TAG, "Adding event to events table for batching");
+                            SdkLog.i(LOG_TAG, "Adding event to events table for batching.");
 
                             EventsTable.getInstance(mContext).insert(event);
                         } else {
@@ -300,17 +301,19 @@ public class Blueshift {
                             request.setMethod(Method.POST);
                             request.setParamJson(reqParamsJSON);
 
+                            SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
+
                             // Adding the request to the queue.
                             RequestQueue.getInstance(mContext).add(request);
                         }
 
                         return true;
                     } else {
-                        Log.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
+                        SdkLog.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
                         return false;
                     }
                 } else {
-                    Log.e(LOG_TAG, "params can't be null");
+                    SdkLog.e(LOG_TAG, "params can't be null");
                     return false;
                 }
             }
@@ -341,7 +344,7 @@ public class Blueshift {
 
             @Override
             protected void onPostExecute(Boolean isSuccess) {
-                Log.d(LOG_TAG, "Event creation " + (isSuccess ? "success." : "failed."));
+                SdkLog.i(LOG_TAG, "Event creation " + (isSuccess ? "success." : "failed."));
             }
         }.execute();
     }
@@ -440,7 +443,7 @@ public class Blueshift {
             trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams, canBatchThisEvent);
 
         } else {
-            Log.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
+            SdkLog.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
         }
     }
 
@@ -668,7 +671,7 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_DOWNGRADE, eventParams, canBatchThisEvent);
         } else {
-            Log.e(LOG_TAG, "No valid subscription was found to pause.");
+            Log.w(LOG_TAG, "No valid subscription was found to pause.");
         }
     }
 
@@ -692,7 +695,7 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_UPGRADE, eventParams, canBatchThisEvent);
         } else {
-            Log.e(LOG_TAG, "No valid subscription was found to unpause.");
+            Log.w(LOG_TAG, "No valid subscription was found to unpause.");
         }
     }
 
@@ -713,7 +716,7 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_CANCEL, eventParams, canBatchThisEvent);
         } else {
-            Log.e(LOG_TAG, "No valid subscription was found to cancel.");
+            Log.w(LOG_TAG, "No valid subscription was found to cancel.");
         }
     }
 
@@ -721,7 +724,7 @@ public class Blueshift {
         if (message != null) {
             trackNotificationView(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
         } else {
-            Log.e(LOG_TAG, "No message available");
+            SdkLog.e(LOG_TAG, "No message available");
         }
     }
 
@@ -744,7 +747,7 @@ public class Blueshift {
         if (message != null) {
             trackNotificationClick(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
         } else {
-            Log.e(LOG_TAG, "No message available");
+            SdkLog.e(LOG_TAG, "No message available");
         }
     }
 
@@ -767,7 +770,7 @@ public class Blueshift {
         if (message != null) {
             trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
         } else {
-            Log.e(LOG_TAG, "No message available");
+            SdkLog.e(LOG_TAG, "No message available");
         }
     }
 
@@ -790,7 +793,7 @@ public class Blueshift {
         if (message != null) {
             trackAlertDismiss(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
         } else {
-            Log.e(LOG_TAG, "No message available");
+            SdkLog.e(LOG_TAG, "No message available");
         }
     }
 
@@ -816,7 +819,7 @@ public class Blueshift {
 
         @Override
         protected void onPreExecute() {
-            Log.d(LOG_TAG, "Trying to fetch AdvertisingId");
+            SdkLog.i(LOG_TAG, "Trying to fetch AdvertisingId");
         }
 
         @Override
@@ -829,7 +832,7 @@ public class Blueshift {
             if (!TextUtils.isEmpty(adId)) {
                 mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
             } else {
-                Log.d(LOG_TAG, "Could not fetch AdvertisingId");
+                SdkLog.w(LOG_TAG, "Could not fetch AdvertisingId");
             }
         }
     }

@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -17,6 +16,7 @@ import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.NotificationUtils;
+import com.blueshift.util.SdkLog;
 
 import java.io.IOException;
 import java.net.URL;
@@ -145,7 +145,7 @@ public class CustomNotificationFactory {
 
                         bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
                         if (bitmap == null) {
-                            Log.e(LOG_TAG, "Could not load image for carousel.");
+                            SdkLog.e(LOG_TAG, "Could not load image for carousel.");
                         }
                     }
 
@@ -296,7 +296,7 @@ public class CustomNotificationFactory {
                         );
                     }
                 } catch (IOException e) {
-                    Log.e(LOG_TAG, "Could not download image. " + e.getMessage());
+                    SdkLog.e(LOG_TAG, "Could not download image. " + e.getMessage());
                 }
             }
         }
