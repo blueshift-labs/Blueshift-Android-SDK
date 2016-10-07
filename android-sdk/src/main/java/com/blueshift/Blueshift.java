@@ -215,7 +215,8 @@ public class Blueshift {
     /**
      * Private method that receives params and send to server using request queue.
      *
-     * @param params hash-map filled with parameters required for api call
+     * @param params            hash-map filled with parameters required for api call
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      * @return true if everything works fine, else false
      */
     private boolean sendEvent(HashMap<String, Object> params, boolean canBatchThisEvent) {
@@ -319,8 +320,9 @@ public class Blueshift {
     /**
      * Method to send generic events
      *
-     * @param eventName name of the event
-     * @param params    hash map with valid parameters
+     * @param eventName         name of the event
+     * @param params            hash map with valid parameters
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     public void trackEvent(@NotNull String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
         final HashMap<String, Object> eventParams = new HashMap<>();
@@ -347,7 +349,8 @@ public class Blueshift {
     /**
      * Method to track the campaign measurement
      *
-     * @param referrer the referrer url sent by playstore app
+     * @param referrer          the referrer url sent by playstore app
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     public void trackAppInstall(String referrer, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(referrer)) {
@@ -371,8 +374,9 @@ public class Blueshift {
     /**
      * Helps trigger identify user api call using key 'retailer_customer_id'.
      *
-     * @param customerId if provided, replaces existing one (taken from UserInfo) inside request params.
-     * @param details    optional additional parameters
+     * @param customerId        if provided, replaces existing one (taken from UserInfo) inside request params.
+     * @param details           optional additional parameters
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     public void identifyUserByCustomerId(String customerId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(customerId)) {
@@ -385,8 +389,9 @@ public class Blueshift {
     /**
      * Helps trigger identify user api call using key 'device_identifier'.
      *
-     * @param androidAdId android ad id provided by host/customer app.
-     * @param details     optional additional parameters
+     * @param androidAdId       android ad id provided by host/customer app.
+     * @param details           optional additional parameters
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     public void identifyUserByDeviceId(String androidAdId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(androidAdId)) {
@@ -399,8 +404,9 @@ public class Blueshift {
     /**
      * Helps trigger identify user api call using key 'email'.
      *
-     * @param email   registered email address provided by host/customer app
-     * @param details optional additional parameters
+     * @param email             registered email address provided by host/customer app
+     * @param details           optional additional parameters
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     public void identifyUserByEmail(String email, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (email == null || email.isEmpty() || !(android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())) {
@@ -414,9 +420,10 @@ public class Blueshift {
      * Triggers identify user api call. If either key or value is null or empty,
      * that key value pair will be  ignored.
      *
-     * @param key     the key used for identify user. Ex: email, device_identifier, retailer_customer_id
-     * @param value   the corresponding value for 'key'
-     * @param details optional additional parameters
+     * @param key               the key used for identify user. Ex: email, device_identifier, retailer_customer_id
+     * @param value             the corresponding value for 'key'
+     * @param details           optional additional parameters
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     public void identifyUser(String key, String value, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (hasValidCredentials()) {
