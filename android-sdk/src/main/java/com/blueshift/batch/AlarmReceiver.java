@@ -8,6 +8,7 @@ import com.blueshift.BlueshiftConstants;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.request_queue.RequestQueue;
+import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import java.util.HashMap;
  * This class receives the alarm manager's trigger.
  * It will be creating a new batch and sending it to request queue.
  * The integrating app should add this in their AndroidManifest.xml as,
- * <receiver android:name="com.blueshift.batch.AlarmReceiver"/>
+ * {@code <receiver android:name="com.blueshift.batch.AlarmReceiver"/>}
  */
 public class AlarmReceiver extends BroadcastReceiver {
 
@@ -28,12 +29,12 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        // Log.d(LOG_TAG, "Received alarm for batch creation.");
+        SdkLog.d(LOG_TAG, "Received alarm for batch creation.");
 
         FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(context);
         ArrayList<HashMap<String, Object>> bulkEventsApiParams = failedEventsTable.getBulkEventParameters(BlueshiftConstants.BULK_EVENT_PAGE_SIZE);
 
-        // Log.d(LOG_TAG, "Found " + bulkEventsApiParams.size() + " items inside failed events table.");
+        SdkLog.d(LOG_TAG, "Found " + bulkEventsApiParams.size() + " items inside failed events table.");
 
         int spaceAvailableInBatch = BlueshiftConstants.BULK_EVENT_PAGE_SIZE - bulkEventsApiParams.size();
 
@@ -42,7 +43,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             EventsTable eventsTable = EventsTable.getInstance(context);
             ArrayList<HashMap<String, Object>> eventParams = eventsTable.getBulkEventParameters(spaceAvailableInBatch);
 
-            // Log.d(LOG_TAG, "Found " + eventParams.size() + " items inside batch events table.");
+            SdkLog.d(LOG_TAG, "Found " + eventParams.size() + " items inside batch events table.");
 
             bulkEventsApiParams.addAll(eventParams);
         }

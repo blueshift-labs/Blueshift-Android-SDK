@@ -5,11 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.NotificationUtils;
+import com.blueshift.util.SdkLog;
 
 /**
  * @author Rahul Raveendran V P
@@ -20,7 +20,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("RichPushActionReceiver", "onReceive - " + intent.getAction());
+        SdkLog.d("RichPushActionReceiver", "onReceive - " + intent.getAction());
 
         String action = intent.getAction();
         Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);

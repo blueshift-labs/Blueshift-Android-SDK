@@ -4,9 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.framework.BaseSqliteTable;
+import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -112,7 +112,8 @@ public class EventsTable extends BaseSqliteTable<Event> {
             }
 
             int count = delete(FIELD_ID, idList);
-            Log.d(LOG_TAG, "Deleted " + count + " events.");
+
+            SdkLog.i(LOG_TAG, "Deleted " + count + " events.");
         }
 
         return result;

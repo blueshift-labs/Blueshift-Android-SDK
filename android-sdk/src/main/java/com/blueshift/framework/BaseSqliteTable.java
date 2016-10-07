@@ -6,11 +6,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.batch.EventsTable;
 import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.request_queue.RequestQueueTable;
+import com.blueshift.util.SdkLog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -158,7 +158,8 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
                 synchronized (lock) {
                     SQLiteDatabase db = getWritableDatabase();
                     if (db != null) {
-                        Log.d(LOG_TAG, "Deleting records with '" + fieldName + "' IN (" + valuesCSV + ")");
+                        SdkLog.d(LOG_TAG, "Deleting records with '" + fieldName + "' IN (" + valuesCSV + ")");
+
                         count = db.delete(getTableName(), fieldName + " IN (" + valuesCSV + ")", null);
                         db.close();
                     }

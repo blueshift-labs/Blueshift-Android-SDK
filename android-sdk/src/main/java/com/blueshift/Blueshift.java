@@ -30,6 +30,7 @@ import com.blueshift.model.UserInfo;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
@@ -289,7 +290,7 @@ public class Blueshift {
                             Event event = new Event();
                             event.setEventParams(requestParams);
 
-                            Log.d(LOG_TAG, "Adding event to events table for batching");
+                            SdkLog.i(LOG_TAG, "Adding event to events table for batching.");
 
                             EventsTable.getInstance(mContext).insert(event);
                         } else {
@@ -299,6 +300,8 @@ public class Blueshift {
                             request.setUrl(BlueshiftConstants.EVENT_API_URL);
                             request.setMethod(Method.POST);
                             request.setParamJson(reqParamsJSON);
+
+                            SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
 
                             // Adding the request to the queue.
                             RequestQueue.getInstance(mContext).add(request);
@@ -341,7 +344,7 @@ public class Blueshift {
 
             @Override
             protected void onPostExecute(Boolean isSuccess) {
-                Log.d(LOG_TAG, "Event creation " + (isSuccess ? "success." : "failed."));
+                SdkLog.i(LOG_TAG, "Event creation " + (isSuccess ? "success." : "failed."));
             }
         }.execute();
     }
@@ -816,7 +819,7 @@ public class Blueshift {
 
         @Override
         protected void onPreExecute() {
-            Log.d(LOG_TAG, "Trying to fetch AdvertisingId");
+            SdkLog.i(LOG_TAG, "Trying to fetch AdvertisingId");
         }
 
         @Override
@@ -829,7 +832,7 @@ public class Blueshift {
             if (!TextUtils.isEmpty(adId)) {
                 mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
             } else {
-                Log.d(LOG_TAG, "Could not fetch AdvertisingId");
+                SdkLog.w(LOG_TAG, "Could not fetch AdvertisingId");
             }
         }
     }
