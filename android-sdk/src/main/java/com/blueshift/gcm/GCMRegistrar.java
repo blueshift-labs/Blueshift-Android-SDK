@@ -70,7 +70,7 @@ public final class GCMRegistrar {
 
     /**
      * {@link GCMBroadcastReceiver} instance used to handle the retry intent.
-     *
+     * <p>
      * <p>
      * This instance cannot be the same as the one defined in the manifest
      * because it needs a different permission.
@@ -78,6 +78,10 @@ public final class GCMRegistrar {
     private static GCMBroadcastReceiver sRetryReceiver;
 
     private static String sRetryReceiverClassName;
+
+    private GCMRegistrar() {
+        throw new UnsupportedOperationException();
+    }
 
     public static void registerForNotification(Context context) {
         if (checkDevice(context) && checkManifest(context)) {
@@ -100,6 +104,7 @@ public final class GCMRegistrar {
      * the device supports GCM.
      *
      * @param context application context.
+     * @return {@link Boolean}
      * @throws UnsupportedOperationException if the device does not support GCM.
      */
     public static boolean checkDevice(Context context) {
@@ -126,16 +131,16 @@ public final class GCMRegistrar {
      * <p>
      * A proper configuration means:
      * <ol>
-     *    <li>It creates a custom permission called
-     *      {@code PACKAGE_NAME.permission.C2D_MESSAGE}.
-     *    <li>It defines at least one {@link android.content.BroadcastReceiver} with category
-     *      {@code PACKAGE_NAME}.
-     *    <li>The {@link android.content.BroadcastReceiver}(s) uses the
-     *      {@value GCMConstants#PERMISSION_GCM_INTENTS} permission.
-     *    <li>The {@link android.content.BroadcastReceiver}(s) handles the 3 GCM intents
-     *      ({@value GCMConstants#INTENT_FROM_GCM_MESSAGE},
-     *      {@value GCMConstants#INTENT_FROM_GCM_REGISTRATION_CALLBACK},
-     *      and {@value GCMConstants#INTENT_FROM_GCM_LIBRARY_RETRY}).
+     * <li>It creates a custom permission called
+     * {@code PACKAGE_NAME.permission.C2D_MESSAGE}.
+     * <li>It defines at least one {@link android.content.BroadcastReceiver} with category
+     * {@code PACKAGE_NAME}.
+     * <li>The {@link android.content.BroadcastReceiver}(s) uses the
+     * {@value GCMConstants#PERMISSION_GCM_INTENTS} permission.
+     * <li>The {@link android.content.BroadcastReceiver}(s) handles the 3 GCM intents
+     * ({@value GCMConstants#INTENT_FROM_GCM_MESSAGE},
+     * {@value GCMConstants#INTENT_FROM_GCM_REGISTRATION_CALLBACK},
+     * and {@value GCMConstants#INTENT_FROM_GCM_LIBRARY_RETRY}).
      * </ol>
      * ...where {@code PACKAGE_NAME} is the application package.
      * <p>
@@ -144,6 +149,7 @@ public final class GCMRegistrar {
      * application is deployed to the users' devices.
      *
      * @param context application context.
+     * @return {@link Boolean}
      * @throws IllegalStateException if any of the conditions above is not met.
      */
     public static boolean checkManifest(Context context) {
@@ -171,7 +177,7 @@ public final class GCMRegistrar {
         }
         ActivityInfo[] receivers = receiversInfo.receivers;
         if (receivers == null || receivers.length == 0) {
-            Log.e(TAG,"No receiver for package " + packageName);
+            Log.e(TAG, "No receiver for package " + packageName);
             return false;
         }
         if (Log.isLoggable(TAG, Log.VERBOSE)) {
@@ -186,7 +192,7 @@ public final class GCMRegistrar {
             }
         }
         if (allowedReceivers.isEmpty()) {
-            Log.e(TAG,"No receiver allowed to receive " + GCMConstants.PERMISSION_GCM_INTENTS);
+            Log.e(TAG, "No receiver allowed to receive " + GCMConstants.PERMISSION_GCM_INTENTS);
             return false;
         }
         checkReceiver(context, allowedReceivers,
@@ -220,7 +226,7 @@ public final class GCMRegistrar {
     }
 
     private static void checkReceiver(Context context,
-            Set<String> allowedReceivers, String action) {
+                                      Set<String> allowedReceivers, String action) {
         PackageManager pm = context.getPackageManager();
         String packageName = context.getPackageName();
         Intent intent = new Intent(action);
@@ -254,11 +260,11 @@ public final class GCMRegistrar {
      * either a {@link GCMConstants#EXTRA_REGISTRATION_ID} or
      * {@link GCMConstants#EXTRA_ERROR}.
      *
-     * @param context application context.
+     * @param context   application context.
      * @param senderIds Google Project ID of the accounts authorized to send
-     *    messages to this application.
+     *                  messages to this application.
      * @throws IllegalStateException if device does not have all GCM
-     *             dependencies installed.
+     *                               dependencies installed.
      */
     public static void register(Context context, String... senderIds) {
         GCMRegistrar.resetBackoff(context);
@@ -267,7 +273,7 @@ public final class GCMRegistrar {
 
     static void internalRegister(Context context, String... senderIds) {
         String flatSenderIds = getFlatSenderIds(senderIds);
-        Log.v(TAG, "Registering app "  + context.getPackageName() +
+        Log.v(TAG, "Registering app " + context.getPackageName() +
                 " of senders " + flatSenderIds);
         Intent intent = new Intent(GCMConstants.INTENT_TO_GCM_REGISTRATION);
         intent.setPackage(GSF_PACKAGE);
@@ -294,6 +300,8 @@ public final class GCMRegistrar {
      * The result will be returned as an
      * {@link GCMConstants#INTENT_FROM_GCM_REGISTRATION_CALLBACK} intent with an
      * {@link GCMConstants#EXTRA_UNREGISTERED} extra.
+     *
+     * @param context {@link Context}
      */
     public static void unregister(Context context) {
         GCMRegistrar.resetBackoff(context);
@@ -302,10 +310,12 @@ public final class GCMRegistrar {
 
     /**
      * Clear internal resources.
-     *
+     * <p>
      * <p>
      * This method should be called by the main activity's {@code onDestroy()}
      * method.
+     *
+     * @param context {@link Context}
      */
     public static synchronized void onDestroy(Context context) {
         if (sRetryReceiver != null) {
@@ -316,7 +326,7 @@ public final class GCMRegistrar {
     }
 
     static void internalUnregister(Context context) {
-        Log.v(TAG, "Unregistering app "  + context.getPackageName());
+        Log.v(TAG, "Unregistering app " + context.getPackageName());
         Intent intent = new Intent(GCMConstants.INTENT_TO_GCM_UNREGISTRATION);
         intent.setPackage(GSF_PACKAGE);
         intent.putExtra(GCMConstants.EXTRA_APPLICATION_PENDING_INTENT,
@@ -370,8 +380,9 @@ public final class GCMRegistrar {
      * <p>
      * If result is empty, the registration has failed.
      *
+     * @param context {@link Context}
      * @return registration id, or empty string if the registration is not
-     *         complete.
+     * complete.
      */
     public static String getRegistrationId(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
@@ -411,7 +422,7 @@ public final class GCMRegistrar {
      * Sets the registration id in the persistence store.
      *
      * @param context application's context.
-     * @param regId registration id
+     * @param regId   registration id
      */
     static String setRegistrationId(Context context, String regId) {
         final SharedPreferences prefs = getGCMPreferences(context);
@@ -444,7 +455,7 @@ public final class GCMRegistrar {
     /**
      * Checks whether the device was successfully registered in the server side,
      * as set by {@link #setRegisteredOnServer(Context, boolean)}.
-     *
+     * <p>
      * <p>To avoid the scenario where the device sends the registration to the
      * server but the server loses it, this flag has an expiration date, which
      * is {@link #DEFAULT_ON_SERVER_LIFESPAN_MS} by default (but can be changed
@@ -471,7 +482,7 @@ public final class GCMRegistrar {
      * property is valid.
      *
      * @return value set by {@link #setRegisteredOnServer(Context, boolean)} or
-     *      {@link #DEFAULT_ON_SERVER_LIFESPAN_MS} if not set.
+     * {@link #DEFAULT_ON_SERVER_LIFESPAN_MS} if not set.
      */
     public static long getRegisterOnServerLifespan(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
@@ -484,8 +495,8 @@ public final class GCMRegistrar {
      * Sets how long (in milliseconds) the {@link #isRegistered(Context)}
      * flag is valid.
      */
-    public static void setRegisterOnServerLifespan(Context context, 
-            long lifespan) {
+    public static void setRegisterOnServerLifespan(Context context,
+                                                   long lifespan) {
         final SharedPreferences prefs = getGCMPreferences(context);
         Editor editor = prefs.edit();
         editor.putLong(PROPERTY_ON_SERVER_LIFESPAN, lifespan);
@@ -551,9 +562,5 @@ public final class GCMRegistrar {
 
     public static String getGCMSenderId() {
         return mSenderId;
-    }
-
-    private GCMRegistrar() {
-        throw new UnsupportedOperationException();
     }
 }
