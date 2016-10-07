@@ -14,14 +14,18 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+
 /**
- * Created by rahul on 25/8/16.
- * <p/>
- * This class receives the alarm manager's trigger.
- * It will be creating a new batch and sending it to request queue.
- * The integrating app should add this in their AndroidManifest.xml as,
- * {@code <receiver android:name="com.blueshift.batch.AlarmReceiver"/>}
+ * This is the alarm receiver for bulk event sync process.
+ *
+ * This class checks both failed request queue and normal bulk events queue for cached events.
+ * Batches of 100 events will be created and sent to server when this alarm triggers.
+ *
+ * @author Rahul Raveendran V P
+ *         Created on 25/8/16 @ 1:01 PM
+ *         https://github.com/rahulrvp
  */
+
 public class AlarmReceiver extends BroadcastReceiver {
 
     private static final String LOG_TAG = AlarmReceiver.class.getSimpleName();
@@ -31,26 +35,88 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         SdkLog.d(LOG_TAG, "Received alarm for batch creation.");
 
-        FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(context);
-        ArrayList<HashMap<String, Object>> bulkEventsApiParams = failedEventsTable.getBulkEventParameters(BlueshiftConstants.BULK_EVENT_PAGE_SIZE);
+        ArrayList<HashMap<String, Object>> tempBulkEventsApiParams = new ArrayList<>();
 
-        SdkLog.d(LOG_TAG, "Found " + bulkEventsApiParams.size() + " items inside failed events table.");
+        int failedEventsCount;
 
-        int spaceAvailableInBatch = BlueshiftConstants.BULK_EVENT_PAGE_SIZE - bulkEventsApiParams.size();
+        do {
+            FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(context);
+            ArrayList<HashMap<String, Object>> failedBulkEventsApiParams = failedEventsTable.getBulkEventParameters(BlueshiftConstants.BULK_EVENT_PAGE_SIZE);
+
+            failedEventsCount = failedBulkEventsApiParams.size();
+
+            SdkLog.d(LOG_TAG, "Found " + failedEventsCount + " items inside failed events table.");
+
+            if (failedEventsCount == BlueshiftConstants.BULK_EVENT_PAGE_SIZE) {
+                /**
+                 * If the failed events count is equal to 100. loop will try
+                 * to check if there is more failed events in the queue.If found, create
+                 * separate batches to include them and add them to the queue.
+                 */
+
+                addToBulkEventsRequestQueue(context, failedBulkEventsApiParams);
+            } else {
+                /**
+                 * If the failed events count is equal to zero, or less than 100, exit the
+                 * loop and continue with normal batch-able events from the events queue.
+                 */
+
+                tempBulkEventsApiParams.addAll(failedBulkEventsApiParams);
+            }
+        } while (failedEventsCount == BlueshiftConstants.BULK_EVENT_PAGE_SIZE);
+
+        /**
+         * In this line failedEventsCount is the count of last batch created with
+         * failed events. It could be a value >= 0 and < 100
+         */
+        int spaceAvailableInBatch = BlueshiftConstants.BULK_EVENT_PAGE_SIZE - failedEventsCount;
 
         if (spaceAvailableInBatch > 0) {
-            // there is space for some more events. Take it from Events table.
+            /**
+             * If we are here, it means the last batch created using failed events has
+             * a size which is > 0 and < 100. So there is still room for some more events.
+             *
+             * This block will fetch the events for the balance rooms and will create a bulk
+             * event api request with it.
+             */
             EventsTable eventsTable = EventsTable.getInstance(context);
-            ArrayList<HashMap<String, Object>> eventParams = eventsTable.getBulkEventParameters(spaceAvailableInBatch);
+            ArrayList<HashMap<String, Object>> bulkEventsApiParams = eventsTable.getBulkEventParameters(spaceAvailableInBatch);
+
+            SdkLog.d(LOG_TAG, "Adding " + bulkEventsApiParams.size() + " items from batch events table to fill the batch.");
+
+            tempBulkEventsApiParams.addAll(bulkEventsApiParams);
+
+            addToBulkEventsRequestQueue(context, tempBulkEventsApiParams);
+        }
+
+        /**
+         * Now take the events from bulk events queue and create batches for sending to bulk event API.
+         */
+
+        int bulkEventsCount;
+
+        do {
+            EventsTable eventsTable = EventsTable.getInstance(context);
+            ArrayList<HashMap<String, Object>> eventParams = eventsTable.getBulkEventParameters(BlueshiftConstants.BULK_EVENT_PAGE_SIZE);
+
+            bulkEventsCount = eventParams.size();
 
             SdkLog.d(LOG_TAG, "Found " + eventParams.size() + " items inside batch events table.");
 
-            bulkEventsApiParams.addAll(eventParams);
-        }
+            if (bulkEventsCount > 0) {
+                addToBulkEventsRequestQueue(context, eventParams);
+            }
 
-        if (bulkEventsApiParams.size() > 0) {
+            /**
+             * Repeat if the last batch created has 100 events.
+             */
+        } while (bulkEventsCount == BlueshiftConstants.BULK_EVENT_PAGE_SIZE);
+    }
+
+    private void addToBulkEventsRequestQueue(Context context, ArrayList<HashMap<String, Object>> eventParamsList) {
+        if (eventParamsList != null && eventParamsList.size() > 0) {
             BulkEvent bulkEvent = new BulkEvent();
-            bulkEvent.setEvents(bulkEventsApiParams);
+            bulkEvent.setEvents(eventParamsList);
 
             // Creating the request object.
             Request request = new Request();
