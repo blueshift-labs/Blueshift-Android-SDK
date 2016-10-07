@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Blueshift Android SDK</string>
+    <string name="dialog_button_open">Open</string>
+    <string name="dialog_button_dismiss">Dismiss</string>
+    <string name="large_icon">Large Icon</string>
+    <string name="small_icon">Small Icon</string>
+    <string name="carousel_prev_button">Carousel prev button</string>
+    <string name="carousel_next_button">Carousel next button</string>
+    <string name="big_picture">Big picture</string>
+    <string name="gps_not_found_msg">Could not fetch AdvertisingId. Please make sure that Google Play services 4.0+ is included in your project. Visit \"https://developer.android.com/google/play-services/setup.html\" for help.</string>
+    <string name="install_gps_app_toast_msg">Please install/update Google Play services.</string>
+</resources>
