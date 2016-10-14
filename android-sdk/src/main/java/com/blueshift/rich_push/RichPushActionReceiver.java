@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
@@ -18,24 +20,32 @@ import com.blueshift.util.SdkLog;
  */
 public class RichPushActionReceiver extends BroadcastReceiver {
 
+    private static final String LOG_TAG = "RichPushActionReceiver";
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        SdkLog.d("RichPushActionReceiver", "onReceive - " + intent.getAction());
+        SdkLog.d(LOG_TAG, "onReceive - " + intent.getAction());
 
         String action = intent.getAction();
-        Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
-        if (action != null && message != null) {
-            if (action.equals(RichPushConstants.ACTION_VIEW(context))) {
-                displayProductPage(context, message);
-            } else if (action.equals(RichPushConstants.ACTION_BUY(context))) {
-                addToCart(context, message);
-            } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(context))) {
-                displayCartPage(context, message);
-            } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context))) {
-                displayOfferDisplayPage(context, message);
-            } else if (action.equals(RichPushConstants.ACTION_OPEN_APP(context))) {
-                openApp(context, message);
+        if (!TextUtils.isEmpty(action)) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                if (action.equals(RichPushConstants.ACTION_VIEW(context))) {
+                    displayProductPage(context, bundle);
+                } else if (action.equals(RichPushConstants.ACTION_BUY(context))) {
+                    addToCart(context, bundle);
+                } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(context))) {
+                    displayCartPage(context, bundle);
+                } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context))) {
+                    displayOfferDisplayPage(context, bundle);
+                } else if (action.equals(RichPushConstants.ACTION_OPEN_APP(context))) {
+                    openApp(context, bundle);
+                }
+            } else {
+                SdkLog.d(LOG_TAG, "No bundle data available with the broadcast.");
             }
+
+            Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
 
             // remove cached images(if any) for this notification
             NotificationUtils.removeCachedCarouselImages(context, message);
@@ -47,68 +57,97 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             Blueshift.getInstance(context).trackNotificationClick(message, true);
 
             context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+        } else {
+            SdkLog.d(LOG_TAG, "No action found with the broadcast.");
         }
     }
 
-    public void displayProductPage(Context context, Message message) {
-        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
-        if (configuration != null && configuration.getProductPage() != null) {
-            Intent pageLauncherIntent = new Intent(context, configuration.getProductPage());
-            pageLauncherIntent.putExtra("sku", message.getSku());
-            pageLauncherIntent.putExtra("mrp", message.getMrp());
-            pageLauncherIntent.putExtra("price", message.getPrice());
-            pageLauncherIntent.putExtra("data", message.getData());
-            pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(pageLauncherIntent);
+    public void displayProductPage(Context context, Bundle bundle) {
+        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        if (message != null) {
+            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            if (configuration != null && configuration.getProductPage() != null) {
+                Intent pageLauncherIntent = new Intent(context, configuration.getProductPage());
+                // add product specific items.
+                pageLauncherIntent.putExtra("sku", message.getSku());
+                pageLauncherIntent.putExtra("mrp", message.getMrp());
+                pageLauncherIntent.putExtra("price", message.getPrice());
+                pageLauncherIntent.putExtra("data", message.getData());
+                // add the whole bundle. typically contains message object.
+                pageLauncherIntent.putExtras(bundle);
 
-            trackAppOpen(context, message);
+                pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(pageLauncherIntent);
+
+                trackAppOpen(context, message);
+            }
         }
     }
 
-    public void addToCart(Context context, Message message) {
-        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
-        if (configuration != null && configuration.getCartPage() != null) {
-            Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
-            pageLauncherIntent.putExtra("sku", message.getSku());
-            pageLauncherIntent.putExtra("mrp", message.getMrp());
-            pageLauncherIntent.putExtra("price", message.getPrice());
-            pageLauncherIntent.putExtra("data", message.getData());
-            pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(pageLauncherIntent);
+    public void addToCart(Context context, Bundle bundle) {
+        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        if (message != null) {
+            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            if (configuration != null && configuration.getCartPage() != null) {
+                Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
+                // add product specific items.
+                pageLauncherIntent.putExtra("sku", message.getSku());
+                pageLauncherIntent.putExtra("mrp", message.getMrp());
+                pageLauncherIntent.putExtra("price", message.getPrice());
+                pageLauncherIntent.putExtra("data", message.getData());
+                // add the whole bundle. typically contains message object.
+                pageLauncherIntent.putExtras(bundle);
 
-            trackAppOpen(context, message);
+                pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(pageLauncherIntent);
+
+                trackAppOpen(context, message);
+            }
         }
     }
 
-    public void displayCartPage(Context context, Message message) {
-        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
-        if (configuration != null && configuration.getCartPage() != null) {
-            Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
-            pageLauncherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-            pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(pageLauncherIntent);
+    public void displayCartPage(Context context, Bundle bundle) {
+        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        if (message != null) {
+            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            if (configuration != null && configuration.getCartPage() != null) {
+                Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
+                // add the whole bundle. typically contains message object.
+                pageLauncherIntent.putExtras(bundle);
 
-            trackAppOpen(context, message);
+                pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(pageLauncherIntent);
+
+                trackAppOpen(context, message);
+            }
         }
     }
 
-    public void displayOfferDisplayPage(Context context, Message message) {
-        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
-        if (configuration != null && configuration.getOfferDisplayPage() != null) {
-            Intent pageLauncherIntent = new Intent(context, configuration.getOfferDisplayPage());
-            pageLauncherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-            pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(pageLauncherIntent);
+    public void displayOfferDisplayPage(Context context, Bundle bundle) {
+        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        if (message != null) {
+            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            if (configuration != null && configuration.getOfferDisplayPage() != null) {
+                Intent pageLauncherIntent = new Intent(context, configuration.getOfferDisplayPage());
+                // add the whole bundle. typically contains message object.
+                pageLauncherIntent.putExtras(bundle);
 
-            trackAppOpen(context, message);
+                pageLauncherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(pageLauncherIntent);
+
+                trackAppOpen(context, message);
+            }
         }
     }
 
-    public void openApp(Context context, Message message) {
-        if (context != null) {
+    public void openApp(Context context, Bundle bundle) {
+        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        if (message != null) {
             PackageManager packageManager = context.getPackageManager();
-            Intent launcherIntent  = packageManager.getLaunchIntentForPackage(context.getPackageName());
-            launcherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+            Intent launcherIntent = packageManager.getLaunchIntentForPackage(context.getPackageName());
+            // add the whole bundle. typically contains message object.
+            launcherIntent.putExtras(bundle);
+
             launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launcherIntent);
 
