@@ -1,6 +1,7 @@
 package com.blueshift.rich_push;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
@@ -10,6 +11,7 @@ import java.io.Serializable;
 public class CarouselElement implements Serializable {
     private String image_url;
     private String action;
+    private HashMap data;
 
     public String getImageUrl() {
         return image_url;
@@ -17,5 +19,9 @@ public class CarouselElement implements Serializable {
 
     public String getAction() {
         return action;
+    }
+
+    public HashMap getData() {
+        return data;
     }
 }

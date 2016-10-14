@@ -129,7 +129,7 @@ public class Message implements Serializable {
     /**
      * Optional additional data as key value pair.
      */
-    private HashMap<String, Object> data;
+    private HashMap data;
 
     /**
      * The following are the get / set methods for the above declared variables.
@@ -220,7 +220,7 @@ public class Message implements Serializable {
         return image_url;
     }
 
-    public HashMap<String, Object> getData() {
+    public HashMap getData() {
         return data;
     }
 
