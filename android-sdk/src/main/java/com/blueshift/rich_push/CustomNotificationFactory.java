@@ -159,10 +159,9 @@ public class CustomNotificationFactory {
                         }
                     }
 
-                    String action = RichPushConstants.ACTION_OPEN_APP(context);
                     contentView.setOnClickPendingIntent(
                             R.id.big_picture,
-                            getNotificationClickPendingIntent(action, context, message)
+                            getCarouselImageClickPendingIntent(context, message, element)
                     );
 
                     contentView.setOnClickPendingIntent(
@@ -289,10 +288,9 @@ public class CustomNotificationFactory {
 
                         contentView.setImageViewBitmap(resId, bitmap);
 
-                        String action = RichPushConstants.buildAction(context, element.getAction());
                         contentView.setOnClickPendingIntent(
                                 resId,
-                                getNotificationClickPendingIntent(action, context, message)
+                                getCarouselImageClickPendingIntent(context, message, element)
                         );
                     }
                 } catch (IOException e) {
@@ -345,6 +343,26 @@ public class CustomNotificationFactory {
         intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
         return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /**
+     * Creates pending intent to attach with click actions on carousel images. Each image shown
+     * in the carousel will have a separate click action. Default action will be app open.
+     *
+     * @param context valid context object
+     * @param message valid message object
+     * @param element corresponding carousel element
+     * @return {@link PendingIntent}
+     */
+    private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element) {
+        String action = RichPushConstants.buildAction(context, element.getAction());
+        Intent bcIntent = new Intent(action);
+
+        bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, message.getCategory().getNotificationId());
+        bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+        bcIntent.putExtra(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
+
+        return PendingIntent.getBroadcast(context, 0, bcIntent, PendingIntent.FLAG_ONE_SHOT);
     }
 
     /**
