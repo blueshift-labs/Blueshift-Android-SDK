@@ -12,6 +12,7 @@ public final class RichPushConstants {
     public static final String EXTRA_NOTIFICATION_ID = "notification_id";
     public static final String EXTRA_CAROUSEL_INDEX = "carousel_index";
     public static final String EXTRA_CAROUSEL_ELEMENT = "carousel_element";
+    public static final String EXTRA_DEEP_LINK_URL = "deep_link_url";
 
     /**
      * Actions for the push categories handled by SDK.
