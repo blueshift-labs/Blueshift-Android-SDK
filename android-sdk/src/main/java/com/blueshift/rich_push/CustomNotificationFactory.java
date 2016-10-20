@@ -249,7 +249,8 @@ public class CustomNotificationFactory {
 
                 // set notification click action as 'app open' by default
                 String action = RichPushConstants.ACTION_OPEN_APP(context);
-                builder.setContentIntent(getNotificationClickPendingIntent(action, context, message));
+                builder.setContentIntent(
+                        RichPushNotification.getNotificationClickPendingIntent(action, context, message));
             }
         }
 
@@ -342,7 +343,8 @@ public class CustomNotificationFactory {
         intent.putExtra(RichPushConstants.EXTRA_CAROUSEL_INDEX, targetIndex);
         intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
-        return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getService(context,
+                RichPushNotification.getRandomPIRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**
@@ -355,32 +357,26 @@ public class CustomNotificationFactory {
      * @return {@link PendingIntent}
      */
     private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element) {
-        String action = RichPushConstants.buildAction(context, element.getAction());
+        String action;
+
+        if (element.isDeepLinkingEnabled()) {
+            action = RichPushConstants.ACTION_OPEN_APP(context);
+        } else {
+            action = RichPushConstants.buildAction(context, element.getAction());
+        }
+
         Intent bcIntent = new Intent(action);
 
         bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, message.getCategory().getNotificationId());
         bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
         bcIntent.putExtra(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
 
-        return PendingIntent.getBroadcast(context, 0, bcIntent, PendingIntent.FLAG_ONE_SHOT);
-    }
+        if (element.isDeepLinkingEnabled()) {
+            bcIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
+        }
 
-    /**
-     * Helper method to return valid pending intent to notify the clicks on notifications.
-     * This uses the same actions we have given for normal notification clicks.
-     *
-     * @param action  actions that {@link RichPushActionReceiver} supports
-     * @param context valid context object
-     * @param message valid message object
-     * @return {@link PendingIntent}
-     */
-    private PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message) {
-        Intent bcIntent = new Intent(action);
-
-        bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, message.getCategory().getNotificationId());
-        bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-
-        return PendingIntent.getBroadcast(context, 0, bcIntent, PendingIntent.FLAG_ONE_SHOT);
+        return PendingIntent.getBroadcast(context,
+                RichPushNotification.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
     }
 
     /**
@@ -396,6 +392,7 @@ public class CustomNotificationFactory {
 
         delIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
-        return PendingIntent.getService(context, 0, delIntent, PendingIntent.FLAG_ONE_SHOT);
+        return PendingIntent.getService(context,
+                RichPushNotification.getRandomPIRequestCode(), delIntent, PendingIntent.FLAG_ONE_SHOT);
     }
 }
