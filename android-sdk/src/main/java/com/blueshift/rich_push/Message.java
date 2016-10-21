@@ -105,7 +105,7 @@ public class Message implements Serializable {
     private String big_content_summary_text;
 
     /**
-     * This image URL is used for creating notifications with images (both bitmap & GIF)
+     * This image URL is used for creating notifications with images (both bitmap and GIF)
      */
     private String image_url;
 

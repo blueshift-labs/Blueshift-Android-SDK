@@ -33,7 +33,7 @@ public class CarouselElement implements Serializable {
      * On clicking notification, app will be opened and this URL will be passed along with the
      * corresponding carousel element object to the launching activity of the app.
      * <p>
-     * > Note: If this key is present, it will override the above actions.
+     * Note: If this key is present, it will override the above actions.
      */
     private String deep_link_url;
 
