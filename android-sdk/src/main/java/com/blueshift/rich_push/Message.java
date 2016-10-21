@@ -115,6 +115,15 @@ public class Message implements Serializable {
     private CarouselElement[] carousel_elements;
 
     /**
+     * This url is used for deep linking. If this URL is set to a valid value,
+     * the sdk will open the app and pass the message object as a parameter.
+     * <p>
+     * Note: The action specified in the category will be ignored if this key
+     * is present
+     */
+    private String deep_link_url;
+
+    /**
      * URL used when running promotions.
      */
     private String url;
@@ -129,7 +138,7 @@ public class Message implements Serializable {
     /**
      * Optional additional data as key value pair.
      */
-    private HashMap<String, Object> data;
+    private HashMap data;
 
     /**
      * The following are the get / set methods for the above declared variables.
@@ -212,6 +221,10 @@ public class Message implements Serializable {
         return price;
     }
 
+    public String getDeepLinkUrl() {
+        return deep_link_url;
+    }
+
     public String getUrl() {
         return url;
     }
@@ -220,7 +233,7 @@ public class Message implements Serializable {
         return image_url;
     }
 
-    public HashMap<String, Object> getData() {
+    public HashMap getData() {
         return data;
     }
 
@@ -273,5 +286,9 @@ public class Message implements Serializable {
 
     public boolean isSilentPush() {
         return getNotificationType() == NotificationType.Notification && getCategory() == NotificationCategory.SilentPush;
+    }
+
+    public boolean isDeepLinkingEnabled() {
+        return !TextUtils.isEmpty(deep_link_url);
     }
 }

@@ -17,6 +17,7 @@ import com.blueshift.util.SdkLog;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Random;
 
 /**
  * @author Rahul Raveendran V P
@@ -25,6 +26,12 @@ import java.net.URL;
  */
 public class RichPushNotification {
     private final static String LOG_TAG = RichPushNotification.class.getSimpleName();
+
+    private final static Random sRandom = new Random();
+
+    static int getRandomPIRequestCode() {
+        return sRandom.nextInt();
+    }
 
     public static void handleMessage(final Context context, final Message message) {
         if (context != null && message != null) {
@@ -79,8 +86,6 @@ public class RichPushNotification {
 
     private static void buildAndShowNotification(Context context, Message message) {
         if (context != null && message != null) {
-            int notificationID = 0;
-
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
             builder.setDefaults(Notification.DEFAULT_SOUND);
             builder.setAutoCancel(true);
@@ -96,54 +101,23 @@ public class RichPushNotification {
 
                 switch (message.getCategory()) {
                     case Buy:
-                        notificationID = NotificationCategory.Buy.getNotificationId();
-                        if (configuration.getProductPage() != null) {
-                            Intent intent = new Intent(RichPushConstants.ACTION_VIEW(context));
-                            intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                            intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                            PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                                    0, intent, PendingIntent.FLAG_ONE_SHOT);
+                        PendingIntent viewPendingIntent = getViewActionPendingIntent(context, message);
+                        builder.addAction(0, "View", viewPendingIntent);
 
-                            builder.addAction(0, "View", pendingIntent);
-                        }
-
-                        if (configuration.getCartPage() != null) {
-                            Intent intent = new Intent(RichPushConstants.ACTION_BUY(context));
-                            intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                            intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                            PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                                    0, intent, PendingIntent.FLAG_ONE_SHOT);
-
-                            builder.addAction(0, "Buy", pendingIntent);
-                        }
+                        PendingIntent buyPendingIntent = getBuyActionPendingIntent(context, message);
+                        builder.addAction(0, "Buy", buyPendingIntent);
 
                         break;
 
                     case ViewCart:
-                        notificationID = NotificationCategory.ViewCart.getNotificationId();
-                        if (configuration.getCartPage() != null) {
-                            Intent intent = new Intent(RichPushConstants.ACTION_OPEN_CART(context));
-                            intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                            intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                            PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                                    0, intent, PendingIntent.FLAG_ONE_SHOT);
-
-                            builder.addAction(0, "Open Cart", pendingIntent);
-                        }
+                        PendingIntent openCartPendingIntent = getOpenCartPendingIntent(context, message);
+                        builder.addAction(0, "Open Cart", openCartPendingIntent);
 
                         break;
 
                     case Promotion:
-                        notificationID = NotificationCategory.Promotion.getNotificationId();
-                        if (configuration.getOfferDisplayPage() != null) {
-                            Intent intent = new Intent(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context));
-                            intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                            intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                            PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                                    0, intent, PendingIntent.FLAG_ONE_SHOT);
-
-                            builder.setContentIntent(pendingIntent);
-                        }
+                        PendingIntent openPromoPendingIntent = getOpenPromotionPendingIntent(context, message);
+                        builder.setContentIntent(openPromoPendingIntent);
 
                         break;
 
@@ -151,13 +125,8 @@ public class RichPushNotification {
                         /**
                          * Default action is to open app and send all details as extra inside intent
                          */
-                        Intent intent = new Intent(RichPushConstants.ACTION_OPEN_APP(context));
-                        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationID);
-                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                                0, intent, PendingIntent.FLAG_ONE_SHOT);
-
-                        builder.setContentIntent(pendingIntent);
+                        PendingIntent defaultPendingIntent = getOpenAppPendingIntent(context, message);
+                        builder.setContentIntent(defaultPendingIntent);
                 }
             }
 
@@ -205,6 +174,8 @@ public class RichPushNotification {
                 builder.setStyle(bigTextStyle);
             }
 
+            int notificationID = message.getCategory().getNotificationId();
+
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(notificationID, builder.build());
@@ -232,4 +203,57 @@ public class RichPushNotification {
             }
         }
     }
+
+    // [BEGIN] PendingIntent builder methods.
+
+    private static PendingIntent getBuyActionPendingIntent(Context context, Message message) {
+        String action = RichPushConstants.ACTION_BUY(context);
+        return getNotificationClickPendingIntent(action, context, message);
+    }
+
+    private static PendingIntent getViewActionPendingIntent(Context context, Message message) {
+        String action = RichPushConstants.ACTION_VIEW(context);
+        return getNotificationClickPendingIntent(action, context, message);
+    }
+
+    private static PendingIntent getOpenCartPendingIntent(Context context, Message message) {
+        String action = RichPushConstants.ACTION_OPEN_CART(context);
+        return getNotificationClickPendingIntent(action, context, message);
+    }
+
+    private static PendingIntent getOpenAppPendingIntent(Context context, Message message) {
+        String action = RichPushConstants.ACTION_OPEN_APP(context);
+        return getNotificationClickPendingIntent(action, context, message);
+    }
+
+    private static PendingIntent getOpenPromotionPendingIntent(Context context, Message message) {
+        String action = RichPushConstants.ACTION_OPEN_OFFER_PAGE(context);
+        return getNotificationClickPendingIntent(action, context, message);
+    }
+
+    static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message) {
+        // if deep link url is available, despite the fact that we have a category based action,
+        // we will use the open app action to launch app and pass the deep link url to it.
+        if (TextUtils.isEmpty(action) || (message != null && message.isDeepLinkingEnabled())) {
+            action = RichPushConstants.ACTION_OPEN_APP(context);
+        }
+
+        Intent bcIntent = new Intent(action);
+
+        if (message != null) {
+            int notificationId = message.getCategory().getNotificationId();
+            bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
+            bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+
+            // add deep link URL if available.
+            if (message.isDeepLinkingEnabled()) {
+                bcIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, message.getDeepLinkUrl());
+            }
+        }
+
+        return PendingIntent.getBroadcast(context,
+                RichPushNotification.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
+    }
+
+    // [END] PendingIntent builder methods.
 }
