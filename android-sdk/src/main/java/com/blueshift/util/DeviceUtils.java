@@ -1,11 +1,11 @@
 package com.blueshift.util;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.blueshift.R;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
@@ -37,14 +37,13 @@ public class DeviceUtils {
     }
 
     private static void installNewGooglePlayServicesApp(Context context) {
-        Toast.makeText(
-                context,
-                R.string.install_gps_app_toast_msg,
-                Toast.LENGTH_SHORT).show();
-
-        Intent gpsInstallIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.gms"));
-        gpsInstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(gpsInstallIntent);
+        try {
+            Intent gpsInstallIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.gms"));
+            gpsInstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(gpsInstallIntent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(LOG_TAG, e.getMessage());
+        }
     }
 
     public static String getAdvertisingID(Context context) {
@@ -64,8 +63,7 @@ public class DeviceUtils {
         } catch (IOException e) {
             SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
         } catch (GooglePlayServicesNotAvailableException e) {
-            Log.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
-
+            Log.e(LOG_TAG, libNotFoundMessage);
             installNewGooglePlayServicesApp(context);
         } catch (GooglePlayServicesRepairableException e) {
             SdkLog.e(LOG_TAG, e.getMessage());
