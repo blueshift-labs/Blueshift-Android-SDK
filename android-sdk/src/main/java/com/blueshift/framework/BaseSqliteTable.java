@@ -244,7 +244,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, fieldName + "='" + value + "'", null, null, null, null);
                 if (cursor != null) {
-                    if (cursor.moveToFirst() && !cursor.isAfterLast()) {
+                    if (cursor.moveToFirst()) {
                         object = loadObject(cursor);
                     }
 
@@ -267,7 +267,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, null);
                 if (cursor != null) {
-                    if (cursor.moveToFirst() && !cursor.isAfterLast()) {
+                    if (cursor.moveToFirst()) {
                         object = loadObject(cursor);
                     }
 
@@ -290,7 +290,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, "RANDOM()");
                 if (cursor != null) {
-                    if (cursor.moveToFirst() && !cursor.isAfterLast()) {
+                    if (cursor.moveToFirst()) {
                         object = loadObject(cursor);
                     }
 
