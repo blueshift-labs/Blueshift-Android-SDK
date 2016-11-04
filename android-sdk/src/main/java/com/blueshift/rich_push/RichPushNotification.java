@@ -88,12 +88,13 @@ public class RichPushNotification {
 
                 @Override
                 protected void onPostExecute(Boolean appIsInForeground) {
-                    Log.d(LOG_TAG, "App is in " + (appIsInForeground ? "foreground." : "background."));
-
                     Intent notificationIntent = new Intent(context, NotificationActivity.class);
                     notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
                     notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
+                    /**
+                     * Clear the stack only if the app is in background / killed.
+                     */
                     if (!appIsInForeground) {
                         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     }
