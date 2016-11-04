@@ -9,11 +9,14 @@
 
         <activity
             android:name=".rich_push.NotificationActivity"
-            android:label=""
+            android:configChanges="orientation|screenSize"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=":BsftNotificationDialog"
             android:theme="@style/TransparentActivity" />
 
         <!--Events batching-->
-        <receiver android:name="com.blueshift.batch.AlarmReceiver"/>
+        <receiver android:name="com.blueshift.batch.AlarmReceiver" />
         <!--End - Events batching-->
 
         <!--App install tracking-->

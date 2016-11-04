@@ -102,7 +102,6 @@ public class NotificationActivity extends AppCompatActivity {
                         PackageManager packageManager = getPackageManager();
                         Intent launcherIntent = packageManager.getLaunchIntentForPackage(getPackageName());
                         launcherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, mMessage);
-                        launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(launcherIntent);
 
                         Blueshift.getInstance(mContext).trackNotificationPageOpen(mMessage, true);
