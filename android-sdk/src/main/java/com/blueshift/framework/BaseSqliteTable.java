@@ -193,12 +193,17 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, null, null, null, null, null);
                 if (cursor != null) {
-                    cursor.moveToFirst();
-                    while (!cursor.isAfterLast()) {
-                        result.add(loadObject(cursor));
-                        cursor.moveToNext();
+                    if (cursor.moveToFirst()) {
+                        while (!cursor.isAfterLast()) {
+                            result.add(loadObject(cursor));
+                            cursor.moveToNext();
+                        }
                     }
+
+                    cursor.close();
                 }
+
+                db.close();
             }
         }
 
@@ -213,11 +218,11 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.rawQuery("SELECT * FROM " + getTableName() + " LIMIT " + limit, null);
                 if (cursor != null) {
-                    cursor.moveToFirst();
-
-                    while (!cursor.isAfterLast()) {
-                        result.add(loadObject(cursor));
-                        cursor.moveToNext();
+                    if (cursor.moveToFirst()) {
+                        while (!cursor.isAfterLast()) {
+                            result.add(loadObject(cursor));
+                            cursor.moveToNext();
+                        }
                     }
 
                     cursor.close();
@@ -239,9 +244,13 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, fieldName + "='" + value + "'", null, null, null, null);
                 if (cursor != null) {
-                    cursor.moveToFirst();
-                    object = loadObject(cursor);
+                    if (cursor.moveToFirst()) {
+                        object = loadObject(cursor);
+                    }
+
+                    cursor.close();
                 }
+
                 db.close();
             }
         }
@@ -258,9 +267,13 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, null);
                 if (cursor != null) {
-                    cursor.moveToFirst();
-                    object = loadObject(cursor);
+                    if (cursor.moveToFirst()) {
+                        object = loadObject(cursor);
+                    }
+
+                    cursor.close();
                 }
+
                 db.close();
             }
         }
@@ -277,9 +290,13 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, "RANDOM()");
                 if (cursor != null) {
-                    cursor.moveToFirst();
-                    object = loadObject(cursor);
+                    if (cursor.moveToFirst()) {
+                        object = loadObject(cursor);
+                    }
+
+                    cursor.close();
                 }
+
                 db.close();
             }
         }
@@ -295,12 +312,17 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, fieldName + "='" + value + "'", null, null, null, null);
                 if (cursor != null) {
-                    cursor.moveToFirst();
-                    while (!cursor.isAfterLast()) {
-                        result.add(loadObject(cursor));
-                        cursor.moveToNext();
+                    if (cursor.moveToFirst()) {
+                        while (!cursor.isAfterLast()) {
+                            result.add(loadObject(cursor));
+                            cursor.moveToNext();
+                        }
                     }
+
+                    cursor.close();
                 }
+
+                db.close();
             }
         }
 
@@ -320,12 +342,17 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
                 Cursor cursor = db.query(getTableName(), null, selection, values, null, null, null);
                 if (cursor != null) {
-                    cursor.moveToFirst();
-                    while (!cursor.isAfterLast()) {
-                        result.add(loadObject(cursor));
-                        cursor.moveToNext();
+                    if (cursor.moveToFirst()) {
+                        while (!cursor.isAfterLast()) {
+                            result.add(loadObject(cursor));
+                            cursor.moveToNext();
+                        }
                     }
+
+                    cursor.close();
                 }
+
+                db.close();
             }
         }
 
@@ -346,12 +373,17 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
                 Cursor cursor = db.query(getTableName(), null, selection, values, null, null, order, String.valueOf(100 * pageNo));
                 if (cursor != null) {
-                    cursor.moveToPosition(100 * (pageNo - 1));
-                    while (!cursor.isAfterLast()) {
-                        result.add(loadObject(cursor));
-                        cursor.moveToNext();
+                    if (cursor.moveToPosition(100 * (pageNo - 1))) {
+                        while (!cursor.isAfterLast()) {
+                            result.add(loadObject(cursor));
+                            cursor.moveToNext();
+                        }
                     }
+
+                    cursor.close();
                 }
+
+                db.close();
             }
         }
 
@@ -372,12 +404,17 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
                 Cursor cursor = db.query(getTableName(), null, selection, values, null, null, order, String.valueOf(100 * pageNo));
                 if (cursor != null) {
-                    cursor.moveToPosition(100 * (pageNo - 1));
-                    while (!cursor.isAfterLast()) {
-                        result.add(loadObject(cursor));
-                        cursor.moveToNext();
+                    if (cursor.moveToPosition(100 * (pageNo - 1))) {
+                        while (!cursor.isAfterLast()) {
+                            result.add(loadObject(cursor));
+                            cursor.moveToNext();
+                        }
                     }
+
+                    cursor.close();
                 }
+
+                db.close();
             }
         }
 

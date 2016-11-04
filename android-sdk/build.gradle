@@ -16,7 +16,7 @@ ext {
     siteUrl = 'https://getblueshift.com/'
     gitUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
 
-    libraryVersion = '0.6.1'
+    libraryVersion = '0.6.2'
 
     developerId = 'nipun'
     developerName = 'Nipun Bhatia'
@@ -133,7 +133,7 @@ if (project.hasProperty("android")) { // Android libraries
         source = android.sourceSets.main.java.srcDirs
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
         // todo: remove below line when fixes are applied for excluding external aars for javadoc.
-        failOnError = false;
+        // failOnError = false;
     }
 } else { // Java libraries
     task sourcesJar(type: Jar, dependsOn: classes) {
