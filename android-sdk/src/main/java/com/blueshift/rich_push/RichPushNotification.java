@@ -1,5 +1,6 @@
 package com.blueshift.rich_push;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -10,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
@@ -17,6 +19,7 @@ import com.blueshift.util.SdkLog;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -75,13 +78,54 @@ public class RichPushNotification {
         }
     }
 
-    private static void buildAndShowAlertDialog(Context context, Message message) {
+    private static void buildAndShowAlertDialog(final Context context, final Message message) {
         if (context != null && message != null) {
-            Intent notificationIntent = new Intent(context, NotificationActivity.class);
-            notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-            notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(notificationIntent);
+            new AsyncTask<Void, Void, Boolean>() {
+                @Override
+                protected Boolean doInBackground(Void... params) {
+                    return isAppInForeground(context);
+                }
+
+                @Override
+                protected void onPostExecute(Boolean appIsInForeground) {
+                    Intent notificationIntent = new Intent(context, NotificationActivity.class);
+                    notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+                    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    /**
+                     * Clear the stack only if the app is in background / killed.
+                     */
+                    if (!appIsInForeground) {
+                        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    }
+
+                    context.startActivity(notificationIntent);
+                }
+            }.execute();
         }
+    }
+
+    private static boolean isAppInForeground(Context context) {
+        boolean isAppInForeground = false;
+
+        if (context != null) {
+            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+            if (appProcesses != null) {
+                String packageName = context.getPackageName();
+                for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+                    if (appProcess != null
+                            && appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                            && appProcess.processName.equals(packageName)) {
+
+                        isAppInForeground = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return isAppInForeground;
     }
 
     private static void buildAndShowNotification(Context context, Message message) {
