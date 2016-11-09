@@ -44,12 +44,10 @@ import java.util.HashMap;
  */
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
+    private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
 
     private static Context mContext;
     private static Configuration mConfiguration;
-
-    private static HashMap<String, Object> mDeviceParams;
-
     private static Blueshift instance = null;
 
     private Blueshift() {
@@ -85,13 +83,28 @@ public class Blueshift {
     }
 
     /**
-     * Updates the mDeviceParams with new device token
+     * Updates the sDeviceParams with new device token
      *
      * @param deviceToken device token for sending push message
      */
     public static void updateDeviceToken(String deviceToken) {
-        if (deviceToken != null && mDeviceParams != null) {
-            mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
+        synchronized (sDeviceParams) {
+            if (deviceToken != null) {
+                sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
+            }
+        }
+    }
+
+    /**
+     * Updates the sDeviceParams with android ad id
+     *
+     * @param androidAdId android advertising id String
+     */
+    public static void updateAndroidAdId(String androidAdId) {
+        synchronized (sDeviceParams) {
+            if (!TextUtils.isEmpty(androidAdId)) {
+                sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId);
+            }
         }
     }
 
@@ -101,29 +114,30 @@ public class Blueshift {
      * @return params: hash-map with device parameters filled in.
      */
     private HashMap<String, Object> getDeviceParams() {
-        HashMap<String, Object> params = new HashMap<>();
-        if (mDeviceParams != null) {
-            params.putAll(mDeviceParams);
-        }
+        synchronized (sDeviceParams) {
+            HashMap<String, Object> params = new HashMap<>();
+            params.putAll(sDeviceParams);
 
-        return params;
+            return params;
+        }
     }
 
     /**
-     * This method initializes the mDeviceParams hash map with device related information.
+     * This method initializes the sDeviceParams hash map with device related information.
      */
     private void initializeDeviceParams() {
-        mDeviceParams = new HashMap<>();
-        mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-        mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, GCMRegistrar.getRegistrationId(mContext));
-        mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
-        mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
-        mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
-        mDeviceParams.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
+        synchronized (sDeviceParams) {
+            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
+            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, GCMRegistrar.getRegistrationId(mContext));
+            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
+            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
+            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
+            sDeviceParams.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
 
-        String simOperatorName = DeviceUtils.getSIMOperatorName(mContext);
-        if (simOperatorName != null) {
-            mDeviceParams.put(BlueshiftConstants.KEY_NETWORK_CARRIER, simOperatorName);
+            String simOperatorName = DeviceUtils.getSIMOperatorName(mContext);
+            if (simOperatorName != null) {
+                sDeviceParams.put(BlueshiftConstants.KEY_NETWORK_CARRIER, simOperatorName);
+            }
         }
 
         new FetchAndUpdateAdIdTask().execute();
@@ -813,7 +827,7 @@ public class Blueshift {
     }
 
     /**
-     * Updates the mDeviceParams with advertising ID
+     * Updates the sDeviceParams with advertising ID
      */
     private class FetchAndUpdateAdIdTask extends AsyncTask<Void, Void, String> {
 
@@ -830,7 +844,7 @@ public class Blueshift {
         @Override
         protected void onPostExecute(String adId) {
             if (!TextUtils.isEmpty(adId)) {
-                mDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
+                updateAndroidAdId(adId);
             } else {
                 SdkLog.w(LOG_TAG, "Could not fetch AdvertisingId");
             }
