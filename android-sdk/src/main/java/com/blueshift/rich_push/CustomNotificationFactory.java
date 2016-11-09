@@ -197,7 +197,12 @@ public class CustomNotificationFactory {
                     .format(new Date(System.currentTimeMillis()));
 
             contentView.setImageViewResource(R.id.notification_icon, configuration.getLargeIconResId());
-            contentView.setImageViewResource(R.id.notification_small_icon, configuration.getSmallIconResId());
+
+            int smallIconResId = configuration.getSmallIconResId();
+            if (smallIconResId != 0) {
+                contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+            }
 
             contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
 
