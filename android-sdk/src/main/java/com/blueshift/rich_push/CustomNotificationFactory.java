@@ -238,7 +238,7 @@ public class CustomNotificationFactory {
                 }
 
                 // set basic items
-                builder.setSmallIcon(configuration.getAppIcon());
+                builder.setSmallIcon(configuration.getSmallIconResId());
                 builder.setContentTitle(message.getContentTitle());
                 builder.setContentText(message.getContentText());
 
