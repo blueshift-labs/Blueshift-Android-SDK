@@ -37,9 +37,11 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginRight="5dp"
         android:layout_toEndOf="@id/icon_group"
         android:layout_toRightOf="@id/icon_group"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
         <!--Content title layout-->
@@ -51,12 +53,9 @@
             <TextView
                 android:id="@+id/notification_content_title"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:textColor="@color/primary_text_default_material_light"
-                android:textSize="16sp" />
+                android:textAppearance="@style/NotificationTitle" />
 
             <TextView
                 android:id="@+id/notification_time"
@@ -65,8 +64,7 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textColor="@color/secondary_text_default_material_light"
-                android:textSize="12sp" />
+                android:textAppearance="@style/NotificationTime" />
 
         </LinearLayout>
 
@@ -74,21 +72,17 @@
         <TextView
             android:id="@+id/notification_content_text"
             android:layout_width="match_parent"
-            android:layout_height="15dp"
+            android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:maxLines="1"
-            android:textColor="@color/secondary_text_default_material_light"
-            android:textSize="12sp" />
+            android:textAppearance="@style/NotificationLine2" />
 
         <!--Sub text-->
         <TextView
             android:id="@+id/notification_sub_text"
             android:layout_width="match_parent"
-            android:layout_height="15dp"
+            android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:maxLines="1"
-            android:textColor="@color/secondary_text_default_material_light"
-            android:textSize="12sp" />
+            android:textAppearance="@style/NotificationInfo" />
 
     </LinearLayout>
 

@@ -216,10 +216,11 @@ public class CustomNotificationFactory {
 
             contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
 
+            float textSize = 12f;
+            // int textAppearance = R.style.NotificationLine2;
+
             if (isExpanded) {
                 contentView.setTextViewText(R.id.notification_content_title, message.getBigContentTitle());
-
-                float contentTextSize = 13.0f;
 
                 String bigContentSummary = message.getBigContentSummaryText();
                 if (!TextUtils.isEmpty(bigContentSummary)) {
@@ -227,17 +228,9 @@ public class CustomNotificationFactory {
                     contentView.setTextViewText(R.id.notification_sub_text, bigContentSummary);
                 } else {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
-                    contentTextSize = 14.0f;
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    contentView.setTextViewTextSize(
-                            R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, contentTextSize);
                 }
             } else {
                 contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
-
-                float contentTextSize = 13.0f;
 
                 String contentSubText = message.getContentSubText();
                 if (!TextUtils.isEmpty(contentSubText)) {
@@ -245,13 +238,18 @@ public class CustomNotificationFactory {
                     contentView.setTextViewText(R.id.notification_sub_text, contentSubText);
                 } else {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
-                    contentTextSize = 14.0f;
-                }
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    contentView.setTextViewTextSize(
-                            R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, contentTextSize);
+                    textSize = 14f;
+                    // textAppearance = R.style.Notification;
                 }
+            }
+
+            /**
+             * This is a quick fix made. We will need to find out a way to make use of
+             * textAppearance property
+             */
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
             }
 
             contentView.setTextViewText(R.id.notification_time, notificationTime);
