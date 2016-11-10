@@ -9,6 +9,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.support.v7.app.NotificationCompat;
+import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -216,10 +218,40 @@ public class CustomNotificationFactory {
 
             if (isExpanded) {
                 contentView.setTextViewText(R.id.notification_content_title, message.getBigContentTitle());
-                contentView.setTextViewText(R.id.notification_sub_text, message.getBigContentSummaryText());
+
+                float contentTextSize = 13.0f;
+
+                String bigContentSummary = message.getBigContentSummaryText();
+                if (!TextUtils.isEmpty(bigContentSummary)) {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
+                    contentView.setTextViewText(R.id.notification_sub_text, bigContentSummary);
+                } else {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
+                    contentTextSize = 14.0f;
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    contentView.setTextViewTextSize(
+                            R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, contentTextSize);
+                }
             } else {
                 contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
-                contentView.setTextViewText(R.id.notification_sub_text, message.getContentSubText());
+
+                float contentTextSize = 13.0f;
+
+                String contentSubText = message.getContentSubText();
+                if (!TextUtils.isEmpty(contentSubText)) {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
+                    contentView.setTextViewText(R.id.notification_sub_text, contentSubText);
+                } else {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
+                    contentTextSize = 14.0f;
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    contentView.setTextViewTextSize(
+                            R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, contentTextSize);
+                }
             }
 
             contentView.setTextViewText(R.id.notification_time, notificationTime);
