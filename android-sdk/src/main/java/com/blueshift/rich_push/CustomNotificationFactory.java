@@ -69,6 +69,9 @@ public class CustomNotificationFactory {
 
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(message.getCategory().getNotificationId(), notification);
+
+                // Tracking the notification display.
+                Blueshift.getInstance(context).trackNotificationView(message, true);
             }
         }
     }
@@ -106,6 +109,11 @@ public class CustomNotificationFactory {
 
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(message.getCategory().getNotificationId(), notification);
+
+                if (!isUpdating) {
+                    // Tracking the notification display for the first time
+                    Blueshift.getInstance(context).trackNotificationView(message, true);
+                }
             }
         }
     }
