@@ -106,7 +106,7 @@ public class Configuration {
     }
 
     public int getLargeIconResId() {
-        return largeIconResId == 0 ? appIcon : largeIconResId;
+        return largeIconResId == 0 ? getSmallIconResId() : largeIconResId;
     }
 
     public void setLargeIconResId(int largeIconResId) {

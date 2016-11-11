@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Notification" parent="@android:style/TextAppearance.Material.Notification" />
+
+    <style name="NotificationTitle" parent="@android:style/TextAppearance.Material.Notification.Title" />
+
+    <style name="NotificationTime" parent="@android:style/TextAppearance.Material.Notification.Time" />
+
+    <style name="NotificationLine2" parent="@android:style/TextAppearance.Material.Notification.Line2" />
+
+    <style name="NotificationInfo" parent="@android:style/TextAppearance.Material.Notification.Info" />
+</resources>

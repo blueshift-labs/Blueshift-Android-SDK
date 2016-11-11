@@ -11,11 +11,9 @@
 
         <ImageView
             android:id="@+id/notification_icon"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginLeft="2dp"
-            android:layout_marginStart="2dp"
-            android:layout_marginTop="2dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="12dp"
             android:contentDescription="@string/large_icon"
             android:scaleType="centerInside" />
 
@@ -24,10 +22,14 @@
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:layout_gravity="bottom|end"
-            android:layout_marginBottom="4dp"
-            android:layout_marginEnd="4dp"
-            android:layout_marginRight="4dp"
-            android:contentDescription="@string/small_icon" />
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/notification_small_icon_bg"
+            android:contentDescription="@string/small_icon"
+            android:padding="3dp"
+            android:tint="@android:color/white"
+            android:visibility="gone" />
 
     </FrameLayout>
 
@@ -35,9 +37,11 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginRight="5dp"
         android:layout_toEndOf="@id/icon_group"
         android:layout_toRightOf="@id/icon_group"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
         <!--Content title layout-->
@@ -49,12 +53,9 @@
             <TextView
                 android:id="@+id/notification_content_title"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:textColor="?android:attr/textColorPrimaryInverse"
-                android:textSize="16sp" />
+                android:textAppearance="@style/NotificationTitle" />
 
             <TextView
                 android:id="@+id/notification_time"
@@ -63,8 +64,7 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textColor="?android:attr/textColorSecondaryInverse"
-                android:textSize="12sp" />
+                android:textAppearance="@style/NotificationTime" />
 
         </LinearLayout>
 
@@ -72,21 +72,17 @@
         <TextView
             android:id="@+id/notification_content_text"
             android:layout_width="match_parent"
-            android:layout_height="15dp"
+            android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:maxLines="1"
-            android:textColor="?android:attr/textColorSecondaryInverse"
-            android:textSize="12sp" />
+            android:textAppearance="@style/NotificationLine2" />
 
         <!--Sub text-->
         <TextView
             android:id="@+id/notification_sub_text"
             android:layout_width="match_parent"
-            android:layout_height="15dp"
+            android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:maxLines="1"
-            android:textColor="?android:attr/textColorSecondaryInverse"
-            android:textSize="12sp" />
+            android:textAppearance="@style/NotificationInfo" />
 
     </LinearLayout>
 

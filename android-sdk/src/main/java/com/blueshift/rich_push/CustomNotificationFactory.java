@@ -9,6 +9,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.support.v7.app.NotificationCompat;
+import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -69,6 +71,9 @@ public class CustomNotificationFactory {
 
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(message.getCategory().getNotificationId(), notification);
+
+                // Tracking the notification display.
+                Blueshift.getInstance(context).trackNotificationView(message, true);
             }
         }
     }
@@ -106,6 +111,11 @@ public class CustomNotificationFactory {
 
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(message.getCategory().getNotificationId(), notification);
+
+                if (!isUpdating) {
+                    // Tracking the notification display for the first time
+                    Blueshift.getInstance(context).trackNotificationView(message, true);
+                }
             }
         }
     }
@@ -197,17 +207,67 @@ public class CustomNotificationFactory {
                     .format(new Date(System.currentTimeMillis()));
 
             contentView.setImageViewResource(R.id.notification_icon, configuration.getLargeIconResId());
-            contentView.setImageViewResource(R.id.notification_small_icon, configuration.getSmallIconResId());
+
+            int smallIconResId = configuration.getSmallIconResId();
+            if (smallIconResId != 0) {
+                contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+            }
 
             contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
 
+            float textSize = 12f;
+            // int textAppearance = R.style.NotificationLine2;
+
             if (isExpanded) {
                 contentView.setTextViewText(R.id.notification_content_title, message.getBigContentTitle());
-                contentView.setTextViewText(R.id.notification_sub_text, message.getBigContentSummaryText());
+
+                String bigContentSummary = message.getBigContentSummaryText();
+                if (!TextUtils.isEmpty(bigContentSummary)) {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
+                    contentView.setTextViewText(R.id.notification_sub_text, bigContentSummary);
+                } else {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
+
+                    textSize = 14f;
+                    // textAppearance = R.style.Notification;
+                }
             } else {
                 contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
-                contentView.setTextViewText(R.id.notification_sub_text, message.getContentSubText());
+
+                String contentSubText = message.getContentSubText();
+                if (!TextUtils.isEmpty(contentSubText)) {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
+                    contentView.setTextViewText(R.id.notification_sub_text, contentSubText);
+                } else {
+                    contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
+
+                    textSize = 14f;
+                    // textAppearance = R.style.Notification;
+                }
             }
+
+            /**
+             * We can not call textAppearance(Context, int) on RemoteView's TextViews.
+             * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
+             */
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
+            }
+
+            /*
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                contentView.setInt(R.id.notification_content_text, "setTextAppearance", textAppearance);
+            } else {
+                *//**
+                 * We can not call textAppearance(Context, int) on RemoteView's TextViews.
+                 * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
+                 *//*
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
+                }
+            }
+            */
 
             contentView.setTextViewText(R.id.notification_time, notificationTime);
         }
@@ -238,7 +298,7 @@ public class CustomNotificationFactory {
                 }
 
                 // set basic items
-                builder.setSmallIcon(configuration.getAppIcon());
+                builder.setSmallIcon(configuration.getSmallIconResId());
                 builder.setContentTitle(message.getContentTitle());
                 builder.setContentText(message.getContentText());
 
