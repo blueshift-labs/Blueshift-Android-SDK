@@ -217,7 +217,7 @@ public class CustomNotificationFactory {
             contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
 
             float textSize = 12f;
-            int textAppearance = R.style.NotificationLine2;
+            // int textAppearance = R.style.NotificationLine2;
 
             if (isExpanded) {
                 contentView.setTextViewText(R.id.notification_content_title, message.getBigContentTitle());
@@ -230,7 +230,7 @@ public class CustomNotificationFactory {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
 
                     textSize = 14f;
-                    textAppearance = R.style.Notification;
+                    // textAppearance = R.style.Notification;
                 }
             } else {
                 contentView.setTextViewText(R.id.notification_content_title, message.getContentTitle());
@@ -243,21 +243,31 @@ public class CustomNotificationFactory {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
 
                     textSize = 14f;
-                    textAppearance = R.style.Notification;
+                    // textAppearance = R.style.Notification;
                 }
             }
 
+            /**
+             * We can not call textAppearance(Context, int) on RemoteView's TextViews.
+             * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
+             */
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
+            }
+
+            /*
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 contentView.setInt(R.id.notification_content_text, "setTextAppearance", textAppearance);
             } else {
-                /**
+                *//**
                  * We can not call textAppearance(Context, int) on RemoteView's TextViews.
                  * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
-                 */
+                 *//*
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
                 }
             }
+            */
 
             contentView.setTextViewText(R.id.notification_time, notificationTime);
         }
