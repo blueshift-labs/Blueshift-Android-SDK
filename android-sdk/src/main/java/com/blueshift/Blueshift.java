@@ -108,6 +108,18 @@ public class Blueshift {
         }
     }
 
+    private static boolean hasPermission(Context context, String permission) {
+        boolean status = false;
+
+        try {
+            status = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, String.format("Failure checking permission %s", permission));
+        }
+
+        return status;
+    }
+
     /**
      * This method creates a hash map with all device parameters filled in.
      *
@@ -280,18 +292,19 @@ public class Blueshift {
                         // setting the last known location parameters.
                         LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
                         if (locationManager != null) {
-                            if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                                    && ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                // Location permission is not available. The client app needs to grand permission.
-                                Log.w(LOG_TAG, "Location access permission unavailable. Require " +
-                                        Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
-                                        Manifest.permission.ACCESS_COARSE_LOCATION);
-                            } else {
+                            if (hasPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
+                                    || hasPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                                // We have either of the above 2 permissions granted.
                                 Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                                 if (location != null) {
                                     requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
                                     requestParams.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
                                 }
+                            } else {
+                                // Location permission is not available. The client app needs to grand permission.
+                                Log.w(LOG_TAG, "Location access permission unavailable. Require " +
+                                        Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
+                                        Manifest.permission.ACCESS_COARSE_LOCATION);
                             }
                         }
 
@@ -352,8 +365,16 @@ public class Blueshift {
         new AsyncTask<Void, Void, Boolean>() {
             @Override
             protected Boolean doInBackground(Void... params) {
-                // call send event and return its result.
-                return sendEvent(eventParams, canBatchThisEvent);
+                boolean result = false;
+
+                try {
+                    // call send event and return its result.
+                    result = sendEvent(eventParams, canBatchThisEvent);
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "sendEvent() failed." + ((e.getMessage() != null) ? "\n" + e.getMessage() : ""));
+                }
+
+                return result;
             }
 
             @Override
