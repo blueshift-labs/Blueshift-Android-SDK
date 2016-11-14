@@ -167,19 +167,24 @@ public final class GCMRegistrar {
         }
 
         // check receivers
-        PackageInfo receiversInfo;
+        PackageInfo receiversInfo = null;
         try {
-            receiversInfo = packageManager.getPackageInfo(
-                    packageName, PackageManager.GET_RECEIVERS);
+            if (packageManager != null) {
+                receiversInfo = packageManager.getPackageInfo(
+                        packageName, PackageManager.GET_RECEIVERS);
+            }
         } catch (NameNotFoundException e) {
             Log.e(TAG, "Could not get receivers for package " + packageName);
             return false;
         }
-        ActivityInfo[] receivers = receiversInfo.receivers;
-        if (receivers == null || receivers.length == 0) {
+
+        if (receiversInfo == null
+                || receiversInfo.receivers == null || receiversInfo.receivers.length == 0) {
             Log.e(TAG, "No receiver for package " + packageName);
             return false;
         }
+
+        ActivityInfo[] receivers = receiversInfo.receivers;
         if (Log.isLoggable(TAG, Log.VERBOSE)) {
             Log.v(TAG, "number of receivers for " + packageName + ": " +
                     receivers.length);
@@ -203,18 +208,20 @@ public final class GCMRegistrar {
         // check for sender Id
         try {
             ApplicationInfo applicationInfo = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
-            Bundle bundle = applicationInfo.metaData;
-            if (bundle == null || bundle.keySet() == null || !bundle.keySet().contains(GCMConstants.KEY_SENDER_ID)) {
-                Log.e(TAG, "Please add sender id in AndroidManifest.xml as meta-data with name " + GCMConstants.KEY_SENDER_ID);
-                return false;
-            } else {
-                mSenderId = bundle.getString(GCMConstants.KEY_SENDER_ID);
-                if (mSenderId.isEmpty()) {
-                    Log.e(TAG, "Please provide a valid GCM sender ID");
+            if (applicationInfo != null) {
+                Bundle bundle = applicationInfo.metaData;
+                if (bundle == null || bundle.keySet() == null || !bundle.keySet().contains(GCMConstants.KEY_SENDER_ID)) {
+                    Log.e(TAG, "Please add sender id in AndroidManifest.xml as meta-data with name " + GCMConstants.KEY_SENDER_ID);
                     return false;
                 } else {
-                    // this line is to remove the id: from meta-data value.
-                    mSenderId = mSenderId.substring(3);
+                    mSenderId = bundle.getString(GCMConstants.KEY_SENDER_ID);
+                    if (mSenderId == null || mSenderId.isEmpty()) {
+                        Log.e(TAG, "Please provide a valid GCM sender ID");
+                        return false;
+                    } else {
+                        // this line is to remove the id: from meta-data value.
+                        mSenderId = mSenderId.substring(3);
+                    }
                 }
             }
         } catch (NameNotFoundException e) {
@@ -287,10 +294,31 @@ public final class GCMRegistrar {
         if (senderIds == null || senderIds.length == 0) {
             throw new IllegalArgumentException("No senderIds");
         }
+
+        StringBuilder builder = new StringBuilder();
+        boolean isFirst = true;
+
+        for (String senderId : senderIds) {
+            if (senderId != null) {
+                if (isFirst) {
+                    isFirst = false;
+                } else {
+                    builder.append(",");
+                }
+
+                builder.append(senderId);
+            }
+        }
+
+        /*
+        // Old code for reference
         StringBuilder builder = new StringBuilder(senderIds[0]);
         for (int i = 1; i < senderIds.length; i++) {
             builder.append(',').append(senderIds[i]);
         }
+        return builder.toString();
+        */
+
         return builder.toString();
     }
 
@@ -432,7 +460,7 @@ public final class GCMRegistrar {
         Editor editor = prefs.edit();
         editor.putString(PROPERTY_REG_ID, regId);
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
+        editor.apply();
         return oldRegistrationId;
     }
 
@@ -449,7 +477,7 @@ public final class GCMRegistrar {
         Log.v(TAG, "Setting registeredOnServer status as " + flag + " until " +
                 new Timestamp(expirationTime));
         editor.putLong(PROPERTY_ON_SERVER_EXPIRATION_TIME, expirationTime);
-        editor.commit();
+        editor.apply();
     }
 
     /**
@@ -500,7 +528,7 @@ public final class GCMRegistrar {
         final SharedPreferences prefs = getGCMPreferences(context);
         Editor editor = prefs.edit();
         editor.putLong(PROPERTY_ON_SERVER_LIFESPAN, lifespan);
-        editor.commit();
+        editor.apply();
     }
 
     /**
@@ -553,7 +581,7 @@ public final class GCMRegistrar {
         final SharedPreferences prefs = getGCMPreferences(context);
         Editor editor = prefs.edit();
         editor.putInt(BACKOFF_MS, backoff);
-        editor.commit();
+        editor.apply();
     }
 
     private static SharedPreferences getGCMPreferences(Context context) {
