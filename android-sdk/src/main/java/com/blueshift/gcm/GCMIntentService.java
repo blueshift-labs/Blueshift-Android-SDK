@@ -21,33 +21,48 @@ public class GCMIntentService extends GCMBaseIntentService {
 
     @Override
     protected void onMessage(Context context, Intent intent) {
-        Log.v(LOG_TAG, "onReceive: " + intent.getAction());
+        try {
+            Log.v(LOG_TAG, "onReceive: " + intent.getAction());
 
-        /**
-         * Local broadcast with Host-App's package name.
-         * This is used for distinguishing between push messages when multiple apps in the device uses Blueshift SDK.
-         */
-        String bcAction = context.getPackageName() + ".RICH_PUSH_RECEIVED";
-        Intent bcIntent = new Intent(bcAction);
-        bcIntent.putExtras(intent.getExtras());
-        sendBroadcast(bcIntent);
+            /**
+             * Local broadcast with Host-App's package name.
+             * This is used for distinguishing between push messages when multiple apps in the device uses Blueshift SDK.
+             */
+            String bcAction = context.getPackageName() + ".RICH_PUSH_RECEIVED";
+            Intent bcIntent = new Intent(bcAction);
+            bcIntent.putExtras(intent.getExtras());
+            sendBroadcast(bcIntent);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 
     @Override
     protected void onError(Context context, String errorId) {
-        Log.i(TAG, "Error code: " + errorId);
+        try {
+            Log.i(TAG, "Error code: " + errorId);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 
     @Override
     protected void onRegistered(Context context, String registrationId) {
-        Log.i(TAG, "Device registered: regId = " + registrationId);
-        GCMRegistrar.setRegisteredOnServer(context, true);
-        Blueshift.updateDeviceToken(registrationId);
+        try {
+            Log.i(TAG, "Device registered: regId = " + registrationId);
+            GCMRegistrar.setRegisteredOnServer(context, true);
+            Blueshift.updateDeviceToken(registrationId);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 
     @Override
     protected void onUnregistered(Context context, String registrationId) {
-        Log.i(TAG, "Device unregistered");
+        try {
+            Log.i(TAG, "Device unregistered");
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
-
 }
