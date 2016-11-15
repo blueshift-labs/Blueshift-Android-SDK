@@ -40,20 +40,24 @@ public class GCMBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public final void onReceive(Context context, Intent intent) {
-        Log.v(TAG, "onReceive: " + intent.getAction());
-        // do a one-time check if app is using a custom GCMBroadcastReceiver
-        if (!mReceiverSet) {
-            mReceiverSet = true;
-            String myClass = getClass().getName();
-            if (!myClass.equals(GCMBroadcastReceiver.class.getName())) {
-                GCMRegistrar.setRetryReceiverClassName(myClass);
+        try {
+            Log.v(TAG, "onReceive: " + intent.getAction());
+            // do a one-time check if app is using a custom GCMBroadcastReceiver
+            if (!mReceiverSet) {
+                mReceiverSet = true;
+                String myClass = getClass().getName();
+                if (!myClass.equals(GCMBroadcastReceiver.class.getName())) {
+                    GCMRegistrar.setRetryReceiverClassName(myClass);
+                }
             }
+            String className = getGCMIntentServiceClassName(context);
+            Log.v(TAG, "GCM IntentService class: " + className);
+            // Delegates to the application-specific intent service.
+            GCMBaseIntentService.runIntentInService(context, intent, className);
+            setResult(Activity.RESULT_OK, null /* data */, null /* extra */);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
         }
-        String className = getGCMIntentServiceClassName(context);
-        Log.v(TAG, "GCM IntentService class: " + className);
-        // Delegates to the application-specific intent service.
-        GCMBaseIntentService.runIntentInService(context, intent, className);
-        setResult(Activity.RESULT_OK, null /* data */, null /* extra */);
     }
 
     /**
