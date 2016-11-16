@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.util.DeviceUtils;
 
 /**
  * @author Rahul Raveendran V P
@@ -52,6 +53,11 @@ public class GCMIntentService extends GCMBaseIntentService {
             Log.i(TAG, "Device registered: regId = " + registrationId);
             GCMRegistrar.setRegisteredOnServer(context, true);
             Blueshift.updateDeviceToken(registrationId);
+
+            // send a real-time identify call once GCM registration is complete.
+            Blueshift
+                    .getInstance(context)
+                    .identifyUserByDeviceId(DeviceUtils.getAdvertisingID(context), null, false);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
