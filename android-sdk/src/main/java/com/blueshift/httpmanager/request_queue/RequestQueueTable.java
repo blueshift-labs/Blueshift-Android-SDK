@@ -117,25 +117,27 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
     }
 
     public Request getNextRequest() {
-        Request nextRequest = null;
+        synchronized (lock) {
+            Request nextRequest = null;
 
-        String condition = FIELD_PENDING_RETRY_COUNT + "=0 OR " + FIELD_NEXT_RETRY_TIME + "<" + System.currentTimeMillis();
+            String condition = FIELD_PENDING_RETRY_COUNT + "=0 OR " + FIELD_NEXT_RETRY_TIME + "<" + System.currentTimeMillis();
 
-        SQLiteDatabase db = getReadableDatabase();
-        if (db != null) {
-            Cursor cursor = db.query(getTableName(), null, condition, null, null, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    nextRequest = loadObject(cursor);
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = db.query(getTableName(), null, condition, null, null, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        nextRequest = loadObject(cursor);
+                    }
+
+                    cursor.close();
                 }
 
-                cursor.close();
+                db.close();
             }
 
-            db.close();
+            return nextRequest;
         }
-
-        return nextRequest;
     }
 
     public void clearAll() {
