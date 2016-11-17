@@ -60,8 +60,10 @@ public class NotificationUtils {
                         String fileName = getImageFileName(imageUrl);
 
                         if (!TextUtils.isEmpty(fileName)) {
-                            fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                            if (bitmap != null) {
+                                fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -99,6 +101,10 @@ public class NotificationUtils {
 
                 resizedBitmap = Bitmap.createScaledBitmap(sourceBitmap, newWidth, newHeight, true);
             }
+        }
+
+        if (resizedBitmap == null) {
+            resizedBitmap = sourceBitmap;
         }
 
         return resizedBitmap;
