@@ -80,12 +80,9 @@ public class RequestQueue {
     public Request fetch() {
         synchronized (lock) {
             mStatus = Status.BUSY;
-            Request request = null;
+
             RequestQueueTable db = RequestQueueTable.getInstance(mContext);
-            Object reqObject = db.getNextRequest();
-            if (reqObject != null) {
-                request = (Request) reqObject;
-            }
+            Request request = db.getNextRequest();
             db.close();
 
             return request;
