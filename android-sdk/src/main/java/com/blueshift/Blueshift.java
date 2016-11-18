@@ -58,7 +58,21 @@ public class Blueshift {
         BroadcastReceiver connectivityChangeReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                RequestQueue.getInstance(mContext).sync();
+                /**
+                 * onReceive() is called in UI thread. Let's use an
+                 * AsyncTask to do the db sync in background.
+                 */
+
+                new AsyncTask<Void, Void, Void>(){
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        RequestQueue
+                                .getInstance(mContext)
+                                .sync();
+
+                        return null;
+                    }
+                }.execute();
 
                 String cachedToken = BlueShiftPreference.getCachedDeviceToken(context);
                 if (TextUtils.isEmpty(cachedToken)) {
