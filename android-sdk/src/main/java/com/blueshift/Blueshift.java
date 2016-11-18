@@ -89,25 +89,6 @@ public class Blueshift {
     }
 
     /**
-     * This method just returns the current device token available
-     * in the sDeviceParams
-     *
-     * @return GCM token, null if the token is null
-     */
-    public static String getDeviceToken() {
-        synchronized (sDeviceParams) {
-            String token = null;
-
-            Object tokenObject = sDeviceParams.get(BlueshiftConstants.KEY_DEVICE_TOKEN);
-            if (tokenObject != null && tokenObject instanceof String) {
-                token = String.valueOf(tokenObject);
-            }
-
-            return token;
-        }
-    }
-
-    /**
      * Updates the sDeviceParams with new device token
      *
      * @param deviceToken device token for sending push message
