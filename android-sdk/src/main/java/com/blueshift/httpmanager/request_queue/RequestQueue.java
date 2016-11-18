@@ -17,6 +17,7 @@ import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
+import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
@@ -156,141 +157,41 @@ public class RequestQueue {
                     SdkLog.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
                 }
 
-                /**
-                 * We want to make sure that an identify event is called when email and device token
-                 * is available.
-                 *
-                 * We also want to make sure that the device token and email address is added to
-                 * event params from the point of time when they became available.
-                 *
-                 * The following block of code if for that.
-                 *
-                 * [BEGIN] - email & device token based identification
-                 */
-
-                /**
-                 * Check if user is signed in with email.
-                 */
-                UserInfo userInfo = UserInfo.getInstance(mContext);
-                String cachedEmail = userInfo.getEmail();
-                String cachedDeviceToken = Blueshift.getDeviceToken();
-
-                if (!TextUtils.isEmpty(cachedEmail) && !TextUtils.isEmpty(cachedDeviceToken)) {
-                    /**
-                     * Awesome! We have a valid (non empty) email inside user info.
-                     * Also we have a valid device token.
-                     * Let's check if this email id is already identified.
-                     */
-                    if (BlueShiftPreference.isEmailAlreadyIdentified(mContext, cachedEmail)) {
+                String deviceToken = BlueShiftPreference.getCachedDeviceToken(mContext);
+                if (!TextUtils.isEmpty(deviceToken)) {
+                    try {
                         /**
-                         * Good, this email id is identified with a valid device token before.
-                         * Now lets check if there is any request added to the queue before the
-                         * identify event was triggered. In that case we might not have email ids
-                         * in the event's params.
+                         * Update the params with latest device token. The minimum requirement
+                         * for an event to be valid is to have a device_token in it.
+                         *
+                         * This code will ensure we have latest device
+                         * token in the event all the time.
                          */
-                        try {
-                            JSONObject paramsJson = new JSONObject(mRequest.getParamJson());
+                        JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
+                        jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
 
-                            if (BlueShiftPreference.hasMoreEventsWithNoEmail(mContext, cachedEmail)) {
-                                String email = null;
+                        mRequest.setParamJson(jsonObject.toString());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, e.getMessage());
+                    }
 
-                                if (paramsJson.has(BlueshiftConstants.KEY_EMAIL)) {
-                                    email = paramsJson.getString(BlueshiftConstants.KEY_EMAIL);
-                                }
-
-                                if (TextUtils.isEmpty(email)) {
-                                    /**
-                                     * We don't have an email in the params. Let's add what we have
-                                     * in hand.
-                                     */
-                                    paramsJson.put(BlueshiftConstants.KEY_EMAIL, cachedEmail);
-                                } else {
-                                    /**
-                                     * We have valid email inside params, which means the following
-                                     * events will also have email in it. Let's mark as non email
-                                     * events are over.
-                                     */
-
-                                    BlueShiftPreference.disableEmailCheckOnEvents(mContext, cachedEmail);
-                                }
-                            }
-
-                            /**
-                             * Just updating the new device token
-                             */
-                            paramsJson.put(BlueshiftConstants.KEY_DEVICE_TOKEN, cachedDeviceToken);
-
-                            /**
-                             * Update the current request's params with new info
-                             */
-                            mRequest.setParamJson(paramsJson.toString());
-                        } catch (JSONException e) {
-                            Log.e(LOG_TAG, e.getMessage());
-                        }
-                    } else {
+                    UserInfo userInfo = UserInfo.getInstance(mContext);
+                    String emailId = userInfo.getEmail();
+                    if (!TextUtils.isEmpty(emailId)) {
                         /**
-                         * An identify with this email is not been called before.
-                         * Let's check if we have device token available. If we do,
-                         * then we need to call identify now.!
+                         * If user is signed in and email is already not verified, then we
+                         * need to call an identify with this new email id.
                          */
+                        if (!BlueShiftPreference.isEmailAlreadyIdentified(mContext, emailId)) {
+                            Blueshift
+                                    .getInstance(mContext)
+                                    .identifyUserByDeviceId(
+                                            DeviceUtils.getAdvertisingID(mContext), null, false);
 
-                        try {
-                            JSONObject paramsJson = new JSONObject(mRequest.getParamJson());
-
-                            /**
-                             * Check if the event has an email or GCM token in it. If found, keep it
-                             * else add the value we have in hand now.
-                             */
-                            if (!paramsJson.has(BlueshiftConstants.KEY_EMAIL)
-                                    || TextUtils.isEmpty(paramsJson.getString(BlueshiftConstants.KEY_EMAIL))) {
-
-                                paramsJson.put(BlueshiftConstants.KEY_EMAIL, cachedEmail);
-                            }
-
-                            if (!paramsJson.has(BlueshiftConstants.KEY_DEVICE_TOKEN)
-                                    || TextUtils.isEmpty(paramsJson.getString(BlueshiftConstants.KEY_DEVICE_TOKEN))) {
-
-                                if (!TextUtils.isEmpty(cachedDeviceToken)) {
-                                    paramsJson.put(BlueshiftConstants.KEY_DEVICE_TOKEN, cachedDeviceToken);
-                                }
-                            }
-
-                            String email = paramsJson
-                                    .getString(BlueshiftConstants.KEY_EMAIL);
-
-                            String deviceToken = paramsJson
-                                    .getString(BlueshiftConstants.KEY_DEVICE_TOKEN);
-
-                            /**
-                             * One last time,
-                             *
-                             * Check if we have not null / empty values for email and device
-                             * token before calling the identify.
-                             */
-                            if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(deviceToken)) {
-                                Blueshift
-                                        .getInstance(mContext)
-                                        .identifyUserByEmail(email, null, false);
-
-                                /**
-                                 * Mark email as identified.
-                                 */
-                                BlueShiftPreference.markEmailAsIdentified(mContext, email);
-                            }
-
-                            /**
-                             * Update the current request's params with new info
-                             */
-                            mRequest.setParamJson(paramsJson.toString());
-                        } catch (JSONException e) {
-                            Log.e(LOG_TAG, e.getMessage());
+                            BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
                         }
                     }
                 }
-
-                /**
-                 * [END] - email & device token based identification
-                 */
 
                 Response response = null;
                 switch (mRequest.getMethod()) {

@@ -2,9 +2,12 @@ package com.blueshift.gcm;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
+import com.blueshift.model.UserInfo;
 import com.blueshift.util.DeviceUtils;
 
 /**
@@ -54,10 +57,28 @@ public class GCMIntentService extends GCMBaseIntentService {
             GCMRegistrar.setRegisteredOnServer(context, true);
             Blueshift.updateDeviceToken(registrationId);
 
-            // send a real-time identify call once GCM registration is complete.
-            Blueshift
-                    .getInstance(context)
-                    .identifyUserByDeviceId(DeviceUtils.getAdvertisingID(context), null, false);
+            /**
+             * Cache the device token locally
+             */
+            BlueShiftPreference.cacheDeviceToken(context, registrationId);
+
+            /**
+             * Let's check if we have an email id present inside UserInfo.
+             * If that email id is not identified already, lets fire an identify event
+             * with this new device_token and email id.
+             */
+            UserInfo userInfo = UserInfo.getInstance(context);
+            String emailId = userInfo.getEmail();
+
+            if (!BlueShiftPreference.isEmailAlreadyIdentified(context, emailId)) {
+                if (!TextUtils.isEmpty(registrationId) && !TextUtils.isEmpty(emailId)) {
+                    Blueshift
+                            .getInstance(context)
+                            .identifyUserByDeviceId(DeviceUtils.getAdvertisingID(context), null, false);
+
+                    BlueShiftPreference.markEmailAsIdentified(context, emailId);
+                }
+            }
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }

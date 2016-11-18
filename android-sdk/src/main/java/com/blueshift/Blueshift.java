@@ -59,6 +59,12 @@ public class Blueshift {
             @Override
             public void onReceive(Context context, Intent intent) {
                 RequestQueue.getInstance(mContext).sync();
+
+                String cachedToken = BlueShiftPreference.getCachedDeviceToken(context);
+                if (TextUtils.isEmpty(cachedToken)) {
+                    // Registering device for push notification.
+                    GCMRegistrar.registerForNotification(mContext);
+                }
             }
         };
 
