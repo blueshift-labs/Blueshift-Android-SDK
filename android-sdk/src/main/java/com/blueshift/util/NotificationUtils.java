@@ -48,20 +48,24 @@ public class NotificationUtils {
                 for (CarouselElement element : carouselElements) {
                     FileOutputStream fileOutputStream = null;
                     try {
-                        // download image
-                        URL imageURL = new URL(element.getImageUrl());
-                        Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+                        if (element != null) {
+                            // download image
+                            URL imageURL = new URL(element.getImageUrl());
+                            Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
-                        // resize image
-                        bitmap = resizeImageForDevice(context, bitmap);
+                            // resize image
+                            bitmap = resizeImageForDevice(context, bitmap);
 
-                        // save image
-                        String imageUrl = element.getImageUrl();
-                        String fileName = getImageFileName(imageUrl);
+                            // save image
+                            String imageUrl = element.getImageUrl();
+                            String fileName = getImageFileName(imageUrl);
 
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                            if (!TextUtils.isEmpty(fileName)) {
+                                if (bitmap != null) {
+                                    fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                                }
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -99,6 +103,10 @@ public class NotificationUtils {
 
                 resizedBitmap = Bitmap.createScaledBitmap(sourceBitmap, newWidth, newHeight, true);
             }
+        }
+
+        if (resizedBitmap == null) {
+            resizedBitmap = sourceBitmap;
         }
 
         return resizedBitmap;
