@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.batch.Event;
@@ -15,8 +16,13 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
+import com.blueshift.model.UserInfo;
+import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 
@@ -149,6 +155,42 @@ public class RequestQueue {
                     httpManager.addBasicAuthentication(config.getApiKey(), "");
                 } else {
                     SdkLog.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
+                }
+
+                String deviceToken = BlueShiftPreference.getCachedDeviceToken(mContext);
+                if (!TextUtils.isEmpty(deviceToken)) {
+                    try {
+                        /**
+                         * Update the params with latest device token. The minimum requirement
+                         * for an event to be valid is to have a device_token in it.
+                         *
+                         * This code will ensure we have latest device
+                         * token in the event all the time.
+                         */
+                        JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
+                        jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
+
+                        mRequest.setParamJson(jsonObject.toString());
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, e.getMessage());
+                    }
+
+                    UserInfo userInfo = UserInfo.getInstance(mContext);
+                    String emailId = userInfo.getEmail();
+                    if (!TextUtils.isEmpty(emailId)) {
+                        /**
+                         * If user is signed in and email is already not verified, then we
+                         * need to call an identify with this new email id.
+                         */
+                        if (!BlueShiftPreference.isEmailAlreadyIdentified(mContext, emailId)) {
+                            Blueshift
+                                    .getInstance(mContext)
+                                    .identifyUserByDeviceId(
+                                            DeviceUtils.getAdvertisingID(mContext), null, false);
+
+                            BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
+                        }
+                    }
                 }
 
                 Response response = null;
