@@ -32,11 +32,13 @@ public class EventsTable extends BaseSqliteTable<Event> {
     }
 
     public static EventsTable getInstance(Context context) {
-        if (sInstance == null) {
-            sInstance = new EventsTable(context);
-        }
+        synchronized (lock) {
+            if (sInstance == null) {
+                sInstance = new EventsTable(context);
+            }
 
-        return sInstance;
+            return sInstance;
+        }
     }
 
     @Override
