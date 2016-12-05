@@ -35,11 +35,13 @@ public class FailedEventsTable extends BaseSqliteTable<Event> {
     }
 
     public static FailedEventsTable getInstance(Context context) {
-        if (sInstance == null) {
-            sInstance = new FailedEventsTable(context);
-        }
+        synchronized (lock) {
+            if (sInstance == null) {
+                sInstance = new FailedEventsTable(context);
+            }
 
-        return sInstance;
+            return sInstance;
+        }
     }
 
     @Override

@@ -40,11 +40,13 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
     }
 
     public static RequestQueueTable getInstance(Context context) {
-        if (sInstance == null) {
-            sInstance = new RequestQueueTable(context);
-        }
+        synchronized (lock) {
+            if (sInstance == null) {
+                sInstance = new RequestQueueTable(context);
+            }
 
-        return sInstance;
+            return sInstance;
+        }
     }
 
     @Override
