@@ -62,7 +62,7 @@ public class RequestQueue {
 
             RequestQueueTable db = RequestQueueTable.getInstance(mContext);
             db.insert(request);
-            db.close();
+
             sync();
         }
     }
@@ -73,7 +73,6 @@ public class RequestQueue {
 
             RequestQueueTable db = RequestQueueTable.getInstance(mContext);
             db.delete(request);
-            db.close();
         }
     }
 
@@ -82,10 +81,7 @@ public class RequestQueue {
             mStatus = Status.BUSY;
 
             RequestQueueTable db = RequestQueueTable.getInstance(mContext);
-            Request request = db.getNextRequest();
-            db.close();
-
-            return request;
+            return db.getNextRequest();
         }
     }
 
