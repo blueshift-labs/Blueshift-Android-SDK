@@ -2,6 +2,7 @@ package com.blueshift.fcm;
 
 import android.util.Log;
 
+import com.blueshift.Blueshift;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
@@ -11,12 +12,14 @@ import com.google.firebase.iid.FirebaseInstanceIdService;
  *         https://github.com/rahulrvp
  */
 
-
 public class BlueshiftInstanceIdService extends FirebaseInstanceIdService {
 
     @Override
     public void onTokenRefresh() {
-        String token = FirebaseInstanceId.getInstance().getToken();
-        Log.d("Blueshift", "FCM token: " + token);
+        String newToken = FirebaseInstanceId.getInstance().getToken();
+
+        Blueshift.updateDeviceToken(newToken);
+
+        Log.d("Blueshift", "FCM token: " + newToken);
     }
 }

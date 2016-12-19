@@ -64,7 +64,7 @@ public class Blueshift {
                  * AsyncTask to do the db sync in background.
                  */
 
-                new AsyncTask<Void, Void, Void>(){
+                new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
                         RequestQueue
@@ -74,12 +74,6 @@ public class Blueshift {
                         return null;
                     }
                 }.execute();
-
-                String cachedToken = BlueShiftPreference.getCachedDeviceToken(context);
-                if (TextUtils.isEmpty(cachedToken)) {
-                    // Registering device for push notification.
-                    GCMRegistrar.registerForNotification(mContext);
-                }
             }
         };
 
