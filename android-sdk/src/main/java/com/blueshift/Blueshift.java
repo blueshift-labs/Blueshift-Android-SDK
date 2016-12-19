@@ -81,12 +81,6 @@ public class Blueshift {
                         return null;
                     }
                 }.execute();
-
-                String cachedToken = BlueShiftPreference.getCachedDeviceToken(context);
-                if (TextUtils.isEmpty(cachedToken)) {
-                    // Registering device for push notification.
-                    GCMRegistrar.registerForNotification(mContext);
-                }
             }
         };
 
