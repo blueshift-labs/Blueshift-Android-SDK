@@ -58,11 +58,6 @@ public class GCMIntentService extends GCMBaseIntentService {
             Blueshift.updateDeviceToken(registrationId);
 
             /**
-             * Cache the device token locally
-             */
-            BlueShiftPreference.cacheDeviceToken(context, registrationId);
-
-            /**
              * Let's check if we have an email id present inside UserInfo.
              * If that email id is not identified already, lets fire an identify event
              * with this new device_token and email id.
