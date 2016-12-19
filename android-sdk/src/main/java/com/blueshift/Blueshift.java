@@ -35,6 +35,7 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
@@ -264,7 +265,8 @@ public class Blueshift {
     public void initialize(Configuration configuration) {
         mConfiguration = configuration;
         // Registering device for push notification.
-        GCMRegistrar.registerForNotification(mContext);
+        String token = FirebaseInstanceId.getInstance().getToken();
+        updateDeviceToken(token);
         // Collecting device specific params.
         initializeDeviceParams();
         // Collect app details

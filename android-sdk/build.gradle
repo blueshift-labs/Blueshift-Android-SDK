@@ -65,6 +65,8 @@ dependencies {
     compile 'com.google.code.gson:gson:2.6.1'
     // for annotations used (ex @NotNull)
     compile 'org.jetbrains:annotations:13.0'
+    // for FCM
+    compile 'com.google.firebase:firebase-messaging:9.6.1'
 
     testCompile 'junit:junit:4.12'
 }
