@@ -14,6 +14,7 @@ public class Message implements Serializable {
     public static final String EXTRA_MESSAGE = "message";
     public static final String EXTRA_BSFT_EXPERIMENT_UUID = "bsft_experiment_uuid";
     public static final String EXTRA_BSFT_USER_UUID = "bsft_user_uuid";
+    public static final String EXTRA_BSFT_TRANSACTIONAL_UUID = "transactional_uuid";
 
     /**
      * Following are the campaign uuids. They come outside the 'message' object in push message.
@@ -31,7 +32,12 @@ public class Message implements Serializable {
     /**
      * id used for tracking the notification events
      */
-    private String id;
+    private String message_uuid;
+
+    /**
+     * This value will be present only for transactional campaign
+     */
+    private String transactional_uuid;
 
     /**
      * ** mandatory **
@@ -172,13 +178,21 @@ public class Message implements Serializable {
             attributes = new HashMap<>();
             attributes.put(EXTRA_BSFT_EXPERIMENT_UUID, getBsftExperimentUuid());
             attributes.put(EXTRA_BSFT_USER_UUID, getBsftUserUuid());
+
+            if (!TextUtils.isEmpty(getTransactionalUuid())) {
+                attributes.put(EXTRA_BSFT_TRANSACTIONAL_UUID, getTransactionalUuid());
+            }
         }
 
         return attributes;
     }
 
     public String getId() {
-        return id;
+        return message_uuid;
+    }
+
+    public String getTransactionalUuid() {
+        return transactional_uuid;
     }
 
     public NotificationType getNotificationType() {

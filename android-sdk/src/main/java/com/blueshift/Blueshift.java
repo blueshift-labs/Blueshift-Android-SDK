@@ -36,6 +36,8 @@ import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Rahul Raveendran V P
@@ -278,86 +280,127 @@ public class Blueshift {
                 return false;
             } else {
                 if (params != null) {
-                    HashMap<String, Object> requestParams = getDeviceParams();
-                    if (requestParams != null) {
-                        // Appending params with the device dependant details.
-                        requestParams.putAll(params);
+                    // For the events click and view for notifications calls
+                    // a different API. We don't need to add device details
+                    // to that API.
+                    String eventName = (String) params.get(BlueshiftConstants.KEY_EVENT);
+                    if (isNotificationTrackEvent(eventName)) {
+                        // add key "a" to the hash (action)
+                        HashMap<String, Object> eventParams = new HashMap<>();
+                        eventParams.put(BlueshiftConstants.KEY_ACTION, eventName);
+                        eventParams.put(BlueshiftConstants.KEY_UID, params.get(Message.EXTRA_BSFT_USER_UUID));
+                        eventParams.put(BlueshiftConstants.KEY_EID, params.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
+                        eventParams.put(BlueshiftConstants.KEY_TXNID, params.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
+                        eventParams.put(BlueshiftConstants.KEY_MID, params.get(BlueshiftConstants.KEY_NOTIFICATION_ID));
 
-                        // check if device id (Android Ad Id) is available in parameters' list.
-                        // if not found, try to get it now and fill it in.
-                        Object deviceId = requestParams.get(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
-                        if (deviceId == null) {
-                            String adId = DeviceUtils.getAdvertisingID(mContext);
-                            requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
-                        }
+                        // Add Sdk version to the params
+                        eventParams.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
 
-                        // Appending email and customer id.
-                        UserInfo userInfo = UserInfo.getInstance(mContext);
-                        if (userInfo != null) {
-                            // checks if the hash already contains an email in it (identify event has email as arg).
-                            if (userInfo.getEmail() != null && !requestParams.containsKey(BlueshiftConstants.KEY_EMAIL)) {
-                                requestParams.put(BlueshiftConstants.KEY_EMAIL, userInfo.getEmail());
-                            }
+                        String paramsUrl = getUrlParams(eventParams);
+                        if (!TextUtils.isEmpty(paramsUrl)) {
+                            String reqUrl = BlueshiftConstants.NOTIFICATION_EVENT_API_URL + "?" + paramsUrl;
 
-                            if (userInfo.getRetailerCustomerId() != null) {
-                                requestParams.put(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, userInfo.getRetailerCustomerId());
-                            } else {
-                                Log.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
-                            }
-                        }
-
-                        // append the optional user parameters based on availability.
-                        requestParams = appendOptionalUserInfo(requestParams);
-
-                        // setting the last known location parameters.
-                        LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
-                        if (locationManager != null) {
-                            if (hasPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
-                                    || hasPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                                // We have either of the above 2 permissions granted.
-                                Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                                if (location != null) {
-                                    requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
-                                    requestParams.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
-                                }
-                            } else {
-                                // Location permission is not available. The client app needs to grand permission.
-                                Log.w(LOG_TAG, "Location access permission unavailable. Require " +
-                                        Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
-                                        Manifest.permission.ACCESS_COARSE_LOCATION);
-                            }
-                        }
-
-                        // adding timestamp
-                        requestParams.put(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
-
-                        String reqParamsJSON = new Gson().toJson(requestParams);
-
-                        if (canBatchThisEvent) {
-                            Event event = new Event();
-                            event.setEventParams(requestParams);
-
-                            SdkLog.i(LOG_TAG, "Adding event to events table for batching.");
-
-                            EventsTable.getInstance(mContext).insert(event);
-                        } else {
-                            // Creating the request object.
                             Request request = new Request();
                             request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                            request.setUrl(BlueshiftConstants.EVENT_API_URL);
-                            request.setMethod(Method.POST);
-                            request.setParamJson(reqParamsJSON);
+                            request.setUrl(reqUrl);
+                            request.setMethod(Method.GET);
+                            request.setParamJson(new Gson().toJson(params));
 
                             SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
 
                             // Adding the request to the queue.
                             RequestQueue.getInstance(mContext).add(request);
-                        }
 
-                        return true;
+                            return true;
+                        } else {
+                            return false;
+                        }
                     } else {
-                        SdkLog.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
-                        return false;
+                        // Add Sdk version to the params
+                        params.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+
+                        // The normal flow
+                        HashMap<String, Object> requestParams = getDeviceParams();
+                        if (requestParams != null) {
+                            // Appending params with the device dependant details.
+                            requestParams.putAll(params);
+
+                            // check if device id (Android Ad Id) is available in parameters' list.
+                            // if not found, try to get it now and fill it in.
+                            Object deviceId = requestParams.get(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
+                            if (deviceId == null) {
+                                String adId = DeviceUtils.getAdvertisingID(mContext);
+                                requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
+                            }
+
+                            // Appending email and customer id.
+                            UserInfo userInfo = UserInfo.getInstance(mContext);
+                            if (userInfo != null) {
+                                // checks if the hash already contains an email in it (identify event has email as arg).
+                                if (userInfo.getEmail() != null && !requestParams.containsKey(BlueshiftConstants.KEY_EMAIL)) {
+                                    requestParams.put(BlueshiftConstants.KEY_EMAIL, userInfo.getEmail());
+                                }
+
+                                if (userInfo.getRetailerCustomerId() != null) {
+                                    requestParams.put(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, userInfo.getRetailerCustomerId());
+                                } else {
+                                    Log.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
+                                }
+                            }
+
+                            // append the optional user parameters based on availability.
+                            requestParams = appendOptionalUserInfo(requestParams);
+
+                            // setting the last known location parameters.
+                            LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+                            if (locationManager != null) {
+                                if (hasPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
+                                        || hasPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                                    // We have either of the above 2 permissions granted.
+                                    Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                                    if (location != null) {
+                                        requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
+                                        requestParams.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
+                                    }
+                                } else {
+                                    // Location permission is not available. The client app needs to grand permission.
+                                    Log.w(LOG_TAG, "Location access permission unavailable. Require " +
+                                            Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
+                                            Manifest.permission.ACCESS_COARSE_LOCATION);
+                                }
+                            }
+
+                            // adding timestamp
+                            requestParams.put(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
+
+                            String reqParamsJSON = new Gson().toJson(requestParams);
+
+                            if (canBatchThisEvent) {
+                                Event event = new Event();
+                                event.setEventParams(requestParams);
+
+                                SdkLog.i(LOG_TAG, "Adding event to events table for batching.");
+
+                                EventsTable.getInstance(mContext).insert(event);
+                            } else {
+                                // Creating the request object.
+                                Request request = new Request();
+                                request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
+                                request.setUrl(BlueshiftConstants.EVENT_API_URL);
+                                request.setMethod(Method.POST);
+                                request.setParamJson(reqParamsJSON);
+
+                                SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
+
+                                // Adding the request to the queue.
+                                RequestQueue.getInstance(mContext).add(request);
+                            }
+
+                            return true;
+                        } else {
+                            SdkLog.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
+                            return false;
+                        }
                     }
                 } else {
                     SdkLog.e(LOG_TAG, "params can't be null");
@@ -365,6 +408,47 @@ public class Blueshift {
                 }
             }
         }
+    }
+
+    private boolean isNotificationTrackEvent(String eventName) {
+        return isPushDeliveredEvent(eventName) || isPushClickEvent(eventName);
+    }
+
+    private boolean isPushDeliveredEvent(String eventName) {
+        boolean result = false;
+
+        if (!TextUtils.isEmpty(eventName)) {
+            result = eventName.equals(BlueshiftConstants.EVENT_PUSH_DELIVERED);
+        }
+
+        return result;
+    }
+
+    private boolean isPushClickEvent(String eventName) {
+        boolean result = false;
+
+        if (!TextUtils.isEmpty(eventName)) {
+            result = eventName.equals(BlueshiftConstants.EVENT_PUSH_CLICK);
+        }
+
+        return result;
+    }
+
+    private String getUrlParams(final HashMap<String, Object> params) {
+        StringBuilder bodyBuilder = new StringBuilder();
+
+        if (params != null) {
+            Iterator<Map.Entry<String, Object>> iterator = params.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Object> param = iterator.next();
+                bodyBuilder.append(param.getKey()).append('=').append(param.getValue());
+                if (iterator.hasNext()) {
+                    bodyBuilder.append('&');
+                }
+            }
+        }
+
+        return bodyBuilder.toString();
     }
 
     /**
@@ -795,7 +879,7 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        trackEvent(BlueshiftConstants.EVENT_PUSH_VIEW, eventParams, canBatchThisEvent);
+        trackEvent(BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, canBatchThisEvent);
     }
 
     public void trackNotificationClick(Message message, boolean canBatchThisEvent) {
