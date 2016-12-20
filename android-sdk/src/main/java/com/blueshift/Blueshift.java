@@ -280,18 +280,35 @@ public class Blueshift {
                 return false;
             } else {
                 if (params != null) {
-                    // For the events click and view for notifications calls
-                    // a different API. We don't need to add device details
-                    // to that API.
+                    /**
+                     * The notification events 'click' and 'delivered' are now being sent to a
+                     * different API.
+                     *
+                     * We don't need to add device details to this new API. Hence processing it
+                     * separately.
+                     */
                     String eventName = (String) params.get(BlueshiftConstants.KEY_EVENT);
                     if (isNotificationTrackEvent(eventName)) {
-                        // add key "a" to the hash (action)
                         HashMap<String, Object> eventParams = new HashMap<>();
                         eventParams.put(BlueshiftConstants.KEY_ACTION, eventName);
                         eventParams.put(BlueshiftConstants.KEY_UID, params.get(Message.EXTRA_BSFT_USER_UUID));
                         eventParams.put(BlueshiftConstants.KEY_EID, params.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
-                        eventParams.put(BlueshiftConstants.KEY_TXNID, params.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
-                        eventParams.put(BlueshiftConstants.KEY_MID, params.get(BlueshiftConstants.KEY_NOTIFICATION_ID));
+
+                        Object txnUuidObj = params.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+                        if (txnUuidObj != null) {
+                            String txnUuid = (String) txnUuidObj;
+                            if (!TextUtils.isEmpty(txnUuid)) {
+                                eventParams.put(BlueshiftConstants.KEY_TXNID, txnUuid);
+                            }
+                        }
+
+                        Object msgUuidObj = params.get(BlueshiftConstants.KEY_NOTIFICATION_ID);
+                        if (msgUuidObj != null) {
+                            String messageUuid = (String) msgUuidObj;
+                            if (!TextUtils.isEmpty(messageUuid)) {
+                                eventParams.put(BlueshiftConstants.KEY_MID, messageUuid);
+                            }
+                        }
 
                         // Add Sdk version to the params
                         eventParams.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
