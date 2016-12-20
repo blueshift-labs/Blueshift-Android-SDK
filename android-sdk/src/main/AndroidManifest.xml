@@ -35,6 +35,22 @@
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
 
+        <!--FCM-->
+        <service
+            android:name=".fcm.BlueshiftMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".fcm.BlueshiftInstanceIdService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+        <!--End - FCM-->
+
     </application>
 
 </manifest>

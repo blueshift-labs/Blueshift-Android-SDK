@@ -19,6 +19,7 @@ import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
@@ -150,7 +151,7 @@ public class RequestQueue {
                     SdkLog.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
                 }
 
-                String deviceToken = BlueShiftPreference.getCachedDeviceToken(mContext);
+                String deviceToken = FirebaseInstanceId.getInstance().getToken();
                 if (!TextUtils.isEmpty(deviceToken)) {
                     try {
                         /**

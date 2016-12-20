@@ -31,6 +31,7 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +64,7 @@ public class Blueshift {
                  * AsyncTask to do the db sync in background.
                  */
 
-                new AsyncTask<Void, Void, Void>(){
+                new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
                         RequestQueue
@@ -73,12 +74,6 @@ public class Blueshift {
                         return null;
                     }
                 }.execute();
-
-                String cachedToken = BlueShiftPreference.getCachedDeviceToken(context);
-                if (TextUtils.isEmpty(cachedToken)) {
-                    // Registering device for push notification.
-                    GCMRegistrar.registerForNotification(mContext);
-                }
             }
         };
 
@@ -183,7 +178,8 @@ public class Blueshift {
     public void initialize(Configuration configuration) {
         mConfiguration = configuration;
         // Registering device for push notification.
-        GCMRegistrar.registerForNotification(mContext);
+        String token = FirebaseInstanceId.getInstance().getToken();
+        updateDeviceToken(token);
         // Collecting device specific params.
         initializeDeviceParams();
         // Trigger app open event.
