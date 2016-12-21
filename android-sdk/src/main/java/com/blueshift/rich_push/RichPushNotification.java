@@ -44,32 +44,11 @@ public class RichPushNotification {
                     break;
 
                 case Notification:
-                    /**
-                     * The rich push rendering require network access (ex: image download)
-                     * Since network operations are not allowed in main thread, we
-                     * are rendering the push message in a different thread.
-                     */
-                    new AsyncTask<Void, Void, Boolean>() {
-                        @Override
-                        protected Boolean doInBackground(Void... params) {
-                            buildAndShowNotification(context, message);
-
-                            return null;
-                        }
-                    }.execute();
-
+                    buildAndShowNotification(context, message);
                     break;
 
                 case CustomNotification:
-                    new AsyncTask<Void, Void, Boolean>() {
-                        @Override
-                        protected Boolean doInBackground(Void... params) {
-                            buildAndShowCustomNotifications(context, message);
-
-                            return null;
-                        }
-                    }.execute();
-
+                    buildAndShowCustomNotifications(context, message);
                     break;
 
                 default:
