@@ -54,7 +54,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel(intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0));
 
-            Blueshift.getInstance(context).trackNotificationClick(message, true);
+            Blueshift.getInstance(context).trackNotificationClick(message);
 
             context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
         } else {

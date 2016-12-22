@@ -73,7 +73,7 @@ public class CustomNotificationFactory {
                 manager.notify(message.getCategory().getNotificationId(), notification);
 
                 // Tracking the notification display.
-                Blueshift.getInstance(context).trackNotificationView(message, true);
+                Blueshift.getInstance(context).trackNotificationView(message);
             }
         }
     }
@@ -114,7 +114,7 @@ public class CustomNotificationFactory {
 
                 if (!isUpdating) {
                     // Tracking the notification display for the first time
-                    Blueshift.getInstance(context).trackNotificationView(message, true);
+                    Blueshift.getInstance(context).trackNotificationView(message);
                 }
             }
         }

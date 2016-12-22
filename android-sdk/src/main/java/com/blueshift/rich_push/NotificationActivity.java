@@ -78,7 +78,7 @@ public class NotificationActivity extends AppCompatActivity {
             builder.create().show();
 
             // Tracking the notification display.
-            Blueshift.getInstance(mContext).trackNotificationView(mMessage, true);
+            Blueshift.getInstance(mContext).trackNotificationView(mMessage);
         } else {
             finish();
         }
@@ -97,7 +97,7 @@ public class NotificationActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        Blueshift.getInstance(mContext).trackNotificationClick(mMessage, true);
+                        Blueshift.getInstance(mContext).trackNotificationClick(mMessage);
 
                         PackageManager packageManager = getPackageManager();
                         Intent launcherIntent = packageManager.getLaunchIntentForPackage(getPackageName());
