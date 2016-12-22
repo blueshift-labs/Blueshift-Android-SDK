@@ -305,7 +305,7 @@ public class Blueshift {
                             }
 
                             if (userInfo.getRetailerCustomerId() != null) {
-                                requestParams.put(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, userInfo.getRetailerCustomerId());
+                                requestParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, userInfo.getRetailerCustomerId());
                             } else {
                                 Log.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
                             }
@@ -463,7 +463,7 @@ public class Blueshift {
             Log.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
         }
 
-        identifyUser(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, customerId, details, canBatchThisEvent);
+        identifyUser(BlueshiftConstants.KEY_CUSTOMER_ID, customerId, details, canBatchThisEvent);
     }
 
     /**
@@ -811,7 +811,7 @@ public class Blueshift {
 
     public void trackNotificationView(String notificationId, HashMap<String, Object> params) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -834,7 +834,7 @@ public class Blueshift {
 
     public void trackNotificationClick(String notificationId, HashMap<String, Object> params) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -857,7 +857,7 @@ public class Blueshift {
 
     public void trackNotificationPageOpen(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -880,7 +880,7 @@ public class Blueshift {
 
     public void trackAlertDismiss(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -920,7 +920,7 @@ public class Blueshift {
                 }
             }
 
-            Object msgUuidObj = params.get(BlueshiftConstants.KEY_NOTIFICATION_ID);
+            Object msgUuidObj = params.get(BlueshiftConstants.KEY_MESSAGE_UUID);
             if (msgUuidObj != null) {
                 String messageUuid = (String) msgUuidObj;
                 if (!TextUtils.isEmpty(messageUuid)) {

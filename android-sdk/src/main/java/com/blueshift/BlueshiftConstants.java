@@ -58,7 +58,7 @@ public class BlueshiftConstants {
 
     // User
     public static final String KEY_EMAIL = "email";
-    public static final String KEY_RETAILER_CUSTOMER_ID = "retailer_customer_id";
+    public static final String KEY_CUSTOMER_ID = "customer_id";
     public static final String KEY_FIRST_NAME = "firstname";
     public static final String KEY_LAST_NAME = "lastname";
     public static final String KEY_GENDER = "gender";
@@ -91,7 +91,7 @@ public class BlueshiftConstants {
     public static final String KEY_SUBSCRIPTION_AMOUNT = "subscription_amount";
     public static final String KEY_SUBSCRIPTION_START_DATE = "subscription_start_date";
     public static final String KEY_SUBSCRIPTION_STATUS = "subscription_status";
-    public static final String KEY_NOTIFICATION_ID = "message_uuid";
+    public static final String KEY_MESSAGE_UUID = "message_uuid";
     public static final String KEY_TIMESTAMP = "timestamp";
     public static final String KEY_SDK_VERSION = "sdk_version";
     public static final String KEY_UID = "uid";
