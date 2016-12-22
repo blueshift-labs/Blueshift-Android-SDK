@@ -10,10 +10,11 @@ public class BlueshiftConstants {
     /**
      * URLs for server communication
      */
-    public static final String BASE_URL = "https://api.getblueshift.com/api/v1";
-    public static final String EVENT_API_URL = BASE_URL + "/event";
-    public static final String BULK_EVENT_API_URL = BASE_URL + "/bulkevents";
-    public static final String NOTIFICATION_EVENT_API_URL = "https://api.getblueshift.com/track";
+    public static final String BASE_URL = "https://api.getblueshift.com";
+    public static final String TRACK_API_URL = BASE_URL + "/track";
+    public static final String V1_API_URL = BASE_URL + "/api/v1";
+    public static final String EVENT_API_URL = V1_API_URL + "/event";
+    public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
 
     /**
      * Event names sent to Blueshift server

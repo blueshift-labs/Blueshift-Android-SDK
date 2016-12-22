@@ -933,7 +933,7 @@ public class Blueshift {
 
             String paramsUrl = getUrlParams(eventParams);
             if (!TextUtils.isEmpty(paramsUrl)) {
-                String reqUrl = BlueshiftConstants.NOTIFICATION_EVENT_API_URL + "?" + paramsUrl;
+                String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + paramsUrl;
 
                 Request request = new Request();
                 request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
