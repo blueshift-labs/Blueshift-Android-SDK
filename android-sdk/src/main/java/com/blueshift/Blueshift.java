@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -47,6 +49,7 @@ import java.util.Map;
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
     private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
+    private static final HashMap<String, Object> sAppParams = new HashMap<>();
 
     private static Context mContext;
     private static Configuration mConfiguration;
@@ -177,6 +180,57 @@ public class Blueshift {
         new FetchAndUpdateAdIdTask().execute();
     }
 
+    private void initAppInfo(Context context) {
+        synchronized (sAppParams) {
+            if (context != null) {
+                String pkgName = context.getPackageName();
+
+                if (!TextUtils.isEmpty(pkgName)) {
+                    PackageManager pkgManager = context.getPackageManager();
+
+                    if (pkgManager != null) {
+                        // ============== Read App Version ==============
+                        PackageInfo pkgInfo = null;
+
+                        try {
+                            pkgInfo = pkgManager.getPackageInfo(pkgName, 0);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            Log.e(LOG_TAG, e.getMessage());
+                        }
+
+                        if (pkgInfo != null && pkgInfo.versionName != null) {
+                            String version = pkgInfo.versionName + " (" + pkgInfo.versionCode + ")";
+                            sAppParams.put(BlueshiftConstants.KEY_APP_VERSION, version);
+                        }
+
+                        // ============== Read App Name ==============
+                        ApplicationInfo appInfo = null;
+
+                        try {
+                            appInfo = pkgManager.getApplicationInfo(pkgName, 0);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            Log.e(LOG_TAG, e.getMessage());
+                        }
+
+                        CharSequence appName = "Not Available";
+
+                        if (appInfo != null) {
+                            appName = pkgManager.getApplicationLabel(appInfo);
+                        }
+
+                        sAppParams.put(BlueshiftConstants.KEY_APP_NAME, appName);
+                    }
+                }
+            }
+        }
+    }
+
+    private HashMap<String, Object> getAppInfoMap() {
+        synchronized (sAppParams) {
+            return sAppParams;
+        }
+    }
+
     /**
      * This method initializes the sdk with the configuration set by user
      *
@@ -188,6 +242,8 @@ public class Blueshift {
         GCMRegistrar.registerForNotification(mContext);
         // Collecting device specific params.
         initializeDeviceParams();
+        // Collect app details
+        initAppInfo(mContext);
         // Trigger app open event.
         // events sent by SDK are always batched.
         trackAppOpen(true);
@@ -287,6 +343,9 @@ public class Blueshift {
                     if (requestParams != null) {
                         // Appending params with the device dependant details.
                         requestParams.putAll(params);
+
+                        // Append app info
+                        requestParams.putAll(getAppInfoMap());
 
                         // check if device id (Android Ad Id) is available in parameters' list.
                         // if not found, try to get it now and fill it in.
