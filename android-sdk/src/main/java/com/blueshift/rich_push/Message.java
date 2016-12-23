@@ -14,7 +14,7 @@ public class Message implements Serializable {
     public static final String EXTRA_MESSAGE = "message";
     public static final String EXTRA_BSFT_EXPERIMENT_UUID = "bsft_experiment_uuid";
     public static final String EXTRA_BSFT_USER_UUID = "bsft_user_uuid";
-    public static final String EXTRA_BSFT_TRANSACTIONAL_UUID = "transactional_uuid";
+    public static final String EXTRA_BSFT_TRANSACTIONAL_UUID = "bsft_transaction_uuid";
 
     /**
      * Following are the campaign uuids. They come outside the 'message' object in push message.
@@ -23,6 +23,7 @@ public class Message implements Serializable {
      */
     private String bsft_experiment_uuid;
     private String bsft_user_uuid;
+    private String bsft_transaction_uuid; // present only with transactional campaign
 
     /**
      * The following variables are used for parsing the 'message' payload.
@@ -33,12 +34,7 @@ public class Message implements Serializable {
      * id used for tracking the notification events
      */
     private String message_uuid;
-
-    /**
-     * This value will be present only for transactional campaign
-     */
-    private String transactional_uuid;
-
+    
     /**
      * ** mandatory **
      * used for defining the type of notification. currently takes 2 values.
@@ -179,8 +175,8 @@ public class Message implements Serializable {
             attributes.put(EXTRA_BSFT_EXPERIMENT_UUID, getBsftExperimentUuid());
             attributes.put(EXTRA_BSFT_USER_UUID, getBsftUserUuid());
 
-            if (!TextUtils.isEmpty(getTransactionalUuid())) {
-                attributes.put(EXTRA_BSFT_TRANSACTIONAL_UUID, getTransactionalUuid());
+            if (!TextUtils.isEmpty(getBsftTransactionUuid())) {
+                attributes.put(EXTRA_BSFT_TRANSACTIONAL_UUID, getBsftTransactionUuid());
             }
         }
 
@@ -191,8 +187,12 @@ public class Message implements Serializable {
         return message_uuid;
     }
 
-    public String getTransactionalUuid() {
-        return transactional_uuid;
+    public String getBsftTransactionUuid() {
+        return bsft_transaction_uuid;
+    }
+
+    public void setBsftTransactionUuid(String transactionUuid) {
+        this.bsft_transaction_uuid = transactionUuid;
     }
 
     public NotificationType getNotificationType() {
