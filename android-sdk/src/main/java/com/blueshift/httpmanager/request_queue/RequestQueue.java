@@ -194,6 +194,12 @@ public class RequestQueue {
                         response = httpManager.post(mRequest.getParamJson());
                         break;
 
+                    case GET:
+                        SdkLog.d(LOG_TAG, "Request URL: " + mRequest.getUrl());
+
+                        response = httpManager.get();
+                        break;
+
                     default:
                         SdkLog.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
                 }

@@ -10,9 +10,11 @@ public class BlueshiftConstants {
     /**
      * URLs for server communication
      */
-    public static final String BASE_URL = "https://api.getblueshift.com/api/v1";
-    public static final String EVENT_API_URL = BASE_URL + "/event";
-    public static final String BULK_EVENT_API_URL = BASE_URL + "/bulkevents";
+    public static final String BASE_URL = "https://api.getblueshift.com";
+    public static final String TRACK_API_URL = BASE_URL + "/track";
+    public static final String V1_API_URL = BASE_URL + "/api/v1";
+    public static final String EVENT_API_URL = V1_API_URL + "/event";
+    public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
 
     /**
      * Event names sent to Blueshift server
@@ -34,7 +36,7 @@ public class BlueshiftConstants {
     public static final String EVENT_SUBSCRIPTION_CANCEL = "subscription_cancel";
     public static final String EVENT_APP_OPEN = "app_open";
     public static final String EVENT_APP_INSTALL = "app_install";
-    public static final String EVENT_PUSH_VIEW  = "open";
+    public static final String EVENT_PUSH_DELIVERED = "delivered";
     public static final String EVENT_PUSH_CLICK  = "click";
     public static final String EVENT_DISMISS_ALERT = "dismiss_alert";
 
@@ -56,7 +58,7 @@ public class BlueshiftConstants {
 
     // User
     public static final String KEY_EMAIL = "email";
-    public static final String KEY_RETAILER_CUSTOMER_ID = "retailer_customer_id";
+    public static final String KEY_CUSTOMER_ID = "customer_id";
     public static final String KEY_FIRST_NAME = "firstname";
     public static final String KEY_LAST_NAME = "lastname";
     public static final String KEY_GENDER = "gender";
@@ -89,8 +91,14 @@ public class BlueshiftConstants {
     public static final String KEY_SUBSCRIPTION_AMOUNT = "subscription_amount";
     public static final String KEY_SUBSCRIPTION_START_DATE = "subscription_start_date";
     public static final String KEY_SUBSCRIPTION_STATUS = "subscription_status";
-    public static final String KEY_NOTIFICATION_ID = "notification_id";
+    public static final String KEY_MESSAGE_UUID = "message_uuid";
     public static final String KEY_TIMESTAMP = "timestamp";
+    public static final String KEY_SDK_VERSION = "sdk_version";
+    public static final String KEY_UID = "uid";
+    public static final String KEY_MID = "mid";
+    public static final String KEY_EID = "eid";
+    public static final String KEY_TXNID = "txnid";
+    public static final String KEY_ACTION = "a";
 
     /**
      * Subscription status values

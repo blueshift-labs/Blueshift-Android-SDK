@@ -36,6 +36,8 @@ import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Rahul Raveendran V P
@@ -63,7 +65,7 @@ public class Blueshift {
                  * AsyncTask to do the db sync in background.
                  */
 
-                new AsyncTask<Void, Void, Void>(){
+                new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
                         RequestQueue
@@ -278,6 +280,9 @@ public class Blueshift {
                 return false;
             } else {
                 if (params != null) {
+                    // Add Sdk version to the params
+                    params.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+
                     HashMap<String, Object> requestParams = getDeviceParams();
                     if (requestParams != null) {
                         // Appending params with the device dependant details.
@@ -300,7 +305,7 @@ public class Blueshift {
                             }
 
                             if (userInfo.getRetailerCustomerId() != null) {
-                                requestParams.put(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, userInfo.getRetailerCustomerId());
+                                requestParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, userInfo.getRetailerCustomerId());
                             } else {
                                 Log.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
                             }
@@ -367,6 +372,23 @@ public class Blueshift {
         }
     }
 
+    private String getUrlParams(final HashMap<String, Object> params) {
+        StringBuilder bodyBuilder = new StringBuilder();
+
+        if (params != null) {
+            Iterator<Map.Entry<String, Object>> iterator = params.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Object> param = iterator.next();
+                bodyBuilder.append(param.getKey()).append('=').append(param.getValue());
+                if (iterator.hasNext()) {
+                    bodyBuilder.append('&');
+                }
+            }
+        }
+
+        return bodyBuilder.toString();
+    }
+
     /**
      * Method to send generic events
      *
@@ -374,7 +396,7 @@ public class Blueshift {
      * @param params            hash map with valid parameters
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
-    public void trackEvent(@NotNull String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
+    public void trackEvent(@NotNull final String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
         final HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
         if (params != null) {
@@ -399,7 +421,7 @@ public class Blueshift {
 
             @Override
             protected void onPostExecute(Boolean isSuccess) {
-                SdkLog.i(LOG_TAG, "Event creation " + (isSuccess ? "success." : "failed."));
+                Log.d(LOG_TAG, "Event: " + eventName + ", Tracking status: " + (isSuccess ? "success" : "failed"));
             }
         }.execute();
     }
@@ -441,7 +463,7 @@ public class Blueshift {
             Log.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
         }
 
-        identifyUser(BlueshiftConstants.KEY_RETAILER_CUSTOMER_ID, customerId, details, canBatchThisEvent);
+        identifyUser(BlueshiftConstants.KEY_CUSTOMER_ID, customerId, details, canBatchThisEvent);
     }
 
     /**
@@ -775,50 +797,50 @@ public class Blueshift {
         }
     }
 
-    public void trackNotificationView(Message message, boolean canBatchThisEvent) {
+    public void trackNotificationView(Message message) {
         if (message != null) {
-            trackNotificationView(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+            trackNotificationView(message.getId(), message.getCampaignAttr());
         } else {
             SdkLog.e(LOG_TAG, "No message available");
         }
     }
 
-    public void trackNotificationView(String notificationId, boolean canBatchThisEvent) {
-        trackNotificationView(notificationId, null, canBatchThisEvent);
+    public void trackNotificationView(String notificationId) {
+        trackNotificationView(notificationId, null);
     }
 
-    public void trackNotificationView(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackNotificationView(String notificationId, HashMap<String, Object> params) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
         }
 
-        trackEvent(BlueshiftConstants.EVENT_PUSH_VIEW, eventParams, canBatchThisEvent);
+        trackNotificationEvent(BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams);
     }
 
-    public void trackNotificationClick(Message message, boolean canBatchThisEvent) {
+    public void trackNotificationClick(Message message) {
         if (message != null) {
-            trackNotificationClick(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+            trackNotificationClick(message.getId(), message.getCampaignAttr());
         } else {
             SdkLog.e(LOG_TAG, "No message available");
         }
     }
 
-    public void trackNotificationClick(String notificationId, boolean canBatchThisEvent) {
-        trackNotificationClick(notificationId, null, canBatchThisEvent);
+    public void trackNotificationClick(String notificationId) {
+        trackNotificationClick(notificationId, null);
     }
 
-    public void trackNotificationClick(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackNotificationClick(String notificationId, HashMap<String, Object> params) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
         }
 
-        trackEvent(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, canBatchThisEvent);
+        trackNotificationEvent(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams);
     }
 
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
@@ -835,7 +857,7 @@ public class Blueshift {
 
     public void trackNotificationPageOpen(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -858,13 +880,79 @@ public class Blueshift {
 
     public void trackAlertDismiss(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
+        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
         }
 
         trackEvent(BlueshiftConstants.EVENT_DISMISS_ALERT, eventParams, canBatchThisEvent);
+    }
+
+    private void trackNotificationEvent(final String eventName, final HashMap<String, Object> reqParams) {
+        if (reqParams != null) {
+            new AsyncTask<Void, Void, Boolean>() {
+                @Override
+                protected Boolean doInBackground(Void... params) {
+                    return sendNotificationEvent(eventName, reqParams);
+                }
+
+                @Override
+                protected void onPostExecute(Boolean aBoolean) {
+                    Log.d(LOG_TAG, "Event: " + eventName + ", Tracking status: " + (aBoolean ? "success" : "failed"));
+                }
+            }.execute();
+        }
+    }
+
+    private boolean sendNotificationEvent(String eventName, HashMap<String, Object> params) {
+        if (params != null) {
+            HashMap<String, Object> eventParams = new HashMap<>();
+            eventParams.put(BlueshiftConstants.KEY_ACTION, eventName);
+            eventParams.put(BlueshiftConstants.KEY_UID, params.get(Message.EXTRA_BSFT_USER_UUID));
+            eventParams.put(BlueshiftConstants.KEY_EID, params.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
+
+            Object txnUuidObj = params.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+            if (txnUuidObj != null) {
+                String txnUuid = (String) txnUuidObj;
+                if (!TextUtils.isEmpty(txnUuid)) {
+                    eventParams.put(BlueshiftConstants.KEY_TXNID, txnUuid);
+                }
+            }
+
+            Object msgUuidObj = params.get(BlueshiftConstants.KEY_MESSAGE_UUID);
+            if (msgUuidObj != null) {
+                String messageUuid = (String) msgUuidObj;
+                if (!TextUtils.isEmpty(messageUuid)) {
+                    eventParams.put(BlueshiftConstants.KEY_MID, messageUuid);
+                }
+            }
+
+            // Add Sdk version to the params
+            eventParams.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+
+            String paramsUrl = getUrlParams(eventParams);
+            if (!TextUtils.isEmpty(paramsUrl)) {
+                String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + paramsUrl;
+
+                Request request = new Request();
+                request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
+                request.setUrl(reqUrl);
+                request.setMethod(Method.GET);
+                request.setParamJson(new Gson().toJson(params));
+
+                SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
+
+                // Adding the request to the queue.
+                RequestQueue.getInstance(mContext).add(request);
+
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     /**
