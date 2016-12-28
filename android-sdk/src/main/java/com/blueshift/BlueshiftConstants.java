@@ -44,6 +44,10 @@ public class BlueshiftConstants {
      * Names of parameters (key) we send to Blueshift server along with events
      */
 
+    // App
+    public static final String KEY_APP_NAME = "app_name";
+    public static final String KEY_APP_VERSION = "app_version";
+
     // Device
     public static final String KEY_DEVICE_IDENTIFIER = "device_id";
     public static final String KEY_DEVICE_TYPE = "device_type";
