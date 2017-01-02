@@ -19,7 +19,6 @@ import android.util.Log;
 import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
-import com.blueshift.gcm.GCMRegistrar;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.request_queue.RequestQueue;
@@ -115,7 +114,7 @@ public class Blueshift {
      *
      * @param androidAdId android advertising id String
      */
-    public static void updateAndroidAdId(String androidAdId) {
+    private static void updateAndroidAdId(String androidAdId) {
         synchronized (sDeviceParams) {
             if (!TextUtils.isEmpty(androidAdId)) {
                 sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId);
@@ -155,7 +154,7 @@ public class Blueshift {
     private void initializeDeviceParams() {
         synchronized (sDeviceParams) {
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, GCMRegistrar.getRegistrationId(mContext));
+            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, FirebaseInstanceId.getInstance().getToken());
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
@@ -177,9 +176,6 @@ public class Blueshift {
      */
     public void initialize(Configuration configuration) {
         mConfiguration = configuration;
-        // Registering device for push notification.
-        String token = FirebaseInstanceId.getInstance().getToken();
-        updateDeviceToken(token);
         // Collecting device specific params.
         initializeDeviceParams();
         // Trigger app open event.
@@ -311,6 +307,8 @@ public class Blueshift {
                             if (hasPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
                                     || hasPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                                 // We have either of the above 2 permissions granted.
+
+                                // noinspection MissingPermission (because permission check is done above)
                                 Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                                 if (location != null) {
                                     requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
@@ -370,6 +368,7 @@ public class Blueshift {
      * @param params            hash map with valid parameters
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
+    @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NotNull String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
         final HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
@@ -479,7 +478,7 @@ public class Blueshift {
      * @param details           optional additional parameters
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
-    public void identifyUser(String key, String value, HashMap<String, Object> details, boolean canBatchThisEvent) {
+    private void identifyUser(String key, String value, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (hasValidCredentials()) {
             HashMap<String, Object> userParams = new HashMap<>();
 
@@ -504,6 +503,7 @@ public class Blueshift {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackScreenView(String screenName, boolean canBatchThisEvent) {
         HashMap<String, Object> userParams = new HashMap<>();
         userParams.put(BlueshiftConstants.KEY_SCREEN_VIEWED, screenName);
@@ -511,10 +511,12 @@ public class Blueshift {
         trackEvent(BlueshiftConstants.EVENT_PAGE_LOAD, userParams, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackAppOpen(boolean canBatchThisEvent) {
         trackAppOpen(null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackAppOpen(HashMap<String, Object> params, boolean canBatchThisEvent) {
         trackEvent(BlueshiftConstants.EVENT_APP_OPEN, params, canBatchThisEvent);
     }
@@ -523,6 +525,7 @@ public class Blueshift {
         trackProductView(sku, categoryId, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackProductView(String sku, int categoryId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_SKU, sku);
@@ -538,6 +541,7 @@ public class Blueshift {
         trackAddToCart(sku, quantity, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackAddToCart(String sku, int quantity, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_SKU, sku);
@@ -553,6 +557,7 @@ public class Blueshift {
         trackCheckoutCart(products, revenue, discount, coupon, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackCheckoutCart(Product[] products, float revenue, float discount, String coupon, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_PRODUCTS, products);
@@ -570,6 +575,7 @@ public class Blueshift {
         trackProductsPurchase(orderId, products, revenue, shippingCost, discount, coupon, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackProductsPurchase(String orderId, Product[] products, float revenue, float shippingCost, float discount, String coupon, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_ORDER_ID, orderId);
@@ -589,6 +595,7 @@ public class Blueshift {
         trackPurchaseCancel(orderId, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackPurchaseCancel(String orderId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_ORDER_ID, orderId);
@@ -603,6 +610,7 @@ public class Blueshift {
         trackPurchaseReturn(orderId, products, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackPurchaseReturn(String orderId, Product[] products, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_ORDER_ID, orderId);
@@ -618,10 +626,12 @@ public class Blueshift {
         trackProductSearch(skus, numberOfResults, pageNumber, query, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackProductSearch(String[] skus, int numberOfResults, int pageNumber, String query, HashMap<String, Object> filters, boolean canBatchThisEvent) {
         trackProductSearch(skus, numberOfResults, pageNumber, query, filters, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackProductSearch(String[] skus, int numberOfResults, int pageNumber, String query, HashMap<String, Object> filters, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_SKUS, skus);
@@ -640,6 +650,7 @@ public class Blueshift {
         trackEmailListSubscription(email, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackEmailListSubscription(String email, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EMAIL, email);
@@ -654,6 +665,7 @@ public class Blueshift {
         trackEmailListUnsubscription(email, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackEmailListUnsubscription(String email, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EMAIL, email);
@@ -668,6 +680,7 @@ public class Blueshift {
         trackSubscriptionInitialization(subscriptionState, cycleType, cycleLength, subscriptionType, price, startDate, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackSubscriptionInitialization(SubscriptionState subscriptionState, String cycleType, int cycleLength, @NotNull String subscriptionType, float price, long startDate, HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         subscription.setSubscriptionState(subscriptionState);
@@ -706,6 +719,7 @@ public class Blueshift {
         trackSubscriptionPause(null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackSubscriptionPause(HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         if (subscription.hasValidSubscription()) {
@@ -730,6 +744,7 @@ public class Blueshift {
         trackSubscriptionUnpause(null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackSubscriptionUnpause(HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         if (subscription.hasValidSubscription()) {
@@ -754,6 +769,7 @@ public class Blueshift {
         trackSubscriptionCancel(null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackSubscriptionCancel(HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         if (subscription.hasValidSubscription()) {
@@ -783,6 +799,7 @@ public class Blueshift {
         trackNotificationView(notificationId, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackNotificationView(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
@@ -806,6 +823,7 @@ public class Blueshift {
         trackNotificationClick(notificationId, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackNotificationClick(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
@@ -829,6 +847,7 @@ public class Blueshift {
         trackNotificationPageOpen(notificationId, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackNotificationPageOpen(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
@@ -852,6 +871,7 @@ public class Blueshift {
         trackAlertDismiss(notificationId, null, canBatchThisEvent);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackAlertDismiss(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_NOTIFICATION_ID, notificationId);
