@@ -32,8 +32,8 @@ public class RichPushNotification {
 
     private final static Random sRandom = new Random();
 
-    static int getRandomPIRequestCode() {
-        return sRandom.nextInt();
+    public static int getRandomPIRequestCode() {
+        return sRandom.nextInt(Integer.MAX_VALUE);
     }
 
     static int getRandomNotificationId() {
