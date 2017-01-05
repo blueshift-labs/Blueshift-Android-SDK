@@ -97,7 +97,7 @@ public class BlueshiftConstants {
     public static final String KEY_SUBSCRIPTION_STATUS = "subscription_status";
     public static final String KEY_MESSAGE_UUID = "message_uuid";
     public static final String KEY_TIMESTAMP = "timestamp";
-    public static final String KEY_SDK_VERSION = "sdk_version";
+    public static final String KEY_SDK_VERSION = "bsft_sdk_version";
     public static final String KEY_UID = "uid";
     public static final String KEY_MID = "mid";
     public static final String KEY_EID = "eid";
