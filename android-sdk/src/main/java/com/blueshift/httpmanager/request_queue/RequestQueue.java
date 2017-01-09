@@ -189,15 +189,25 @@ public class RequestQueue {
                 Response response = null;
                 switch (mRequest.getMethod()) {
                     case POST:
-                        SdkLog.d(LOG_TAG, "Request params JSON: " + mRequest.getParamJson());
-
                         response = httpManager.post(mRequest.getParamJson());
+
+                        Log.d(LOG_TAG, "Blueshift Event\n" +
+                                "Method: POST\n" +
+                                "Params: " + mRequest.getParamJson() + "\n" +
+                                "Status: " + getStatusFromResponse(response)
+                        );
+
                         break;
 
                     case GET:
-                        SdkLog.d(LOG_TAG, "Request URL: " + mRequest.getUrl());
-
                         response = httpManager.get();
+
+                        Log.d(LOG_TAG, "Blueshift Event\n" +
+                                "Method: GET" +
+                                "URL: " + mRequest.getUrl() + "\n" +
+                                "Status: " + getStatusFromResponse(response)
+                        );
+
                         break;
 
                     default:
@@ -217,6 +227,28 @@ public class RequestQueue {
             }
 
             return false;
+        }
+
+        private String getStatusFromResponse(Response response) {
+            String status = "Unknown";
+
+            if (response != null) {
+                int code = response.getStatusCode();
+                switch (code) {
+                    case 0:
+                        status = "Failed - No internet!";
+                        break;
+
+                    case 200:
+                        status = "Success - 200";
+                        break;
+
+                    default:
+                        status = "Failed - Code: " + code;
+                }
+            }
+
+            return status;
         }
 
         @Override
