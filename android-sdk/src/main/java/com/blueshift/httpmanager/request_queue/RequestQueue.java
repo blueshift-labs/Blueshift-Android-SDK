@@ -203,7 +203,7 @@ public class RequestQueue {
                         response = httpManager.get();
 
                         Log.d(LOG_TAG, "Blueshift Event\n" +
-                                "Method: GET" +
+                                "Method: GET\n" +
                                 "URL: " + mRequest.getUrl() + "\n" +
                                 "Status: " + getStatusFromResponse(response)
                         );
