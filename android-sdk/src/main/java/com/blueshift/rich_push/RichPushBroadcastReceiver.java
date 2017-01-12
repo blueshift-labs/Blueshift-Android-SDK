@@ -27,11 +27,13 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                 Message message = new Gson().fromJson(messageJSON, Message.class);
                 if (message != null) {
                     // trying to fetch campaign params
+                    String msgUUID = intent.getStringExtra(Message.EXTRA_BSFT_MESSAGE_UUID);
                     String experimentUUID = intent.getStringExtra(Message.EXTRA_BSFT_EXPERIMENT_UUID);
                     String userUUID = intent.getStringExtra(Message.EXTRA_BSFT_USER_UUID);
                     String txnUUID = intent.getStringExtra(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
 
                     // adding campaign parameters inside message.
+                    message.setBsftMessageUuid(msgUUID);
                     message.setBsftExperimentUuid(experimentUUID);
                     message.setBsftUserUuid(userUUID);
                     message.setBsftTransactionUuid(txnUUID);
