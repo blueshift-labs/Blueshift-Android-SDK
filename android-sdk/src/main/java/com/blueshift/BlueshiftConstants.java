@@ -15,6 +15,7 @@ public class BlueshiftConstants {
     public static final String V1_API_URL = BASE_URL + "/api/v1";
     public static final String EVENT_API_URL = V1_API_URL + "/event";
     public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
+    public static final String LIVE_CONTENT_API_URL = V1_API_URL + "/bulkevents"; // // TODO: 13/1/17 Add new api
 
     /**
      * Event names sent to Blueshift server

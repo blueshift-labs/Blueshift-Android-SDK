@@ -22,8 +22,10 @@ import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
 import com.blueshift.gcm.GCMRegistrar;
+import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
+import com.blueshift.httpmanager.Response;
 import com.blueshift.httpmanager.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
@@ -143,6 +145,44 @@ public class Blueshift {
         }
 
         return status;
+    }
+
+    public void loadLiveContent(final HashMap<String, Object> reqParams, final LiveContentCallback callback) {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                String responseStr = null;
+
+                Configuration configuration = getConfiguration();
+                if (configuration != null) {
+                    HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
+                    httpManager.addBasicAuthentication("", configuration.getApiKey());
+
+                    if (reqParams != null) {
+                        // TODO: 13/1/17 add params in req.
+                    }
+
+                    Response response = httpManager.get();
+                    switch (response.getStatusCode()) {
+                        case 0:
+                            responseStr = "No internet.";
+                            break;
+
+                        default:
+                            responseStr = response.getResponseBody();
+                    }
+                }
+
+                return responseStr;
+            }
+
+            @Override
+            protected void onPostExecute(String response) {
+                if (callback != null) {
+                    callback.onReceive(response);
+                }
+            }
+        }.execute();
     }
 
     /**
