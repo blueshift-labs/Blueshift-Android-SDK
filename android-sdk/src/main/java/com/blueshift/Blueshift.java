@@ -244,9 +244,6 @@ public class Blueshift {
         initializeDeviceParams();
         // Collect app details
         initAppInfo(mContext);
-        // Trigger app open event.
-        // events sent by SDK are always batched.
-        trackAppOpen(true);
         // Sync the http request queue.
         RequestQueue.getInstance(mContext).sync();
         // register alarm manager
