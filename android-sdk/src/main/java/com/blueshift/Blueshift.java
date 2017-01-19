@@ -147,8 +147,22 @@ public class Blueshift {
         return status;
     }
 
-    public void getLiveContent(@NotNull String slot, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, callback).execute();
+    public void getLiveContentByEmail(@NotNull String slot, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, callback)
+                .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
+                .execute();
+    }
+
+    public void getLiveContentByDeviceId(@NotNull String slot, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, callback)
+                .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
+                .execute();
+    }
+
+    public void getLiveContentByCustomerId(@NotNull String slot, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, callback)
+                .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
+                .execute();
     }
 
     /**
@@ -1049,11 +1063,18 @@ public class Blueshift {
         private final Context mContext;
         private final String mSlot;
         private final LiveContentCallback mCallback;
+        private String mUniqueKey;
 
         FetchLiveContentTask(Context context, String slot, LiveContentCallback callback) {
             mContext = context;
             mSlot = slot;
             mCallback = callback;
+        }
+
+        public FetchLiveContentTask setUniqueKey(String uniqueKey) {
+            mUniqueKey = uniqueKey;
+
+            return this;
         }
 
         @Override
@@ -1079,12 +1100,39 @@ public class Blueshift {
                 Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
             }
 
-            UserInfo userInfo = UserInfo.getInstance(mContext);
-            String email = userInfo.getEmail();
-            if (!TextUtils.isEmpty(email)) {
-                reqParams.put(BlueshiftConstants.KEY_EMAIL_ID, email);
-            } else {
-                Log.e(LOG_TAG, "Live Content Api: No email provided.");
+            if (mUniqueKey != null) {
+                switch (mUniqueKey) {
+                    case BlueshiftConstants.KEY_EMAIL:
+                        UserInfo userInfo = UserInfo.getInstance(mContext);
+                        String email = userInfo.getEmail();
+                        if (!TextUtils.isEmpty(email)) {
+                            reqParams.put(BlueshiftConstants.KEY_EMAIL, email);
+                        } else {
+                            Log.e(LOG_TAG, "Live Content Api: No advertisingID provided in UserInfo.");
+                        }
+
+                        break;
+
+                    case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
+                        String advertisingID = DeviceUtils.getAdvertisingID(mContext);
+                        if (!TextUtils.isEmpty(advertisingID)) {
+                            reqParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, advertisingID);
+                        } else {
+                            Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
+                        }
+
+                        break;
+
+                    case BlueshiftConstants.KEY_CUSTOMER_ID:
+                        String customerId = UserInfo.getInstance(mContext).getRetailerCustomerId();
+                        if (!TextUtils.isEmpty(customerId)) {
+                            reqParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                        } else {
+                            Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
+                        }
+
+                        break;
+                }
             }
 
             HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
