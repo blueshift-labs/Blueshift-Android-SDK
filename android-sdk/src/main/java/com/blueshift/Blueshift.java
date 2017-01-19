@@ -22,8 +22,10 @@ import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
 import com.blueshift.gcm.GCMRegistrar;
+import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
+import com.blueshift.httpmanager.Response;
 import com.blueshift.httpmanager.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
@@ -143,6 +145,24 @@ public class Blueshift {
         }
 
         return status;
+    }
+
+    public void getLiveContentByEmail(@NotNull String slot, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, callback)
+                .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
+                .execute();
+    }
+
+    public void getLiveContentByDeviceId(@NotNull String slot, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, callback)
+                .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
+                .execute();
+    }
+
+    public void getLiveContentByCustomerId(@NotNull String slot, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, callback)
+                .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
+                .execute();
     }
 
     /**
@@ -1032,6 +1052,103 @@ public class Blueshift {
                 updateAndroidAdId(adId);
             } else {
                 SdkLog.w(LOG_TAG, "Could not fetch AdvertisingId");
+            }
+        }
+    }
+
+    /**
+     * Async task that fetched live content from Bsft server
+     */
+    private class FetchLiveContentTask extends AsyncTask<Void, Void, String> {
+        private final Context mContext;
+        private final String mSlot;
+        private final LiveContentCallback mCallback;
+        private String mUniqueKey;
+
+        FetchLiveContentTask(Context context, String slot, LiveContentCallback callback) {
+            mContext = context;
+            mSlot = slot;
+            mCallback = callback;
+        }
+
+        public FetchLiveContentTask setUniqueKey(String uniqueKey) {
+            mUniqueKey = uniqueKey;
+
+            return this;
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            String responseJson = null;
+
+            HashMap<String, String> reqParams = new HashMap<>();
+            if (!TextUtils.isEmpty(mSlot)) {
+                reqParams.put(BlueshiftConstants.KEY_SLOT, mSlot);
+            } else {
+                Log.e(LOG_TAG, "Live Content Api: No slot provided.");
+            }
+
+            Configuration config = getConfiguration();
+            if (config != null) {
+                String apiKey = config.getApiKey();
+                if (!TextUtils.isEmpty(apiKey)) {
+                    reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
+                } else {
+                    Log.e(LOG_TAG, "Live Content Api: No Api Key provided.");
+                }
+            } else {
+                Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
+            }
+
+            if (mUniqueKey != null) {
+                switch (mUniqueKey) {
+                    case BlueshiftConstants.KEY_EMAIL:
+                        UserInfo userInfo = UserInfo.getInstance(mContext);
+                        String email = userInfo.getEmail();
+                        if (!TextUtils.isEmpty(email)) {
+                            reqParams.put(BlueshiftConstants.KEY_EMAIL, email);
+                        } else {
+                            Log.e(LOG_TAG, "Live Content Api: No advertisingID provided in UserInfo.");
+                        }
+
+                        break;
+
+                    case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
+                        String advertisingID = DeviceUtils.getAdvertisingID(mContext);
+                        if (!TextUtils.isEmpty(advertisingID)) {
+                            reqParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, advertisingID);
+                        } else {
+                            Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
+                        }
+
+                        break;
+
+                    case BlueshiftConstants.KEY_CUSTOMER_ID:
+                        String customerId = UserInfo.getInstance(mContext).getRetailerCustomerId();
+                        if (!TextUtils.isEmpty(customerId)) {
+                            reqParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                        } else {
+                            Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
+                        }
+
+                        break;
+                }
+            }
+
+            HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
+            Response response = httpManager.get(reqParams);
+
+            if (response.getStatusCode() == 200) {
+                responseJson = response.getResponseBody();
+            }
+
+            return responseJson;
+        }
+
+        @Override
+        protected void onPostExecute(String json) {
+            if (mCallback != null) {
+                mCallback.onReceive(json);
             }
         }
     }

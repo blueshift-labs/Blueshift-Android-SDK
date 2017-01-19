@@ -12,6 +12,7 @@ public class BlueshiftConstants {
      */
     public static final String BASE_URL = "https://api.getblueshift.com";
     public static final String TRACK_API_URL = BASE_URL + "/track";
+    public static final String LIVE_CONTENT_API_URL = BASE_URL + "/live";
     public static final String V1_API_URL = BASE_URL + "/api/v1";
     public static final String EVENT_API_URL = V1_API_URL + "/event";
     public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
@@ -37,7 +38,7 @@ public class BlueshiftConstants {
     public static final String EVENT_APP_OPEN = "app_open";
     public static final String EVENT_APP_INSTALL = "app_install";
     public static final String EVENT_PUSH_DELIVERED = "delivered";
-    public static final String EVENT_PUSH_CLICK  = "click";
+    public static final String EVENT_PUSH_CLICK = "click";
     public static final String EVENT_DISMISS_ALERT = "dismiss_alert";
 
     /**
@@ -103,6 +104,10 @@ public class BlueshiftConstants {
     public static final String KEY_EID = "eid";
     public static final String KEY_TXNID = "txnid";
     public static final String KEY_ACTION = "a";
+
+    // live content
+    public static final String KEY_SLOT = "slot";
+    public static final String KEY_API_KEY = "x";
 
     /**
      * Subscription status values
