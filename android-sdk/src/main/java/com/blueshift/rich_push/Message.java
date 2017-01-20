@@ -134,7 +134,7 @@ public class Message implements Serializable {
     /**
      * Following are optional product info parameters.
      */
-    private String sku;
+    private String product_id;
     private String mrp;
     private String price;
 
@@ -228,8 +228,8 @@ public class Message implements Serializable {
         return big_content_summary_text;
     }
 
-    public String getSku() {
-        return sku;
+    public String getProductId() {
+        return product_id;
     }
 
     public String getMrp() {

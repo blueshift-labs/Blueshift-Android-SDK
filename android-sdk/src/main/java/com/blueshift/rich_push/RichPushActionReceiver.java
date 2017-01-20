@@ -69,7 +69,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             if (configuration != null && configuration.getProductPage() != null) {
                 Intent pageLauncherIntent = new Intent(context, configuration.getProductPage());
                 // add product specific items.
-                pageLauncherIntent.putExtra("sku", message.getSku());
+                pageLauncherIntent.putExtra("product_id", message.getProductId());
                 pageLauncherIntent.putExtra("mrp", message.getMrp());
                 pageLauncherIntent.putExtra("price", message.getPrice());
                 pageLauncherIntent.putExtra("data", message.getData());
@@ -91,7 +91,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             if (configuration != null && configuration.getCartPage() != null) {
                 Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
                 // add product specific items.
-                pageLauncherIntent.putExtra("sku", message.getSku());
+                pageLauncherIntent.putExtra("product_id", message.getProductId());
                 pageLauncherIntent.putExtra("mrp", message.getMrp());
                 pageLauncherIntent.putExtra("price", message.getPrice());
                 pageLauncherIntent.putExtra("data", message.getData());
