@@ -230,9 +230,10 @@ public class Message implements Serializable {
     }
 
     /**
-     * This method is created for backward compatibility
+     * The {@link #getSku()} method is deprecated now. Use this method instead
+     * to read the product id sent along with the push payload.
      *
-     * @return product_id if available, else sku
+     * @return {@link #product_id} if available, else {@link #sku}
      */
     public String getProductId() {
         return TextUtils.isEmpty(product_id) ? sku : product_id;
