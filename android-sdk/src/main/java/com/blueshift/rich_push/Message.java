@@ -135,6 +135,7 @@ public class Message implements Serializable {
      * Following are optional product info parameters.
      */
     private String product_id;
+    private String sku;
     private String mrp;
     private String price;
 
@@ -228,8 +229,23 @@ public class Message implements Serializable {
         return big_content_summary_text;
     }
 
+    /**
+     * This method is created for backward compatibility
+     *
+     * @return product_id if available, else sku
+     */
     public String getProductId() {
-        return product_id;
+        return TextUtils.isEmpty(product_id) ? sku : product_id;
+    }
+
+    /**
+     * This method is deprecated.
+     *
+     * @deprecated use {@link #getProductId()} instead
+     */
+    @Deprecated
+    public String getSku() {
+        return sku;
     }
 
     public String getMrp() {
