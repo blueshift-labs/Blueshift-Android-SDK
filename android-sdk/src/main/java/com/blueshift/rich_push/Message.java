@@ -134,6 +134,7 @@ public class Message implements Serializable {
     /**
      * Following are optional product info parameters.
      */
+    private String product_id;
     private String sku;
     private String mrp;
     private String price;
@@ -228,6 +229,22 @@ public class Message implements Serializable {
         return big_content_summary_text;
     }
 
+    /**
+     * The {@link #getSku()} method is deprecated now. Use this method instead
+     * to read the product id sent along with the push payload.
+     *
+     * @return {@link #product_id} if available, else {@link #sku}
+     */
+    public String getProductId() {
+        return TextUtils.isEmpty(product_id) ? sku : product_id;
+    }
+
+    /**
+     * This method is deprecated.
+     *
+     * @deprecated use {@link #getProductId()} instead
+     */
+    @Deprecated
     public String getSku() {
         return sku;
     }
