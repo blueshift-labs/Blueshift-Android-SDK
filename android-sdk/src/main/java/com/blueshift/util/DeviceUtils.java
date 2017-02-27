@@ -62,7 +62,7 @@ public class DeviceUtils {
             }
         } catch (IOException e) {
             SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
-        } catch (GooglePlayServicesNotAvailableException e) {
+        } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
             Log.e(LOG_TAG, libNotFoundMessage);
             installNewGooglePlayServicesApp(context);
         } catch (GooglePlayServicesRepairableException e) {
