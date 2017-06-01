@@ -59,18 +59,20 @@ public class CustomNotificationFactory {
      */
     public void createAndShowAnimatedCarousel(Context context, Message message) {
         if (context != null && message != null) {
-            NotificationCompat.Builder builder = createBasicNotification(context, message, false);
+            int notificationId = RichPushNotification.getRandomNotificationId();
+
+            NotificationCompat.Builder builder = createBasicNotification(context, message, false, notificationId);
             if (builder != null) {
                 Notification notification = builder.build();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    notification.bigContentView = createAnimatedCarousal(context, message);
+                    notification.bigContentView = createAnimatedCarousal(context, message, notificationId);
                 }
 
                 builder.setDeleteIntent(getNotificationDeleteIntent(context, message));
 
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.notify(message.getCategory().getNotificationId(), notification);
+                manager.notify(notificationId, notification);
 
                 // Tracking the notification display.
                 Blueshift.getInstance(context).trackNotificationView(message);
@@ -99,18 +101,20 @@ public class CustomNotificationFactory {
      */
     public void createAndShowCarousel(Context context, Message message, boolean isUpdating, int targetIndex) {
         if (context != null && message != null) {
-            NotificationCompat.Builder builder = createBasicNotification(context, message, isUpdating);
+            int notificationId = RichPushNotification.getRandomNotificationId();
+
+            NotificationCompat.Builder builder = createBasicNotification(context, message, isUpdating, notificationId);
             if (builder != null) {
                 Notification notification = builder.build();
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    notification.bigContentView = getCarouselImage(context, message, isUpdating, targetIndex);
+                    notification.bigContentView = getCarouselImage(context, message, isUpdating, targetIndex, notificationId);
                 }
 
                 builder.setDeleteIntent(getNotificationDeleteIntent(context, message));
 
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.notify(message.getCategory().getNotificationId(), notification);
+                manager.notify(notificationId, notification);
 
                 if (!isUpdating) {
                     // Tracking the notification display for the first time
@@ -127,7 +131,7 @@ public class CustomNotificationFactory {
      * @param message message object with valid carousel elements.
      * @return RemoteView object with notification details filled in.
      */
-    private RemoteViews getCarouselImage(Context context, Message message, boolean isUpdating, int currentIndex) {
+    private RemoteViews getCarouselImage(Context context, Message message, boolean isUpdating, int currentIndex, int notificationId) {
         RemoteViews contentView = null;
 
         if (context != null) {
@@ -171,7 +175,7 @@ public class CustomNotificationFactory {
 
                     contentView.setOnClickPendingIntent(
                             R.id.big_picture,
-                            getCarouselImageClickPendingIntent(context, message, element)
+                            getCarouselImageClickPendingIntent(context, message, element, notificationId)
                     );
 
                     contentView.setOnClickPendingIntent(
@@ -283,7 +287,7 @@ public class CustomNotificationFactory {
      * @param message valid message object
      * @return {@link NotificationCompat.Builder} object with basic values filled in
      */
-    private NotificationCompat.Builder createBasicNotification(Context context, Message message, boolean isUpdating) {
+    private NotificationCompat.Builder createBasicNotification(Context context, Message message, boolean isUpdating, int notificationId) {
         NotificationCompat.Builder builder = null;
 
         if (context != null && message != null) {
@@ -310,7 +314,7 @@ public class CustomNotificationFactory {
                 // set notification click action as 'app open' by default
                 String action = RichPushConstants.ACTION_OPEN_APP(context);
                 builder.setContentIntent(
-                        RichPushNotification.getNotificationClickPendingIntent(action, context, message));
+                        RichPushNotification.getNotificationClickPendingIntent(action, context, message, notificationId));
             }
         }
 
@@ -327,7 +331,7 @@ public class CustomNotificationFactory {
      * @param message valid {@link Message} object
      * @return {@link RemoteViews} object with carousel set ready
      */
-    private RemoteViews createAnimatedCarousal(Context context, Message message) {
+    private RemoteViews createAnimatedCarousal(Context context, Message message, int notificationId) {
         RemoteViews contentView = null;
 
         if (context != null && message != null) {
@@ -351,7 +355,7 @@ public class CustomNotificationFactory {
 
                         contentView.setOnClickPendingIntent(
                                 resId,
-                                getCarouselImageClickPendingIntent(context, message, element)
+                                getCarouselImageClickPendingIntent(context, message, element, notificationId)
                         );
                     }
                 } catch (IOException e) {
@@ -416,7 +420,7 @@ public class CustomNotificationFactory {
      * @param element corresponding carousel element
      * @return {@link PendingIntent}
      */
-    private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element) {
+    private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element, int notificationId) {
         String action;
 
         if (element.isDeepLinkingEnabled()) {
@@ -427,7 +431,7 @@ public class CustomNotificationFactory {
 
         Intent bcIntent = new Intent(action);
 
-        bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, message.getCategory().getNotificationId());
+        bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
         bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
         bcIntent.putExtra(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
 

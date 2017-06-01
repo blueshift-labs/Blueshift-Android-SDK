@@ -36,6 +36,10 @@ public class RichPushNotification {
         return sRandom.nextInt();
     }
 
+    static int getRandomNotificationId() {
+        return sRandom.nextInt();
+    }
+
     public static void handleMessage(final Context context, final Message message) {
         if (context != null && message != null) {
             switch (message.getNotificationType()) {
@@ -134,6 +138,8 @@ public class RichPushNotification {
             builder.setDefaults(Notification.DEFAULT_SOUND);
             builder.setAutoCancel(true);
 
+            int notificationId = RichPushNotification.getRandomNotificationId();
+
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null) {
                 builder.setSmallIcon(configuration.getSmallIconResId());
@@ -145,22 +151,22 @@ public class RichPushNotification {
 
                 switch (message.getCategory()) {
                     case Buy:
-                        PendingIntent viewPendingIntent = getViewActionPendingIntent(context, message);
+                        PendingIntent viewPendingIntent = getViewActionPendingIntent(context, message, notificationId);
                         builder.addAction(0, "View", viewPendingIntent);
 
-                        PendingIntent buyPendingIntent = getBuyActionPendingIntent(context, message);
+                        PendingIntent buyPendingIntent = getBuyActionPendingIntent(context, message, notificationId);
                         builder.addAction(0, "Buy", buyPendingIntent);
 
                         break;
 
                     case ViewCart:
-                        PendingIntent openCartPendingIntent = getOpenCartPendingIntent(context, message);
+                        PendingIntent openCartPendingIntent = getOpenCartPendingIntent(context, message, notificationId);
                         builder.addAction(0, "Open Cart", openCartPendingIntent);
 
                         break;
 
                     case Promotion:
-                        PendingIntent openPromoPendingIntent = getOpenPromotionPendingIntent(context, message);
+                        PendingIntent openPromoPendingIntent = getOpenPromotionPendingIntent(context, message, notificationId);
                         builder.setContentIntent(openPromoPendingIntent);
 
                         break;
@@ -169,7 +175,7 @@ public class RichPushNotification {
                         /**
                          * Default action is to open app and send all details as extra inside intent
                          */
-                        PendingIntent defaultPendingIntent = getOpenAppPendingIntent(context, message);
+                        PendingIntent defaultPendingIntent = getOpenAppPendingIntent(context, message, notificationId);
                         builder.setContentIntent(defaultPendingIntent);
                 }
             }
@@ -218,11 +224,9 @@ public class RichPushNotification {
                 builder.setStyle(bigTextStyle);
             }
 
-            int notificationID = message.getCategory().getNotificationId();
-
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.notify(notificationID, builder.build());
+            notificationManager.notify(notificationId, builder.build());
 
             // Tracking the notification display.
             Blueshift.getInstance(context).trackNotificationView(message);
@@ -250,32 +254,32 @@ public class RichPushNotification {
 
     // [BEGIN] PendingIntent builder methods.
 
-    private static PendingIntent getBuyActionPendingIntent(Context context, Message message) {
+    private static PendingIntent getBuyActionPendingIntent(Context context, Message message, int notificationId) {
         String action = RichPushConstants.ACTION_BUY(context);
-        return getNotificationClickPendingIntent(action, context, message);
+        return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
-    private static PendingIntent getViewActionPendingIntent(Context context, Message message) {
+    private static PendingIntent getViewActionPendingIntent(Context context, Message message, int notificationId) {
         String action = RichPushConstants.ACTION_VIEW(context);
-        return getNotificationClickPendingIntent(action, context, message);
+        return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
-    private static PendingIntent getOpenCartPendingIntent(Context context, Message message) {
+    private static PendingIntent getOpenCartPendingIntent(Context context, Message message, int notificationId) {
         String action = RichPushConstants.ACTION_OPEN_CART(context);
-        return getNotificationClickPendingIntent(action, context, message);
+        return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
-    private static PendingIntent getOpenAppPendingIntent(Context context, Message message) {
+    private static PendingIntent getOpenAppPendingIntent(Context context, Message message, int notificationId) {
         String action = RichPushConstants.ACTION_OPEN_APP(context);
-        return getNotificationClickPendingIntent(action, context, message);
+        return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
-    private static PendingIntent getOpenPromotionPendingIntent(Context context, Message message) {
+    private static PendingIntent getOpenPromotionPendingIntent(Context context, Message message, int notificationId) {
         String action = RichPushConstants.ACTION_OPEN_OFFER_PAGE(context);
-        return getNotificationClickPendingIntent(action, context, message);
+        return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
-    static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message) {
+    static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message, int notificationId) {
         // if deep link url is available, despite the fact that we have a category based action,
         // we will use the open app action to launch app and pass the deep link url to it.
         if (TextUtils.isEmpty(action) || (message != null && message.isDeepLinkingEnabled())) {
@@ -285,7 +289,6 @@ public class RichPushNotification {
         Intent bcIntent = new Intent(action);
 
         if (message != null) {
-            int notificationId = message.getCategory().getNotificationId();
             bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
             bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
