@@ -86,6 +86,11 @@ public final class GCMRegistrar {
     public static void registerForNotification(Context context) {
         try {
             if (checkDevice(context) && checkManifest(context)) {
+                // Always ask for a brand new Token.
+                Log.d("GCMIntentService", "Trying to register for GCM");
+                register(context, mSenderId);
+
+                /*
                 String regId = getRegistrationId(context);
                 if (regId.isEmpty()) {
                     Log.d("GCMIntentService", "Trying to register for GCM");
@@ -93,6 +98,7 @@ public final class GCMRegistrar {
                 } else {
                     Log.v(TAG, "Already registered. id: " + regId);
                 }
+                */
             } else {
                 Log.e(TAG, "GCM registration failed.");
             }
