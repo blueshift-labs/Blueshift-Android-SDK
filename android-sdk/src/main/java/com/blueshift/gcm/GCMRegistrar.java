@@ -103,7 +103,7 @@ public final class GCMRegistrar {
                 Log.e(TAG, "GCM registration failed.");
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -136,7 +136,7 @@ public final class GCMRegistrar {
 
             return true;
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
 
             return false;
         }
@@ -248,7 +248,7 @@ public final class GCMRegistrar {
 
             return true;
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
 
             return false;
         }
@@ -280,7 +280,7 @@ public final class GCMRegistrar {
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -303,7 +303,7 @@ public final class GCMRegistrar {
             GCMRegistrar.resetBackoff(context);
             internalRegister(context, senderIds);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -319,7 +319,7 @@ public final class GCMRegistrar {
             intent.putExtra(GCMConstants.EXTRA_SENDER, flatSenderIds);
             context.startService(intent);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -355,7 +355,7 @@ public final class GCMRegistrar {
 
             return builder.toString();
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return "";
@@ -375,7 +375,7 @@ public final class GCMRegistrar {
             GCMRegistrar.resetBackoff(context);
             internalUnregister(context);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -396,7 +396,7 @@ public final class GCMRegistrar {
                 sRetryReceiver = null;
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -409,7 +409,7 @@ public final class GCMRegistrar {
                     PendingIntent.getBroadcast(context, 0, new Intent(), 0));
             context.startService(intent);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -446,7 +446,7 @@ public final class GCMRegistrar {
                 context.registerReceiver(sRetryReceiver, filter, permission, null);
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -486,7 +486,7 @@ public final class GCMRegistrar {
                 return registrationId;
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return "";
@@ -530,7 +530,7 @@ public final class GCMRegistrar {
                 return oldRegistrationId;
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return "";
@@ -554,7 +554,7 @@ public final class GCMRegistrar {
                 editor.apply();
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -587,7 +587,7 @@ public final class GCMRegistrar {
 
             return isRegistered;
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return false;
@@ -611,7 +611,7 @@ public final class GCMRegistrar {
 
             return lifespan;
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return DEFAULT_ON_SERVER_LIFESPAN_MS;
@@ -630,7 +630,7 @@ public final class GCMRegistrar {
                 editor.apply();
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -660,7 +660,7 @@ public final class GCMRegistrar {
             Log.d(TAG, "resetting backoff for " + context.getPackageName());
             setBackoff(context, DEFAULT_BACKOFF_MS);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -677,7 +677,7 @@ public final class GCMRegistrar {
                 return prefs.getInt(BACKOFF_MS, DEFAULT_BACKOFF_MS);
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return DEFAULT_BACKOFF_MS;
@@ -701,7 +701,7 @@ public final class GCMRegistrar {
                 editor.apply();
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -709,7 +709,7 @@ public final class GCMRegistrar {
         try {
             return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return null;

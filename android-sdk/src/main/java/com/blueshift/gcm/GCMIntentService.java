@@ -37,7 +37,7 @@ public class GCMIntentService extends GCMBaseIntentService {
             bcIntent.putExtras(intent.getExtras());
             sendBroadcast(bcIntent);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -46,7 +46,7 @@ public class GCMIntentService extends GCMBaseIntentService {
         try {
             Log.i(TAG, "Error code: " + errorId);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -80,7 +80,7 @@ public class GCMIntentService extends GCMBaseIntentService {
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -89,7 +89,7 @@ public class GCMIntentService extends GCMBaseIntentService {
         try {
             Log.i(TAG, "Device unregistered");
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 }

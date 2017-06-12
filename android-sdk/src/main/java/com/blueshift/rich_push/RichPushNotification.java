@@ -203,7 +203,8 @@ public class RichPushNotification {
                         builder.setStyle(bigPictureStyle);
                     }
                 } catch (IOException e) {
-                    SdkLog.e(LOG_TAG, "Could not load image. " + e.getMessage());
+                    String logMessage = e.getMessage() != null ? e.getMessage() : "";
+                    SdkLog.e(LOG_TAG, "Could not load image. " + logMessage);
                 }
             } else {
                 // enable big text style

@@ -103,7 +103,7 @@ public abstract class GCMBaseIntentService extends IntentService {
             Log.v(TAG, "Intent service name: " + name);
             return name;
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return "";
@@ -114,7 +114,7 @@ public abstract class GCMBaseIntentService extends IntentService {
             String flatSenderIds = GCMRegistrar.getFlatSenderIds(senderIds);
             return getName(flatSenderIds);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
 
         return "";
@@ -147,7 +147,7 @@ public abstract class GCMBaseIntentService extends IntentService {
             intent.setClassName(context, className);
             context.startService(intent);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -358,7 +358,7 @@ public abstract class GCMBaseIntentService extends IntentService {
                 onError(context, error);
             }
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 }

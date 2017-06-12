@@ -165,7 +165,7 @@ public class RequestQueue {
 
                         mRequest.setParamJson(jsonObject.toString());
                     } catch (JSONException e) {
-                        Log.e(LOG_TAG, e.getMessage());
+                        Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
                     }
 
                     UserInfo userInfo = UserInfo.getInstance(mContext);

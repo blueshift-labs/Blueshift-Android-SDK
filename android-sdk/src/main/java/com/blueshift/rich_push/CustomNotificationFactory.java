@@ -359,7 +359,8 @@ public class CustomNotificationFactory {
                         );
                     }
                 } catch (IOException e) {
-                    SdkLog.e(LOG_TAG, "Could not download image. " + e.getMessage());
+                    String logMessage = e.getMessage() != null ? e.getMessage() : "";
+                    SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
                 }
             }
         }

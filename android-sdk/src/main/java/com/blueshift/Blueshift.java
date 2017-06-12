@@ -220,7 +220,7 @@ public class Blueshift {
                         try {
                             pkgInfo = pkgManager.getPackageInfo(pkgName, 0);
                         } catch (PackageManager.NameNotFoundException e) {
-                            Log.e(LOG_TAG, e.getMessage());
+                            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
                         }
 
                         if (pkgInfo != null && pkgInfo.versionName != null) {
@@ -234,7 +234,7 @@ public class Blueshift {
                         try {
                             appInfo = pkgManager.getApplicationInfo(pkgName, 0);
                         } catch (PackageManager.NameNotFoundException e) {
-                            Log.e(LOG_TAG, e.getMessage());
+                            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
                         }
 
                         CharSequence appName = "Not Available";
