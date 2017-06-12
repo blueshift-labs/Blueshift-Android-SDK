@@ -56,7 +56,7 @@ public class GCMBroadcastReceiver extends BroadcastReceiver {
             GCMBaseIntentService.runIntentInService(context, intent, className);
             setResult(Activity.RESULT_OK, null /* data */, null /* extra */);
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 

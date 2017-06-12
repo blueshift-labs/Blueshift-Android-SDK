@@ -31,6 +31,6 @@ public class SdkLog {
     }
 
     public static void e(String tag, String message) {
-        if (isDebug) Log.e(tag, message);
+        if (isDebug) Log.e(tag, message != null ? message : "Unknown error!");
     }
 }

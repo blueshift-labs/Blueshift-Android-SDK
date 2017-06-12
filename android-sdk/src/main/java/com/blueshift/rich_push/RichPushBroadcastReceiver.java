@@ -52,7 +52,8 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                     Log.e(LOG_TAG, "Null message found in push message.");
                 }
             } catch (JsonSyntaxException e) {
-                Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
+                String logMessage = e.getMessage() != null ? e.getMessage() : "";
+                Log.e(LOG_TAG, "Invalid JSON in push message: " + logMessage);
             }
         } else {
             SdkLog.d(LOG_TAG, "Message not found. Passing the push message to host app via broadcast.");

@@ -42,7 +42,7 @@ public class DeviceUtils {
             gpsInstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(gpsInstallIntent);
         } catch (ActivityNotFoundException e) {
-            Log.e(LOG_TAG, e.getMessage());
+            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         }
     }
 
@@ -61,7 +61,8 @@ public class DeviceUtils {
                 advertisingId = info.getId();
             }
         } catch (IOException e) {
-            SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + e.getMessage());
+            String logMessage = e.getMessage() != null ? e.getMessage() : "";
+            SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
         } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
             Log.e(LOG_TAG, libNotFoundMessage);
             installNewGooglePlayServicesApp(context);
