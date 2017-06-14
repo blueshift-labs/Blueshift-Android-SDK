@@ -16,7 +16,7 @@ ext {
     siteUrl = 'https://getblueshift.com/'
     gitUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
 
-    libraryVersion = '1.0.6'
+    libraryVersion = '1.0.7'
 
     developerId = 'nipun'
     developerName = 'Nipun Bhatia'
@@ -42,7 +42,7 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField 'String', 'SDK_VERSION',  '"1.0.6"'
+        buildConfigField 'String', 'SDK_VERSION',  '"1.0.7"'
     }
     buildTypes {
         release {
