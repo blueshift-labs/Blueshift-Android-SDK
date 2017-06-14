@@ -88,7 +88,8 @@ public class CustomNotificationFactory {
      * @param message message object with valid carousel elements.
      */
     public void createAndShowCarousel(Context context, Message message) {
-        createAndShowCarousel(context, message, false, 0);
+        int notificationId = RichPushNotification.getRandomNotificationId();
+        createAndShowCarousel(context, message, false, 0, notificationId);
     }
 
     /**
@@ -99,10 +100,8 @@ public class CustomNotificationFactory {
      * @param isUpdating  flag to indicate id the notification should be created or updated
      * @param targetIndex index of the image to be shown in carousel - carousel element index
      */
-    public void createAndShowCarousel(Context context, Message message, boolean isUpdating, int targetIndex) {
+    public void createAndShowCarousel(Context context, Message message, boolean isUpdating, int targetIndex, int notificationId) {
         if (context != null && message != null) {
-            int notificationId = RichPushNotification.getRandomNotificationId();
-
             NotificationCompat.Builder builder = createBasicNotification(context, message, isUpdating, notificationId);
             if (builder != null) {
                 Notification notification = builder.build();
@@ -180,12 +179,12 @@ public class CustomNotificationFactory {
 
                     contentView.setOnClickPendingIntent(
                             R.id.next_button,
-                            getNavigationPendingIntent(context, message, message.getNextCarouselIndex(currentIndex))
+                            getNavigationPendingIntent(context, message, message.getNextCarouselIndex(currentIndex), notificationId)
                     );
 
                     contentView.setOnClickPendingIntent(
                             R.id.prev_button,
-                            getNavigationPendingIntent(context, message, message.getPrevCarouselIndex(currentIndex))
+                            getNavigationPendingIntent(context, message, message.getPrevCarouselIndex(currentIndex), notificationId)
                     );
                 }
             }
@@ -399,14 +398,16 @@ public class CustomNotificationFactory {
      * @param context     valid context
      * @param message     valid message
      * @param targetIndex the index of next image to be displayed in carousel
+     * @param notificationId id of the notification to be updated with next/prev image
      * @return {@link PendingIntent}
      */
-    private PendingIntent getNavigationPendingIntent(Context context, Message message, int targetIndex) {
+    private PendingIntent getNavigationPendingIntent(Context context, Message message, int targetIndex, int notificationId) {
         Intent intent = new Intent(context, NotificationWorker.class);
         intent.setAction(NotificationWorker.ACTION_CAROUSEL_IMG_CHANGE);
 
         intent.putExtra(RichPushConstants.EXTRA_CAROUSEL_INDEX, targetIndex);
         intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+        intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
         return PendingIntent.getService(context,
                 RichPushNotification.getRandomPIRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -419,6 +420,7 @@ public class CustomNotificationFactory {
      * @param context valid context object
      * @param message valid message object
      * @param element corresponding carousel element
+     * @param notificationId id of the notification being clicked
      * @return {@link PendingIntent}
      */
     private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element, int notificationId) {
