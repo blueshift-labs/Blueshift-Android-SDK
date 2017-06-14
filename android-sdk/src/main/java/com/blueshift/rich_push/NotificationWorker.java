@@ -40,8 +40,9 @@ public class NotificationWorker extends IntentService {
         switch (action) {
             case ACTION_CAROUSEL_IMG_CHANGE:
                 int targetIndex = intent.getIntExtra(RichPushConstants.EXTRA_CAROUSEL_INDEX, 0);
+                int notificationId = intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0);
 
-                updateCarouselNotification(this, message, targetIndex);
+                updateCarouselNotification(this, message, targetIndex, notificationId);
 
                 break;
 
@@ -55,9 +56,9 @@ public class NotificationWorker extends IntentService {
         }
     }
 
-    private void updateCarouselNotification(Context context, Message message, int newIndex) {
+    private void updateCarouselNotification(Context context, Message message, int newIndex, int notificationId) {
         CustomNotificationFactory
                 .getInstance()
-                .createAndShowCarousel(context, message, true, newIndex);
+                .createAndShowCarousel(context, message, true, newIndex, notificationId);
     }
 }
