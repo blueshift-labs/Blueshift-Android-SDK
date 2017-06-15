@@ -24,6 +24,7 @@ public class Configuration {
     private int dialogTheme;
     private int smallIconResId;
     private int largeIconResId;
+    private int notificationColor;
 
     public Configuration() {
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
@@ -106,10 +107,23 @@ public class Configuration {
     }
 
     public int getLargeIconResId() {
-        return largeIconResId == 0 ? getSmallIconResId() : largeIconResId;
+        return largeIconResId;
     }
 
     public void setLargeIconResId(int largeIconResId) {
         this.largeIconResId = largeIconResId;
+    }
+
+    public int getNotificationColor() {
+        return notificationColor;
+    }
+
+    /**
+     * This value will be used for passing into setColor() method of the Notification Builder
+     *
+     * @param notificationColor color value
+     */
+    public void setNotificationColor(int notificationColor) {
+        this.notificationColor = notificationColor;
     }
 }
