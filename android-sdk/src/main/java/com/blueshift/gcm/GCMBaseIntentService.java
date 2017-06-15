@@ -276,6 +276,8 @@ public abstract class GCMBaseIntentService extends IntentService {
                     GCMRegistrar.internalRegister(context, senderIds);
                 }
             }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
         } finally {
             // Release the power lock, so phone can get back to sleep.
             // The lock is reference-counted by default, so multiple

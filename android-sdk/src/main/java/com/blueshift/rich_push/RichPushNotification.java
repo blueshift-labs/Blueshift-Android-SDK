@@ -142,11 +142,22 @@ public class RichPushNotification {
 
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null) {
-                builder.setSmallIcon(configuration.getSmallIconResId());
+                int smallIconResId = configuration.getSmallIconResId();
+                if (smallIconResId != 0) {
+                    builder.setSmallIcon(smallIconResId);
+                }
 
-                Bitmap bigIcon = BitmapFactory.decodeResource(context.getResources(), configuration.getLargeIconResId());
-                if (bigIcon != null) {
-                    builder.setLargeIcon(bigIcon);
+                int color = configuration.getNotificationColor();
+                if (color != 0) {
+                    builder.setColor(color);
+                }
+
+                int bigIconResId = configuration.getLargeIconResId();
+                if (bigIconResId != 0) {
+                    Bitmap bigIcon = BitmapFactory.decodeResource(context.getResources(), bigIconResId);
+                    if (bigIcon != null) {
+                        builder.setLargeIcon(bigIcon);
+                    }
                 }
 
                 switch (message.getCategory()) {

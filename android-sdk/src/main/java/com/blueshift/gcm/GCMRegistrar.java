@@ -260,6 +260,7 @@ public final class GCMRegistrar {
             String packageName = context.getPackageName();
             Intent intent = new Intent(action);
             intent.setPackage(packageName);
+            @SuppressWarnings("WrongConstant")
             List<ResolveInfo> receivers = pm.queryBroadcastReceivers(intent,
                     PackageManager.GET_INTENT_FILTERS);
             if (receivers.isEmpty()) {
@@ -454,7 +455,7 @@ public final class GCMRegistrar {
      * Sets the name of the retry receiver class.
      */
     static void setRetryReceiverClassName(String className) {
-        Log.v(TAG, "Setting the name of retry receiver class to " + className);
+        Log.v(TAG, "Setting the name of retry receiver class to " + (className != null ? className : "null"));
         sRetryReceiverClassName = className;
     }
 
