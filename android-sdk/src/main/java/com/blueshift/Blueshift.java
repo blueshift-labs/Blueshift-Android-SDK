@@ -21,6 +21,7 @@ import android.util.Log;
 import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
+import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
@@ -470,6 +471,7 @@ public class Blueshift {
      * @param params            hash map with valid parameters
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
+    @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NotNull final String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
         final HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
@@ -900,6 +902,7 @@ public class Blueshift {
         trackNotificationView(notificationId, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void trackNotificationView(String notificationId, HashMap<String, Object> params) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
