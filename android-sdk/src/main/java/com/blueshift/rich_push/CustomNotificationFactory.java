@@ -8,8 +8,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -209,12 +211,51 @@ public class CustomNotificationFactory {
             String notificationTime = new SimpleDateFormat("hh:mm aa", Locale.getDefault())
                     .format(new Date(System.currentTimeMillis()));
 
-            contentView.setImageViewResource(R.id.notification_icon, configuration.getLargeIconResId());
+            // check if large icon is available. If yes, set it
+            int largeIcon = configuration.getLargeIconResId();
+            if (largeIcon != 0) {
+                contentView.setImageViewResource(R.id.notification_icon, largeIcon);
 
-            int smallIconResId = configuration.getSmallIconResId();
-            if (smallIconResId != 0) {
-                contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
-                contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+                int smallIconResId = configuration.getSmallIconResId();
+                if (smallIconResId != 0) {
+                    contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                    contentView.setViewVisibility(R.id.notification_small_icon_background, View.VISIBLE);
+
+                    contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+
+                    // set background color
+                    int bgColor = configuration.getNotificationColor();
+                    if (bgColor != 0) {
+                        contentView.setInt(R.id.notification_small_icon_background, "setColorFilter", bgColor);
+                    }
+                }
+            } else {
+                // set notification color
+                int bgColor = configuration.getNotificationColor();
+                if (bgColor == 0) {
+                    bgColor = ContextCompat.getColor(context, android.R.color.darker_gray);
+                }
+                contentView.setInt(R.id.notification_icon, "setBackgroundColor", bgColor);
+
+                // make overlay visible
+                contentView.setViewVisibility(R.id.notification_icon_overlay, View.VISIBLE);
+
+                // set small icon on the center
+                int smallIconResId = configuration.getSmallIconResId();
+                if (smallIconResId != 0) {
+                    contentView.setImageViewResource(R.id.notification_icon, smallIconResId);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        // align the icon to center
+                        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+                        int dp11 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 11.0f, metrics);
+                        contentView.setViewPadding(R.id.notification_icon, dp11, dp11, dp11, dp11);
+
+                        // set tint color
+                        int white = ContextCompat.getColor(context, android.R.color.white);
+                        contentView.setInt(R.id.notification_icon, "setColorFilter", white);
+                    }
+                }
             }
 
             contentView.setTextViewText(R.id.notification_content_text, message.getContentText());
