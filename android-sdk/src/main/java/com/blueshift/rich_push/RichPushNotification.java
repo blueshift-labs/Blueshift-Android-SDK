@@ -36,8 +36,8 @@ public class RichPushNotification {
 
     private final static Random sRandom = new Random();
 
-    static int getRandomPIRequestCode() {
-        return sRandom.nextInt();
+    public static int getRandomPIRequestCode() {
+        return sRandom.nextInt(Integer.MAX_VALUE);
     }
 
     static int getRandomNotificationId() {
@@ -52,32 +52,11 @@ public class RichPushNotification {
                     break;
 
                 case Notification:
-                    /**
-                     * The rich push rendering require network access (ex: image download)
-                     * Since network operations are not allowed in main thread, we
-                     * are rendering the push message in a different thread.
-                     */
-                    new AsyncTask<Void, Void, Boolean>() {
-                        @Override
-                        protected Boolean doInBackground(Void... params) {
-                            buildAndShowNotification(context, message);
-
-                            return null;
-                        }
-                    }.execute();
-
+                    buildAndShowNotification(context, message);
                     break;
 
                 case CustomNotification:
-                    new AsyncTask<Void, Void, Boolean>() {
-                        @Override
-                        protected Boolean doInBackground(Void... params) {
-                            buildAndShowCustomNotifications(context, message);
-
-                            return null;
-                        }
-                    }.execute();
-
+                    buildAndShowCustomNotifications(context, message);
                     break;
 
                 case NotificationScheduler:
@@ -112,7 +91,7 @@ public class RichPushNotification {
                     notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
                     notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                    /**
+                    /*
                      * Clear the stack only if the app is in background / killed.
                      */
                     if (!appIsInForeground) {
@@ -200,7 +179,7 @@ public class RichPushNotification {
                         break;
 
                     default:
-                        /**
+                        /*
                          * Default action is to open app and send all details as extra inside intent
                          */
                         PendingIntent defaultPendingIntent = getOpenAppPendingIntent(context, message, notificationId);
