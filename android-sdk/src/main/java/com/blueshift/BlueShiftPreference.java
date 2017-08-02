@@ -18,9 +18,6 @@ import org.jetbrains.annotations.NotNull;
 public class BlueShiftPreference {
 
     private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
-    private static final String PREF_FILE_TOKEN = "BsftTokenPrefFile";
-
-    private static final String PREF_KEY_TOKEN = "BsftTokenPrefKey";
 
     public static boolean isEmailAlreadyIdentified(Context context, String email) {
         boolean result = false;
@@ -48,39 +45,6 @@ public class BlueShiftPreference {
         }
     }
 
-    public static String getCachedDeviceToken(Context context) {
-        String result = "";
-
-        if (context != null) {
-            SharedPreferences preferences = getDeviceTokenPreference(context);
-            if (preferences != null) {
-                result = preferences.getString(PREF_KEY_TOKEN, "");
-            }
-        }
-
-        return result;
-    }
-
-    @SuppressLint("CommitPrefEdits")
-    public static void cacheDeviceToken(Context context, String deviceToken) {
-        if (context != null) {
-            SharedPreferences preferences = getDeviceTokenPreference(context);
-            if (preferences != null) {
-                if (TextUtils.isEmpty(deviceToken)) {
-                    preferences
-                            .edit()
-                            .remove(PREF_KEY_TOKEN)
-                            .commit();
-                } else {
-                    preferences
-                            .edit()
-                            .putString(PREF_KEY_TOKEN, deviceToken)
-                            .commit();
-                }
-            }
-        }
-    }
-
     private static SharedPreferences getEmailPreference(Context context) {
         SharedPreferences preferences = null;
 
@@ -88,19 +52,6 @@ public class BlueShiftPreference {
             preferences = context
                     .getSharedPreferences(
                             getPreferenceFileName(context, PREF_FILE_EMAIL),
-                            Context.MODE_PRIVATE);
-        }
-
-        return preferences;
-    }
-
-    private static SharedPreferences getDeviceTokenPreference(Context context) {
-        SharedPreferences preferences = null;
-
-        if (context != null) {
-            preferences = context
-                    .getSharedPreferences(
-                            getPreferenceFileName(context, PREF_FILE_TOKEN),
                             Context.MODE_PRIVATE);
         }
 

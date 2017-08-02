@@ -16,7 +16,7 @@ ext {
     siteUrl = 'https://getblueshift.com/'
     gitUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
 
-    libraryVersion = '1.1.2'
+    libraryVersion = '1.1.1'
 
     developerId = 'nipun'
     developerName = 'Nipun Bhatia'
@@ -42,7 +42,7 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField 'String', 'SDK_VERSION',  '"1.1.2"'
+        buildConfigField 'String', 'SDK_VERSION',  "\"$libraryVersion\""
     }
     buildTypes {
         release {
@@ -65,6 +65,8 @@ dependencies {
     compile 'com.google.code.gson:gson:2.6.1'
     // for annotations used (ex @NotNull)
     compile 'org.jetbrains:annotations:13.0'
+    // for FCM
+    compile 'com.google.firebase:firebase-messaging:10.2.0'
 
     testCompile 'junit:junit:4.12'
 }
