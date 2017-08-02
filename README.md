@@ -1,5 +1,5 @@
 ## Blueshift Android SDK
 
-[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg) ](https://bintray.com/nipun/maven/android-sdk/_latestVersion)
+> Latest Stable Version: 1.0.9
 
-The documentation and features are avialable here: https://docs.getblueshift.com/docs/mobile-sdk
+Visit the [official documentation](https://docs.getblueshift.com/docs/mobile-sdk) to get started with integration.
