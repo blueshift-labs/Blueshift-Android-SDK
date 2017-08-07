@@ -13,6 +13,7 @@ public enum NotificationType {
     AlertDialog,
     Notification,
     CustomNotification,
+    NotificationScheduler,
     Unknown;
 
     private static final String LOG_TAG = "NotificationType";
@@ -28,6 +29,9 @@ public enum NotificationType {
 
                 case "custom_notification":
                     return CustomNotification;
+
+                case "notification_scheduler":
+                    return NotificationScheduler;
 
                 default:
                     SdkLog.w(LOG_TAG, "Unknown 'notification_type' found: " + notificationType);

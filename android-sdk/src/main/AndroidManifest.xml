@@ -35,6 +35,12 @@
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
 
+        <receiver android:name=".rich_push.ScheduledPushReceiver">
+            <intent-filter>
+                <action android:name="${applicationId}.ACTION_SCHEDULED_PUSH" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Rahul Raveendran V P
@@ -144,6 +145,17 @@ public class Message implements Serializable {
      */
     private HashMap data;
 
+    /*
+     * Scheduled messages' payloads
+     */
+    private List<Message> notifications;
+
+    /*
+     * Schedules message's timing
+     */
+    private long timestamp_to_display;
+    private long timestamp_to_expire_display;
+
     /**
      * The following are the get / set methods for the above declared variables.
      */
@@ -271,6 +283,18 @@ public class Message implements Serializable {
 
     public HashMap getData() {
         return data;
+    }
+
+    public List<Message> getNotifications() {
+        return notifications;
+    }
+
+    public long getTimestampToDisplay() {
+        return timestamp_to_display;
+    }
+
+    public long getTimestampToExpireDisplay() {
+        return timestamp_to_expire_display;
     }
 
     public CarouselElement[] getCarouselElements() {

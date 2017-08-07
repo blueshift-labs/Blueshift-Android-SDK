@@ -1,6 +1,7 @@
 package com.blueshift.rich_push;
 
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -19,7 +20,9 @@ import com.blueshift.util.SdkLog;
 
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -69,6 +72,18 @@ public class RichPushNotification {
                         @Override
                         protected Boolean doInBackground(Void... params) {
                             buildAndShowCustomNotifications(context, message);
+
+                            return null;
+                        }
+                    }.execute();
+
+                    break;
+
+                case NotificationScheduler:
+                    new AsyncTask<Void, Void, Boolean>() {
+                        @Override
+                        protected Boolean doInBackground(Void... params) {
+                            scheduleNotifications(context, message);
 
                             return null;
                         }
@@ -260,6 +275,50 @@ public class RichPushNotification {
 
                 case GifNotification:
                     break;
+            }
+        }
+    }
+
+    private static void scheduleNotifications(Context context, Message message) {
+        if (context != null && message != null) {
+            List<Message> messages = message.getNotifications();
+            if (messages != null) {
+                String pkgName = context.getPackageName();
+                if (pkgName != null) {
+                    String action = pkgName + ".ACTION_SCHEDULED_PUSH";
+
+                    AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    if (alarmManager != null) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
+
+                        for (Message item : messages) {
+                            long now = System.currentTimeMillis();
+                            long timeToDisplay = item.getTimestampToDisplay() * 1000;
+                            long timeToExpire = item.getTimestampToExpireDisplay() * 1000;
+
+                            if (timeToExpire > now || timeToExpire == 0) {
+                                Intent bcIntent = new Intent(action);
+                                bcIntent.putExtra(Message.EXTRA_MESSAGE, item);
+
+                                if (timeToDisplay > now) {
+                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                                            context,
+                                            RichPushNotification.getRandomPIRequestCode(),
+                                            bcIntent,
+                                            PendingIntent.FLAG_ONE_SHOT);
+
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP, timeToDisplay, pendingIntent);
+                                    Log.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
+                                } else {
+                                    Log.i(LOG_TAG, "Display time (" + sdf.format(timeToDisplay) + ") elapsed! Showing the notification now.");
+                                    context.sendBroadcast(bcIntent);
+                                }
+                            } else {
+                                Log.i(LOG_TAG, "Expired notification found! Exp time: " + sdf.format(timeToExpire));
+                            }
+                        }
+                    }
+                }
             }
         }
     }
