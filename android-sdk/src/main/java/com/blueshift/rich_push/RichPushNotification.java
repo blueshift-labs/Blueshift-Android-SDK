@@ -297,6 +297,16 @@ public class RichPushNotification {
                             long timeToDisplay = item.getTimestampToDisplay() * 1000;
                             long timeToExpire = item.getTimestampToExpireDisplay() * 1000;
 
+                            /*
+                             * updating the campaign params from the parent push message.
+                             * as of now, we will have only one message under one scheduled push.
+                             */
+
+                            item.setBsftMessageUuid(message.getId());
+                            item.setBsftUserUuid(message.getBsftUserUuid());
+                            item.setBsftExperimentUuid(message.getBsftExperimentUuid());
+                            item.setBsftTransactionUuid(message.getBsftTransactionUuid());
+
                             if (timeToExpire > now || timeToExpire == 0) {
                                 String messageJSON = new Gson().toJson(item);
 
