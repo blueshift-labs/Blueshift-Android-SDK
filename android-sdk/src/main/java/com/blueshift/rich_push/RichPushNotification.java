@@ -17,6 +17,7 @@ import android.util.Log;
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.SdkLog;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.net.URL;
@@ -297,8 +298,10 @@ public class RichPushNotification {
                             long timeToExpire = item.getTimestampToExpireDisplay() * 1000;
 
                             if (timeToExpire > now || timeToExpire == 0) {
+                                String messageJSON = new Gson().toJson(item);
+
                                 Intent bcIntent = new Intent(action);
-                                bcIntent.putExtra(Message.EXTRA_MESSAGE, item);
+                                bcIntent.putExtra(Message.EXTRA_MESSAGE, messageJSON);
 
                                 if (timeToDisplay > now) {
                                     PendingIntent pendingIntent = PendingIntent.getBroadcast(
