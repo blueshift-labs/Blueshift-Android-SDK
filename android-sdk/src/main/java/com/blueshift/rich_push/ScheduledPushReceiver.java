@@ -34,6 +34,8 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
             } else {
                 Log.e(LOG_TAG, "No message payload received. ");
             }
+        } else {
+            Log.e(LOG_TAG, "No intent received. ");
         }
     }
 }
