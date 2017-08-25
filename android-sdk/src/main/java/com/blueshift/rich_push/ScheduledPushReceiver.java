@@ -8,6 +8,9 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 /**
  * @author Rahul Raveendran V P
  *         Created on 07/08/17 @ 12:27 PM
@@ -20,7 +23,8 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i(LOG_TAG, "Scheduled local push received.");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
+        Log.i(LOG_TAG, "Scheduled local push received at " + sdf.format(System.currentTimeMillis()));
 
         if (intent != null) {
             String messageJSON = intent.getStringExtra(Message.EXTRA_MESSAGE);

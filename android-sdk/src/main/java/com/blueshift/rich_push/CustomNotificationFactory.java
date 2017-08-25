@@ -336,6 +336,7 @@ public class CustomNotificationFactory {
                 builder = new NotificationCompat.Builder(context);
                 builder.setDefaults(Notification.DEFAULT_ALL);
                 builder.setAutoCancel(true);
+                builder.setPriority(NotificationCompat.PRIORITY_MAX);
 
                 if (isUpdating) {
                     builder.setDefaults(0);

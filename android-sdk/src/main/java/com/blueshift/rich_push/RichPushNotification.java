@@ -153,6 +153,7 @@ public class RichPushNotification {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
             builder.setDefaults(Notification.DEFAULT_SOUND);
             builder.setAutoCancel(true);
+            builder.setPriority(NotificationCompat.PRIORITY_MAX);
 
             int notificationId = RichPushNotification.getRandomNotificationId();
 
