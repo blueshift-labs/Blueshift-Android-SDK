@@ -3,6 +3,7 @@ package com.blueshift.rich_push;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.util.SdkLog;
@@ -40,7 +41,16 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                         message.setBsftTransactionUuid(txnUUID);
 
                         // seed list send flag
-                        Boolean seedListSend = intent.getBooleanExtra(Message.EXTRA_BSFT_SEED_LIST_SEND, false);
+                        Boolean seedListSend = false;
+                        String seedListSendValue = intent.getStringExtra(Message.EXTRA_BSFT_SEED_LIST_SEND);
+                        if (!TextUtils.isEmpty(seedListSendValue)) {
+                            try {
+                                seedListSend = Boolean.valueOf(seedListSendValue);
+                            } catch (Exception e) {
+                                seedListSend = false;
+                                SdkLog.e(LOG_TAG, String.valueOf(e.getMessage()));
+                            }
+                        }
                         message.setBsftSeedListSend(seedListSend);
 
                         if (message.isSilentPush()) {

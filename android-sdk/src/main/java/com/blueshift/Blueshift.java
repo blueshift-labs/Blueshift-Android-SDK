@@ -882,7 +882,7 @@ public class Blueshift {
     public void trackNotificationView(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Skipping event (" + BlueshiftConstants.EVENT_PUSH_DELIVERED + ") - Notification: Seed List Send");
+                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_DELIVERED);
             } else {
                 trackNotificationView(message.getId(), message.getCampaignAttr());
             }
@@ -909,7 +909,7 @@ public class Blueshift {
     public void trackNotificationClick(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Skipping event (" + BlueshiftConstants.EVENT_PUSH_CLICK + ") - Notification: Seed List Send");
+                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
             } else {
                 trackNotificationClick(message.getId(), message.getCampaignAttr());
             }
@@ -936,7 +936,7 @@ public class Blueshift {
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Skipping event (" + BlueshiftConstants.EVENT_APP_OPEN + ") - Notification: Seed List Send");
+                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_APP_OPEN);
             } else {
                 trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
             }
