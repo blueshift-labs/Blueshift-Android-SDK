@@ -39,6 +39,10 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                         message.setBsftUserUuid(userUUID);
                         message.setBsftTransactionUuid(txnUUID);
 
+                        // seed list send flag
+                        Boolean seedListSend = intent.getBooleanExtra(Message.EXTRA_BSFT_SEED_LIST_SEND, false);
+                        message.setBsftSeedListSend(seedListSend);
+
                         if (message.isSilentPush()) {
                             /*
                              * This is a silent push to track uninstalls.

@@ -401,6 +401,7 @@ public class Blueshift {
                             if (hasPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
                                     || hasPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                                 // We have either of the above 2 permissions granted.
+                                //noinspection MissingPermission
                                 Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                                 if (location != null) {
                                     requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
@@ -880,7 +881,11 @@ public class Blueshift {
 
     public void trackNotificationView(Message message) {
         if (message != null) {
-            trackNotificationView(message.getId(), message.getCampaignAttr());
+            if (message.getBsftSeedListSend()) {
+                Log.d(LOG_TAG, "Skipping event (" + BlueshiftConstants.EVENT_PUSH_DELIVERED + ") - Notification: Seed List Send");
+            } else {
+                trackNotificationView(message.getId(), message.getCampaignAttr());
+            }
         } else {
             SdkLog.e(LOG_TAG, "No message available");
         }
@@ -903,7 +908,11 @@ public class Blueshift {
 
     public void trackNotificationClick(Message message) {
         if (message != null) {
-            trackNotificationClick(message.getId(), message.getCampaignAttr());
+            if (message.getBsftSeedListSend()) {
+                Log.d(LOG_TAG, "Skipping event (" + BlueshiftConstants.EVENT_PUSH_CLICK + ") - Notification: Seed List Send");
+            } else {
+                trackNotificationClick(message.getId(), message.getCampaignAttr());
+            }
         } else {
             SdkLog.e(LOG_TAG, "No message available");
         }
@@ -926,7 +935,11 @@ public class Blueshift {
 
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
         if (message != null) {
-            trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+            if (message.getBsftSeedListSend()) {
+                Log.d(LOG_TAG, "Skipping event (" + BlueshiftConstants.EVENT_APP_OPEN + ") - Notification: Seed List Send");
+            } else {
+                trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
+            }
         } else {
             SdkLog.e(LOG_TAG, "No message available");
         }

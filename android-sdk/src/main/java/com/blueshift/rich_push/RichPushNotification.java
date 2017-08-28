@@ -307,6 +307,7 @@ public class RichPushNotification {
                             item.setBsftUserUuid(message.getBsftUserUuid());
                             item.setBsftExperimentUuid(message.getBsftExperimentUuid());
                             item.setBsftTransactionUuid(message.getBsftTransactionUuid());
+                            item.setBsftSeedListSend(message.getBsftSeedListSend());
 
                             if (timeToExpire > now || timeToExpire == 0) {
                                 String messageJSON = new Gson().toJson(item);
