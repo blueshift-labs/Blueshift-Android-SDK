@@ -17,6 +17,7 @@ public class Message implements Serializable {
     public static final String EXTRA_BSFT_USER_UUID = "bsft_user_uuid";
     public static final String EXTRA_BSFT_TRANSACTIONAL_UUID = "bsft_transaction_uuid";
     public static final String EXTRA_BSFT_MESSAGE_UUID = "bsft_message_uuid";
+    public static final String EXTRA_BSFT_SEED_LIST_SEND = "bsft_seed_list_send";
 
     /**
      * Following are the campaign uuids. They come outside the 'message' object in push message.
@@ -26,6 +27,7 @@ public class Message implements Serializable {
     private String bsft_experiment_uuid;
     private String bsft_user_uuid;
     private String bsft_transaction_uuid; // present only with transactional campaign
+    private Boolean bsft_seed_list_send; // test messages sent to seed list of users will have this
 
     /**
      * The following variables are used for parsing the 'message' payload.
@@ -211,6 +213,14 @@ public class Message implements Serializable {
 
     public void setBsftTransactionUuid(String transactionUuid) {
         this.bsft_transaction_uuid = transactionUuid;
+    }
+
+    public Boolean getBsftSeedListSend() {
+        return bsft_seed_list_send;
+    }
+
+    public void setBsftSeedListSend(Boolean bsftSeedListSend) {
+        this.bsft_seed_list_send = bsftSeedListSend;
     }
 
     public NotificationType getNotificationType() {
