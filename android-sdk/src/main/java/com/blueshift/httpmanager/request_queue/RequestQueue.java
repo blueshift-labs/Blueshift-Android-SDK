@@ -21,6 +21,7 @@ import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -191,11 +192,8 @@ public class RequestQueue {
                     case POST:
                         response = httpManager.post(mRequest.getParamJson());
 
-                        Log.d(LOG_TAG, "Blueshift Event\n" +
-                                "Method: POST\n" +
-                                "Params: " + mRequest.getParamJson() + "\n" +
-                                "Status: " + getStatusFromResponse(response)
-                        );
+                        Log.d(LOG_TAG, "Blueshift Event: " + getEventName(mRequest.getParamJson()) +
+                                ", API Status: " + getStatusFromResponse(response));
 
                         break;
 
@@ -227,6 +225,27 @@ public class RequestQueue {
             }
 
             return false;
+        }
+
+        private String getEventName(String json) {
+            String event = "Unknown";
+
+            try {
+                JSONObject jsonObject = new JSONObject(json);
+                if (jsonObject.has("event")) {
+                    event = jsonObject.getString("event");
+                }
+            } catch (JSONException e) {
+                try {
+                    JSONArray jsonArray = new JSONArray(json);
+                    if (jsonArray.length() > 0) {
+                        event = "bulk_event";
+                    }
+                } catch (JSONException ignored) {
+                }
+            }
+
+            return event;
         }
 
         private String getStatusFromResponse(Response response) {
