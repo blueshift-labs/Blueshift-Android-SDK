@@ -34,7 +34,7 @@ import java.util.Locale;
  * <p>
  * Created by Rahul on 16/9/16.
  */
-public class CustomNotificationFactory {
+class CustomNotificationFactory {
 
     private static final String LOG_TAG = "NotificationFactory";
 
@@ -59,7 +59,7 @@ public class CustomNotificationFactory {
      * @param context valid context object.
      * @param message message object with valid carousel elements.
      */
-    public void createAndShowAnimatedCarousel(Context context, Message message) {
+    void createAndShowAnimatedCarousel(Context context, Message message) {
         if (context != null && message != null) {
             int notificationId = RichPushNotification.getRandomNotificationId();
 
@@ -89,7 +89,7 @@ public class CustomNotificationFactory {
      * @param context valid context object.
      * @param message message object with valid carousel elements.
      */
-    public void createAndShowCarousel(Context context, Message message) {
+    void createAndShowCarousel(Context context, Message message) {
         int notificationId = RichPushNotification.getRandomNotificationId();
         createAndShowCarousel(context, message, false, 0, notificationId);
     }
@@ -102,7 +102,7 @@ public class CustomNotificationFactory {
      * @param isUpdating  flag to indicate id the notification should be created or updated
      * @param targetIndex index of the image to be shown in carousel - carousel element index
      */
-    public void createAndShowCarousel(Context context, Message message, boolean isUpdating, int targetIndex, int notificationId) {
+    void createAndShowCarousel(Context context, Message message, boolean isUpdating, int targetIndex, int notificationId) {
         if (context != null && message != null) {
             NotificationCompat.Builder builder = createBasicNotification(context, message, isUpdating, notificationId);
             if (builder != null) {
