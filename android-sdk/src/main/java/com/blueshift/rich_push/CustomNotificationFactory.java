@@ -376,33 +376,50 @@ public class CustomNotificationFactory {
         RemoteViews contentView = null;
 
         if (context != null && message != null) {
-            contentView = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
+            String packageName = context.getPackageName();
+            if (!TextUtils.isEmpty(packageName)) {
+                // create/inflate carousel notification's layout.
+                contentView = new RemoteViews(packageName, R.layout.carousel_layout);
 
-            contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
+                // show the container to host ViewFlipper.
+                contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
 
-            setBasicNotificationData(context, message, contentView, true);
+                // load basic notification contents.
+                setBasicNotificationData(context, message, contentView, true);
 
-            int index = 0;
+                // create/inflate ViewFlipper layout.
+                RemoteViews viewFlipper = new RemoteViews(packageName, R.layout.carousel_view_flipper);
 
-            CarouselElement[] elements = message.getCarouselElements();
-            for (CarouselElement element : elements) {
-                try {
-                    int resId = getImageViewResId(index++);
-                    if (resId != -1) {
-                        URL imageURL = new URL(element.getImageUrl());
-                        Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+                // loop through the carousel elements and add the image into ViewFlipper.
+                CarouselElement[] elements = message.getCarouselElements();
+                if (elements != null) {
+                    for (CarouselElement element : elements) {
+                        try {
+                            // Load image using remote URL.
+                            URL imageURL = new URL(element.getImageUrl());
+                            Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
-                        contentView.setImageViewBitmap(resId, bitmap);
+                            // Set the image into the view.
+                            RemoteViews imageView = new RemoteViews(packageName, R.layout.carousel_image_view);
+                            imageView.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
-                        contentView.setOnClickPendingIntent(
-                                resId,
-                                getCarouselImageClickPendingIntent(context, message, element, notificationId)
-                        );
+                            // Add the image into ViewFlipper.
+                            viewFlipper.addView(R.id.view_flipper, imageView);
+
+                            // Attach an onClick pending intent.
+                            viewFlipper.setOnClickPendingIntent(
+                                    R.id.carousel_image_view,
+                                    getCarouselImageClickPendingIntent(context, message, element, notificationId)
+                            );
+                        } catch (IOException e) {
+                            String logMessage = e.getMessage() != null ? e.getMessage() : "";
+                            SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
+                        }
                     }
-                } catch (IOException e) {
-                    String logMessage = e.getMessage() != null ? e.getMessage() : "";
-                    SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
                 }
+
+                // add view flipper to the content view
+                contentView.addView(R.id.animated_carousel_view, viewFlipper);
             }
         }
 
@@ -410,36 +427,12 @@ public class CustomNotificationFactory {
     }
 
     /**
-     * Helper method to tell the view id for carousel image (based on index)
-     *
-     * @param index valid index (0-3).
-     * @return valid resource id of {@link android.widget.ImageView} in carousel layout.
-     */
-    private int getImageViewResId(int index) {
-        switch (index) {
-            case 0:
-                return R.id.carousel_picture1;
-
-            case 1:
-                return R.id.carousel_picture2;
-
-            case 2:
-                return R.id.carousel_picture3;
-
-            case 3:
-                return R.id.carousel_picture4;
-        }
-
-        return -1;
-    }
-
-    /**
      * Helper method to return pending intent required by the onClick
      * action on Next/Previous button on Carousel Notification.
      *
-     * @param context     valid context
-     * @param message     valid message
-     * @param targetIndex the index of next image to be displayed in carousel
+     * @param context        valid context
+     * @param message        valid message
+     * @param targetIndex    the index of next image to be displayed in carousel
      * @param notificationId id of the notification to be updated with next/prev image
      * @return {@link PendingIntent}
      */
@@ -459,9 +452,9 @@ public class CustomNotificationFactory {
      * Creates pending intent to attach with click actions on carousel images. Each image shown
      * in the carousel will have a separate click action. Default action will be app open.
      *
-     * @param context valid context object
-     * @param message valid message object
-     * @param element corresponding carousel element
+     * @param context        valid context object
+     * @param message        valid message object
+     * @param element        corresponding carousel element
      * @param notificationId id of the notification being clicked
      * @return {@link PendingIntent}
      */

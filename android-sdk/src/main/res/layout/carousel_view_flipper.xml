@@ -1,42 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/viewFlipper"
+    android:id="@+id/view_flipper"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:autoStart="true"
     android:inAnimation="@android:anim/fade_in"
-    android:outAnimation="@android:anim/fade_out">
-
-    <ImageView
-        android:id="@+id/carousel_picture1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="bottom"
-        android:scaleType="centerCrop"
-        android:visibility="gone" />
-
-    <ImageView
-        android:id="@+id/carousel_picture2"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="bottom"
-        android:scaleType="centerCrop"
-        android:visibility="gone" />
-
-    <ImageView
-        android:id="@+id/carousel_picture3"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="bottom"
-        android:scaleType="centerCrop"
-        android:visibility="gone" />
-
-    <ImageView
-        android:id="@+id/carousel_picture4"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="bottom"
-        android:scaleType="centerCrop"
-        android:visibility="gone" />
-
-</ViewFlipper>
+    android:outAnimation="@android:anim/fade_out" />
