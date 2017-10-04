@@ -20,6 +20,15 @@
         <!--End - Events batching-->
 
         <!--App install tracking-->
+        <!--
+        We are disabling the automatic tracking done by SDK to let the developer
+        to track it from their side. It is not recommended to have multiple install
+        referrer receivers as per docs. So, if the developer need their own implementation,
+        then they can extend this receiver and register it in their own manifest. That will
+        enable both the tracking (Blueshift and Non-Blueshift).
+        -->
+
+        <!--
         <receiver
             android:name="com.blueshift.receiver.AppInstallReceiver"
             android:exported="true">
@@ -29,6 +38,7 @@
                 <data android:scheme="package" />
             </intent-filter>
         </receiver>
+        -->
         <!--End - App install tracking-->
 
         <service
