@@ -216,7 +216,7 @@ public class Message implements Serializable {
     }
 
     public Boolean getBsftSeedListSend() {
-        return bsft_seed_list_send;
+        return bsft_seed_list_send != null && bsft_seed_list_send;
     }
 
     public void setBsftSeedListSend(Boolean bsftSeedListSend) {
