@@ -8,4 +8,5 @@
     <string name="carousel_next_button">Carousel next button</string>
     <string name="big_picture">Big picture</string>
     <string name="gps_not_found_msg">Could not fetch Advertising ID!\nPlease make sure that Google Play services 4.0+ or Google Mobile Ads lib is included in your project.\nVisit \"https://developer.android.com/google/play-services/setup.html\" for more help.</string>
+    <string name="carousel_image">Carousel image</string>
 </resources>
