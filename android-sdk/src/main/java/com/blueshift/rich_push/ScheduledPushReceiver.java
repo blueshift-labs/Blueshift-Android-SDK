@@ -3,6 +3,7 @@ package com.blueshift.rich_push;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -29,11 +30,17 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
         if (intent != null) {
             String messageJSON = intent.getStringExtra(Message.EXTRA_MESSAGE);
             if (!TextUtils.isEmpty(messageJSON)) {
+                Message message = null;
                 try {
-                    Message message = new Gson().fromJson(messageJSON, Message.class);
-                    RichPushNotification.handleMessage(context.getApplicationContext(), message);
+                    message = new Gson().fromJson(messageJSON, Message.class);
                 } catch (Exception e) {
                     Log.e(LOG_TAG, "Invalid message payload received. " + messageJSON);
+                }
+
+                if (message != null) {
+                    processPayload(context, message);
+                } else {
+                    Log.e(LOG_TAG, "NULL message payload received. " + messageJSON);
                 }
             } else {
                 Log.e(LOG_TAG, "No message payload received. ");
@@ -41,5 +48,20 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
         } else {
             Log.e(LOG_TAG, "No intent received. ");
         }
+    }
+
+    private void processPayload(final Context context, final Message message) {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    RichPushNotification
+                            .handleMessage(context.getApplicationContext(), message);
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
+                }
+                return null;
+            }
+        }.execute();
     }
 }
