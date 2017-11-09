@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
@@ -52,7 +53,10 @@ public class RichPushActionReceiver extends BroadcastReceiver {
 
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0));
+            if (notificationManager != null) {
+                int notificationID = intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0);
+                notificationManager.cancel(notificationID);
+            }
 
             Blueshift.getInstance(context).trackNotificationClick(message);
 
@@ -80,6 +84,11 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                 context.startActivity(pageLauncherIntent);
 
                 trackAppOpen(context, message);
+            } else {
+                Log.i(LOG_TAG, "Could not find product activity class inside configuration. Opening MAIN activity.");
+
+                // default action is to open app
+                openApp(context, bundle);
             }
         }
     }
@@ -102,6 +111,11 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                 context.startActivity(pageLauncherIntent);
 
                 trackAppOpen(context, message);
+            } else {
+                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+
+                // default action is to open app
+                openApp(context, bundle);
             }
         }
     }
@@ -119,6 +133,11 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                 context.startActivity(pageLauncherIntent);
 
                 trackAppOpen(context, message);
+            } else {
+                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+
+                // default action is to open app
+                openApp(context, bundle);
             }
         }
     }
@@ -136,6 +155,11 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                 context.startActivity(pageLauncherIntent);
 
                 trackAppOpen(context, message);
+            } else {
+                Log.i(LOG_TAG, "Could not find offer's page activity class inside configuration. Opening MAIN activity.");
+
+                // default action is to open app
+                openApp(context, bundle);
             }
         }
     }
@@ -146,10 +170,12 @@ public class RichPushActionReceiver extends BroadcastReceiver {
             PackageManager packageManager = context.getPackageManager();
             Intent launcherIntent = packageManager.getLaunchIntentForPackage(context.getPackageName());
             // add the whole bundle. typically contains message object.
-            launcherIntent.putExtras(bundle);
+            if (launcherIntent != null) {
+                launcherIntent.putExtras(bundle);
 
-            launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(launcherIntent);
+                launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(launcherIntent);
+            }
 
             trackAppOpen(context, message);
         }
