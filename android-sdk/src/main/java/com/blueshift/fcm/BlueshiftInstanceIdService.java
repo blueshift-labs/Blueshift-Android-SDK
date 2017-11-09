@@ -3,6 +3,7 @@ package com.blueshift.fcm;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.util.DeviceUtils;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
@@ -16,10 +17,28 @@ public class BlueshiftInstanceIdService extends FirebaseInstanceIdService {
 
     @Override
     public void onTokenRefresh() {
+        /*
+         * We don't need to set the new token inside the mDeviceParams when
+         * token gets reset. We are updating the parameters with latest token
+         * before sending it to server inside RequestQueue#155
+         *
+         */
+
         String newToken = FirebaseInstanceId.getInstance().getToken();
-
-        Blueshift.updateDeviceToken(newToken);
-
         Log.d("Blueshift", "FCM token: " + newToken);
+
+        callIdentify();
+    }
+
+    /**
+     * We are calling an identify here to make sure that the change in
+     * device token is notified to the blueshift servers.
+     *
+     */
+    private void callIdentify() {
+        String adId = DeviceUtils.getAdvertisingID(this);
+        Blueshift
+                .getInstance(this)
+                .identifyUserByDeviceId(adId, null, false);
     }
 }
