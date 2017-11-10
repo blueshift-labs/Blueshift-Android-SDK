@@ -329,7 +329,12 @@ public class Blueshift {
                 }
                 params.put(BlueshiftConstants.KEY_FACEBOOK_ID, userInfo.getFacebookId());
                 params.put(BlueshiftConstants.KEY_EDUCATION, userInfo.getEducation());
-                params.put(BlueshiftConstants.KEY_UNSUBSCRIBED, userInfo.isUnsubscribed());
+
+                if (userInfo.isUnsubscribed()) {
+                    // we don't need to send this key if it set to false
+                    params.put(BlueshiftConstants.KEY_UNSUBSCRIBED, true);
+                }
+
                 if (userInfo.getDetails() != null) {
                     params.putAll(userInfo.getDetails());
                 }
