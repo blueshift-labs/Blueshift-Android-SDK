@@ -177,6 +177,9 @@ public class RichPushNotification {
                     }
                 }
 
+                // pending intent that opens the app using MAIN activity.
+                PendingIntent openAppPendingIntent = getOpenAppPendingIntent(context, message, notificationId);
+
                 switch (message.getCategory()) {
                     case Buy:
                         PendingIntent viewPendingIntent = getViewActionPendingIntent(context, message, notificationId);
@@ -185,11 +188,15 @@ public class RichPushNotification {
                         PendingIntent buyPendingIntent = getBuyActionPendingIntent(context, message, notificationId);
                         builder.addAction(0, "Buy", buyPendingIntent);
 
+                        builder.setContentIntent(openAppPendingIntent);
+
                         break;
 
                     case ViewCart:
                         PendingIntent openCartPendingIntent = getOpenCartPendingIntent(context, message, notificationId);
                         builder.addAction(0, "Open Cart", openCartPendingIntent);
+
+                        builder.setContentIntent(openAppPendingIntent);
 
                         break;
 
@@ -203,8 +210,7 @@ public class RichPushNotification {
                         /**
                          * Default action is to open app and send all details as extra inside intent
                          */
-                        PendingIntent defaultPendingIntent = getOpenAppPendingIntent(context, message, notificationId);
-                        builder.setContentIntent(defaultPendingIntent);
+                        builder.setContentIntent(openAppPendingIntent);
                 }
             }
 
