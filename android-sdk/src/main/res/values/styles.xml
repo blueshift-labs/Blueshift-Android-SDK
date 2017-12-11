@@ -12,14 +12,17 @@
 
     <style name="BlueshiftDialogTheme" parent="Theme.AppCompat.Dialog.Alert" />
 
-    <style name="Notification" parent="@style/TextAppearance.StatusBar.EventContent" />
+    <style name="Notification">
+        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+    </style>
 
-    <style name="NotificationTitle" parent="@style/TextAppearance.StatusBar.EventContent.Title" />
+    <style name="NotificationTitle">
+        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 
-    <style name="NotificationTime" parent="@style/TextAppearance.StatusBar.EventContent.Time" />
-
-    <style name="NotificationLine2" parent="@style/TextAppearance.StatusBar.EventContent.Line2" />
-
-    <style name="NotificationInfo" parent="@style/TextAppearance.StatusBar.EventContent.Info" />
+    <style name="NotificationTime" parent="" />
+    <style name="NotificationLine2" parent="" />
+    <style name="NotificationInfo" parent="" />
 
 </resources>
