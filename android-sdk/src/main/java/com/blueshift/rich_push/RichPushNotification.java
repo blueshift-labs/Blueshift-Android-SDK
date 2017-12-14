@@ -3,6 +3,7 @@ package com.blueshift.rich_push;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -10,12 +11,14 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.support.v7.app.NotificationCompat;
+import android.os.Build;
+import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
@@ -40,8 +43,8 @@ public class RichPushNotification {
         return sRandom.nextInt(Integer.MAX_VALUE);
     }
 
-    static int getRandomNotificationId() {
-        return sRandom.nextInt();
+    public static int getRandomNotificationId() {
+        return sRandom.nextInt(Integer.MAX_VALUE);
     }
 
     public static void handleMessage(final Context context, final Message message) {
@@ -60,15 +63,7 @@ public class RichPushNotification {
                     break;
 
                 case NotificationScheduler:
-                    new AsyncTask<Void, Void, Boolean>() {
-                        @Override
-                        protected Boolean doInBackground(Void... params) {
-                            scheduleNotifications(context, message);
-
-                            return null;
-                        }
-                    }.execute();
-
+                    scheduleNotifications(context, message);
                     break;
 
                 default:
@@ -109,7 +104,10 @@ public class RichPushNotification {
 
         if (context != null) {
             ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+            List<ActivityManager.RunningAppProcessInfo> appProcesses = null;
+            if (activityManager != null) {
+                appProcesses = activityManager.getRunningAppProcesses();
+            }
             if (appProcesses != null) {
                 String packageName = context.getPackageName();
                 for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
@@ -129,12 +127,13 @@ public class RichPushNotification {
 
     private static void buildAndShowNotification(Context context, Message message) {
         if (context != null && message != null) {
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+            int notificationId = RichPushNotification.getRandomNotificationId();
+
+            String channelId = NotificationUtils.getNotificationChannelId(notificationId);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
             builder.setDefaults(Notification.DEFAULT_SOUND);
             builder.setAutoCancel(true);
             builder.setPriority(NotificationCompat.PRIORITY_MAX);
-
-            int notificationId = RichPushNotification.getRandomNotificationId();
 
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null) {
@@ -240,7 +239,18 @@ public class RichPushNotification {
 
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.notify(notificationId, builder.build());
+
+            if (notificationManager != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    NotificationChannel channel =
+                            NotificationUtils.createNotificationChannel(context, notificationId);
+                    if (channel != null) {
+                        notificationManager.createNotificationChannel(channel);
+                    }
+                }
+
+                notificationManager.notify(notificationId, builder.build());
+            }
 
             // Tracking the notification display.
             Blueshift.getInstance(context).trackNotificationView(message);

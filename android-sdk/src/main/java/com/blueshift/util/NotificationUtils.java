@@ -1,8 +1,13 @@
 package com.blueshift.util;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
@@ -163,5 +168,50 @@ public class NotificationUtils {
                 }
             }
         }
+    }
+
+    /**
+     * Generates channel id unique for this package
+     *
+     * @param notificationId notification id for generating unique channel id
+     * @return Valid channel id for notification.
+     */
+    public static String getNotificationChannelId(int notificationId) {
+        return "bsft_channel_" + notificationId;
+    }
+
+    /**
+     * Creates a channel object with default details. This is required for Oreo to show Notification.
+     *
+     * @param context        valid context object
+     * @param notificationId valid notification id to generate channel id
+     * @return valid NotificationChannel object
+     */
+    public static NotificationChannel createNotificationChannel(Context context, int notificationId) {
+        NotificationChannel channel = null;
+
+        PackageManager packageManager = context.getApplicationContext().getPackageManager();
+        if (packageManager != null) {
+            ApplicationInfo info;
+            try {
+                info = packageManager.getApplicationInfo(context.getPackageName(), 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                info = null;
+            }
+
+            // setting the channel name as app name for now.
+            CharSequence name = (info != null) ? packageManager.getApplicationLabel(info) : "Unknown";
+
+            // create channel
+            String channelId = getNotificationChannelId(notificationId);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                channel = new NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_DEFAULT);
+
+                // todo: add channel setting here if needed.
+                // keeping everything as default for now.
+            }
+        }
+
+        return channel;
     }
 }
