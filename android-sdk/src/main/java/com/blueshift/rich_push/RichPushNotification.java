@@ -194,7 +194,11 @@ public class RichPushNotification {
 
             builder.setContentTitle(message.getContentTitle());
             builder.setContentText(message.getContentText());
-            builder.setSubText(message.getContentSubText());
+
+            // display content sub text
+            if (!TextUtils.isEmpty(message.getContentSubText())) {
+                builder.setSubText(message.getContentSubText());
+            }
 
             if (!TextUtils.isEmpty(message.getImageUrl())) {
                 try {
@@ -220,13 +224,17 @@ public class RichPushNotification {
                 }
             } else {
                 // enable big text style
+                boolean enableBigStyle = false;
+
                 NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
 
                 if (message.getBigContentTitle() != null) {
+                    enableBigStyle = true;
                     bigTextStyle.setBigContentTitle(message.getBigContentTitle());
                 }
 
                 if (message.getBigContentSummaryText() != null) {
+                    enableBigStyle = true;
                     bigTextStyle.setSummaryText(message.getBigContentSummaryText());
                 }
 
@@ -234,7 +242,9 @@ public class RichPushNotification {
                     bigTextStyle.bigText(message.getContentText());
                 }
 
-                builder.setStyle(bigTextStyle);
+                if (enableBigStyle) {
+                    builder.setStyle(bigTextStyle);
+                }
             }
 
             NotificationManager notificationManager =
