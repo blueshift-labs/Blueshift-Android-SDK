@@ -1,5 +1,6 @@
 package com.blueshift.fcm;
 
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,7 +17,9 @@ import android.util.Log;
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.RichPushConstants;
 import com.blueshift.rich_push.RichPushNotification;
+import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -66,15 +70,17 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             PackageManager packageManager = getPackageManager();
 
             Intent launcherIntent = packageManager.getLaunchIntentForPackage(getPackageName());
-            launcherIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            if (launcherIntent != null) {
+                launcherIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-            /*
-             * Add the data payload to the intent's extra
-             */
-            if (data != null) {
-                Set<String> keySet = data.keySet();
-                for (String key : keySet) {
-                    launcherIntent.putExtra(key, data.get(key));
+                /*
+                 * Add the data payload to the intent's extra
+                 */
+                if (data != null) {
+                    Set<String> keySet = data.keySet();
+                    for (String key : keySet) {
+                        launcherIntent.putExtra(key, data.get(key));
+                    }
                 }
             }
 
@@ -111,7 +117,10 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
              */
             Configuration configuration = Blueshift.getInstance(this).getConfiguration();
             Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+
+            String channelId = NotificationUtils.getNotificationChannelId(RichPushConstants.DEFAULT_CHANNEL_NAME);
+
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
                     .setSmallIcon(configuration.getSmallIconResId())
                     .setContentTitle(titleText)
                     .setContentText(notification.getBody())
@@ -122,8 +131,18 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             NotificationManager notificationManager =
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-            notificationManager.notify(
-                    RichPushNotification.getRandomPIRequestCode(), notificationBuilder.build());
+            if (notificationManager != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    NotificationChannel channel =
+                            NotificationUtils.createNotificationChannel(null);
+                    if (channel != null) {
+                        notificationManager.createNotificationChannel(channel);
+                    }
+                }
+
+                notificationManager.notify(
+                        RichPushNotification.getRandomPIRequestCode(), notificationBuilder.build());
+            }
 
             // TODO: 4/1/17 Decide on how to track this one.
         }
