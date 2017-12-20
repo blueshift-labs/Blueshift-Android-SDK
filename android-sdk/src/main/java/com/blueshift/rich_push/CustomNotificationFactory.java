@@ -78,7 +78,7 @@ class CustomNotificationFactory {
                 if (manager != null) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         NotificationChannel channel =
-                                NotificationUtils.createNotificationChannel(context, notificationId);
+                                NotificationUtils.createNotificationChannel(message);
                         if (channel != null) {
                             manager.createNotificationChannel(channel);
                         }
@@ -129,7 +129,7 @@ class CustomNotificationFactory {
                 if (manager != null) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         NotificationChannel channel =
-                                NotificationUtils.createNotificationChannel(context, notificationId);
+                                NotificationUtils.createNotificationChannel(message);
                         if (channel != null) {
                             manager.createNotificationChannel(channel);
                         }
@@ -354,7 +354,7 @@ class CustomNotificationFactory {
         if (context != null && message != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null) {
-                String channelId = NotificationUtils.getNotificationChannelId(notificationId);
+                String channelId = NotificationUtils.getNotificationChannelId(message.getNotificationChannelName());
                 builder = new NotificationCompat.Builder(context, channelId);
                 builder.setDefaults(Notification.DEFAULT_ALL);
                 builder.setAutoCancel(true);

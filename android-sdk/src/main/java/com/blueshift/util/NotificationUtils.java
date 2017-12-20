@@ -3,16 +3,18 @@ package com.blueshift.util;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.RichPushConstants;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,6 +29,8 @@ import java.net.URL;
  * Created by Rahul on 20/9/16 @ 3:55 PM.
  */
 public class NotificationUtils {
+
+    private static final String LOG_TAG = "NotificationUtils";
 
     /**
      * Extracts the file name from the image file url
@@ -173,44 +177,56 @@ public class NotificationUtils {
     /**
      * Generates channel id unique for this package
      *
-     * @param notificationId notification id for generating unique channel id
+     * @param channelName channel name for generating unique channel id
      * @return Valid channel id for notification.
      */
-    public static String getNotificationChannelId(int notificationId) {
-        return "bsft_channel_" + notificationId;
+    public static String getNotificationChannelId(@NotNull String channelName) {
+        return "bsft_channel_" + channelName;
     }
 
     /**
      * Creates a channel object with default details. This is required for Oreo to show Notification.
      *
-     * @param context        valid context object
-     * @param notificationId valid notification id to generate channel id
+     * @param message valid Message object
      * @return valid NotificationChannel object
      */
-    public static NotificationChannel createNotificationChannel(Context context, int notificationId) {
+    public static NotificationChannel createNotificationChannel(Message message) {
         NotificationChannel channel = null;
 
-        PackageManager packageManager = context.getApplicationContext().getPackageManager();
-        if (packageManager != null) {
-            ApplicationInfo info;
-            try {
-                info = packageManager.getApplicationInfo(context.getPackageName(), 0);
-            } catch (PackageManager.NameNotFoundException e) {
-                info = null;
-            }
+        // read channel name from payload
+        String channelName = RichPushConstants.DEFAULT_CHANNEL_NAME;
+        String channelDescription = null;
 
-            // setting the channel name as app name for now.
-            CharSequence name = (info != null) ? packageManager.getApplicationLabel(info) : "Unknown";
+        if (message != null) {
+            // read channel name from payload if available.
+            channelName = message.getNotificationChannelName();
 
-            // create channel
-            String channelId = getNotificationChannelId(notificationId);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                channel = new NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_DEFAULT);
-
-                // todo: add channel setting here if needed.
-                // keeping everything as default for now.
-            }
+            // read channel description. set    to exact same value present in payload.
+            channelDescription = message.getNotificationChannelDescription();
         }
+
+        // create channel id
+        String channelId = getNotificationChannelId(channelName);
+        Log.d(LOG_TAG, "Notification Channel Id: " + channelId);
+
+        // create channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(LOG_TAG, "Notification Channel Name: " + channelName);
+
+            channel = new NotificationChannel(
+                    channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+
+            if (!TextUtils.isEmpty(channelDescription)) {
+                Log.d(LOG_TAG, "Notification Channel Description: " + channelDescription);
+
+                channel.setDescription(channelDescription);
+            }
+
+            // todo: add more channel setting here if needed.
+            // keeping everything as default for now.
+        }
+
+        Log.d(LOG_TAG, "Notification Channel Creation - " + (channel != null ? "Done!" : "Failed!"));
 
         return channel;
     }

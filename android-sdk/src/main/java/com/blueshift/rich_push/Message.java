@@ -158,6 +158,12 @@ public class Message implements Serializable {
     private long timestamp_to_display;
     private long timestamp_to_expire_display;
 
+    /*
+     * Notification channel params needed for Oreo notification
+     */
+    private String notification_channel_name;
+    private String notification_channel_description;
+
     /**
      * The following are the get / set methods for the above declared variables.
      */
@@ -360,5 +366,15 @@ public class Message implements Serializable {
 
     public boolean isDeepLinkingEnabled() {
         return !TextUtils.isEmpty(deep_link_url);
+    }
+
+    public String getNotificationChannelName() {
+        return
+                TextUtils.isEmpty(notification_channel_name) ?
+                        RichPushConstants.DEFAULT_CHANNEL_NAME : notification_channel_name;
+    }
+
+    public String getNotificationChannelDescription() {
+        return notification_channel_description;
     }
 }

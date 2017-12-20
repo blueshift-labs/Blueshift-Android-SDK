@@ -17,6 +17,7 @@ import android.util.Log;
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.RichPushConstants;
 import com.blueshift.rich_push.RichPushNotification;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
@@ -117,8 +118,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             Configuration configuration = Blueshift.getInstance(this).getConfiguration();
             Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-            int notificationId = RichPushNotification.getRandomNotificationId();
-            String channelId = NotificationUtils.getNotificationChannelId(notificationId);
+            String channelId = NotificationUtils.getNotificationChannelId(RichPushConstants.DEFAULT_CHANNEL_NAME);
 
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
                     .setSmallIcon(configuration.getSmallIconResId())
@@ -134,7 +134,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             if (notificationManager != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     NotificationChannel channel =
-                            NotificationUtils.createNotificationChannel(this, notificationId);
+                            NotificationUtils.createNotificationChannel(null);
                     if (channel != null) {
                         notificationManager.createNotificationChannel(channel);
                     }
