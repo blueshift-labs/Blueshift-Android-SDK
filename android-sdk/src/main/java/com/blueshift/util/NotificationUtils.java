@@ -10,6 +10,8 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import com.blueshift.Blueshift;
+import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
@@ -185,25 +187,71 @@ public class NotificationUtils {
     }
 
     /**
+     * Read default channel name from config if provided. If not return "General" as
+     * channel name.
+     *
+     * @param context valid Context object
+     * @param message message object to read the channel name from
+     * @return valid notification channel name
+     */
+    public static String getNotificationChannelName(Context context, Message message) {
+        String channelName = RichPushConstants.DEFAULT_CHANNEL_NAME;
+
+        if (message != null && !TextUtils.isEmpty(message.getNotificationChannelName())) {
+            channelName = message.getNotificationChannelName();
+        } else {
+            if (context != null) {
+                Blueshift blueshift = Blueshift.getInstance(context);
+                Configuration config = blueshift.getConfiguration();
+                if (config != null) {
+                    String channelNameStr = config.getDefaultNotificationChannelName();
+                    if (!TextUtils.isEmpty(channelNameStr)) {
+                        channelName = channelNameStr;
+                    }
+                }
+            }
+        }
+
+        return channelName;
+    }
+
+    /**
+     * Reads a channel description from the config object
+     *
+     * @param context valid context object
+     * @param message message object to read the channel name from
+     * @return valid channel description if provided, else null
+     */
+    public static String getNotificationChannelDescription(Context context, Message message) {
+        String channelDescription = null;
+
+        if (message != null && !TextUtils.isEmpty(message.getNotificationChannelDescription())) {
+            channelDescription = message.getNotificationChannelDescription();
+        } else {
+            if (context != null) {
+                Blueshift blueshift = Blueshift.getInstance(context);
+                Configuration config = blueshift.getConfiguration();
+                if (config != null) {
+                    channelDescription = config.getDefaultNotificationChannelName();
+                }
+            }
+        }
+
+        return channelDescription;
+    }
+
+    /**
      * Creates a channel object with default details. This is required for Oreo to show Notification.
      *
      * @param message valid Message object
      * @return valid NotificationChannel object
      */
-    public static NotificationChannel createNotificationChannel(Message message) {
+    public static NotificationChannel createNotificationChannel(Context context, Message message) {
         NotificationChannel channel = null;
 
-        // read channel name from payload
-        String channelName = RichPushConstants.DEFAULT_CHANNEL_NAME;
-        String channelDescription = null;
-
-        if (message != null) {
-            // read channel name from payload if available.
-            channelName = message.getNotificationChannelName();
-
-            // read channel description. set    to exact same value present in payload.
-            channelDescription = message.getNotificationChannelDescription();
-        }
+        // read channel name & description from config/message
+        String channelName = getNotificationChannelName(context, message);
+        String channelDescription = getNotificationChannelDescription(context, message);
 
         // create channel id
         String channelId = getNotificationChannelId(channelName);

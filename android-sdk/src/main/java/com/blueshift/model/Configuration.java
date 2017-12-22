@@ -25,6 +25,8 @@ public class Configuration {
     private int smallIconResId;
     private int largeIconResId;
     private int notificationColor;
+    private String defaultNotificationChannelName;
+    private String defaultNotificationChannelDescription;
 
     public Configuration() {
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
@@ -125,5 +127,21 @@ public class Configuration {
      */
     public void setNotificationColor(int notificationColor) {
         this.notificationColor = notificationColor;
+    }
+
+    public String getDefaultNotificationChannelName() {
+        return defaultNotificationChannelName;
+    }
+
+    public void setDefaultNotificationChannelName(String channelName) {
+        this.defaultNotificationChannelName = channelName;
+    }
+
+    public String getDefaultNotificationChannelDescription() {
+        return defaultNotificationChannelDescription;
+    }
+
+    public void setDefaultNotificationChannelDescription(String channelDescription) {
+        this.defaultNotificationChannelDescription = channelDescription;
     }
 }

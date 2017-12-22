@@ -129,8 +129,9 @@ public class RichPushNotification {
         if (context != null && message != null) {
             int notificationId = RichPushNotification.getRandomNotificationId();
 
-            String channelId = NotificationUtils.getNotificationChannelId(
-                    message.getNotificationChannelName());
+            String channelName = NotificationUtils.getNotificationChannelName(context, message);
+            String channelId = NotificationUtils.getNotificationChannelId(channelName);
+
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
             builder.setDefaults(Notification.DEFAULT_SOUND);
             builder.setAutoCancel(true);
@@ -254,7 +255,7 @@ public class RichPushNotification {
             if (notificationManager != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     NotificationChannel channel =
-                            NotificationUtils.createNotificationChannel(message);
+                            NotificationUtils.createNotificationChannel(context, message);
                     if (channel != null) {
                         notificationManager.createNotificationChannel(channel);
                     }

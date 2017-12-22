@@ -369,9 +369,7 @@ public class Message implements Serializable {
     }
 
     public String getNotificationChannelName() {
-        return
-                TextUtils.isEmpty(notification_channel_name) ?
-                        RichPushConstants.DEFAULT_CHANNEL_NAME : notification_channel_name;
+        return notification_channel_name;
     }
 
     public String getNotificationChannelDescription() {
