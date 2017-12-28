@@ -379,7 +379,8 @@ public class RichPushNotification {
             action = RichPushConstants.ACTION_OPEN_APP(context);
         }
 
-        Intent bcIntent = new Intent(action);
+        Intent bcIntent = new Intent(context, NotificationClickActivity.class);
+        bcIntent.setAction(action);
 
         if (message != null) {
             bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
@@ -391,8 +392,14 @@ public class RichPushNotification {
             }
         }
 
-        return PendingIntent.getBroadcast(context,
-                RichPushNotification.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
+//        return PendingIntent.getBroadcast(context,
+//                RichPushNotification.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
+
+        return PendingIntent.getActivity(
+                context,
+                RichPushNotification.getRandomPIRequestCode(),
+                bcIntent,
+                PendingIntent.FLAG_ONE_SHOT);
     }
 
     // [END] PendingIntent builder methods.

@@ -45,6 +45,18 @@
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
 
+        <service
+            android:name=".rich_push.NotificationClickService"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="com.blueshift.NOTIFICATION_CLICK_EVENT"/>
+            </intent-filter>
+
+        </service>
+
+        <activity android:name=".rich_push.NotificationClickActivity"/>
+
         <receiver android:name=".rich_push.ScheduledPushReceiver">
             <intent-filter>
                 <action android:name="${applicationId}.ACTION_SCHEDULED_PUSH" />
