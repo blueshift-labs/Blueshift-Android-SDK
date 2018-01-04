@@ -18,6 +18,7 @@ import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
+import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
@@ -34,8 +35,8 @@ import java.util.Random;
  *         Created on 18/2/15 @ 12:22 PM
  *         https://github.com/rahulrvp
  */
-public class RichPushNotification {
-    private final static String LOG_TAG = RichPushNotification.class.getSimpleName();
+public class NotificationFactory {
+    private final static String LOG_TAG = NotificationFactory.class.getSimpleName();
 
     private final static Random sRandom = new Random();
 
@@ -127,7 +128,7 @@ public class RichPushNotification {
 
     private static void buildAndShowNotification(Context context, Message message) {
         if (context != null && message != null) {
-            int notificationId = RichPushNotification.getRandomNotificationId();
+            int notificationId = NotificationFactory.getRandomNotificationId();
 
             String channelName = NotificationUtils.getNotificationChannelName(context, message);
             String channelId = NotificationUtils.getNotificationChannelId(channelName);
@@ -325,7 +326,7 @@ public class RichPushNotification {
                                 if (timeToDisplay > now) {
                                     PendingIntent pendingIntent = PendingIntent.getBroadcast(
                                             context,
-                                            RichPushNotification.getRandomPIRequestCode(),
+                                            NotificationFactory.getRandomPIRequestCode(),
                                             bcIntent,
                                             PendingIntent.FLAG_ONE_SHOT);
 
@@ -372,14 +373,14 @@ public class RichPushNotification {
         return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
-    static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message, int notificationId) {
+    public static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message, int notificationId) {
         // if deep link url is available, despite the fact that we have a category based action,
         // we will use the open app action to launch app and pass the deep link url to it.
         if (TextUtils.isEmpty(action) || (message != null && message.isDeepLinkingEnabled())) {
             action = RichPushConstants.ACTION_OPEN_APP(context);
         }
 
-        Intent bcIntent = new Intent(context, NotificationClickActivity.class);
+        Intent bcIntent = new Intent(context, BlueshiftNotificationEventsActivity.class);
         bcIntent.setAction(action);
 
         if (message != null) {
@@ -393,11 +394,11 @@ public class RichPushNotification {
         }
 
 //        return PendingIntent.getBroadcast(context,
-//                RichPushNotification.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
+//                NotificationFactory.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
 
         return PendingIntent.getActivity(
                 context,
-                RichPushNotification.getRandomPIRequestCode(),
+                NotificationFactory.getRandomPIRequestCode(),
                 bcIntent,
                 PendingIntent.FLAG_ONE_SHOT);
     }

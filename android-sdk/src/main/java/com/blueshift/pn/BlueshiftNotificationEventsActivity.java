@@ -1,4 +1,4 @@
-package com.blueshift.rich_push;
+package com.blueshift.pn;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -19,7 +19,7 @@ import java.util.List;
  *         https://github.com/rahulrvp
  */
 
-public class NotificationClickActivity extends AppCompatActivity {
+public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "NotificationClick";
 
@@ -33,6 +33,9 @@ public class NotificationClickActivity extends AppCompatActivity {
 
             processAction(action, extraBundle);
         }
+
+        // close activity once action is taken.
+        finish();
     }
 
     private void processAction(String action, Bundle extraBundle) {
@@ -102,7 +105,7 @@ public class NotificationClickActivity extends AppCompatActivity {
         ServiceInfo info = null;
 
         if (resolveInfos != null) {
-            String serviceName = NotificationClickService.class.getName();
+            String serviceName = BlueshiftNotificationEventsService.class.getName();
 
             for (ResolveInfo resInfo : resolveInfos) {
                 Log.d(LOG_TAG, "Service Name: " + resInfo.serviceInfo.name);

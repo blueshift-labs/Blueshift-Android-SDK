@@ -55,7 +55,7 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    RichPushNotification
+                    NotificationFactory
                             .handleMessage(context.getApplicationContext(), message);
                 } catch (Exception e) {
                     Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
