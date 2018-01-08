@@ -15,6 +15,14 @@
             android:taskAffinity=":BsftNotificationDialog"
             android:theme="@style/TransparentActivity" />
 
+        <activity
+            android:name=".pn.BlueshiftNotificationEventsActivity"
+            android:configChanges="orientation|screenSize"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=":BsftNotificationEventActivity"
+            android:theme="@style/TransparentActivity" />
+
         <!--Events batching-->
         <receiver android:name="com.blueshift.batch.AlarmReceiver" />
         <!--End - Events batching-->
@@ -44,6 +52,16 @@
         <service
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
+
+        <service
+            android:name=".pn.BlueshiftNotificationEventsService"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="com.blueshift.NOTIFICATION_CLICK_EVENT"/>
+            </intent-filter>
+
+        </service>
 
         <receiver android:name=".rich_push.ScheduledPushReceiver">
             <intent-filter>

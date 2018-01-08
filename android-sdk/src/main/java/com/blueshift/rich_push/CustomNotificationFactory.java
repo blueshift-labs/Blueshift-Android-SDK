@@ -62,7 +62,7 @@ class CustomNotificationFactory {
      */
     void createAndShowAnimatedCarousel(Context context, Message message) {
         if (context != null && message != null) {
-            int notificationId = RichPushNotification.getRandomNotificationId();
+            int notificationId = NotificationFactory.getRandomNotificationId();
 
             NotificationCompat.Builder builder = createBasicNotification(context, message, false, notificationId);
             if (builder != null) {
@@ -101,7 +101,7 @@ class CustomNotificationFactory {
      * @param message message object with valid carousel elements.
      */
     void createAndShowCarousel(Context context, Message message) {
-        int notificationId = RichPushNotification.getRandomNotificationId();
+        int notificationId = NotificationFactory.getRandomNotificationId();
         createAndShowCarousel(context, message, false, 0, notificationId);
     }
 
@@ -375,7 +375,7 @@ class CustomNotificationFactory {
                 // set notification click action as 'app open' by default
                 String action = RichPushConstants.ACTION_OPEN_APP(context);
                 builder.setContentIntent(
-                        RichPushNotification.getNotificationClickPendingIntent(action, context, message, notificationId));
+                        NotificationFactory.getNotificationClickPendingIntent(action, context, message, notificationId));
             }
         }
 
@@ -465,7 +465,7 @@ class CustomNotificationFactory {
         intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
         return PendingIntent.getService(context,
-                RichPushNotification.getRandomPIRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                NotificationFactory.getRandomPIRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**
@@ -498,7 +498,7 @@ class CustomNotificationFactory {
         }
 
         return PendingIntent.getBroadcast(context,
-                RichPushNotification.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
+                NotificationFactory.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
     }
 
     /**
@@ -515,6 +515,6 @@ class CustomNotificationFactory {
         delIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
         return PendingIntent.getService(context,
-                RichPushNotification.getRandomPIRequestCode(), delIntent, PendingIntent.FLAG_ONE_SHOT);
+                NotificationFactory.getRandomPIRequestCode(), delIntent, PendingIntent.FLAG_ONE_SHOT);
     }
 }

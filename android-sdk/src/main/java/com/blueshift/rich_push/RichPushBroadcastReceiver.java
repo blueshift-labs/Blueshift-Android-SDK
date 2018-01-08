@@ -61,7 +61,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                              */
                             SdkLog.i(LOG_TAG, "A silent push received.");
                         } else {
-                            RichPushNotification.handleMessage(context, message);
+                            NotificationFactory.handleMessage(context, message);
                         }
                     } else {
                         Log.e(LOG_TAG, "Null message found in push message.");

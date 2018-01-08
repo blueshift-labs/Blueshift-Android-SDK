@@ -16,9 +16,8 @@ import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
+import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.rich_push.Message;
-import com.blueshift.rich_push.RichPushConstants;
-import com.blueshift.rich_push.RichPushNotification;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -88,7 +87,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
              * Create pending intent for notification click action
              */
             PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                    RichPushNotification.getRandomPIRequestCode(),
+                    NotificationFactory.getRandomPIRequestCode(),
                     launcherIntent,
                     PendingIntent.FLAG_ONE_SHOT);
 
@@ -142,7 +141,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                 }
 
                 notificationManager.notify(
-                        RichPushNotification.getRandomPIRequestCode(), notificationBuilder.build());
+                        NotificationFactory.getRandomPIRequestCode(), notificationBuilder.build());
             }
 
             // TODO: 4/1/17 Decide on how to track this one.
@@ -172,7 +171,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                              */
                             SdkLog.i(LOG_TAG, "A silent push received.");
                         } else {
-                            RichPushNotification.handleMessage(this, message);
+                            NotificationFactory.handleMessage(this, message);
                         }
                     } else {
                         Log.e(LOG_TAG, "Null message found in push message.");
