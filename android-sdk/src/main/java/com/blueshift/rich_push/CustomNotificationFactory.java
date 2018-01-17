@@ -20,6 +20,7 @@ import android.widget.RemoteViews;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 
@@ -229,9 +230,6 @@ class CustomNotificationFactory {
         if (context != null && message != null && contentView != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
 
-            String notificationTime = new SimpleDateFormat("hh:mm aa", Locale.getDefault())
-                    .format(new Date(System.currentTimeMillis()));
-
             // check if large icon is available. If yes, set it
             int largeIcon = configuration.getLargeIconResId();
             if (largeIcon != 0) {
@@ -239,42 +237,63 @@ class CustomNotificationFactory {
 
                 int smallIconResId = configuration.getSmallIconResId();
                 if (smallIconResId != 0) {
-                    contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
-                    contentView.setViewVisibility(R.id.notification_small_icon_background, View.VISIBLE);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        // show small icon
+                        contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                        contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
 
-                    contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+                        // app name
+                        CharSequence appName = CommonUtils.getAppName(context);
+                        contentView.setTextViewText(R.id.notification_app_name_text, appName);
 
-                    // set background color
-                    int bgColor = configuration.getNotificationColor();
-                    if (bgColor != 0) {
-                        contentView.setInt(R.id.notification_small_icon_background, "setColorFilter", bgColor);
+                        // set icon color
+                        int bgColor = configuration.getNotificationColor();
+                        if (bgColor != 0) {
+                            contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
+                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                        }
+                    } else {
+                        contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                        contentView.setViewVisibility(R.id.notification_small_icon_background, View.VISIBLE);
+
+                        contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+
+                        // set background color
+                        int bgColor = configuration.getNotificationColor();
+                        if (bgColor != 0) {
+                            contentView.setInt(R.id.notification_small_icon_background, "setColorFilter", bgColor);
+                        }
                     }
                 }
             } else {
-                // set notification color
-                int bgColor = configuration.getNotificationColor();
-                if (bgColor == 0) {
-                    bgColor = ContextCompat.getColor(context, android.R.color.darker_gray);
-                }
-                contentView.setInt(R.id.notification_icon, "setBackgroundColor", bgColor);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    contentView.setViewVisibility(R.id.notification_icon, View.GONE);
+                } else {
+                    // set notification color
+                    int bgColor = configuration.getNotificationColor();
+                    if (bgColor == 0) {
+                        bgColor = ContextCompat.getColor(context, android.R.color.darker_gray);
+                    }
+                    contentView.setInt(R.id.notification_icon, "setBackgroundColor", bgColor);
 
-                // make overlay visible
-                contentView.setViewVisibility(R.id.notification_icon_overlay, View.VISIBLE);
+                    // make overlay visible
+                    contentView.setViewVisibility(R.id.notification_icon_overlay, View.VISIBLE);
 
-                // set small icon on the center
-                int smallIconResId = configuration.getSmallIconResId();
-                if (smallIconResId != 0) {
-                    contentView.setImageViewResource(R.id.notification_icon, smallIconResId);
+                    // set small icon on the center
+                    int smallIconResId = configuration.getSmallIconResId();
+                    if (smallIconResId != 0) {
+                        contentView.setImageViewResource(R.id.notification_icon, smallIconResId);
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                        // align the icon to center
-                        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-                        int dp11 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 11.0f, metrics);
-                        contentView.setViewPadding(R.id.notification_icon, dp11, dp11, dp11, dp11);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            // align the icon to center
+                            DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+                            int dp11 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 11.0f, metrics);
+                            contentView.setViewPadding(R.id.notification_icon, dp11, dp11, dp11, dp11);
 
-                        // set tint color
-                        int white = ContextCompat.getColor(context, android.R.color.white);
-                        contentView.setInt(R.id.notification_icon, "setColorFilter", white);
+                            // set tint color
+                            int white = ContextCompat.getColor(context, android.R.color.white);
+                            contentView.setInt(R.id.notification_icon, "setColorFilter", white);
+                        }
                     }
                 }
             }
@@ -290,7 +309,7 @@ class CustomNotificationFactory {
                 String bigContentSummary = message.getBigContentSummaryText();
                 if (!TextUtils.isEmpty(bigContentSummary)) {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
-                    contentView.setTextViewText(R.id.notification_sub_text, bigContentSummary);
+                    contentView.setTextViewText(R.id.notification_sub_text, " • " + bigContentSummary);
                 } else {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
 
@@ -303,7 +322,7 @@ class CustomNotificationFactory {
                 String contentSubText = message.getContentSubText();
                 if (!TextUtils.isEmpty(contentSubText)) {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
-                    contentView.setTextViewText(R.id.notification_sub_text, contentSubText);
+                    contentView.setTextViewText(R.id.notification_sub_text, " • " + contentSubText);
                 } else {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
 
@@ -334,7 +353,14 @@ class CustomNotificationFactory {
             }
             */
 
-            contentView.setTextViewText(R.id.notification_time, notificationTime);
+            // workaround to hide the time on N+ devices
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                String notificationTime = new SimpleDateFormat(
+                        "hh:mm aa", Locale.getDefault())
+                        .format(new Date(System.currentTimeMillis()));
+
+                contentView.setTextViewText(R.id.notification_time, " • " + notificationTime);
+            }
         }
     }
 
