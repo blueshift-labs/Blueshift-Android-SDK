@@ -308,8 +308,13 @@ class CustomNotificationFactory {
 
                 String bigContentSummary = message.getBigContentSummaryText();
                 if (!TextUtils.isEmpty(bigContentSummary)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        String dot = context.getString(R.string.dot);
+                        bigContentSummary = " " + dot + " " + bigContentSummary;
+                    }
+
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
-                    contentView.setTextViewText(R.id.notification_sub_text, " • " + bigContentSummary);
+                    contentView.setTextViewText(R.id.notification_sub_text, bigContentSummary);
                 } else {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
 
@@ -321,8 +326,13 @@ class CustomNotificationFactory {
 
                 String contentSubText = message.getContentSubText();
                 if (!TextUtils.isEmpty(contentSubText)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        String dot = context.getString(R.string.dot);
+                        contentSubText = " " + dot + " " + contentSubText;
+                    }
+
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
-                    contentView.setTextViewText(R.id.notification_sub_text, " • " + contentSubText);
+                    contentView.setTextViewText(R.id.notification_sub_text, contentSubText);
                 } else {
                     contentView.setViewVisibility(R.id.notification_sub_text, View.GONE);
 
@@ -359,7 +369,8 @@ class CustomNotificationFactory {
                         "hh:mm aa", Locale.getDefault())
                         .format(new Date(System.currentTimeMillis()));
 
-                contentView.setTextViewText(R.id.notification_time, " • " + notificationTime);
+                // contentView.setTextViewText(R.id.notification_time, " • " + notificationTime);
+                contentView.setTextViewText(R.id.notification_time, notificationTime);
             }
         }
     }
