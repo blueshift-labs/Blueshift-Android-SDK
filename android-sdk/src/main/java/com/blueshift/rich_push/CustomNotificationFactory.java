@@ -267,7 +267,26 @@ class CustomNotificationFactory {
                 }
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // hide notification big icon
                     contentView.setViewVisibility(R.id.notification_icon, View.GONE);
+
+                    int smallIconResId = configuration.getSmallIconResId();
+                    if (smallIconResId != 0) {
+                        // show small icon
+                        contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                        contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+
+                        // app name
+                        CharSequence appName = CommonUtils.getAppName(context);
+                        contentView.setTextViewText(R.id.notification_app_name_text, appName);
+
+                        // set icon color
+                        int bgColor = configuration.getNotificationColor();
+                        if (bgColor != 0) {
+                            contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
+                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                        }
+                    }
                 } else {
                     // set notification color
                     int bgColor = configuration.getNotificationColor();
