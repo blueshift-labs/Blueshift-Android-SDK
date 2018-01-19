@@ -211,11 +211,11 @@ public class NotificationFactory {
                         NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
                         bigPictureStyle.bigPicture(bitmap);
 
-                        if (message.getBigContentTitle() != null) {
+                        if (!TextUtils.isEmpty(message.getBigContentTitle())) {
                             bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
                         }
 
-                        if (message.getBigContentSummaryText() != null) {
+                        if (!TextUtils.isEmpty(message.getBigContentSummaryText())) {
                             bigPictureStyle.setSummaryText(message.getBigContentSummaryText());
                         }
 
@@ -231,17 +231,17 @@ public class NotificationFactory {
 
                 NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
 
-                if (message.getBigContentTitle() != null) {
+                if (!TextUtils.isEmpty(message.getBigContentTitle())) {
                     enableBigStyle = true;
                     bigTextStyle.setBigContentTitle(message.getBigContentTitle());
                 }
 
-                if (message.getBigContentSummaryText() != null) {
+                if (!TextUtils.isEmpty(message.getBigContentSummaryText())) {
                     enableBigStyle = true;
                     bigTextStyle.setSummaryText(message.getBigContentSummaryText());
                 }
 
-                if (message.getContentText() != null) {
+                if (!TextUtils.isEmpty(message.getContentText())) {
                     bigTextStyle.bigText(message.getContentText());
                 }
 
