@@ -180,7 +180,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                     Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
                 }
             } else {
-                SdkLog.d(LOG_TAG, "Message not found. Passing the push message to host app via broadcast.");
+                SdkLog.d(LOG_TAG, "Message not found. Passing the push payload to host app via callback.");
 
                 /*
                  * Handing over the push message to host app if message is not found.
