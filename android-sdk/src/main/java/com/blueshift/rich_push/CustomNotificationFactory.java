@@ -269,7 +269,7 @@ class CustomNotificationFactory {
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     // hide notification big icon
-                    contentView.setViewVisibility(R.id.notification_icon, View.GONE);
+                    contentView.setViewVisibility(R.id.icon_group, View.GONE);
 
                     int smallIconResId = configuration.getSmallIconResId();
                     if (smallIconResId != 0) {
@@ -366,6 +366,9 @@ class CustomNotificationFactory {
              * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
              */
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                // bigger text size on N+ devices for content text
+                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, 14);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
             }
 
