@@ -20,6 +20,7 @@ import android.widget.RemoteViews;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
+import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
@@ -543,7 +544,8 @@ class CustomNotificationFactory {
             action = RichPushConstants.buildAction(context, element.getAction());
         }
 
-        Intent bcIntent = new Intent(action);
+        Intent bcIntent = new Intent(context, BlueshiftNotificationEventsActivity.class);
+        bcIntent.setAction(action);
 
         bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
         bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
@@ -553,8 +555,11 @@ class CustomNotificationFactory {
             bcIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
         }
 
-        return PendingIntent.getBroadcast(context,
-                NotificationFactory.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
+        return PendingIntent.getActivity(
+                context,
+                NotificationFactory.getRandomPIRequestCode(),
+                bcIntent,
+                PendingIntent.FLAG_ONE_SHOT);
     }
 
     /**
