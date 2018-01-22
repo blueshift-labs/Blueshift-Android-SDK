@@ -2,6 +2,7 @@ package com.blueshift.pn;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
@@ -54,8 +55,19 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
     }
 
     private void openApp(Bundle extraBundle) {
-        if (extraBundle != null) {
-            //
+        PackageManager packageManager = getPackageManager();
+        Intent launcherIntent = packageManager.getLaunchIntentForPackage(getPackageName());
+
+        // add the whole bundle. typically contains message object.
+        if (launcherIntent != null) {
+            if (extraBundle != null) {
+                launcherIntent.putExtras(extraBundle);
+            }
+
+            launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(launcherIntent);
+        } else {
+            Log.w(LOG_TAG, "No MAIN Activity found in AndroidManifext.xml");
         }
     }
 
