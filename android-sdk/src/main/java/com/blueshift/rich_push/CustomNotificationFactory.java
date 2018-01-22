@@ -161,13 +161,17 @@ class CustomNotificationFactory {
         if (context != null) {
             contentView = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
 
-            contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
-            contentView.setViewVisibility(R.id.next_button, View.VISIBLE);
-            contentView.setViewVisibility(R.id.prev_button, View.VISIBLE);
-
             setBasicNotificationData(context, message, contentView, true);
 
             if (message != null && message.getCarouselLength() > 0) {
+                contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
+
+                // show next and prev buttons only when we have more than 1 carousel element
+                if (message.getCarouselLength() > 1) {
+                    contentView.setViewVisibility(R.id.next_button, View.VISIBLE);
+                    contentView.setViewVisibility(R.id.prev_button, View.VISIBLE);
+                }
+
                 CarouselElement[] elements = message.getCarouselElements();
                 if (currentIndex < elements.length) {
                     CarouselElement element = elements[currentIndex];
