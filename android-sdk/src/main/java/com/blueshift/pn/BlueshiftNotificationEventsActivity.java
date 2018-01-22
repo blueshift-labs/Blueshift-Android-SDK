@@ -11,6 +11,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.blueshift.Blueshift;
+import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.RichPushConstants;
+
 import java.util.List;
 
 
@@ -66,6 +70,13 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
 
             launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(launcherIntent);
+
+            if (extraBundle != null) {
+                Message message = (Message) extraBundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+                Blueshift
+                        .getInstance(getApplicationContext())
+                        .trackNotificationPageOpen(message, true);
+            }
         } else {
             Log.w(LOG_TAG, "No MAIN Activity found in AndroidManifext.xml");
         }
@@ -76,7 +87,7 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
         if (serviceIntent != null) {
             startService(serviceIntent);
         } else {
-            Log.d(LOG_TAG, "No service declared in AndroidManifest.xml");
+            Log.d(LOG_TAG, "No service declared in AndroidManifest.xml for action com.blueshift.NOTIFICATION_CLICK_EVENT");
         }
     }
 
