@@ -104,7 +104,7 @@ public class NotificationActivity extends AppCompatActivity {
                         launcherIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, mMessage);
                         startActivity(launcherIntent);
 
-                        Blueshift.getInstance(mContext).trackNotificationPageOpen(mMessage, true);
+                        Blueshift.getInstance(mContext).trackNotificationPageOpen(mMessage, false);
 
                         dialog.dismiss();
                     }
@@ -126,7 +126,7 @@ public class NotificationActivity extends AppCompatActivity {
     private DialogInterface.OnClickListener mOnDismissClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
-            Blueshift.getInstance(mContext).trackAlertDismiss(mMessage, true);
+            Blueshift.getInstance(mContext).trackAlertDismiss(mMessage, false);
 
             dialog.dismiss();
         }

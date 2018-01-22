@@ -75,7 +75,7 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
                 Message message = (Message) extraBundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
                 Blueshift
                         .getInstance(getApplicationContext())
-                        .trackNotificationPageOpen(message, true);
+                        .trackNotificationPageOpen(message, false);
             }
         } else {
             Log.w(LOG_TAG, "No MAIN Activity found in AndroidManifext.xml");
