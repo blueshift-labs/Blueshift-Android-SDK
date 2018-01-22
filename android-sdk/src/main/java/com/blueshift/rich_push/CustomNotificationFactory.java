@@ -497,14 +497,14 @@ class CustomNotificationFactory {
                             RemoteViews imageView = new RemoteViews(packageName, R.layout.carousel_image_view);
                             imageView.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
-                            // Add the image into ViewFlipper.
-                            viewFlipper.addView(R.id.view_flipper, imageView);
-
                             // Attach an onClick pending intent.
-                            viewFlipper.setOnClickPendingIntent(
+                            imageView.setOnClickPendingIntent(
                                     R.id.carousel_image_view,
                                     getCarouselImageClickPendingIntent(context, message, element, notificationId)
                             );
+
+                            // Add the image into ViewFlipper.
+                            viewFlipper.addView(R.id.view_flipper, imageView);
                         } catch (IOException e) {
                             String logMessage = e.getMessage() != null ? e.getMessage() : "";
                             SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
