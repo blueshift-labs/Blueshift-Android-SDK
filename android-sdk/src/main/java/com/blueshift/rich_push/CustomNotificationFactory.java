@@ -331,6 +331,11 @@ class CustomNotificationFactory {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         String dot = context.getString(R.string.dot);
                         bigContentSummary = " " + dot + " " + bigContentSummary;
+                    } else {
+                        // we have both content and content sub text. make room for content sub text
+                        // make content text single line. applicable to pre Nougat versions.
+
+                        contentView.setInt(R.id.notification_content_text, "setLines", 1);
                     }
 
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
@@ -349,6 +354,11 @@ class CustomNotificationFactory {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         String dot = context.getString(R.string.dot);
                         contentSubText = " " + dot + " " + contentSubText;
+                    } else {
+                        // we have both content and content sub text. make room for content sub text
+                        // make content text single line. applicable to pre Nougat versions.
+
+                        contentView.setInt(R.id.notification_content_text, "setLines", 1);
                     }
 
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
