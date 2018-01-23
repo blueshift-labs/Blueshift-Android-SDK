@@ -406,7 +406,8 @@ class CustomNotificationFactory {
                         "hh:mm aa", Locale.getDefault())
                         .format(new Date(System.currentTimeMillis()));
 
-                // contentView.setTextViewText(R.id.notification_time, " • " + notificationTime);
+                // String dot = context.getString(R.string.dot);
+                // contentView.setTextViewText(R.id.notification_time, " " + dot + " " + notificationTime);
                 contentView.setTextViewText(R.id.notification_time, notificationTime);
             }
         }
