@@ -2,6 +2,7 @@ package com.blueshift.pn;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
@@ -9,6 +10,10 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.blueshift.Blueshift;
+import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.RichPushConstants;
 
 import java.util.List;
 
@@ -54,8 +59,26 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
     }
 
     private void openApp(Bundle extraBundle) {
-        if (extraBundle != null) {
-            //
+        PackageManager packageManager = getPackageManager();
+        Intent launcherIntent = packageManager.getLaunchIntentForPackage(getPackageName());
+
+        // add the whole bundle. typically contains message object.
+        if (launcherIntent != null) {
+            if (extraBundle != null) {
+                launcherIntent.putExtras(extraBundle);
+            }
+
+            launcherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(launcherIntent);
+
+            if (extraBundle != null) {
+                Message message = (Message) extraBundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+                Blueshift
+                        .getInstance(getApplicationContext())
+                        .trackNotificationPageOpen(message, false);
+            }
+        } else {
+            Log.w(LOG_TAG, "No MAIN Activity found in AndroidManifext.xml");
         }
     }
 
@@ -64,7 +87,7 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
         if (serviceIntent != null) {
             startService(serviceIntent);
         } else {
-            Log.d(LOG_TAG, "No service declared in AndroidManifest.xml");
+            Log.d(LOG_TAG, "No service declared in AndroidManifest.xml for action com.blueshift.NOTIFICATION_CLICK_EVENT");
         }
     }
 

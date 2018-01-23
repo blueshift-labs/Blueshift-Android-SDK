@@ -182,6 +182,6 @@ public class RichPushActionReceiver extends BroadcastReceiver {
     }
 
     protected void trackAppOpen(Context context, Message message) {
-        Blueshift.getInstance(context).trackNotificationPageOpen(message, true);
+        Blueshift.getInstance(context).trackNotificationPageOpen(message, false);
     }
 }

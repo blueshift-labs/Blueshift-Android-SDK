@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="90dp"
+    android:background="@android:color/white"
+    android:paddingBottom="2dp"
+    android:paddingEnd="15dp"
+    android:paddingStart="15dp"
+    android:paddingTop="15dp">
+
+    <!-- Line #1 -->
+
+    <ImageView
+        android:id="@+id/notification_small_icon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="5dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/small_icon"
+        android:tint="#808080" />
+
+    <TextView
+        android:id="@+id/notification_app_name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:layout_toEndOf="@id/notification_small_icon"
+        android:gravity="center"
+        android:textAppearance="@style/NotificationInfo" />
+
+    <TextView
+        android:id="@+id/notification_sub_text"
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:layout_toEndOf="@id/notification_app_name_text"
+        android:gravity="center"
+        android:textAppearance="@style/NotificationInfo" />
+
+    <TextView
+        android:id="@+id/notification_time"
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:layout_gravity="center"
+        android:layout_toEndOf="@id/notification_sub_text"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textAppearance="@style/NotificationTime" />
+
+    <TextView
+        android:id="@+id/notification_content_title"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_below="@id/notification_small_icon"
+        android:layout_marginTop="5dp"
+        android:layout_toStartOf="@id/icon_group"
+        android:gravity="center_vertical"
+        android:textAppearance="@style/NotificationTitle" />
+
+    <TextView
+        android:id="@+id/notification_content_text"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_below="@id/notification_content_title"
+        android:layout_toStartOf="@id/icon_group"
+        android:maxLines="1"
+        android:textAppearance="@style/NotificationLine2" />
+
+    <!--Notification icon group-->
+
+    <FrameLayout
+        android:id="@+id/icon_group"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@id/notification_content_text"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@id/notification_content_title"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="10dp">
+
+        <ImageView
+            android:id="@+id/notification_icon_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/large_icon"
+            android:scaleType="fitXY"
+            android:src="@drawable/notification_big_icon_overlay"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/notification_icon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/large_icon" />
+
+    </FrameLayout>
+
+
+</RelativeLayout>

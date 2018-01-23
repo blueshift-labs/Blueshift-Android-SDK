@@ -23,8 +23,7 @@ public class AppInstallReceiver extends BroadcastReceiver {
         if (extras != null && extras.keySet().contains("referrer")) {
             String referrer = intent.getExtras().getString("referrer");
             if (referrer != null) {
-                // events sent by SDK are always batched.
-                Blueshift.getInstance(context).trackAppInstall(referrer, true);
+                Blueshift.getInstance(context).trackAppInstall(referrer, false);
             } else {
                 Log.w(LOG_TAG, "The referrer url parameters are not found in the INSTALL_REFERRER broadcast message.");
             }

@@ -20,6 +20,8 @@ import android.widget.RemoteViews;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
+import com.blueshift.pn.BlueshiftNotificationEventsActivity;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 
@@ -159,13 +161,17 @@ class CustomNotificationFactory {
         if (context != null) {
             contentView = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
 
-            contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
-            contentView.setViewVisibility(R.id.next_button, View.VISIBLE);
-            contentView.setViewVisibility(R.id.prev_button, View.VISIBLE);
-
             setBasicNotificationData(context, message, contentView, true);
 
             if (message != null && message.getCarouselLength() > 0) {
+                contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
+
+                // show next and prev buttons only when we have more than 1 carousel element
+                if (message.getCarouselLength() > 1) {
+                    contentView.setViewVisibility(R.id.next_button, View.VISIBLE);
+                    contentView.setViewVisibility(R.id.prev_button, View.VISIBLE);
+                }
+
                 CarouselElement[] elements = message.getCarouselElements();
                 if (currentIndex < elements.length) {
                     CarouselElement element = elements[currentIndex];
@@ -229,9 +235,6 @@ class CustomNotificationFactory {
         if (context != null && message != null && contentView != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
 
-            String notificationTime = new SimpleDateFormat("hh:mm aa", Locale.getDefault())
-                    .format(new Date(System.currentTimeMillis()));
-
             // check if large icon is available. If yes, set it
             int largeIcon = configuration.getLargeIconResId();
             if (largeIcon != 0) {
@@ -239,42 +242,82 @@ class CustomNotificationFactory {
 
                 int smallIconResId = configuration.getSmallIconResId();
                 if (smallIconResId != 0) {
-                    contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
-                    contentView.setViewVisibility(R.id.notification_small_icon_background, View.VISIBLE);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        // show small icon
+                        contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                        contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
 
-                    contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+                        // app name
+                        CharSequence appName = CommonUtils.getAppName(context);
+                        contentView.setTextViewText(R.id.notification_app_name_text, appName);
 
-                    // set background color
-                    int bgColor = configuration.getNotificationColor();
-                    if (bgColor != 0) {
-                        contentView.setInt(R.id.notification_small_icon_background, "setColorFilter", bgColor);
+                        // set icon color
+                        int bgColor = configuration.getNotificationColor();
+                        if (bgColor != 0) {
+                            contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
+                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                        }
+                    } else {
+                        contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                        contentView.setViewVisibility(R.id.notification_small_icon_background, View.VISIBLE);
+
+                        contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
+
+                        // set background color
+                        int bgColor = configuration.getNotificationColor();
+                        if (bgColor != 0) {
+                            contentView.setInt(R.id.notification_small_icon_background, "setColorFilter", bgColor);
+                        }
                     }
                 }
             } else {
-                // set notification color
-                int bgColor = configuration.getNotificationColor();
-                if (bgColor == 0) {
-                    bgColor = ContextCompat.getColor(context, android.R.color.darker_gray);
-                }
-                contentView.setInt(R.id.notification_icon, "setBackgroundColor", bgColor);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // hide notification big icon
+                    contentView.setViewVisibility(R.id.icon_group, View.GONE);
 
-                // make overlay visible
-                contentView.setViewVisibility(R.id.notification_icon_overlay, View.VISIBLE);
+                    int smallIconResId = configuration.getSmallIconResId();
+                    if (smallIconResId != 0) {
+                        // show small icon
+                        contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
+                        contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
 
-                // set small icon on the center
-                int smallIconResId = configuration.getSmallIconResId();
-                if (smallIconResId != 0) {
-                    contentView.setImageViewResource(R.id.notification_icon, smallIconResId);
+                        // app name
+                        CharSequence appName = CommonUtils.getAppName(context);
+                        contentView.setTextViewText(R.id.notification_app_name_text, appName);
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                        // align the icon to center
-                        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-                        int dp11 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 11.0f, metrics);
-                        contentView.setViewPadding(R.id.notification_icon, dp11, dp11, dp11, dp11);
+                        // set icon color
+                        int bgColor = configuration.getNotificationColor();
+                        if (bgColor != 0) {
+                            contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
+                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                        }
+                    }
+                } else {
+                    // set notification color
+                    int bgColor = configuration.getNotificationColor();
+                    if (bgColor == 0) {
+                        bgColor = ContextCompat.getColor(context, android.R.color.darker_gray);
+                    }
+                    contentView.setInt(R.id.notification_icon, "setBackgroundColor", bgColor);
 
-                        // set tint color
-                        int white = ContextCompat.getColor(context, android.R.color.white);
-                        contentView.setInt(R.id.notification_icon, "setColorFilter", white);
+                    // make overlay visible
+                    contentView.setViewVisibility(R.id.notification_icon_overlay, View.VISIBLE);
+
+                    // set small icon on the center
+                    int smallIconResId = configuration.getSmallIconResId();
+                    if (smallIconResId != 0) {
+                        contentView.setImageViewResource(R.id.notification_icon, smallIconResId);
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            // align the icon to center
+                            DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+                            int dp11 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 11.0f, metrics);
+                            contentView.setViewPadding(R.id.notification_icon, dp11, dp11, dp11, dp11);
+
+                            // set tint color
+                            int white = ContextCompat.getColor(context, android.R.color.white);
+                            contentView.setInt(R.id.notification_icon, "setColorFilter", white);
+                        }
                     }
                 }
             }
@@ -289,6 +332,16 @@ class CustomNotificationFactory {
 
                 String bigContentSummary = message.getBigContentSummaryText();
                 if (!TextUtils.isEmpty(bigContentSummary)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        String dot = context.getString(R.string.dot);
+                        bigContentSummary = " " + dot + " " + bigContentSummary;
+                    } else {
+                        // we have both content and content sub text. make room for content sub text
+                        // make content text single line. applicable to pre Nougat versions.
+
+                        contentView.setInt(R.id.notification_content_text, "setLines", 1);
+                    }
+
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
                     contentView.setTextViewText(R.id.notification_sub_text, bigContentSummary);
                 } else {
@@ -302,6 +355,16 @@ class CustomNotificationFactory {
 
                 String contentSubText = message.getContentSubText();
                 if (!TextUtils.isEmpty(contentSubText)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        String dot = context.getString(R.string.dot);
+                        contentSubText = " " + dot + " " + contentSubText;
+                    } else {
+                        // we have both content and content sub text. make room for content sub text
+                        // make content text single line. applicable to pre Nougat versions.
+
+                        contentView.setInt(R.id.notification_content_text, "setLines", 1);
+                    }
+
                     contentView.setViewVisibility(R.id.notification_sub_text, View.VISIBLE);
                     contentView.setTextViewText(R.id.notification_sub_text, contentSubText);
                 } else {
@@ -317,6 +380,9 @@ class CustomNotificationFactory {
              * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
              */
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                // bigger text size on N+ devices for content text
+                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, 14);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
             }
 
@@ -334,7 +400,16 @@ class CustomNotificationFactory {
             }
             */
 
-            contentView.setTextViewText(R.id.notification_time, notificationTime);
+            // workaround to hide the time on N+ devices
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                String notificationTime = new SimpleDateFormat(
+                        "hh:mm aa", Locale.getDefault())
+                        .format(new Date(System.currentTimeMillis()));
+
+                // String dot = context.getString(R.string.dot);
+                // contentView.setTextViewText(R.id.notification_time, " " + dot + " " + notificationTime);
+                contentView.setTextViewText(R.id.notification_time, notificationTime);
+            }
         }
     }
 
@@ -423,14 +498,14 @@ class CustomNotificationFactory {
                             RemoteViews imageView = new RemoteViews(packageName, R.layout.carousel_image_view);
                             imageView.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
-                            // Add the image into ViewFlipper.
-                            viewFlipper.addView(R.id.view_flipper, imageView);
-
                             // Attach an onClick pending intent.
-                            viewFlipper.setOnClickPendingIntent(
+                            imageView.setOnClickPendingIntent(
                                     R.id.carousel_image_view,
                                     getCarouselImageClickPendingIntent(context, message, element, notificationId)
                             );
+
+                            // Add the image into ViewFlipper.
+                            viewFlipper.addView(R.id.view_flipper, imageView);
                         } catch (IOException e) {
                             String logMessage = e.getMessage() != null ? e.getMessage() : "";
                             SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
@@ -487,7 +562,8 @@ class CustomNotificationFactory {
             action = RichPushConstants.buildAction(context, element.getAction());
         }
 
-        Intent bcIntent = new Intent(action);
+        Intent bcIntent = new Intent(context, BlueshiftNotificationEventsActivity.class);
+        bcIntent.setAction(action);
 
         bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
         bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
@@ -497,8 +573,11 @@ class CustomNotificationFactory {
             bcIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
         }
 
-        return PendingIntent.getBroadcast(context,
-                NotificationFactory.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
+        return PendingIntent.getActivity(
+                context,
+                NotificationFactory.getRandomPIRequestCode(),
+                bcIntent,
+                PendingIntent.FLAG_ONE_SHOT);
     }
 
     /**
