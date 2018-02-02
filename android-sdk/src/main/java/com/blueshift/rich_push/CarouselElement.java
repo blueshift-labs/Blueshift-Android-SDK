@@ -13,6 +13,20 @@ import java.util.HashMap;
  *         https://github.com/rahulrvp
  */
 public class CarouselElement implements Serializable {
+    /**
+     * CarouselElementText to be shown on the carousel element
+     */
+    private CarouselElementText content_text;
+
+    /**
+     * ContentSubtext to be shown on the carousel element
+     */
+    private CarouselElementText content_subtext;
+
+    /**
+     * Overlay type
+     */
+    private String overlay_type;
 
     /**
      * The image URL used for rendering image in Notification
@@ -60,5 +74,17 @@ public class CarouselElement implements Serializable {
 
     public boolean isDeepLinkingEnabled() {
         return !TextUtils.isEmpty(deep_link_url);
+    }
+
+    public String getOverlayType() {
+        return overlay_type;
+    }
+
+    public CarouselElementText getContentText() {
+        return content_text;
+    }
+
+    public CarouselElementText getContentSubtext() {
+        return content_subtext;
     }
 }

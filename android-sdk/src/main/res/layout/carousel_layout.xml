@@ -52,6 +52,15 @@
             android:src="@drawable/bs_carousel_next"
             android:visibility="gone" />
 
+        <RelativeLayout
+            android:id="@+id/carousel_overlay_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="40dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:layout_marginStart="40dp" />
+
     </RelativeLayout>
 
     <TextView

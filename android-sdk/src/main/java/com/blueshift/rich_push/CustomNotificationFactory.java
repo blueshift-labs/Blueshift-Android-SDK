@@ -8,11 +8,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -201,6 +203,17 @@ class CustomNotificationFactory {
                         }
                     }
 
+                    Log.d(LOG_TAG, "Overlay start.");
+
+                    // remove any view found on the overlay container
+                    contentView.removeAllViews(R.id.carousel_overlay_container);
+
+                    // look for overlay content and add it in the container layout (if found)
+                    RemoteViews overlay = getOverlayView(context, element);
+                    if (overlay != null) {
+                        contentView.addView(R.id.carousel_overlay_container, overlay);
+                    }
+
                     contentView.setOnClickPendingIntent(
                             R.id.big_picture,
                             getCarouselImageClickPendingIntent(context, message, element, notificationId)
@@ -220,6 +233,89 @@ class CustomNotificationFactory {
         }
 
         return contentView;
+    }
+
+    private RemoteViews getOverlayView(Context context, CarouselElement element) {
+        RemoteViews overlayView = null;
+
+        if (context != null && element != null) {
+            CarouselElementText text = element.getContentText();
+
+            if (text != null) {
+                Log.d(LOG_TAG, "Content text found.");
+            }
+
+            CarouselElementText subText = element.getContentSubtext();
+
+            if (subText != null) {
+                Log.d(LOG_TAG, "Content subtext found.");
+            }
+
+            if (text == null && subText == null) {
+                return null;
+            }
+
+            // decide which layout and add it in the content view
+            int resId = getOverlayIdFromType(element.getOverlayType());
+            overlayView = new RemoteViews(context.getPackageName(), resId);
+
+            // fill the overlay texts
+            setOverlayText(overlayView, R.id.carousel_content_text, text);
+            setOverlayText(overlayView, R.id.carousel_content_subtext, subText);
+        }
+
+        return overlayView;
+    }
+
+    private void setOverlayText(RemoteViews containerView, int resourceID, CarouselElementText content) {
+        if (containerView != null && content != null && !TextUtils.isEmpty(content.getText())) {
+            Log.d(LOG_TAG, "Carousel text: " + content.getText());
+
+            containerView.setTextViewText(resourceID, content.getText());
+
+            // color
+            if (!TextUtils.isEmpty(content.getTextColor())) {
+                Log.d(LOG_TAG, "Carousel text color: " + content.getTextColor());
+
+                int color = Color.parseColor(content.getTextColor());
+                containerView.setTextColor(resourceID, color);
+            }
+
+            // bg color
+            if (!TextUtils.isEmpty(content.getTextBackgroundColor())) {
+                Log.d(LOG_TAG, "Carousel text background color: " + content.getTextBackgroundColor());
+
+                int color = Color.parseColor(content.getTextBackgroundColor());
+                containerView.setInt(resourceID, "setBackgroundColor", color);
+            }
+
+            // size
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                Log.d(LOG_TAG, "Carousel text size: " + content.getTextSize());
+
+                if (content.getTextSize() > 0) {
+                    containerView.setTextViewTextSize(
+                            resourceID, TypedValue.COMPLEX_UNIT_SP, content.getTextSize());
+                }
+            }
+        }
+    }
+
+    private int getOverlayIdFromType(String type) {
+        int resId = R.layout.carousel_overlay_v1;
+
+        if (type != null) {
+            switch (type) {
+                case "v1":
+                    resId = R.layout.carousel_overlay_v1;
+                    break;
+
+                default:
+                    resId = R.layout.carousel_overlay_v1;
+            }
+        }
+
+        return resId;
     }
 
     /**
