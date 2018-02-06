@@ -591,17 +591,26 @@ class CustomNotificationFactory {
                             Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
                             // Set the image into the view.
-                            RemoteViews imageView = new RemoteViews(packageName, R.layout.carousel_image_view);
-                            imageView.setImageViewBitmap(R.id.carousel_image_view, bitmap);
+                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.carousel_view_flipper_entry);
+                            viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
                             // Attach an onClick pending intent.
-                            imageView.setOnClickPendingIntent(
+                            viewFlipperEntry.setOnClickPendingIntent(
                                     R.id.carousel_image_view,
                                     getCarouselImageClickPendingIntent(context, message, element, notificationId)
                             );
 
+                            // remove any view found on the overlay container
+                            viewFlipperEntry.removeAllViews(R.id.carousel_overlay_container);
+
+                            // look for overlay content and add it in the container layout (if found)
+                            RemoteViews overlay = getOverlayView(context, element);
+                            if (overlay != null) {
+                                viewFlipperEntry.addView(R.id.carousel_overlay_container, overlay);
+                            }
+
                             // Add the image into ViewFlipper.
-                            viewFlipper.addView(R.id.view_flipper, imageView);
+                            viewFlipper.addView(R.id.view_flipper, viewFlipperEntry);
                         } catch (IOException e) {
                             String logMessage = e.getMessage() != null ? e.getMessage() : "";
                             SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
