@@ -310,6 +310,14 @@ class CustomNotificationFactory {
                     resId = R.layout.carousel_overlay_v1;
                     break;
 
+                case "v2":
+                    resId = R.layout.carousel_overlay_v2;
+                    break;
+
+                case "v3":
+                    resId = R.layout.carousel_overlay_v3;
+                    break;
+
                 default:
                     resId = R.layout.carousel_overlay_v1;
             }
