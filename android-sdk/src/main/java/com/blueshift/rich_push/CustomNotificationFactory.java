@@ -203,8 +203,6 @@ class CustomNotificationFactory {
                         }
                     }
 
-                    Log.d(LOG_TAG, "Overlay start.");
-
                     // remove any view found on the overlay container
                     contentView.removeAllViews(R.id.carousel_overlay_container);
 
@@ -240,16 +238,7 @@ class CustomNotificationFactory {
 
         if (context != null && element != null) {
             CarouselElementText text = element.getContentText();
-
-            if (text != null) {
-                Log.d(LOG_TAG, "Content text found.");
-            }
-
             CarouselElementText subText = element.getContentSubtext();
-
-            if (subText != null) {
-                Log.d(LOG_TAG, "Content subtext found.");
-            }
 
             if (text == null && subText == null) {
                 return null;
@@ -269,13 +258,13 @@ class CustomNotificationFactory {
 
     private void setOverlayText(RemoteViews containerView, int resourceID, CarouselElementText content) {
         if (containerView != null && content != null && !TextUtils.isEmpty(content.getText())) {
-            Log.d(LOG_TAG, "Carousel text: " + content.getText());
+            // Log.d(LOG_TAG, "Carousel text: " + content.getText());
 
             containerView.setTextViewText(resourceID, content.getText());
 
             // color
             if (!TextUtils.isEmpty(content.getTextColor())) {
-                Log.d(LOG_TAG, "Carousel text color: " + content.getTextColor());
+                // Log.d(LOG_TAG, "Carousel text color: " + content.getTextColor());
 
                 int color = Color.parseColor(content.getTextColor());
                 containerView.setTextColor(resourceID, color);
@@ -283,7 +272,7 @@ class CustomNotificationFactory {
 
             // bg color
             if (!TextUtils.isEmpty(content.getTextBackgroundColor())) {
-                Log.d(LOG_TAG, "Carousel text background color: " + content.getTextBackgroundColor());
+                // Log.d(LOG_TAG, "Carousel text background color: " + content.getTextBackgroundColor());
 
                 int color = Color.parseColor(content.getTextBackgroundColor());
                 containerView.setInt(resourceID, "setBackgroundColor", color);
@@ -291,7 +280,7 @@ class CustomNotificationFactory {
 
             // size
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                Log.d(LOG_TAG, "Carousel text size: " + content.getTextSize());
+                // Log.d(LOG_TAG, "Carousel text size: " + content.getTextSize());
 
                 if (content.getTextSize() > 0) {
                     containerView.setTextViewTextSize(
