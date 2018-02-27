@@ -1123,7 +1123,7 @@ public class Blueshift {
             if (!TextUtils.isEmpty(mSlot)) {
                 reqParams.put(BlueshiftConstants.KEY_SLOT, mSlot);
             } else {
-                Log.e(LOG_TAG, "Live CarouselElementText Api: No slot provided.");
+                Log.e(LOG_TAG, "Live Content Api: No slot provided.");
             }
 
             Configuration config = getConfiguration();
@@ -1132,10 +1132,10 @@ public class Blueshift {
                 if (!TextUtils.isEmpty(apiKey)) {
                     reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
                 } else {
-                    Log.e(LOG_TAG, "Live CarouselElementText Api: No Api Key provided.");
+                    Log.e(LOG_TAG, "Live Content Api: No Api Key provided.");
                 }
             } else {
-                Log.e(LOG_TAG, "Live CarouselElementText Api: No valid config provided.");
+                Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
             }
 
             if (mUniqueKey != null) {
@@ -1146,7 +1146,7 @@ public class Blueshift {
                         if (!TextUtils.isEmpty(email)) {
                             reqParams.put(BlueshiftConstants.KEY_EMAIL, email);
                         } else {
-                            Log.e(LOG_TAG, "Live CarouselElementText Api: No advertisingID provided in UserInfo.");
+                            Log.e(LOG_TAG, "Live Content Api: No advertisingID provided in UserInfo.");
                         }
 
                         break;
@@ -1156,7 +1156,7 @@ public class Blueshift {
                         if (!TextUtils.isEmpty(advertisingID)) {
                             reqParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, advertisingID);
                         } else {
-                            Log.e(LOG_TAG, "Live CarouselElementText Api: No advertisingID available.");
+                            Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
                         }
 
                         break;
@@ -1166,7 +1166,7 @@ public class Blueshift {
                         if (!TextUtils.isEmpty(customerId)) {
                             reqParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
                         } else {
-                            Log.e(LOG_TAG, "Live CarouselElementText Api: No customerId provided in UserInfo.");
+                            Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
                         }
 
                         break;
