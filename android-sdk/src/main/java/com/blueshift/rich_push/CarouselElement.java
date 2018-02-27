@@ -26,7 +26,7 @@ public class CarouselElement implements Serializable {
     /**
      * Overlay type
      */
-    private String overlay_type;
+    private String content_layout_type;
 
     /**
      * The image URL used for rendering image in Notification
@@ -76,8 +76,8 @@ public class CarouselElement implements Serializable {
         return !TextUtils.isEmpty(deep_link_url);
     }
 
-    public String getOverlayType() {
-        return overlay_type;
+    public String getContentLayoutType() {
+        return content_layout_type;
     }
 
     public CarouselElementText getContentText() {

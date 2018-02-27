@@ -14,7 +14,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -245,7 +244,7 @@ class CustomNotificationFactory {
             }
 
             // decide which layout and add it in the content view
-            int resId = getOverlayIdFromType(element.getOverlayType());
+            int resId = getLayoutResIdFromType(element.getContentLayoutType());
             overlayView = new RemoteViews(context.getPackageName(), resId);
 
             // fill the overlay texts
@@ -290,25 +289,49 @@ class CustomNotificationFactory {
         }
     }
 
-    private int getOverlayIdFromType(String type) {
-        int resId = R.layout.carousel_overlay_v1;
+    private int getLayoutResIdFromType(String type) {
+        int resId = R.layout.carousel_overlay_center;
 
         if (type != null) {
             switch (type) {
-                case "v1":
-                    resId = R.layout.carousel_overlay_v1;
+                case "top_left":
+                    resId = R.layout.carousel_overlay_top_left;
                     break;
 
-                case "v2":
-                    resId = R.layout.carousel_overlay_v2;
+                case "top_center":
+                    resId = R.layout.carousel_overlay_top_center;
                     break;
 
-                case "v3":
-                    resId = R.layout.carousel_overlay_v3;
+                case "top_right":
+                    resId = R.layout.carousel_overlay_top_right;
+                    break;
+
+                case "center_left":
+                    resId = R.layout.carousel_overlay_center_left;
+                    break;
+
+                case "center":
+                    resId = R.layout.carousel_overlay_center;
+                    break;
+
+                case "center_right":
+                    resId = R.layout.carousel_overlay_center_right;
+                    break;
+
+                case "bottom_left":
+                    resId = R.layout.carousel_overlay_bottom_left;
+                    break;
+
+                case "bottom_center":
+                    resId = R.layout.carousel_overlay_bottom_center;
+                    break;
+
+                case "bottom_right":
+                    resId = R.layout.carousel_overlay_bottom_right;
                     break;
 
                 default:
-                    resId = R.layout.carousel_overlay_v1;
+                    resId = R.layout.carousel_overlay_center;
             }
         }
 
