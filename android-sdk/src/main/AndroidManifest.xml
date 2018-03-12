@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.blueshift">
 
     <application
@@ -58,7 +59,7 @@
             android:exported="false">
 
             <intent-filter>
-                <action android:name="com.blueshift.NOTIFICATION_CLICK_EVENT"/>
+                <action android:name="com.blueshift.NOTIFICATION_CLICK_EVENT" />
             </intent-filter>
 
         </service>
@@ -69,6 +70,14 @@
             </intent-filter>
         </receiver>
 
+        <!--This broadcast receiver is added for Android API version 23 and below.-->
+        <receiver android:name=".receiver.NetworkChangeListener">
+            <intent-filter>
+                <action
+                    android:name="android.net.conn.CONNECTIVITY_CHANGE"
+                    tools:ignore="BatteryLife" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

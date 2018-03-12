@@ -2,10 +2,7 @@ package com.blueshift;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -58,38 +55,7 @@ public class Blueshift {
     private static Blueshift instance = null;
 
     private Blueshift() {
-        /*
-         * Registering broadcast receiver to receive network change broadcasts.
-         * This will inform the request queue to start sync()
-         */
-        BroadcastReceiver connectivityChangeReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                /*
-                 * onReceive() is called in UI thread. Let's use an
-                 * AsyncTask to do the db sync in background.
-                 */
-
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        RequestQueue
-                                .getInstance(mContext)
-                                .sync();
-
-                        return null;
-                    }
-                }.execute();
-            }
-        };
-
-        /*
-         * Register receiver to application context for working throughout the lifespan
-         * of the process.
-         */
-        Context appContext = mContext.getApplicationContext();
-        IntentFilter intentFilter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-        appContext.registerReceiver(connectivityChangeReceiver, intentFilter);
+        // private constructor for singleton behavior
     }
 
     /**
