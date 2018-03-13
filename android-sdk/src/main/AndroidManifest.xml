@@ -70,7 +70,7 @@
             </intent-filter>
         </receiver>
 
-        <!--This broadcast receiver is added for Android API version 23 and below.-->
+        <!-- NW Change: This broadcast receiver is added for Android API version 23 and below.-->
         <receiver android:name=".receiver.NetworkChangeListener">
             <intent-filter>
                 <action
@@ -78,6 +78,11 @@
                     tools:ignore="BatteryLife" />
             </intent-filter>
         </receiver>
+        <!-- NW Change: This service is added for API version 24+-->
+        <service
+            android:name=".httpmanager.request_queue.RequestQueueJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>
