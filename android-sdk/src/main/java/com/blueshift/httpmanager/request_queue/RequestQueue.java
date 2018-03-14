@@ -1,5 +1,8 @@
 package com.blueshift.httpmanager.request_queue;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -34,6 +37,7 @@ import java.util.HashMap;
  *         https://github.com/rahulrvp
  */
 public class RequestQueue {
+    private static final int SYNC_JOB_ID = 100;
     public static final int DEFAULT_RETRY_COUNT = 3;
 
     private static final String LOG_TAG = RequestQueue.class.getSimpleName();
@@ -43,6 +47,28 @@ public class RequestQueue {
     private static Status mStatus;
     private static Context mContext;
     private static RequestQueue mInstance = null;
+
+    public static void scheduleQueueSyncJob(Context context) {
+        if (context != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                JobScheduler jobScheduler
+                        = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+                if (jobScheduler != null) {
+                    ComponentName componentName = new ComponentName(context, RequestQueueJobService.class);
+                    JobInfo jobInfo
+                            = new JobInfo.Builder(SYNC_JOB_ID, componentName)
+                            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                            .build();
+
+                    if (JobScheduler.RESULT_SUCCESS != jobScheduler.schedule(jobInfo)) {
+                        // for some reason job scheduling failed. log this.
+                        Log.w(LOG_TAG, "Could not schedule request queue sync job on network change");
+                    }
+                }
+            }
+        }
+    }
 
     private RequestQueue() {
         mStatus = Status.AVAILABLE;
