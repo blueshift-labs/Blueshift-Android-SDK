@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -201,6 +202,15 @@ class CustomNotificationFactory {
                         }
                     }
 
+                    // remove any view found on the overlay container
+                    contentView.removeAllViews(R.id.carousel_overlay_container);
+
+                    // look for overlay content and add it in the container layout (if found)
+                    RemoteViews overlay = getOverlayView(context, element);
+                    if (overlay != null) {
+                        contentView.addView(R.id.carousel_overlay_container, overlay);
+                    }
+
                     contentView.setOnClickPendingIntent(
                             R.id.big_picture,
                             getCarouselImageClickPendingIntent(context, message, element, notificationId)
@@ -220,6 +230,112 @@ class CustomNotificationFactory {
         }
 
         return contentView;
+    }
+
+    private RemoteViews getOverlayView(Context context, CarouselElement element) {
+        RemoteViews overlayView = null;
+
+        if (context != null && element != null) {
+            CarouselElementText text = element.getContentText();
+            CarouselElementText subText = element.getContentSubtext();
+
+            if (text == null && subText == null) {
+                return null;
+            }
+
+            // decide which layout and add it in the content view
+            int resId = getLayoutResIdFromType(element.getContentLayoutType());
+            overlayView = new RemoteViews(context.getPackageName(), resId);
+
+            // fill the overlay texts
+            setOverlayText(overlayView, R.id.carousel_content_text, text);
+            setOverlayText(overlayView, R.id.carousel_content_subtext, subText);
+        }
+
+        return overlayView;
+    }
+
+    private void setOverlayText(RemoteViews containerView, int resourceID, CarouselElementText content) {
+        if (containerView != null && content != null && !TextUtils.isEmpty(content.getText())) {
+            // Log.d(LOG_TAG, "Carousel text: " + content.getText());
+
+            containerView.setTextViewText(resourceID, content.getText());
+
+            // color
+            if (!TextUtils.isEmpty(content.getTextColor())) {
+                // Log.d(LOG_TAG, "Carousel text color: " + content.getTextColor());
+
+                int color = Color.parseColor(content.getTextColor());
+                containerView.setTextColor(resourceID, color);
+            }
+
+            // bg color
+            if (!TextUtils.isEmpty(content.getTextBackgroundColor())) {
+                // Log.d(LOG_TAG, "Carousel text background color: " + content.getTextBackgroundColor());
+
+                int color = Color.parseColor(content.getTextBackgroundColor());
+                containerView.setInt(resourceID, "setBackgroundColor", color);
+            }
+
+            // size
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                // Log.d(LOG_TAG, "Carousel text size: " + content.getTextSize());
+
+                if (content.getTextSize() > 0) {
+                    containerView.setTextViewTextSize(
+                            resourceID, TypedValue.COMPLEX_UNIT_SP, content.getTextSize());
+                }
+            }
+        }
+    }
+
+    private int getLayoutResIdFromType(String type) {
+        int resId = R.layout.carousel_overlay_center;
+
+        if (type != null) {
+            switch (type) {
+                case "top_left":
+                    resId = R.layout.carousel_overlay_top_left;
+                    break;
+
+                case "top_center":
+                    resId = R.layout.carousel_overlay_top_center;
+                    break;
+
+                case "top_right":
+                    resId = R.layout.carousel_overlay_top_right;
+                    break;
+
+                case "center_left":
+                    resId = R.layout.carousel_overlay_center_left;
+                    break;
+
+                case "center":
+                    resId = R.layout.carousel_overlay_center;
+                    break;
+
+                case "center_right":
+                    resId = R.layout.carousel_overlay_center_right;
+                    break;
+
+                case "bottom_left":
+                    resId = R.layout.carousel_overlay_bottom_left;
+                    break;
+
+                case "bottom_center":
+                    resId = R.layout.carousel_overlay_bottom_center;
+                    break;
+
+                case "bottom_right":
+                    resId = R.layout.carousel_overlay_bottom_right;
+                    break;
+
+                default:
+                    resId = R.layout.carousel_overlay_center;
+            }
+        }
+
+        return resId;
     }
 
     /**
@@ -495,17 +611,26 @@ class CustomNotificationFactory {
                             Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
                             // Set the image into the view.
-                            RemoteViews imageView = new RemoteViews(packageName, R.layout.carousel_image_view);
-                            imageView.setImageViewBitmap(R.id.carousel_image_view, bitmap);
+                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.carousel_view_flipper_entry);
+                            viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
                             // Attach an onClick pending intent.
-                            imageView.setOnClickPendingIntent(
+                            viewFlipperEntry.setOnClickPendingIntent(
                                     R.id.carousel_image_view,
                                     getCarouselImageClickPendingIntent(context, message, element, notificationId)
                             );
 
+                            // remove any view found on the overlay container
+                            viewFlipperEntry.removeAllViews(R.id.carousel_overlay_container);
+
+                            // look for overlay content and add it in the container layout (if found)
+                            RemoteViews overlay = getOverlayView(context, element);
+                            if (overlay != null) {
+                                viewFlipperEntry.addView(R.id.carousel_overlay_container, overlay);
+                            }
+
                             // Add the image into ViewFlipper.
-                            viewFlipper.addView(R.id.view_flipper, imageView);
+                            viewFlipper.addView(R.id.view_flipper, viewFlipperEntry);
                         } catch (IOException e) {
                             String logMessage = e.getMessage() != null ? e.getMessage() : "";
                             SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
