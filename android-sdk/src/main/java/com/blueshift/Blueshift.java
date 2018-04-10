@@ -147,19 +147,31 @@ public class Blueshift {
     }
 
     public void getLiveContentByEmail(@NotNull String slot, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, callback)
+        getLiveContentByEmail(slot, null, callback);
+    }
+
+    public void getLiveContentByDeviceId(@NotNull String slot, LiveContentCallback callback) {
+        getLiveContentByDeviceId(slot, null, callback);
+    }
+
+    public void getLiveContentByCustomerId(@NotNull String slot, LiveContentCallback callback) {
+        getLiveContentByCustomerId(slot, null, callback);
+    }
+
+    public void getLiveContentByEmail(@NotNull String slot, HashMap<String, Object> params, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, params, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
                 .execute();
     }
 
-    public void getLiveContentByDeviceId(@NotNull String slot, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, callback)
+    public void getLiveContentByDeviceId(@NotNull String slot, HashMap<String, Object> params, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, params, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
                 .execute();
     }
 
-    public void getLiveContentByCustomerId(@NotNull String slot, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, callback)
+    public void getLiveContentByCustomerId(@NotNull String slot, HashMap<String, Object> params, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, params, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
                 .execute();
     }
@@ -1100,12 +1112,14 @@ public class Blueshift {
     private class FetchLiveContentTask extends AsyncTask<Void, Void, String> {
         private final Context mContext;
         private final String mSlot;
+        private final HashMap<String, Object> mParams;
         private final LiveContentCallback mCallback;
         private String mUniqueKey;
 
-        FetchLiveContentTask(Context context, String slot, LiveContentCallback callback) {
+        FetchLiveContentTask(Context context, String slot, HashMap<String, Object> params, LiveContentCallback callback) {
             mContext = context;
             mSlot = slot;
+            mParams = params;
             mCallback = callback;
         }
 
@@ -1119,7 +1133,7 @@ public class Blueshift {
         protected String doInBackground(Void... params) {
             String responseJson = null;
 
-            HashMap<String, String> reqParams = new HashMap<>();
+            HashMap<String, Object> reqParams = new HashMap<>();
             if (!TextUtils.isEmpty(mSlot)) {
                 reqParams.put(BlueshiftConstants.KEY_SLOT, mSlot);
             } else {
@@ -1173,8 +1187,14 @@ public class Blueshift {
                 }
             }
 
+            // add extra params if available
+            if (mParams != null && mParams.size() > 0) {
+                reqParams.putAll(mParams);
+            }
+
+            String paramsJson = new Gson().toJson(reqParams);
             HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
-            Response response = httpManager.get(reqParams);
+            Response response = httpManager.post(paramsJson);
 
             if (response.getStatusCode() == 200) {
                 responseJson = response.getResponseBody();
