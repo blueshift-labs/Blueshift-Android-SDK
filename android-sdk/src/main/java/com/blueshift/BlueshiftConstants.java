@@ -108,6 +108,8 @@ public class BlueshiftConstants {
     // live content
     public static final String KEY_SLOT = "slot";
     public static final String KEY_API_KEY = "api_key";
+    public static final String KEY_USER  = "user";
+    public static final String KEY_CONTEXT = "context";
 
     /**
      * Subscription status values
