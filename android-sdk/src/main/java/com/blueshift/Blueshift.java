@@ -147,19 +147,31 @@ public class Blueshift {
     }
 
     public void getLiveContentByEmail(@NotNull String slot, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, callback)
+        getLiveContentByEmail(slot, null, callback);
+    }
+
+    public void getLiveContentByDeviceId(@NotNull String slot, LiveContentCallback callback) {
+        getLiveContentByDeviceId(slot, null, callback);
+    }
+
+    public void getLiveContentByCustomerId(@NotNull String slot, LiveContentCallback callback) {
+        getLiveContentByCustomerId(slot, null, callback);
+    }
+
+    public void getLiveContentByEmail(@NotNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
                 .execute();
     }
 
-    public void getLiveContentByDeviceId(@NotNull String slot, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, callback)
+    public void getLiveContentByDeviceId(@NotNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
                 .execute();
     }
 
-    public void getLiveContentByCustomerId(@NotNull String slot, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, callback)
+    public void getLiveContentByCustomerId(@NotNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
+        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
                 .execute();
     }
@@ -1100,12 +1112,14 @@ public class Blueshift {
     private class FetchLiveContentTask extends AsyncTask<Void, Void, String> {
         private final Context mContext;
         private final String mSlot;
+        private final HashMap<String, Object> mLiveContentContext;
         private final LiveContentCallback mCallback;
         private String mUniqueKey;
 
-        FetchLiveContentTask(Context context, String slot, LiveContentCallback callback) {
+        FetchLiveContentTask(Context context, String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
             mContext = context;
             mSlot = slot;
+            mLiveContentContext = liveContentContext;
             mCallback = callback;
         }
 
@@ -1119,7 +1133,7 @@ public class Blueshift {
         protected String doInBackground(Void... params) {
             String responseJson = null;
 
-            HashMap<String, String> reqParams = new HashMap<>();
+            HashMap<String, Object> reqParams = new HashMap<>();
             if (!TextUtils.isEmpty(mSlot)) {
                 reqParams.put(BlueshiftConstants.KEY_SLOT, mSlot);
             } else {
@@ -1138,13 +1152,15 @@ public class Blueshift {
                 Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
             }
 
+            HashMap<String, Object> userHash = new HashMap<>();
+
             if (mUniqueKey != null) {
                 switch (mUniqueKey) {
                     case BlueshiftConstants.KEY_EMAIL:
                         UserInfo userInfo = UserInfo.getInstance(mContext);
                         String email = userInfo.getEmail();
                         if (!TextUtils.isEmpty(email)) {
-                            reqParams.put(BlueshiftConstants.KEY_EMAIL, email);
+                            userHash.put(BlueshiftConstants.KEY_EMAIL, email);
                         } else {
                             Log.e(LOG_TAG, "Live Content Api: No advertisingID provided in UserInfo.");
                         }
@@ -1154,7 +1170,7 @@ public class Blueshift {
                     case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
                         String advertisingID = DeviceUtils.getAdvertisingID(mContext);
                         if (!TextUtils.isEmpty(advertisingID)) {
-                            reqParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, advertisingID);
+                            userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, advertisingID);
                         } else {
                             Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
                         }
@@ -1164,7 +1180,7 @@ public class Blueshift {
                     case BlueshiftConstants.KEY_CUSTOMER_ID:
                         String customerId = UserInfo.getInstance(mContext).getRetailerCustomerId();
                         if (!TextUtils.isEmpty(customerId)) {
-                            reqParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                            userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
                         } else {
                             Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
                         }
@@ -1173,8 +1189,17 @@ public class Blueshift {
                 }
             }
 
+            // add user params
+            reqParams.put(BlueshiftConstants.KEY_USER, userHash);
+
+            // add extra params if available
+            if (mLiveContentContext != null && mLiveContentContext.size() > 0) {
+                reqParams.put(BlueshiftConstants.KEY_CONTEXT, mLiveContentContext);
+            }
+
+            String paramsJson = new Gson().toJson(reqParams);
             HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
-            Response response = httpManager.get(reqParams);
+            Response response = httpManager.post(paramsJson);
 
             if (response.getStatusCode() == 200) {
                 responseJson = response.getResponseBody();
