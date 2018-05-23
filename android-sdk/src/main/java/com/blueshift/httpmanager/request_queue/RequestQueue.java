@@ -1,5 +1,7 @@
 package com.blueshift.httpmanager.request_queue;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
@@ -33,8 +35,8 @@ import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 26/2/15 @ 3:07 PM
- *         https://github.com/rahulrvp
+ * Created on 26/2/15 @ 3:07 PM
+ * https://github.com/rahulrvp
  */
 public class RequestQueue {
     private static final int SYNC_JOB_ID = 100;
@@ -59,6 +61,7 @@ public class RequestQueue {
                     JobInfo jobInfo
                             = new JobInfo.Builder(SYNC_JOB_ID, componentName)
                             .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                            .setPeriodic(30 * 60 * 1000)
                             .build();
 
                     if (JobScheduler.RESULT_SUCCESS != jobScheduler.schedule(jobInfo)) {
@@ -143,11 +146,18 @@ public class RequestQueue {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private boolean isConnectedToNetwork() {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        NetworkInfo activeNetworkInfo = null;
+        boolean hasPermission = Blueshift.hasPermission(mContext, Manifest.permission.ACCESS_NETWORK_STATE);
+        if (connectivityManager != null && hasPermission) {
+            activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        } else {
+            Log.e(LOG_TAG, "ACCESS_NETWORK_STATE permission found missing in AndroidManifest.xml!");
+        }
 
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
@@ -155,7 +165,7 @@ public class RequestQueue {
     private class sendRequestTask extends AsyncTask<Void, Void, Boolean> {
         private Request mRequest;
 
-        public sendRequestTask(Request request) {
+        sendRequestTask(Request request) {
             mRequest = request;
         }
 

@@ -16,7 +16,7 @@ import android.util.Log;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RequestQueueJobService extends JobService {
-    private final String LOG_TAG = "RequestQueue";
+    private final String LOG_TAG = "RequestQueueJobService";
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {

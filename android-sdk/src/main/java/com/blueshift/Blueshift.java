@@ -100,7 +100,7 @@ public class Blueshift {
         }
     }
 
-    private static boolean hasPermission(Context context, String permission) {
+    public static boolean hasPermission(Context context, String permission) {
         boolean status = false;
 
         try {
