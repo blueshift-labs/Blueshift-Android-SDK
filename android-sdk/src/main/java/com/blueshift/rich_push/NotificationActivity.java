@@ -32,7 +32,10 @@ public class NotificationActivity extends AppCompatActivity {
 
         mContext = this;
 
-        mMessage = (Message) getIntent().getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+        try {
+            mMessage = (Message) getIntent().getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+        } catch (Exception ignore) {
+        }
 
         if (mMessage != null) {
             int theme = 0;

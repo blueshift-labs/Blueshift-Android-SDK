@@ -35,7 +35,13 @@ public class NotificationWorker extends IntentService {
 
         if (action == null) return;
 
-        Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+        Message message = null;
+        try {
+            message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+        } catch (Exception ignore) {
+        }
+
+        if (message == null) return;
 
         switch (action) {
             case ACTION_CAROUSEL_IMG_CHANGE:
