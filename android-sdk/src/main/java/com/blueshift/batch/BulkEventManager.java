@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
@@ -35,6 +36,7 @@ public class BulkEventManager {
             SdkLog.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
         } else {
             long interval = configuration.getBatchInterval();
+            long startAtMillis = SystemClock.elapsedRealtime() + interval;
 
             SdkLog.i(LOG_TAG, "Bulk event time interval: " + (interval / 1000f) / 60f + " min.");
 
@@ -42,7 +44,7 @@ public class BulkEventManager {
             if (alarmManager != null) {
                 alarmManager.setInexactRepeating(
                         AlarmManager.ELAPSED_REALTIME,
-                        interval, // start in interval time from now.
+                        startAtMillis,
                         interval, // repeat every interval time.
                         getAlarmPendingIntent(context, PendingIntent.FLAG_UPDATE_CURRENT)
                 );
