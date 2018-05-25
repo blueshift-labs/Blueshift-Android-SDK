@@ -26,11 +26,13 @@ import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 
 /**
@@ -319,11 +321,12 @@ public class RequestQueue {
 
                 if (BlueshiftConstants.EVENT_API_URL.equals(api)) {
                     // this is a case where request sent to non-bulk events api fails.
-                    HashMap<String, Object> paramsMap = new HashMap<>();
+                    HashMap<String, Object> paramsMap;
                     String paramsJson = mRequest.getUrlParamsAsJSON();
 
                     if (!TextUtils.isEmpty(paramsJson)) {
-                        paramsMap = new Gson().fromJson(paramsJson, paramsMap.getClass());
+                        Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
+                        paramsMap = new Gson().fromJson(paramsJson, type);
 
                         Event event = new Event();
                         event.setEventParams(paramsMap);
