@@ -46,7 +46,13 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                 SdkLog.d(LOG_TAG, "No bundle data available with the broadcast.");
             }
 
-            Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+            Message message = null;
+            try {
+                message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+            } catch (Exception ignore) {
+            }
+
+            if (message == null) return;
 
             // remove cached images(if any) for this notification
             NotificationUtils.removeCachedCarouselImages(context, message);
