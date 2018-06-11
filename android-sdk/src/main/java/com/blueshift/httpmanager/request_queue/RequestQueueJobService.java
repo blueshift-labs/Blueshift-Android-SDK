@@ -18,10 +18,11 @@ import android.util.Log;
 public class RequestQueueJobService extends JobService {
     private final String LOG_TAG = "RequestQueueJobService";
 
+    private RequestQueueSyncTask mReqQueueSyncTask;
+
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
-        // kick start the sync task for request queue
-        new RequestQueueSyncTask(
+        mReqQueueSyncTask = new RequestQueueSyncTask(
                 getApplicationContext(),
                 new RequestQueueSyncTask.Callback() {
                     @Override
@@ -36,13 +37,19 @@ public class RequestQueueJobService extends JobService {
                         // this method needs to be called to release the wakelock
                         jobFinished(jobParameters, false);
                     }
-                }).execute();
+                });
+
+        mReqQueueSyncTask.execute();
 
         return true;
     }
 
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
-        return false;
+        if (mReqQueueSyncTask != null) {
+            mReqQueueSyncTask.cancel(true);
+        }
+
+        return true;
     }
 }
