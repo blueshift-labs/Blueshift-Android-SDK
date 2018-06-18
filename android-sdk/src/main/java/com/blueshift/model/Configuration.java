@@ -30,10 +30,12 @@ public class Configuration {
 
     // job scheduler
     private int networkChangeListenerJobId;
+    private int bulkEventsJobId;
 
     public Configuration() {
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
         networkChangeListenerJobId = 901;
+        bulkEventsJobId = 902;
     }
 
     public int getAppIcon() {
@@ -155,5 +157,13 @@ public class Configuration {
 
     public void setNetworkChangeListenerJobId(int networkChangeListenerJobId) {
         this.networkChangeListenerJobId = networkChangeListenerJobId;
+    }
+
+    public int getBulkEventsJobId() {
+        return bulkEventsJobId;
+    }
+
+    public void setBulkEventsJobId(int bulkEventsJobId) {
+        this.bulkEventsJobId = bulkEventsJobId;
     }
 }

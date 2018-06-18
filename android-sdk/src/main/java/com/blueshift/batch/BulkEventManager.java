@@ -2,9 +2,14 @@ package com.blueshift.batch;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.SystemClock;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
@@ -19,6 +24,42 @@ import com.blueshift.util.SdkLog;
 public class BulkEventManager {
 
     private static final String LOG_TAG = BulkEventManager.class.getSimpleName();
+
+
+    public static void scheduleBulkEventDispatch(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            scheduleBulkEventDispatchWithJobScheduler(context);
+        } else {
+            startAlarmManager(context);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private static void scheduleBulkEventDispatchWithJobScheduler(Context context) {
+        if (context != null) {
+            long fiveMinutes = 1000 * 60 * 5;
+
+            Configuration config = Blueshift.getInstance(context).getConfiguration();
+            ComponentName componentName = new ComponentName(context, BulkEventJobService.class);
+            JobInfo.Builder builder =
+                    new JobInfo.Builder(config.getBulkEventsJobId(), componentName);
+
+            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            builder.setBackoffCriteria(fiveMinutes, JobInfo.BACKOFF_POLICY_EXPONENTIAL);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder.setRequiresBatteryNotLow(true);
+            }
+
+            JobScheduler jobScheduler =
+                    (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+            if (jobScheduler != null
+                    && jobScheduler.schedule(builder.build()) == JobScheduler.RESULT_SUCCESS) {
+                Log.d(LOG_TAG, "Bulk event job scheduled.");
+            }
+        }
+    }
 
     private static PendingIntent getAlarmPendingIntent(Context context, int flag) {
         Intent alarmIntent = new Intent(context, AlarmReceiver.class);
