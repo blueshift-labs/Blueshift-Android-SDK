@@ -245,6 +245,8 @@ public class Blueshift {
         BulkEventManager.startAlarmManager(mContext);
         // schedule job to sync request queue on nw change
         RequestQueue.scheduleQueueSyncJob(mContext);
+        // schedule the bulk events dispatch
+        BulkEventManager.scheduleBulkEventEnqueue(mContext);
     }
 
     /**
