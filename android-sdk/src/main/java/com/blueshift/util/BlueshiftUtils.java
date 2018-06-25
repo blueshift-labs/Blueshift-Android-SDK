@@ -10,6 +10,13 @@ import com.blueshift.model.Configuration;
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
 
+    /**
+     * This method checks if a non-empty API key is supplied to the
+     * SDK while initialization and returns the same if available.
+     *
+     * @param context Context object to get the Blueshift instance.
+     * @return API Key, if present. Else null.
+     */
     public static String getApiKey(Context context) {
         Configuration config = getConfiguration(context);
         if (config != null) {
@@ -25,6 +32,13 @@ public class BlueshiftUtils {
         return null;
     }
 
+    /**
+     * Checks if a not-null {@link Configuration} object is supplied during
+     * the SDK initialization and returns the same if available.
+     *
+     * @param context Context object to get the Blueshift instance.
+     * @return Valid {@link Configuration} object, if found. Else null.
+     */
     public static Configuration getConfiguration(Context context) {
         Configuration config = Blueshift.getInstance(context).getConfiguration();
         if (config != null) {
