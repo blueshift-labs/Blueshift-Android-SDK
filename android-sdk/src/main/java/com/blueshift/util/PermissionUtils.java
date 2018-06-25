@@ -9,6 +9,13 @@ import android.util.Log;
 public class PermissionUtils {
     private static final String LOG_TAG = "Blueshift";
 
+    /**
+     * Checks if any of the permissions inside the array is granted by user.
+     *
+     * @param context     {@link Context object}
+     * @param permissions Array of valid permission strings.
+     * @return true if ANY ONE of the permissions is granted. else false.
+     */
     public static boolean hasAnyPermission(Context context, String[] permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -21,6 +28,13 @@ public class PermissionUtils {
         return false;
     }
 
+    /**
+     * Checks if all the permssions are granted by user.
+     *
+     * @param context     {@link Context object}
+     * @param permissions Array of valid permission strings
+     * @return true if ALL of the permissions are granted. else false.
+     */
     public static boolean hasAllPermissions(Context context, String[] permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -33,6 +47,13 @@ public class PermissionUtils {
         return true;
     }
 
+    /**
+     * Checks if the provided permission is granted by user.
+     *
+     * @param context    {@link Context object}
+     * @param permission permission string to be checked.
+     * @return true if permission is granted. false, if not.
+     */
     public static boolean hasPermission(Context context, String permission) {
         boolean hasPermission = false;
         try {
