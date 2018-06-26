@@ -24,6 +24,7 @@ import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
 import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.SdkLog;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
@@ -38,8 +39,8 @@ import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
- * Created on 26/2/15 @ 3:07 PM
- * https://github.com/rahulrvp
+ *         Created on 26/2/15 @ 3:07 PM
+ *         https://github.com/rahulrvp
  */
 public class RequestQueue {
     public static final int DEFAULT_RETRY_COUNT = 3;
@@ -49,7 +50,6 @@ public class RequestQueue {
     private static final long RETRY_INTERVAL = 5 * 60 * 1000;
 
     private static Status mStatus;
-    private static Context mContext;
     private static RequestQueue mInstance = null;
 
     public static void scheduleQueueSyncJob(Context context) {
@@ -99,9 +99,7 @@ public class RequestQueue {
         mStatus = Status.AVAILABLE;
     }
 
-    public synchronized static RequestQueue getInstance(Context context) {
-        mContext = context;
-
+    public synchronized static RequestQueue getInstance() {
         if (mInstance == null) {
             mInstance = new RequestQueue();
         }
@@ -109,54 +107,54 @@ public class RequestQueue {
         return mInstance;
     }
 
-    public void add(Request request) {
+    public void add(Context context, Request request) {
         if (request != null) {
             SdkLog.d(LOG_TAG, "Adding new request to the Queue.");
 
-            RequestQueueTable db = RequestQueueTable.getInstance(mContext);
+            RequestQueueTable db = RequestQueueTable.getInstance(context);
             db.insert(request);
 
-            sync();
+            sync(context);
         }
     }
 
-    public void remove(Request request) {
+    public void remove(Context context, Request request) {
         if (request != null) {
             SdkLog.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
 
-            RequestQueueTable db = RequestQueueTable.getInstance(mContext);
+            RequestQueueTable db = RequestQueueTable.getInstance(context);
             db.delete(request);
         }
     }
 
-    public Request fetch() {
+    public Request fetch(Context context) {
         synchronized (lock) {
             mStatus = Status.BUSY;
 
-            RequestQueueTable db = RequestQueueTable.getInstance(mContext);
+            RequestQueueTable db = RequestQueueTable.getInstance(context);
             return db.getNextRequest();
         }
     }
 
-    public void sync() {
+    public void sync(Context context) {
         synchronized (lock) {
-            if (mStatus == Status.AVAILABLE && isConnectedToNetwork()) {
-                Request request = fetch();
+            if (mStatus == Status.AVAILABLE && NetworkUtils.isConnected(context)) {
+                Request request = fetch(context);
                 if (request != null) {
                     if (request.getPendingRetryCount() != 0) {
                         long nextRetryTime = request.getNextRetryTime();
                         // Checks if next retry time had passed or not. (0 is the default time for normal requests.)
                         if (nextRetryTime == 0 || nextRetryTime < System.currentTimeMillis()) {
-                            new sendRequestTask(request).execute();
+                            new sendRequestTask(context, request).execute();
                         } else {
                             // The request has a next retry time which had not passed yet, so we need to move that to back of the queue.
-                            remove(request);
+                            remove(context, request);
                             mStatus = Status.AVAILABLE;
-                            add(request);
+                            add(context, request);
                         }
                     } else {
                         // Request expired its retries. Need to be removed from queue. This is an escape plan. This case will not happen normally.
-                        remove(request);
+                        remove(context, request);
                         mStatus = Status.AVAILABLE;
                     }
                 } else {
@@ -168,26 +166,15 @@ public class RequestQueue {
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private boolean isConnectedToNetwork() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetworkInfo = null;
-        boolean hasPermission = Blueshift.hasPermission(mContext, Manifest.permission.ACCESS_NETWORK_STATE);
-        if (connectivityManager != null && hasPermission) {
-            activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        } else {
-            Log.e(LOG_TAG, "ACCESS_NETWORK_STATE permission found missing in AndroidManifest.xml!");
-        }
-
-        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
-    }
-
-    private class sendRequestTask extends AsyncTask<Void, Void, Boolean> {
+    private static class sendRequestTask extends AsyncTask<Void, Void, Boolean> {
         private Request mRequest;
+        private Context mContext;
+        // TODO: 26/06/18
+        // This context will be removed when the dispatching of
+        // events is implemented with handler and thread.
 
-        sendRequestTask(Request request) {
+        sendRequestTask(Context context, Request request) {
+            mContext = context;
             mRequest = request;
         }
 
@@ -333,7 +320,8 @@ public class RequestQueue {
         protected void onPostExecute(Boolean status) {
             // we will be re-adding this to queue if the request was failed.
             // this is to avoid blocking the queue when a request fails continuously.
-            remove(mRequest);
+            RequestQueue requestQueue = RequestQueue.getInstance();
+            requestQueue.remove(mContext, mRequest);
 
             if (!status) {
                 // check if it is a failed high priority event.
@@ -345,7 +333,7 @@ public class RequestQueue {
                     String paramsJson = mRequest.getUrlParamsAsJSON();
 
                     if (!TextUtils.isEmpty(paramsJson)) {
-                        Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
+                        Type type = new TypeToken<HashMap<String,Object>>(){}.getType();
                         paramsMap = new Gson().fromJson(paramsJson, type);
 
                         Event event = new Event();
@@ -364,12 +352,12 @@ public class RequestQueue {
                         long nextRetryTime = (RETRY_INTERVAL) + System.currentTimeMillis();
                         mRequest.setNextRetryTime(nextRetryTime);
 
-                        add(mRequest);
+                        requestQueue.add(mContext, mRequest);
                     }
                 }
             }
             mStatus = RequestQueue.Status.AVAILABLE;
-            sync();
+            requestQueue.sync(mContext);
         }
     }
 
