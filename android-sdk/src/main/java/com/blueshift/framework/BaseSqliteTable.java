@@ -9,7 +9,7 @@ import android.text.TextUtils;
 
 import com.blueshift.batch.EventsTable;
 import com.blueshift.batch.FailedEventsTable;
-import com.blueshift.httpmanager.request_queue.RequestQueueTable;
+import com.blueshift.request_queue.RequestQueueTable;
 import com.blueshift.util.SdkLog;
 
 import java.util.ArrayList;

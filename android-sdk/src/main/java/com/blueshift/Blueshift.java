@@ -23,7 +23,7 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
-import com.blueshift.httpmanager.request_queue.RequestQueue;
+import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;

@@ -1,4 +1,4 @@
-package com.blueshift.httpmanager.request_queue;
+package com.blueshift.request_queue;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -141,17 +141,20 @@ public class RequestQueue {
                 if (request != null) {
                     if (request.getPendingRetryCount() != 0) {
                         long nextRetryTime = request.getNextRetryTime();
-                        // Checks if next retry time had passed or not. (0 is the default time for normal requests.)
+                        // Checks if next retry time had passed or not.
+                        // (0 is the default time for normal requests.)
                         if (nextRetryTime == 0 || nextRetryTime < System.currentTimeMillis()) {
                             new sendRequestTask(context, request).execute();
                         } else {
-                            // The request has a next retry time which had not passed yet, so we need to move that to back of the queue.
+                            // The request has a next retry time which had not passed yet,
+                            // so we need to move that to back of the queue.
                             remove(context, request);
                             mStatus = Status.AVAILABLE;
                             add(context, request);
                         }
                     } else {
-                        // Request expired its retries. Need to be removed from queue. This is an escape plan. This case will not happen normally.
+                        // Request expired its retries. Need to be removed from queue.
+                        // This is an escape plan. This case will not happen normally.
                         remove(context, request);
                         mStatus = Status.AVAILABLE;
                     }
