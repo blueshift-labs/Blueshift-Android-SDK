@@ -47,7 +47,7 @@ public class RequestQueue {
     private static final Boolean lock = true;
     private static final long RETRY_INTERVAL = 5 * 60 * 1000;
 
-    private static Status mStatus;
+    private Status mStatus;
     private static RequestQueue mInstance = null;
 
     public static void scheduleQueueSyncJob(Context context) {
@@ -94,7 +94,7 @@ public class RequestQueue {
     }
 
     private RequestQueue() {
-        mStatus = Status.AVAILABLE;
+        markQueueAvailable();
     }
 
     public synchronized static RequestQueue getInstance() {
@@ -125,16 +125,24 @@ public class RequestQueue {
         }
     }
 
-    public Request fetch(Context context) {
+    private Request fetch(Context context) {
         synchronized (lock) {
-            mStatus = Status.BUSY;
+            markQueueBusy();
 
             RequestQueueTable db = RequestQueueTable.getInstance(context);
             return db.getNextRequest();
         }
     }
 
-    public void sync(Context context) {
+    public void markQueueAvailable() {
+        mStatus = Status.AVAILABLE;
+    }
+
+    public void markQueueBusy() {
+        mStatus = Status.BUSY;
+    }
+
+    public void sync(final Context context) {
         synchronized (lock) {
             if (mStatus == Status.AVAILABLE && NetworkUtils.isConnected(context)) {
                 Request request = fetch(context);
@@ -144,24 +152,40 @@ public class RequestQueue {
                         // Checks if next retry time had passed or not.
                         // (0 is the default time for normal requests.)
                         if (nextRetryTime == 0 || nextRetryTime < System.currentTimeMillis()) {
-                            new sendRequestTask(context, request).execute();
+                            RequestDispatcher dispatcher = new RequestDispatcher.Builder()
+                                    .setContext(context)
+                                    .setRequest(request)
+                                    .setCallback(new RequestDispatcher.Callback() {
+                                        @Override
+                                        public void onDispatchBegin() {
+                                            // empty listener method
+                                        }
+
+                                        @Override
+                                        public void onDispatchComplete() {
+                                            sync(context);
+                                        }
+                                    })
+                                    .build();
+
+                            dispatcher.dispatch();
                         } else {
                             // The request has a next retry time which had not passed yet,
                             // so we need to move that to back of the queue.
                             remove(context, request);
-                            mStatus = Status.AVAILABLE;
+                            markQueueAvailable();
                             add(context, request);
                         }
                     } else {
                         // Request expired its retries. Need to be removed from queue.
                         // This is an escape plan. This case will not happen normally.
                         remove(context, request);
-                        mStatus = Status.AVAILABLE;
+                        markQueueAvailable();
                     }
                 } else {
                     SdkLog.d(LOG_TAG, "Request queue is empty.");
 
-                    mStatus = Status.AVAILABLE;
+                    markQueueAvailable();
                 }
             }
         }
@@ -181,7 +205,7 @@ public class RequestQueue {
 
         @Override
         protected void onPreExecute() {
-            mStatus = RequestQueue.Status.BUSY;
+            RequestQueue.getInstance().markQueueBusy();
         }
 
         @Override
@@ -334,7 +358,8 @@ public class RequestQueue {
                     String paramsJson = mRequest.getUrlParamsAsJSON();
 
                     if (!TextUtils.isEmpty(paramsJson)) {
-                        Type type = new TypeToken<HashMap<String,Object>>(){}.getType();
+                        Type type = new TypeToken<HashMap<String, Object>>() {
+                        }.getType();
                         paramsMap = new Gson().fromJson(paramsJson, type);
 
                         Event event = new Event();
@@ -357,7 +382,7 @@ public class RequestQueue {
                     }
                 }
             }
-            mStatus = RequestQueue.Status.AVAILABLE;
+            requestQueue.markQueueAvailable();
             requestQueue.sync(mContext);
         }
     }
