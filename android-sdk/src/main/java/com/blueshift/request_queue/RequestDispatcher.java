@@ -21,6 +21,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,34 +37,34 @@ public class RequestDispatcher {
     private Request mRequest;
     private Callback mCallback;
 
-    private RequestDispatcher() {
-        // do nothing
+    private RequestDispatcher(Context context, Request request, Callback callback) {
+        mContext = context;
+        mRequest = request;
+        mCallback = callback;
     }
 
     public static class Builder {
-        private RequestDispatcher mDispatcher;
+        private Context mContext;
+        private Request mRequest;
+        private Callback mCallback;
 
-        Builder() {
-            mDispatcher = new RequestDispatcher();
-        }
-
-        public Builder setContext(Context context) {
-            mDispatcher.mContext = context;
+        public Builder setContext(@NotNull Context context) {
+            mContext = context;
             return this;
         }
 
-        public Builder setRequest(Request request) {
-            mDispatcher.mRequest = request;
+        public Builder setRequest(@NotNull Request request) {
+            mRequest = request;
             return this;
         }
 
-        public Builder setCallback(Callback callback) {
-            mDispatcher.mCallback = callback;
+        public Builder setCallback(@NotNull Callback callback) {
+            mCallback = callback;
             return this;
         }
 
         public synchronized RequestDispatcher build() {
-            return mDispatcher;
+            return new RequestDispatcher(mContext, mRequest, mCallback);
         }
     }
 
