@@ -61,7 +61,9 @@ public class RequestQueue {
                             = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
                     if (jobScheduler != null) {
-                        ComponentName componentName = new ComponentName(context, RequestQueueJobService.class);
+                        @SuppressLint("JobSchedulerService")
+                        ComponentName componentName
+                                = new ComponentName(context, RequestQueueJobService.class);
                         int jobId = config.getNetworkChangeListenerJobId();
                         Log.d(LOG_TAG, "Job Id: " + jobId);
                         JobInfo.Builder builder = new JobInfo.Builder(jobId, componentName);
@@ -77,15 +79,18 @@ public class RequestQueue {
                         JobInfo jobInfo = builder.build();
 
                         if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
-                            Log.i(LOG_TAG, "Successfully scheduled request queue sync job on network change");
+                            SdkLog.i(LOG_TAG, "Successfully scheduled request queue " +
+                                    "sync job on network change");
                         } else {
                             // for some reason job scheduling failed. log this.
-                            Log.w(LOG_TAG, "Could not schedule request queue sync job on network change");
+                            SdkLog.w(LOG_TAG, "Could not schedule request queue sync " +
+                                    "job on network change");
                         }
                     }
                 }
             } else {
-                SdkLog.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+                Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with " +
+                        "a valid configuration object.");
             }
         }
     }
