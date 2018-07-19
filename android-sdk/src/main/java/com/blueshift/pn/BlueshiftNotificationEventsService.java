@@ -14,6 +14,7 @@ import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
+import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 
@@ -85,7 +86,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     public void displayProductPage(Context context, Bundle bundle) {
         Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
         if (message != null) {
-            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getProductPage() != null) {
                 Intent pageLauncherIntent = new Intent(context, configuration.getProductPage());
                 // add product specific items.
@@ -112,7 +113,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     public void addToCart(Context context, Bundle bundle) {
         Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
         if (message != null) {
-            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getCartPage() != null) {
                 Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
                 // add product specific items.
@@ -139,7 +140,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     public void displayCartPage(Context context, Bundle bundle) {
         Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
         if (message != null) {
-            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getCartPage() != null) {
                 Intent pageLauncherIntent = new Intent(context, configuration.getCartPage());
                 // add the whole bundle. typically contains message object.
@@ -161,7 +162,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     public void displayOfferDisplayPage(Context context, Bundle bundle) {
         Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
         if (message != null) {
-            Configuration configuration = Blueshift.getInstance(context).getConfiguration();
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getOfferDisplayPage() != null) {
                 Intent pageLauncherIntent = new Intent(context, configuration.getOfferDisplayPage());
                 // add the whole bundle. typically contains message object.
