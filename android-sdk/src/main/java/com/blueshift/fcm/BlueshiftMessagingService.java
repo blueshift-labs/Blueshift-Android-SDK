@@ -18,6 +18,8 @@ import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.NotificationFactory;
+import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
@@ -115,7 +117,9 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             /*
              * Create simple notification.
              */
-            Configuration configuration = Blueshift.getInstance(this).getConfiguration();
+            Configuration configuration = BlueshiftUtils.getConfiguration(this);
+            if (configuration == null) return; // No app icon available. Can't show notification.
+
             Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
             String channelName = NotificationUtils.getNotificationChannelName(this, null);
