@@ -44,10 +44,11 @@ public class BlueshiftUtils {
         if (config != null) {
             return config;
         } else {
-            Log.e(LOG_TAG,
-                    "No configuration provided. " +
-                            "Please call Blueshift.getInstance().initialize() with valid " +
-                            "Configuration object.");
+            Log.e(LOG_TAG, "Blueshift Android SDK is not initialized! " +
+                    "Please call the initialize() method of Blueshift class from your app\\'s " +
+                    "Application file\\'s onCreate() method with a valid Configuration object. " +
+                    "Ex: Blueshift.getInstance(Context).initialize(Configuration); " +
+                    "See docs: https://help.blueshift.com/hc/en-us/articles/115002731534-Android-SDK#Initialize");
         }
 
         return null;
