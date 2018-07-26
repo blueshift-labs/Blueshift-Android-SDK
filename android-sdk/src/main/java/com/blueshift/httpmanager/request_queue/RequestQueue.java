@@ -1,9 +1,15 @@
 package com.blueshift.httpmanager.request_queue;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -21,17 +27,19 @@ import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 26/2/15 @ 3:07 PM
- *         https://github.com/rahulrvp
+ * Created on 26/2/15 @ 3:07 PM
+ * https://github.com/rahulrvp
  */
 public class RequestQueue {
     public static final int DEFAULT_RETRY_COUNT = 3;
@@ -43,6 +51,49 @@ public class RequestQueue {
     private static Status mStatus;
     private static Context mContext;
     private static RequestQueue mInstance = null;
+
+    public static void scheduleQueueSyncJob(Context context) {
+        if (context != null) {
+            Configuration config = Blueshift.getInstance(context).getConfiguration();
+            if (config != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    JobScheduler jobScheduler
+                            = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+                    if (jobScheduler != null) {
+                        @SuppressLint("JobSchedulerService")
+                        ComponentName componentName
+                                = new ComponentName(context, RequestQueueJobService.class);
+                        int jobId = config.getNetworkChangeListenerJobId();
+                        Log.d(LOG_TAG, "Job Id: " + jobId);
+                        JobInfo.Builder builder = new JobInfo.Builder(jobId, componentName);
+
+                        builder
+                                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                                .setPeriodic(30 * 60 * 1000);
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            builder.setRequiresBatteryNotLow(true);
+                        }
+
+                        JobInfo jobInfo = builder.build();
+
+                        if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
+                            SdkLog.i(LOG_TAG, "Successfully scheduled request queue " +
+                                    "sync job on network change");
+                        } else {
+                            // for some reason job scheduling failed. log this.
+                            SdkLog.w(LOG_TAG, "Could not schedule request queue sync " +
+                                    "job on network change");
+                        }
+                    }
+                }
+            } else {
+                Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with " +
+                        "a valid configuration object.");
+            }
+        }
+    }
 
     private RequestQueue() {
         mStatus = Status.AVAILABLE;
@@ -117,11 +168,18 @@ public class RequestQueue {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private boolean isConnectedToNetwork() {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        NetworkInfo activeNetworkInfo = null;
+        boolean hasPermission = Blueshift.hasPermission(mContext, Manifest.permission.ACCESS_NETWORK_STATE);
+        if (connectivityManager != null && hasPermission) {
+            activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        } else {
+            Log.e(LOG_TAG, "ACCESS_NETWORK_STATE permission found missing in AndroidManifest.xml!");
+        }
 
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
@@ -129,7 +187,7 @@ public class RequestQueue {
     private class sendRequestTask extends AsyncTask<Void, Void, Boolean> {
         private Request mRequest;
 
-        public sendRequestTask(Request request) {
+        sendRequestTask(Request request) {
             mRequest = request;
         }
 
@@ -283,11 +341,12 @@ public class RequestQueue {
 
                 if (BlueshiftConstants.EVENT_API_URL.equals(api)) {
                     // this is a case where request sent to non-bulk events api fails.
-                    HashMap<String, Object> paramsMap = new HashMap<>();
+                    HashMap<String, Object> paramsMap;
                     String paramsJson = mRequest.getUrlParamsAsJSON();
 
                     if (!TextUtils.isEmpty(paramsJson)) {
-                        paramsMap = new Gson().fromJson(paramsJson, paramsMap.getClass());
+                        Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
+                        paramsMap = new Gson().fromJson(paramsJson, type);
 
                         Event event = new Event();
                         event.setEventParams(paramsMap);

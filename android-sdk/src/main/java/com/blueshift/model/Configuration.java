@@ -28,8 +28,12 @@ public class Configuration {
     private String defaultNotificationChannelName;
     private String defaultNotificationChannelDescription;
 
+    // job scheduler
+    private int networkChangeListenerJobId;
+
     public Configuration() {
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
+        networkChangeListenerJobId = 901;
     }
 
     public int getAppIcon() {
@@ -143,5 +147,13 @@ public class Configuration {
 
     public void setDefaultNotificationChannelDescription(String channelDescription) {
         this.defaultNotificationChannelDescription = channelDescription;
+    }
+
+    public int getNetworkChangeListenerJobId() {
+        return networkChangeListenerJobId;
+    }
+
+    public void setNetworkChangeListenerJobId(int networkChangeListenerJobId) {
+        this.networkChangeListenerJobId = networkChangeListenerJobId;
     }
 }
