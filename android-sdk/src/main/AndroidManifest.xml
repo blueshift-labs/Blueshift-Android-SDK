@@ -83,6 +83,12 @@
             android:name=".httpmanager.request_queue.RequestQueueJobService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <!--Job Service for Bulk event dispatching-->
+        <service
+            android:name=".batch.BulkEventJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
     </application>
 
 </manifest>
