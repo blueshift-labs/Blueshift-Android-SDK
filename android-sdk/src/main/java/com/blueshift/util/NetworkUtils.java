@@ -1,5 +1,11 @@
 package com.blueshift.util;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,7 +28,7 @@ public class NetworkUtils {
             httpURLConnection = (HttpURLConnection) downloadURL.openConnection();
             httpURLConnection.connect();
 
-            if (httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK ) {
+            if (httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 return false;
             }
 
@@ -56,5 +62,24 @@ public class NetworkUtils {
         }
 
         return true;
+    }
+
+    public static boolean isConnected(Context context) {
+        boolean hasNetwork = false;
+
+        if (context != null &&
+                PermissionUtils.hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
+
+            ConnectivityManager connectivityManager =
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            if (connectivityManager != null) {
+                @SuppressLint("MissingPermission")
+                NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+                hasNetwork = networkInfo != null && networkInfo.isConnectedOrConnecting();
+            }
+        }
+
+        return hasNetwork;
     }
 }

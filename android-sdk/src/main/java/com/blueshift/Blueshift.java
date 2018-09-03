@@ -1,6 +1,7 @@
 package com.blueshift;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -30,6 +31,7 @@ import com.blueshift.model.UserInfo;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.PermissionUtils;
 import com.blueshift.util.SdkLog;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
@@ -240,7 +242,7 @@ public class Blueshift {
         // Collect app details
         initAppInfo(mContext);
         // Sync the http request queue.
-        RequestQueue.getInstance(mContext).sync();
+        RequestQueue.getInstance().sync(mContext);
         // schedule job to sync request queue on nw change
         RequestQueue.scheduleQueueSyncJob(mContext);
         // schedule the bulk events dispatch
@@ -375,12 +377,17 @@ public class Blueshift {
                         // setting the last known location parameters.
                         LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
                         if (locationManager != null) {
-                            if (hasPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
-                                    || hasPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                            if (PermissionUtils.hasAnyPermission(mContext,
+                                    new String[]{
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION})) {
+
                                 // We have either of the above 2 permissions granted.
 
-                                // noinspection MissingPermission (because permission check is done above)
-                                Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                                @SuppressLint("MissingPermission")
+                                Location location =
+                                        locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
                                 if (location != null) {
                                     requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
                                     requestParams.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
@@ -416,7 +423,7 @@ public class Blueshift {
                             SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
 
                             // Adding the request to the queue.
-                            RequestQueue.getInstance(mContext).add(request);
+                            RequestQueue.getInstance().add(mContext, request);
                         }
 
                         return true;
@@ -1038,7 +1045,7 @@ public class Blueshift {
                 SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
 
                 // Adding the request to the queue.
-                RequestQueue.getInstance(mContext).add(request);
+                RequestQueue.getInstance().add(mContext, request);
 
                 return true;
             } else {

@@ -24,7 +24,6 @@ public class RequestQueueJobService extends JobService {
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
         mReqQueueSyncTask = new RequestQueueSyncTask(
-                getApplicationContext(),
                 new RequestQueueSyncTask.Callback() {
                     @Override
                     public void onTaskStart() {
@@ -40,7 +39,7 @@ public class RequestQueueJobService extends JobService {
                     }
                 });
 
-        mReqQueueSyncTask.execute();
+        mReqQueueSyncTask.execute(getApplicationContext());
 
         return true;
     }
