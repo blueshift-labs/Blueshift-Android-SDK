@@ -3,6 +3,8 @@ package com.blueshift.httpmanager.request_queue;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.blueshift.request_queue.RequestQueue;
+
 
 /**
  * @author Rahul Raveendran V P

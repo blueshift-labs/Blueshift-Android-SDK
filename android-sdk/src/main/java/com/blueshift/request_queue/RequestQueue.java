@@ -19,6 +19,7 @@ import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
+import com.blueshift.httpmanager.request_queue.RequestQueueJobService;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
 import com.blueshift.util.DeviceUtils;
