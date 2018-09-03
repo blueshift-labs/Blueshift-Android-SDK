@@ -16,8 +16,8 @@ import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
-import com.blueshift.httpmanager.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
+import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 

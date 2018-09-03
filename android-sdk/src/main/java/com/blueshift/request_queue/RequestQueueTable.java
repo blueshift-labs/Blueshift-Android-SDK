@@ -1,4 +1,4 @@
-package com.blueshift.httpmanager.request_queue;
+package com.blueshift.request_queue;
 
 import android.content.ContentValues;
 import android.content.Context;
