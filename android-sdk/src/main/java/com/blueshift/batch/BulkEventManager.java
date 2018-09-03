@@ -211,7 +211,7 @@ public class BulkEventManager {
             request.setParamJson(new Gson().toJson(bulkEvent));
 
             // Adding the request to the queue.
-            RequestQueue.getInstance(context).add(request);
+            RequestQueue.getInstance().add(context, request);
         }
     }
 }

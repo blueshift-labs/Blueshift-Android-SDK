@@ -24,7 +24,7 @@ public class NetworkChangeListener extends BroadcastReceiver {
         if (context != null && intent != null
                 && "android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction())) {
             // call the db sync task to send events to server
-            new RequestQueueSyncTask(context, null).execute();
+            new RequestQueueSyncTask(null).execute(context);
         }
     }
 }

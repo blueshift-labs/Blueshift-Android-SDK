@@ -11,12 +11,12 @@ import android.os.AsyncTask;
  */
 
 
-public class RequestQueueSyncTask extends AsyncTask<Void, Void, Void> {
+public class RequestQueueSyncTask extends AsyncTask<Context, Void, Void> {
     private RequestQueue mRequestQueue;
     private Callback mCallback;
 
-    public RequestQueueSyncTask(Context context, Callback callback) {
-        mRequestQueue = RequestQueue.getInstance(context);
+    public RequestQueueSyncTask(Callback callback) {
+        mRequestQueue = RequestQueue.getInstance();
         mCallback = callback;
     }
 
@@ -28,9 +28,9 @@ public class RequestQueueSyncTask extends AsyncTask<Void, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(Void... voids) {
-        if (mRequestQueue != null) {
-            mRequestQueue.sync();
+    protected Void doInBackground(Context... contexts) {
+        if (mRequestQueue != null && contexts != null && contexts.length > 0) {
+            mRequestQueue.sync(contexts[0]);
         }
 
         return null;
