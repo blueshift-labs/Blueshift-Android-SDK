@@ -33,7 +33,10 @@ import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.PermissionUtils;
 import com.blueshift.util.SdkLog;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
@@ -74,6 +77,22 @@ public class Blueshift {
         }
 
         return instance;
+    }
+
+    /**
+     * This method will read latest device token from firebase and will
+     * update inside mDeviceParams.
+     */
+    private static void updateDeviceTokenAsync() {
+        Task<InstanceIdResult> result  = FirebaseInstanceId.getInstance().getInstanceId();
+        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                String token = instanceIdResult.getToken();
+                updateDeviceToken(token);
+                // Log.d("Blueshift", "FCM token 2: " + token);
+            }
+        });
     }
 
     /**
@@ -164,7 +183,7 @@ public class Blueshift {
     private void initializeDeviceParams() {
         synchronized (sDeviceParams) {
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, FirebaseInstanceId.getInstance().getToken());
+            // sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, FirebaseInstanceId.getInstance().getToken());
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
@@ -177,6 +196,7 @@ public class Blueshift {
         }
 
         new FetchAndUpdateAdIdTask().execute();
+        updateDeviceTokenAsync();
     }
 
     private void initAppInfo(Context context) {

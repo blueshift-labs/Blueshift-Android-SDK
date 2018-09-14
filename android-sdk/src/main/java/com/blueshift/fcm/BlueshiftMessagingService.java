@@ -16,8 +16,9 @@ import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
-import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.NotificationFactory;
+import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -134,7 +135,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             if (notificationManager != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     NotificationChannel channel =
-                            NotificationUtils.createNotificationChannel(this,null);
+                            NotificationUtils.createNotificationChannel(this, null);
                     if (channel != null) {
                         notificationManager.createNotificationChannel(channel);
                     }
@@ -192,5 +193,24 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     protected void onMessageNotFound(Map<String, String> data) {
 
+    }
+
+    @Override
+    public void onNewToken(String newToken) {
+        Log.d("Blueshift", "FCM token: " + newToken);
+
+        Blueshift.updateDeviceToken(newToken);
+        callIdentify();
+    }
+
+    /**
+     * We are calling an identify here to make sure that the change in
+     * device token is notified to the blueshift servers.
+     */
+    private void callIdentify() {
+        String adId = DeviceUtils.getAdvertisingID(this);
+        Blueshift
+                .getInstance(this)
+                .identifyUserByDeviceId(adId, null, false);
     }
 }
