@@ -196,10 +196,13 @@ public class RequestDispatcher {
     private void addDeviceTokenToParams(String token) {
         if (mRequest != null) {
             try {
-                JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
-                jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
+                String paramsJson = mRequest.getParamJson();
+                if (!TextUtils.isEmpty(paramsJson)) {
+                    JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
+                    jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
 
-                mRequest.setParamJson(jsonObject.toString());
+                    mRequest.setParamJson(jsonObject.toString());
+                }
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
             }
