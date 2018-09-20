@@ -492,26 +492,45 @@ public class Blueshift {
         }
 
         // running on a non-UI thread to avoid possible ANR.
-        new AsyncTask<Void, Void, Boolean>() {
-            @Override
-            protected Boolean doInBackground(Void... params) {
-                boolean result = false;
+        new SendEventTask(eventName, eventParams, canBatchThisEvent).execute(mContext);
+    }
 
+    private static class SendEventTask extends AsyncTask<Context, Void, Boolean> {
+
+        private String mEventName;
+        private HashMap<String, Object> mParams;
+        private boolean mCanBatch;
+
+        SendEventTask(String eventName, HashMap<String, Object> eventParams, boolean canBatch) {
+            mEventName = eventName;
+            mParams = eventParams;
+            mCanBatch = canBatch;
+        }
+
+        @Override
+        protected Boolean doInBackground(Context... contexts) {
+            boolean isSuccess = false;
+
+            Context context = contexts != null && contexts.length > 0 ? contexts[0] : null;
+            if (context != null) {
+                Blueshift blueshift = Blueshift.getInstance(context);
                 try {
                     // call send event and return its result.
-                    result = sendEvent(eventParams, canBatchThisEvent);
+                    isSuccess = blueshift.sendEvent(mParams, mCanBatch);
                 } catch (Exception e) {
-                    Log.e(LOG_TAG, "sendEvent() failed." + ((e.getMessage() != null) ? "\n" + e.getMessage() : ""));
+                    String errMsg = e.getMessage() != null ? e.getMessage() : "";
+                    Log.e(LOG_TAG, "sendEvent() failed.\n" + errMsg);
                 }
-
-                return result;
             }
 
-            @Override
-            protected void onPostExecute(Boolean isSuccess) {
-                Log.d(LOG_TAG, "Event: " + eventName + ", Tracking status: " + (isSuccess ? "success" : "failed"));
-            }
-        }.execute();
+            return isSuccess;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isSuccess) {
+            Log.d(LOG_TAG, "Event: " + mEventName + "," +
+                    " Tracking status: " + (isSuccess ? "success" : "failed"));
+        }
     }
 
     /**
@@ -927,7 +946,8 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        trackNotificationEvent(BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams);
+        new TrackNotificationEventTask(
+                BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams).execute(mContext);
     }
 
     public void trackNotificationClick(Message message) {
@@ -955,7 +975,8 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        trackNotificationEvent(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams);
+        new TrackNotificationEventTask(
+                BlueshiftConstants.EVENT_PUSH_CLICK, eventParams).execute(mContext);
     }
 
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
@@ -1010,19 +1031,29 @@ public class Blueshift {
         trackEvent(BlueshiftConstants.EVENT_DISMISS_ALERT, eventParams, canBatchThisEvent);
     }
 
-    private void trackNotificationEvent(final String eventName, final HashMap<String, Object> reqParams) {
-        if (reqParams != null) {
-            new AsyncTask<Void, Void, Boolean>() {
-                @Override
-                protected Boolean doInBackground(Void... params) {
-                    return sendNotificationEvent(eventName, reqParams);
-                }
+    private static class TrackNotificationEventTask extends AsyncTask<Context, Void, Void> {
 
-                @Override
-                protected void onPostExecute(Boolean aBoolean) {
-                    Log.d(LOG_TAG, "Event: " + eventName + ", Tracking status: " + (aBoolean ? "success" : "failed"));
+        private String mEventName;
+        private HashMap<String, Object> mParams;
+
+        TrackNotificationEventTask(String eventName, HashMap<String, Object> params) {
+            mEventName = eventName;
+            mParams = params;
+        }
+
+        @Override
+        protected Void doInBackground(Context... contexts) {
+            if (mEventName != null && mParams != null) {
+                Context context = contexts != null && contexts.length > 0 ? contexts[0] : null;
+                if (context != null) {
+                    Blueshift blueshift = Blueshift.getInstance(context);
+                    boolean isSuccess = blueshift.sendNotificationEvent(mEventName, mParams);
+                    Log.d(LOG_TAG, "Event: " + mEventName + "," +
+                            " Tracking status: " + (isSuccess ? "success" : "failed"));
                 }
-            }.execute();
+            }
+
+            return null;
         }
     }
 
@@ -1060,8 +1091,8 @@ public class Blueshift {
                 request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
                 request.setUrl(reqUrl);
                 request.setMethod(Method.GET);
-                request.setParamJson(new Gson().toJson(params));
 
+                SdkLog.d(LOG_TAG, reqUrl);
                 SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
 
                 // Adding the request to the queue.
