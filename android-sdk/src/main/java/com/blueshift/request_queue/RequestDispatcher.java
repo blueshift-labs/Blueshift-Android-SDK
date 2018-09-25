@@ -17,7 +17,10 @@ import com.blueshift.model.UserInfo;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -86,19 +89,42 @@ public class RequestDispatcher {
      * Method that process the {@link Request}. This calls all the methods
      * required for sending the event and handling the response.
      */
-    private synchronized void processRequest() {
+    private synchronized void processRequest(String fcmRegistrationToken) {
         String url = mRequest.getUrl();
         if (!TextUtils.isEmpty(url)) {
             HTTPManager httpManager = new HTTPManager(url);
             httpManager = appendAuthentication(httpManager);
 
-            addDeviceTokenToParams();
+            addDeviceTokenToParams(fcmRegistrationToken);
             doAutoIdentifyCheck();
 
             Response response = makeAPICall(httpManager);
             boolean apiStatus = response.getStatusCode() == 200;
             updateRequestQueue(apiStatus);
         }
+    }
+
+    /**
+     * Fetching new token from FCM and processes request.
+     */
+    private void fetchNewTokenAndProcessRequest() {
+        Task<InstanceIdResult> result  = FirebaseInstanceId.getInstance().getInstanceId();
+        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                final String token = instanceIdResult.getToken();
+                if (!TextUtils.isEmpty(token)) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            processRequest(token);
+                        }
+                    }).start();
+                } else {
+                    Log.e(LOG_TAG, "FCM registration token not found.");
+                }
+            }
+        });
     }
 
     private void invokeDispatchBegin() {
@@ -130,7 +156,7 @@ public class RequestDispatcher {
         @Override
         protected Void doInBackground(Void... voids) {
             if (mDispatcher != null) {
-                mDispatcher.processRequest();
+                mDispatcher.fetchNewTokenAndProcessRequest();
             }
 
             return null;
@@ -167,9 +193,8 @@ public class RequestDispatcher {
      * <p>
      * This method ensures that the event always has the latest device token in it.
      */
-    private void addDeviceTokenToParams() {
+    private void addDeviceTokenToParams(String token) {
         if (mRequest != null) {
-            String token = FirebaseInstanceId.getInstance().getToken();
             try {
                 JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
                 jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
