@@ -117,7 +117,7 @@ public class RequestQueue {
         }
     }
 
-    public void remove(Context context, Request request) {
+    void remove(Context context, Request request) {
         if (request != null) {
             SdkLog.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
 
@@ -135,11 +135,11 @@ public class RequestQueue {
         }
     }
 
-    public void markQueueAvailable() {
+    void markQueueAvailable() {
         mStatus = Status.AVAILABLE;
     }
 
-    public void markQueueBusy() {
+    private void markQueueBusy() {
         mStatus = Status.BUSY;
     }
 
@@ -189,202 +189,6 @@ public class RequestQueue {
                     markQueueAvailable();
                 }
             }
-        }
-    }
-
-    private static class sendRequestTask extends AsyncTask<Void, Void, Boolean> {
-        private Request mRequest;
-        private Context mContext;
-        // TODO: 26/06/18
-        // This context will be removed when the dispatching of
-        // events is implemented with handler and thread.
-
-        sendRequestTask(Context context, Request request) {
-            mContext = context;
-            mRequest = request;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            RequestQueue.getInstance().markQueueBusy();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            if (mRequest != null) {
-                SdkLog.d(LOG_TAG, "Processing request (id: " + mRequest.getId() + ").");
-
-                HTTPManager httpManager = new HTTPManager(mRequest.getUrl());
-
-                Configuration config = Blueshift.getInstance(mContext).getConfiguration();
-                if (config != null && config.getApiKey() != null) {
-                    httpManager.addBasicAuthentication(config.getApiKey(), "");
-                } else {
-                    SdkLog.e(LOG_TAG, "Please set a valid API key in your configuration before initialization.");
-                }
-
-                String deviceToken = FirebaseInstanceId.getInstance().getToken();
-                if (!TextUtils.isEmpty(deviceToken)) {
-                    try {
-                        /*
-                         * Update the params with latest device token. The minimum requirement
-                         * for an event to be valid is to have a device_token in it.
-                         *
-                         * This code will ensure we have latest device
-                         * token in the event all the time.
-                         */
-                        JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
-                        jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
-
-                        mRequest.setParamJson(jsonObject.toString());
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
-                    }
-
-                    UserInfo userInfo = UserInfo.getInstance(mContext);
-                    String emailId = userInfo.getEmail();
-                    if (!TextUtils.isEmpty(emailId)) {
-                        /*
-                         * If user is signed in and email is already not verified, then we
-                         * need to call an identify with this new email id.
-                         */
-                        if (!BlueShiftPreference.isEmailAlreadyIdentified(mContext, emailId)) {
-                            Blueshift
-                                    .getInstance(mContext)
-                                    .identifyUserByDeviceId(
-                                            DeviceUtils.getAdvertisingID(mContext), null, false);
-
-                            BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
-                        }
-                    }
-                }
-
-                Response response = null;
-                switch (mRequest.getMethod()) {
-                    case POST:
-                        response = httpManager.post(mRequest.getParamJson());
-
-                        Log.d(LOG_TAG, "Blueshift Event: " + getEventName(mRequest.getParamJson()) +
-                                ", API Status: " + getStatusFromResponse(response));
-
-                        break;
-
-                    case GET:
-                        response = httpManager.get();
-
-                        Log.d(LOG_TAG, "Blueshift Event\n" +
-                                "Method: GET\n" +
-                                "URL: " + mRequest.getUrl() + "\n" +
-                                "Status: " + getStatusFromResponse(response)
-                        );
-
-                        break;
-
-                    default:
-                        SdkLog.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
-                }
-
-                if (response != null) {
-                    int responseCode = response.getStatusCode();
-                    if (responseCode >= 200 && responseCode < 300) {
-                        SdkLog.d(LOG_TAG, "Request success for request (id: " + mRequest.getId() + "). Status code: " + response.getStatusCode());
-                        return true;
-                    } else {
-                        SdkLog.d(LOG_TAG, "Request failed for request (id: " + mRequest.getId() + "). Status code: " + response.getStatusCode() + ". Response: " + response.getResponseBody());
-                        return false;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private String getEventName(String json) {
-            String event = "Unknown";
-
-            try {
-                JSONObject jsonObject = new JSONObject(json);
-                if (jsonObject.has("event")) {
-                    event = jsonObject.getString("event");
-                }
-            } catch (JSONException e) {
-                try {
-                    JSONArray jsonArray = new JSONArray(json);
-                    if (jsonArray.length() > 0) {
-                        event = "bulk_event";
-                    }
-                } catch (JSONException ignored) {
-                }
-            }
-
-            return event;
-        }
-
-        private String getStatusFromResponse(Response response) {
-            String status = "Unknown";
-
-            if (response != null) {
-                int code = response.getStatusCode();
-                switch (code) {
-                    case 0:
-                        status = "Failed - No internet!";
-                        break;
-
-                    case 200:
-                        status = "Success - 200";
-                        break;
-
-                    default:
-                        status = "Failed - Code: " + code;
-                }
-            }
-
-            return status;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean status) {
-            // we will be re-adding this to queue if the request was failed.
-            // this is to avoid blocking the queue when a request fails continuously.
-            RequestQueue requestQueue = RequestQueue.getInstance();
-            requestQueue.remove(mContext, mRequest);
-
-            if (!status) {
-                // check if it is a failed high priority event.
-                String api = mRequest.getUrl();
-
-                if (BlueshiftConstants.EVENT_API_URL.equals(api)) {
-                    // this is a case where request sent to non-bulk events api fails.
-                    HashMap<String, Object> paramsMap;
-                    String paramsJson = mRequest.getUrlParamsAsJSON();
-
-                    if (!TextUtils.isEmpty(paramsJson)) {
-                        Type type = new TypeToken<HashMap<String, Object>>() {
-                        }.getType();
-                        paramsMap = new Gson().fromJson(paramsJson, type);
-
-                        Event event = new Event();
-                        event.setEventParams(paramsMap);
-
-                        SdkLog.d(LOG_TAG, "Adding failed request to failed events table");
-
-                        FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
-                        failedEventsTable.insert(event);
-                    }
-                } else {
-                    int retryCount = mRequest.getPendingRetryCount() - 1;
-                    if (retryCount > 0) {
-                        mRequest.setPendingRetryCount(retryCount);
-                        // setting a retry time 5 minutes from now.
-                        long nextRetryTime = (RETRY_INTERVAL) + System.currentTimeMillis();
-                        mRequest.setNextRetryTime(nextRetryTime);
-
-                        requestQueue.add(mContext, mRequest);
-                    }
-                }
-            }
-            requestQueue.markQueueAvailable();
-            requestQueue.sync(mContext);
         }
     }
 
