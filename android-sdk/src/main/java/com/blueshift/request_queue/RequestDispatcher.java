@@ -32,7 +32,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 
-public class RequestDispatcher {
+class RequestDispatcher {
     private static final String LOG_TAG = "RequestDispatcher";
     private static final long RETRY_INTERVAL = 5 * 60 * 1000;
 
@@ -46,32 +46,7 @@ public class RequestDispatcher {
         mCallback = callback;
     }
 
-    public static class Builder {
-        private Context mContext;
-        private Request mRequest;
-        private Callback mCallback;
-
-        public Builder setContext(@NotNull Context context) {
-            mContext = context;
-            return this;
-        }
-
-        public Builder setRequest(@NotNull Request request) {
-            mRequest = request;
-            return this;
-        }
-
-        public Builder setCallback(@NotNull Callback callback) {
-            mCallback = callback;
-            return this;
-        }
-
-        public synchronized RequestDispatcher build() {
-            return new RequestDispatcher(mContext, mRequest, mCallback);
-        }
-    }
-
-    public synchronized void dispatch() {
+    synchronized void dispatch() {
         if (mRequest == null) {
             Log.e(LOG_TAG, "No request object available.");
             return;
@@ -82,7 +57,15 @@ public class RequestDispatcher {
             return;
         }
 
-        new RequestDispatchTask(this).execute();
+        // get the latest device token from FCM before sending the event
+        Task<InstanceIdResult> result = FirebaseInstanceId.getInstance().getInstanceId();
+        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                String latestToken = instanceIdResult.getToken();
+                new RequestDispatchTask(latestToken, RequestDispatcher.this).execute();
+            }
+        });
     }
 
     /**
@@ -104,29 +87,6 @@ public class RequestDispatcher {
         }
     }
 
-    /**
-     * Fetching new token from FCM and processes request.
-     */
-    private void fetchNewTokenAndProcessRequest() {
-        Task<InstanceIdResult> result  = FirebaseInstanceId.getInstance().getInstanceId();
-        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                final String token = instanceIdResult.getToken();
-                if (!TextUtils.isEmpty(token)) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            processRequest(token);
-                        }
-                    }).start();
-                } else {
-                    Log.e(LOG_TAG, "FCM registration token not found.");
-                }
-            }
-        });
-    }
-
     private void invokeDispatchBegin() {
         if (mCallback != null) {
             mCallback.onDispatchBegin();
@@ -136,37 +96,6 @@ public class RequestDispatcher {
     private void invokeDispatchComplete() {
         if (mCallback != null) {
             mCallback.onDispatchComplete();
-        }
-    }
-
-    private static class RequestDispatchTask extends AsyncTask<Void, Void, Void> {
-        RequestDispatcher mDispatcher;
-
-        RequestDispatchTask(RequestDispatcher dispatcher) {
-            mDispatcher = dispatcher;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            if (mDispatcher != null) {
-                mDispatcher.invokeDispatchBegin();
-            }
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            if (mDispatcher != null) {
-                mDispatcher.fetchNewTokenAndProcessRequest();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            if (mDispatcher != null) {
-                mDispatcher.invokeDispatchComplete();
-            }
         }
     }
 
@@ -196,10 +125,13 @@ public class RequestDispatcher {
     private void addDeviceTokenToParams(String token) {
         if (mRequest != null) {
             try {
-                JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
-                jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
+                String paramsJson = mRequest.getParamJson();
+                if (!TextUtils.isEmpty(paramsJson)) {
+                    JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
+                    jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
 
-                mRequest.setParamJson(jsonObject.toString());
+                    mRequest.setParamJson(jsonObject.toString());
+                }
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
             }
@@ -230,7 +162,6 @@ public class RequestDispatcher {
             }
         }
     }
-
 
     /**
      * Makes the actual API call with the server, based on the details provided inside
@@ -379,5 +310,63 @@ public class RequestDispatcher {
         void onDispatchBegin();
 
         void onDispatchComplete();
+    }
+
+    public static class Builder {
+        private Context mContext;
+        private Request mRequest;
+        private Callback mCallback;
+
+        public Builder setContext(@NotNull Context context) {
+            mContext = context;
+            return this;
+        }
+
+        public Builder setRequest(@NotNull Request request) {
+            mRequest = request;
+            return this;
+        }
+
+        public Builder setCallback(@NotNull Callback callback) {
+            mCallback = callback;
+            return this;
+        }
+
+        public synchronized RequestDispatcher build() {
+            return new RequestDispatcher(mContext, mRequest, mCallback);
+        }
+    }
+
+    private static class RequestDispatchTask extends AsyncTask<Void, Void, Void> {
+        String mFcmToken;
+        RequestDispatcher mDispatcher;
+
+        RequestDispatchTask(String fcmToken, RequestDispatcher dispatcher) {
+            mFcmToken = fcmToken;
+            mDispatcher = dispatcher;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            if (mDispatcher != null) {
+                mDispatcher.invokeDispatchBegin();
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if (mDispatcher != null) {
+                mDispatcher.processRequest(mFcmToken);
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (mDispatcher != null) {
+                mDispatcher.invokeDispatchComplete();
+            }
+        }
     }
 }
