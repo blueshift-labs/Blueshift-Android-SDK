@@ -176,8 +176,11 @@ class RequestDispatcher {
         if (mRequest != null) {
             switch (mRequest.getMethod()) {
                 case POST:
-                    response = httpManager.post(mRequest.getParamJson());
-                    String eventName = getEventName(mRequest.getParamJson());
+                    String json = mRequest.getParamJson();
+                    SdkLog.d(LOG_TAG, "POST: Request params: " + json);
+
+                    response = httpManager.post(json);
+                    String eventName = getEventName(json);
                     String apiStatus = getStatusFromResponse(response);
 
                     Log.d(LOG_TAG, "Event name: " + eventName + ", API Status: " + apiStatus);
@@ -213,8 +216,15 @@ class RequestDispatcher {
         if (!TextUtils.isEmpty(json)) {
             try {
                 JSONObject jsonObject = new JSONObject(json);
+
+                // has one event? take it's name
                 if (jsonObject.has("event")) {
                     event = jsonObject.getString("event");
+                }
+
+                // has events in it? mark it as bulk_events
+                if (jsonObject.has("events")) {
+                    event = "bulk_events";
                 }
             } catch (JSONException e) {
                 try {
