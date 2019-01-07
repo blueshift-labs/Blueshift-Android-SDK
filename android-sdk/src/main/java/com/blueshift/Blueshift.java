@@ -655,15 +655,27 @@ public class Blueshift {
         trackEvent(BlueshiftConstants.EVENT_APP_OPEN, params, canBatchThisEvent);
     }
 
-    public void trackProductView(String sku, int categoryId, boolean canBatchThisEvent) {
+    public void trackProductView(String sku, boolean canBatchThisEvent) {
+        trackProductView(sku, null, null, canBatchThisEvent);
+    }
+
+    public void trackProductView(String sku, HashMap<String, Object> params, boolean canBatchThisEvent) {
+        trackProductView(sku, null, params, canBatchThisEvent);
+    }
+
+    public void trackProductView(String sku, Object categoryId, boolean canBatchThisEvent) {
         trackProductView(sku, categoryId, null, canBatchThisEvent);
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void trackProductView(String sku, int categoryId, HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackProductView(String sku, Object categoryId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_SKU, sku);
-        eventParams.put(BlueshiftConstants.KEY_CATEGORY_ID, categoryId);
+
+        if (categoryId != null) {
+            eventParams.put(BlueshiftConstants.KEY_CATEGORY_ID, categoryId);
+        }
+
         if (params != null) {
             eventParams.putAll(params);
         }
