@@ -68,29 +68,4 @@ public enum NotificationCategory {
             return Unknown;
         }
     }
-
-    public int getNotificationId() {
-        switch (this) {
-            case Buy:
-                return 100;
-
-            case ViewCart:
-                return 200;
-
-            case Promotion:
-                return 300;
-
-            case AnimatedCarousel:
-                return 400;
-
-            case Carousel:
-                return 500;
-
-            case GifNotification:
-                return 600;
-
-            default:
-                return 0;
-        }
-    }
 }

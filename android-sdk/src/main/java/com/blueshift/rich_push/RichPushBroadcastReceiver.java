@@ -15,6 +15,7 @@ import com.google.gson.JsonSyntaxException;
  *         Created on 17/3/15 @ 3:05 PM
  *         https://github.com/rahulrvp
  */
+@Deprecated
 public class RichPushBroadcastReceiver extends BroadcastReceiver {
     private static final String LOG_TAG = RichPushBroadcastReceiver.class.getSimpleName();
 

@@ -19,6 +19,7 @@ import com.blueshift.util.SdkLog;
  *         Created on 25/2/15 @ 3:07 PM
  *         https://github.com/rahulrvp
  */
+@Deprecated
 public class RichPushActionReceiver extends BroadcastReceiver {
 
     private static final String LOG_TAG = "RichPushActionReceiver";
