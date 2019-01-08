@@ -1,5 +1,6 @@
 ## Blueshift Android SDK
 
-> Latest Stable Version: 1.1.7 (GCM), 2.0.1 (FCM)
+* v2.0.3 Current stable version - using FCM
+* v1.1.7 Unsupported. Soon to be deprecated GCM version.
 
-Visit the [official documentation](https://docs.getblueshift.com/docs/mobile-sdk) to get started with integration.
+Official documentation link: https://goo.gl/rgfNqp
