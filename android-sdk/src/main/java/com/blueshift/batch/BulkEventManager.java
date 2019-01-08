@@ -18,6 +18,7 @@ import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.model.Configuration;
 import com.blueshift.request_queue.RequestQueue;
+import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
@@ -80,10 +81,8 @@ public class BulkEventManager {
         // stop alarm manager if it is already running
         stopAlarmManager(context);
 
-        Configuration configuration = Blueshift.getInstance(context).getConfiguration();
-        if (configuration == null) {
-            SdkLog.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
-        } else {
+        Configuration configuration = BlueshiftUtils.getConfiguration(context);
+        if (configuration != null) {
             long interval = configuration.getBatchInterval();
             long startAtMillis = SystemClock.elapsedRealtime() + interval;
 
