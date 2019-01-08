@@ -19,7 +19,7 @@ import com.blueshift.util.SdkLog;
  *         Created on 25/2/15 @ 3:07 PM
  *         https://github.com/rahulrvp
  *
- * @deprecated New documentation: https://goo.gl/F1oZEk
+ * @deprecated New documentation: https://goo.gl/QNWH1Y
  */
 @Deprecated
 public class RichPushActionReceiver extends BroadcastReceiver {
