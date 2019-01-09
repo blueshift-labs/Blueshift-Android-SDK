@@ -232,7 +232,7 @@ public class NotificationUtils {
                 Blueshift blueshift = Blueshift.getInstance(context);
                 Configuration config = blueshift.getConfiguration();
                 if (config != null) {
-                    channelDescription = config.getDefaultNotificationChannelName();
+                    channelDescription = config.getDefaultNotificationChannelDescription();
                 }
             }
         }
