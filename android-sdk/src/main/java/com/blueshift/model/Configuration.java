@@ -25,6 +25,7 @@ public class Configuration {
     private int smallIconResId;
     private int largeIconResId;
     private int notificationColor;
+    private String defaultNotificationChannelId;
     private String defaultNotificationChannelName;
     private String defaultNotificationChannelDescription;
 
@@ -133,6 +134,14 @@ public class Configuration {
      */
     public void setNotificationColor(int notificationColor) {
         this.notificationColor = notificationColor;
+    }
+
+    public String getDefaultNotificationChannelId() {
+        return defaultNotificationChannelId;
+    }
+
+    public void setDefaultNotificationChannelId(String defaultNotificationChannelId) {
+        this.defaultNotificationChannelId = defaultNotificationChannelId;
     }
 
     public String getDefaultNotificationChannelName() {

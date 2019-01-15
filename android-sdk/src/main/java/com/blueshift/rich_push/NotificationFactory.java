@@ -130,8 +130,7 @@ public class NotificationFactory {
         if (context != null && message != null) {
             int notificationId = NotificationFactory.getRandomNotificationId();
 
-            String channelName = NotificationUtils.getNotificationChannelName(context, message);
-            String channelId = NotificationUtils.getNotificationChannelId(channelName);
+            String channelId = NotificationUtils.getNotificationChannelId(context, message);
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
             builder.setDefaults(Notification.DEFAULT_SOUND);
