@@ -42,7 +42,7 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField 'String', 'SDK_VERSION',  "\"$libraryVersion\""
+        buildConfigField 'String', 'SDK_VERSION', "\"$libraryVersion\""
     }
     buildTypes {
         release {
@@ -58,14 +58,13 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile 'com.android.support:appcompat-v7:27.0.2'
+    compile 'com.android.support:appcompat-v7:27.1.1'
     // for Android Advertising Id
-    compile 'com.google.android.gms:play-services-ads:16.0.0'
+    compile 'com.google.android.gms:play-services-ads:17.1.2'
     // for JSON parsing
     compile 'com.google.code.gson:gson:2.8.2'
-    // for annotations used (ex @NotNull)
-    compile 'org.jetbrains:annotations:13.0'
     // for FCM
+    compile 'com.google.firebase:firebase-core:16.0.6'
     compile 'com.google.firebase:firebase-messaging:17.3.4'
 
     testCompile 'junit:junit:4.12'

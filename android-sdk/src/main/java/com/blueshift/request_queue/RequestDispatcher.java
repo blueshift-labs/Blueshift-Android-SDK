@@ -2,6 +2,7 @@ package com.blueshift.request_queue;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -24,7 +25,6 @@ import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -327,17 +327,17 @@ class RequestDispatcher {
         private Request mRequest;
         private Callback mCallback;
 
-        public Builder setContext(@NotNull Context context) {
+        public Builder setContext(@NonNull Context context) {
             mContext = context;
             return this;
         }
 
-        public Builder setRequest(@NotNull Request request) {
+        public Builder setRequest(@NonNull Request request) {
             mRequest = request;
             return this;
         }
 
-        public Builder setCallback(@NotNull Callback callback) {
+        public Builder setCallback(@NonNull Callback callback) {
             mCallback = callback;
             return this;
         }
