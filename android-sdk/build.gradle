@@ -59,8 +59,6 @@ dependencies {
     })
 
     compile 'com.android.support:appcompat-v7:27.1.1'
-    // for Android Advertising Id
-    compile 'com.google.android.gms:play-services-ads:17.1.2'
     // for JSON parsing
     compile 'com.google.code.gson:gson:2.8.2'
     // for FCM
