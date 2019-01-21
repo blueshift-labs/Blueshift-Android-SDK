@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -38,8 +39,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -133,31 +132,31 @@ public class Blueshift {
         return status;
     }
 
-    public void getLiveContentByEmail(@NotNull String slot, LiveContentCallback callback) {
+    public void getLiveContentByEmail(@NonNull String slot, LiveContentCallback callback) {
         getLiveContentByEmail(slot, null, callback);
     }
 
-    public void getLiveContentByDeviceId(@NotNull String slot, LiveContentCallback callback) {
+    public void getLiveContentByDeviceId(@NonNull String slot, LiveContentCallback callback) {
         getLiveContentByDeviceId(slot, null, callback);
     }
 
-    public void getLiveContentByCustomerId(@NotNull String slot, LiveContentCallback callback) {
+    public void getLiveContentByCustomerId(@NonNull String slot, LiveContentCallback callback) {
         getLiveContentByCustomerId(slot, null, callback);
     }
 
-    public void getLiveContentByEmail(@NotNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
+    public void getLiveContentByEmail(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
         new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
                 .execute();
     }
 
-    public void getLiveContentByDeviceId(@NotNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
+    public void getLiveContentByDeviceId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
         new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
                 .execute();
     }
 
-    public void getLiveContentByCustomerId(@NotNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
+    public void getLiveContentByCustomerId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
         new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
                 .execute();
@@ -484,7 +483,7 @@ public class Blueshift {
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     @SuppressWarnings("WeakerAccess")
-    public void trackEvent(@NotNull final String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
+    public void trackEvent(@NonNull final String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
         final HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
         if (params != null) {
@@ -827,7 +826,7 @@ public class Blueshift {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void trackSubscriptionInitialization(SubscriptionState subscriptionState, String cycleType, int cycleLength, @NotNull String subscriptionType, float price, long startDate, HashMap<String, Object> params, boolean canBatchThisEvent) {
+    public void trackSubscriptionInitialization(SubscriptionState subscriptionState, String cycleType, int cycleLength, @NonNull String subscriptionType, float price, long startDate, HashMap<String, Object> params, boolean canBatchThisEvent) {
         Subscription subscription = Subscription.getInstance(mContext);
         subscription.setSubscriptionState(subscriptionState);
         subscription.setCycleType(cycleType);

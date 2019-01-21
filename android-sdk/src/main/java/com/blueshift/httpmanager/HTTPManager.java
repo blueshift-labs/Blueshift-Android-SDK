@@ -1,10 +1,9 @@
 package com.blueshift.httpmanager;
 
+import android.support.annotation.NonNull;
 import android.util.Base64;
 
 import com.blueshift.util.SdkLog;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,7 +57,7 @@ public class HTTPManager {
         addRequestProperty("Connection", "close");
     }
 
-    public void addBasicAuthentication(@NotNull String username, @NotNull String password) {
+    public void addBasicAuthentication(@NonNull String username, @NonNull String password) {
         String credentials = username + ":" + password;
         String credBase64 = Base64.encodeToString(credentials.getBytes(), Base64.DEFAULT).replace("\n", "");
         addRequestProperty("Authorization", "Basic " + credBase64);

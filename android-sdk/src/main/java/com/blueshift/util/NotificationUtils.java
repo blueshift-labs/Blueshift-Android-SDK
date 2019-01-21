@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -183,7 +184,7 @@ public class NotificationUtils {
      * @return Valid channel id for notification.
      */
     @Deprecated
-    public static String getNotificationChannelId(@NotNull String channelName) {
+    public static String getNotificationChannelId(@NonNull String channelName) {
         return "bsft_channel_" + channelName;
     }
 
