@@ -182,8 +182,38 @@ public class NotificationUtils {
      * @param channelName channel name for generating unique channel id
      * @return Valid channel id for notification.
      */
+    @Deprecated
     public static String getNotificationChannelId(@NotNull String channelName) {
         return "bsft_channel_" + channelName;
+    }
+
+    /**
+     * Read the channel id provided in message or config. If not found in both the places,
+     * return "bsft_channel_General" as default channel id.
+     *
+     * @param context valid Context object
+     * @param message message object to read the channel name from
+     * @return valid notification channel id
+     */
+    public static String getNotificationChannelId(Context context, Message message) {
+        String channelId = RichPushConstants.DEFAULT_CHANNEL_ID;
+
+        if (message != null && !TextUtils.isEmpty(message.getNotificationChannelId())) {
+            channelId = message.getNotificationChannelId();
+        } else {
+            if (context != null) {
+                Blueshift blueshift = Blueshift.getInstance(context);
+                Configuration config = blueshift.getConfiguration();
+                if (config != null) {
+                    String configuredChannelId = config.getDefaultNotificationChannelId();
+                    if (!TextUtils.isEmpty(configuredChannelId)) {
+                        channelId = configuredChannelId;
+                    }
+                }
+            }
+        }
+
+        return channelId;
     }
 
     /**
@@ -254,7 +284,7 @@ public class NotificationUtils {
         String channelDescription = getNotificationChannelDescription(context, message);
 
         // create channel id
-        String channelId = getNotificationChannelId(channelName);
+        String channelId = getNotificationChannelId(context, message);
         Log.d(LOG_TAG, "Notification Channel Id: " + channelId);
 
         // create channel

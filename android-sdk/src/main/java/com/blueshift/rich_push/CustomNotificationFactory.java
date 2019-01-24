@@ -545,8 +545,7 @@ class CustomNotificationFactory {
         if (context != null && message != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null) {
-                String channelName = NotificationUtils.getNotificationChannelName(context, message);
-                String channelId = NotificationUtils.getNotificationChannelId(channelName);
+                String channelId = NotificationUtils.getNotificationChannelId(context, message);
                 builder = new NotificationCompat.Builder(context, channelId);
                 builder.setDefaults(Notification.DEFAULT_ALL);
                 builder.setAutoCancel(true);

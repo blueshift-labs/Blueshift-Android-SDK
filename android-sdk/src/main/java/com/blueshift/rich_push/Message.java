@@ -161,6 +161,7 @@ public class Message implements Serializable {
     /*
      * Notification channel params needed for Oreo notification
      */
+    private String notification_channel_id;
     private String notification_channel_name;
     private String notification_channel_description;
 
@@ -366,6 +367,10 @@ public class Message implements Serializable {
 
     public boolean isDeepLinkingEnabled() {
         return !TextUtils.isEmpty(deep_link_url);
+    }
+
+    public String getNotificationChannelId() {
+        return notification_channel_id;
     }
 
     public String getNotificationChannelName() {

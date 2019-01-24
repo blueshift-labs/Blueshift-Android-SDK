@@ -122,8 +122,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
             Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-            String channelName = NotificationUtils.getNotificationChannelName(this, null);
-            String channelId = NotificationUtils.getNotificationChannelId(channelName);
+            String channelId = NotificationUtils.getNotificationChannelId(this, null);
 
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
                     .setSmallIcon(configuration.getSmallIconResId())

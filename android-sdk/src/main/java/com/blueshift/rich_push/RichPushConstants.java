@@ -8,6 +8,7 @@ import android.content.Context;
  *         https://github.com/rahulrvp
  */
 public final class RichPushConstants {
+    public static final String DEFAULT_CHANNEL_ID = "bsft_channel_General";
     public static final String DEFAULT_CHANNEL_NAME = "General";
     public static final String EXTRA_MESSAGE = "message";
     public static final String EXTRA_NOTIFICATION_ID = "notification_id";
