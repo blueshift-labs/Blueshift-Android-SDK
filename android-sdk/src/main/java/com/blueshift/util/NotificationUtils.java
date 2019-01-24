@@ -17,8 +17,6 @@ import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
