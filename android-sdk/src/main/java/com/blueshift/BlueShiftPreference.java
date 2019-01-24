@@ -3,9 +3,8 @@ package com.blueshift;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This class is responsible for tracking the preferences of sdk.
@@ -58,7 +57,7 @@ public class BlueShiftPreference {
         return preferences;
     }
 
-    private static String getPreferenceFileName(@NotNull Context context, @NotNull String fileName) {
+    private static String getPreferenceFileName(@NonNull Context context, @NonNull String fileName) {
         return context.getPackageName() + "." + fileName;
     }
 }
