@@ -15,6 +15,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BuildConfig;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.NotificationFactory;
@@ -33,8 +34,8 @@ import java.util.Set;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 19/12/16 @ 11:59 AM
- *         https://github.com/rahulrvp
+ * Created on 19/12/16 @ 11:59 AM
+ * https://github.com/rahulrvp
  */
 
 public class BlueshiftMessagingService extends FirebaseMessagingService {
@@ -154,6 +155,10 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     private void handleDataMessage(Map<String, String> data) {
         if (data != null) {
+            if (BuildConfig.DEBUG) {
+                logPayload(data);
+            }
+
             String msgJson = data.get(Message.EXTRA_MESSAGE);
             if (msgJson != null) {
                 try {
@@ -191,6 +196,17 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                  */
                 onMessageNotFound(data);
             }
+        }
+    }
+
+    private void logPayload(Map<String, String> map) {
+        if (map != null) {
+            Set<String> keySet = map.keySet();
+            Log.d(LOG_TAG, "******** Push Payload - Start ********");
+            for (String key : keySet) {
+                Log.d(LOG_TAG, key + " ==> " + map.get(key));
+            }
+            Log.d(LOG_TAG, "******** Push Payload - End ********");
         }
     }
 
