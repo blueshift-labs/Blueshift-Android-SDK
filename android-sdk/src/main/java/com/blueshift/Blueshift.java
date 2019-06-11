@@ -266,6 +266,10 @@ public class Blueshift {
         RequestQueue.scheduleQueueSyncJob(mContext);
         // schedule the bulk events dispatch
         BulkEventManager.scheduleBulkEventEnqueue(mContext);
+        // fire an app open automatically if enabled
+        if (mConfiguration != null && mConfiguration.isAutoAppOpenFiringEnabled()) {
+            trackAppOpen(true);
+        }
     }
 
     /**

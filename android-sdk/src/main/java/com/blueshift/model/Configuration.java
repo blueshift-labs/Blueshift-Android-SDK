@@ -33,6 +33,8 @@ public class Configuration {
     private int networkChangeListenerJobId;
     private int bulkEventsJobId;
 
+    private boolean enableAutoAppOpen = false;
+
     public Configuration() {
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
         networkChangeListenerJobId = 901;
@@ -174,5 +176,21 @@ public class Configuration {
 
     public void setBulkEventsJobId(int bulkEventsJobId) {
         this.bulkEventsJobId = bulkEventsJobId;
+    }
+
+    public boolean isAutoAppOpenFiringEnabled() {
+        return enableAutoAppOpen;
+    }
+
+    /**
+     * This enables/disables the app_open event firing when app is started based on the boolean
+     * value supplied in enableAutoAppOpen.
+     *
+     * By default the automatic firing of app_open is disabled.
+     *
+     * @param enableAutoAppOpen boolean value that enable/disable auto app open firing.
+     */
+    public void setEnableAutoAppOpenFiring(boolean enableAutoAppOpen) {
+        this.enableAutoAppOpen = enableAutoAppOpen;
     }
 }
