@@ -16,7 +16,7 @@ ext {
     siteUrl = 'https://getblueshift.com/'
     gitUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
 
-    libraryVersion = '2.0.6'
+    libraryVersion = '2.0.7'
 
     developerId = 'rahulrvp'
     developerName = 'Rahul Raveendran V P'
