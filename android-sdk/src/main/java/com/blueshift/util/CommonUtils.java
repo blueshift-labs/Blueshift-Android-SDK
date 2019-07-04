@@ -3,6 +3,7 @@ package com.blueshift.util;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.util.TypedValue;
 
 /**
  * @author Rahul Raveendran V P
@@ -31,5 +32,15 @@ public class CommonUtils {
         }
 
         return appName;
+    }
+
+    public static int dpToPx(int dpValue, Context context) {
+        int value = 0;
+        if (context != null && context.getResources() != null) {
+            value = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, dpValue, context.getResources().getDisplayMetrics());
+        }
+
+        return value;
     }
 }
