@@ -1,5 +1,7 @@
 package com.blueshift.inappmessage;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -13,18 +15,45 @@ import org.json.JSONObject;
 
 public class InAppManager {
 
-    private static final String LOG_TAG = "InAppManager";
+    private static final String LOG_TAG = InAppManager.class.getSimpleName();
 
-    public static void invokeTriggers(Context context) {
-        if (context == null) return;
+    @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
+    private static Activity mActivity = null;
 
-        // TODO: 2019-07-04 fix this
-//        Context appContext = context.getApplicationContext();
-        Context appContext = context;
-        JSONObject payload = getSamplePayload(appContext);
+    /**
+     * Calling this method makes the activity eligible for displaying InAppMessage
+     *
+     * @param activity valid Activity object.
+     */
+    public static void registerForInAppMessages(Activity activity) {
+        if (mActivity != null) {
+            Log.w(LOG_TAG, "Possible memory leak detected! Please unregister ");
+        }
+
+        mActivity = activity;
+
+        invokeTriggers();
+    }
+
+    /**
+     * Calling this method will clean up the memory to avoid memory leak.
+     *
+     * @param activity valid Activity object.
+     */
+    public static void unregisterForInAppMessages(Activity activity) {
+        mActivity = null;
+    }
+
+    public static void invokeTriggers() {
+        if (mActivity == null) {
+            Log.d(LOG_TAG, "App isn't running with an eligible Activity to display InAppMessage.");
+            return;
+        }
+
+        JSONObject payload = getSamplePayload(mActivity);
         if (payload != null) {
             InAppMessage inAppMessage = InAppMessage.getInstance(payload);
-            boolean isSuccess = buildAndShowInAppMessage(appContext, inAppMessage);
+            boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
             Log.d(LOG_TAG, "InAppSuccess: " + isSuccess);
         }
     }
@@ -55,6 +84,16 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageHtmlView inAppMessageHtmlView = new InAppMessageHtmlView(context, inAppMessage);
             return displayInAppDialog(context, inAppMessageHtmlView);
+        }
+
+        return false;
+    }
+
+    private static boolean displayInAppActivity(Context context, View customView) {
+        if (mActivity != null && !mActivity.isFinishing()) {
+            mActivity.addContentView(customView, customView.getLayoutParams());
+
+            return true;
         }
 
         return false;
