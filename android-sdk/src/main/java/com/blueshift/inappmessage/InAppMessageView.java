@@ -2,10 +2,11 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
+import com.blueshift.R;
 import com.blueshift.util.CommonUtils;
 
 public abstract class InAppMessageView extends RelativeLayout {
@@ -14,7 +15,7 @@ public abstract class InAppMessageView extends RelativeLayout {
     public InAppMessageView(Context context, InAppMessage inAppMessage) {
         super(context);
 
-        appyTemplateDimensions(inAppMessage);
+        applyTemplateDimensions(inAppMessage);
 
         int bgColor = inAppMessage.getTemplateBackgroundColor();
         if (bgColor > 0) {
@@ -25,9 +26,28 @@ public abstract class InAppMessageView extends RelativeLayout {
         if (childView != null) {
             addView(childView);
         }
+
+        addCloseButton();
     }
 
-    public void appyTemplateDimensions(InAppMessage inAppMessage) {
+    private void addCloseButton() {
+        ImageButton closeButton = new ImageButton(getContext());
+        closeButton.setImageResource(R.drawable.ic_close);
+        closeButton.setBackgroundResource(R.drawable.ic_close_backgroud);
+
+        int dp32 = CommonUtils.dpToPx(32, getContext());
+        LayoutParams lp = new LayoutParams(dp32, dp32);
+
+        int dp8 = CommonUtils.dpToPx(8, getContext());
+        lp.setMargins(0, dp8, dp8, 0);
+
+        lp.addRule(ALIGN_PARENT_TOP);
+        lp.addRule(ALIGN_PARENT_RIGHT);
+
+        addView(closeButton, lp);
+    }
+
+    public void applyTemplateDimensions(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             LayoutParams lp = new LayoutParams(
                     inAppMessage.getTemplateWidth(getContext()),
