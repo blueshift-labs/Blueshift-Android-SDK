@@ -16,14 +16,15 @@ import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BuildConfig;
+import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.util.BlueshiftUtils;
-import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
+import com.blueshift.util.StorageUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
@@ -161,47 +162,12 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                 logPayload(data);
             }
 
-            String msgJson = data.get(Message.EXTRA_MESSAGE);
-            if (msgJson != null) {
-                try {
-                    Message message = new Gson().fromJson(msgJson, Message.class);
-                    if (message != null) {
-                        try {
-                            // CAMPAIGN METADATA CHECK
-                            message.setBsftMessageUuid(data.get(Message.EXTRA_BSFT_MESSAGE_UUID));
-                            message.setBsftExperimentUuid(data.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
-                            message.setBsftUserUuid(data.get(Message.EXTRA_BSFT_USER_UUID));
-                            message.setBsftTransactionUuid(data.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
-                        } catch (Exception e) {
-                            SdkLog.e(LOG_TAG, "Error parsing campaign data. " + e.getMessage());
-                        }
-
-                        try {
-                            // SEED LIST FLAG CHECK
-                            String seedListSendValue = data.get(Message.EXTRA_BSFT_SEED_LIST_SEND);
-                            message.setBsftSeedListSend(isSeedListSend(seedListSendValue));
-                        } catch (Exception e) {
-                            SdkLog.e(LOG_TAG, "Error parsing seed list flag. " + e.getMessage());
-                        }
-
-                        if (message.isSilentPush()) {
-                            /*
-                             * This is a silent push to track uninstalls.
-                             * SDK has nothing to do with this. If this push was not delivered,
-                             * server will track GCM registrations fails and will decide if the app is uninstalled or not.
-                             */
-                            SdkLog.i(LOG_TAG, "A silent push received.");
-                        } else {
-                            NotificationFactory.handleMessage(getApplicationContext(), message);
-                        }
-                    } else {
-                        Log.e(LOG_TAG, "Null message found in push message.");
-                    }
-                } catch (JsonSyntaxException e) {
-                    Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
-                }
+            if (isBlueshiftPushNotification(data)) {
+                processPushNotification(data);
+            } else if (isBlueshiftInAppMessage(data)) {
+                processInAppMessage(data);
             } else {
-                SdkLog.d(LOG_TAG, "Message not found. Passing the push payload to host app via callback.");
+                SdkLog.d(LOG_TAG, "Passing the push payload to host app via callback.");
 
                 /*
                  * Handing over the push message to host app if message is not found.
@@ -211,7 +177,63 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private boolean isSeedListSend(String seedListSendValue ) {
+    private boolean isBlueshiftPushNotification(Map<String, String> data) {
+        return data != null && data.containsKey(Message.EXTRA_MESSAGE);
+    }
+
+    private boolean isBlueshiftInAppMessage(Map<String, String> data) {
+        return data != null && data.containsKey(InAppMessage.EXTRA_IN_APP);
+    }
+
+    private void processPushNotification(Map<String, String> data) {
+        try {
+            String msgJson = data.get(Message.EXTRA_MESSAGE);
+            if (!TextUtils.isEmpty(msgJson)) {
+                Message message = new Gson().fromJson(msgJson, Message.class);
+                if (message != null) {
+                    try {
+                        // CAMPAIGN METADATA CHECK
+                        message.setBsftMessageUuid(data.get(Message.EXTRA_BSFT_MESSAGE_UUID));
+                        message.setBsftExperimentUuid(data.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
+                        message.setBsftUserUuid(data.get(Message.EXTRA_BSFT_USER_UUID));
+                        message.setBsftTransactionUuid(data.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
+                    } catch (Exception e) {
+                        SdkLog.e(LOG_TAG, "Error parsing campaign data. " + e.getMessage());
+                    }
+
+                    try {
+                        // SEED LIST FLAG CHECK
+                        String seedListSendValue = data.get(Message.EXTRA_BSFT_SEED_LIST_SEND);
+                        message.setBsftSeedListSend(isSeedListSend(seedListSendValue));
+                    } catch (Exception e) {
+                        SdkLog.e(LOG_TAG, "Error parsing seed list flag. " + e.getMessage());
+                    }
+
+                    if (message.isSilentPush()) {
+                        /*
+                         * This is a silent push to track uninstalls.
+                         * SDK has nothing to do with this. If this push was not delivered,
+                         * server will track GCM registrations fails and will decide if the app is uninstalled or not.
+                         */
+                        SdkLog.i(LOG_TAG, "A silent push received.");
+                    } else {
+                        NotificationFactory.handleMessage(this, message);
+                    }
+                } else {
+                    Log.e(LOG_TAG, "Null message found in push message.");
+                }
+            }
+        } catch (JsonSyntaxException e) {
+            Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
+        }
+    }
+
+    private void processInAppMessage(Map<String, String> data) {
+        // decide dedupe logic
+        StorageUtils.saveStringInPrefStore(getApplicationContext(), "inapp", "inapp", data.get("inapp"));
+    }
+
+    private boolean isSeedListSend(String seedListSendValue) {
         if (!TextUtils.isEmpty(seedListSendValue)) {
             try {
                 return Boolean.parseBoolean(seedListSendValue);
