@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 public class InAppMessage {
     public static final int INVALID_INT = -999;
+    public static final String EXTRA_IN_APP = "inapp";
 
     private static final String KEY_TYPE = "type";
     private static final String KEY_EXPIRES_AT = "expires_at";

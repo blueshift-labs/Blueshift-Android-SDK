@@ -9,7 +9,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 
-import com.blueshift.util.InAppUtils;
+import com.blueshift.util.StorageUtils;
 
 import org.json.JSONObject;
 
@@ -60,7 +60,10 @@ public class InAppManager {
 
     private static JSONObject getSamplePayload(Context context) {
         try {
-            return new JSONObject(InAppUtils.readSamplePayload(context, "iam_payload.json"));
+            String json = StorageUtils.getStringFromPrefStore(context.getApplicationContext(), "inapp", "inapp");
+            return new JSONObject(json);
+
+//            return new JSONObject(InAppUtils.readSamplePayload(context, "iam_payload.json"));
         } catch (Exception e) {
             return null;
         }
