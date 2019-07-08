@@ -90,12 +90,12 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
         }
     }
 
-    protected void delete(String fieldName, String value) {
+    public void delete(T t) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
 
             if (db != null) {
-                db.delete(getTableName(), fieldName + "=?", new String[]{value});
+                db.delete(getTableName(), _ID + "=?", new String[]{String.valueOf(t.getId())});
                 db.close();
             }
         }

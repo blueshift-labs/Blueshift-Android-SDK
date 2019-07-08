@@ -9,6 +9,9 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 
+import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
+
 public class InAppManager {
 
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -49,7 +52,12 @@ public class InAppManager {
         InAppMessage inAppMessage = InAppMessageStore.getInstance(mActivity).getInAppMessage();
         if (shouldDisplay(inAppMessage)) {
             boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
-            Log.d(LOG_TAG, "InAppSuccess: " + isSuccess);
+            if (isSuccess) {
+                Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
+                InAppMessageStore.getInstance(mActivity).delete(inAppMessage);
+            } else {
+                BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
+            }
         }
     }
 
