@@ -13,4 +13,14 @@ public enum InAppTemplate {
 
         return null;
     }
+
+    @Override
+    public String toString() {
+        switch (this) {
+            case HTML:
+                return "html";
+        }
+
+        return super.toString();
+    }
 }
