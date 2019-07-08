@@ -24,6 +24,8 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
+import com.blueshift.inappmessage.InAppMessage;
+import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
@@ -1066,6 +1068,18 @@ public class Blueshift {
         }
 
         trackEvent(BlueshiftConstants.EVENT_DISMISS_ALERT, eventParams, canBatchThisEvent);
+    }
+
+    public void trackInAppMessageDelivered(InAppMessage inAppMessage) {
+        trackEvent("inapp_delivered", null, false);
+    }
+
+    public void trackInAppMessageView(InAppMessage inAppMessage) {
+        trackEvent("inapp_view", null, false);
+    }
+
+    public void trackInAppMessageClick(InAppMessage inAppMessage) {
+        trackEvent("inapp_click", null, false);
     }
 
     private static class TrackNotificationEventTask extends AsyncTask<Context, Void, Void> {
