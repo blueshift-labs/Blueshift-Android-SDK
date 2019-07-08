@@ -18,6 +18,7 @@ public class InAppManager {
 
     @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
     private static Activity mActivity = null;
+    private static AlertDialog mDialog = null;
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -40,6 +41,11 @@ public class InAppManager {
      * @param activity valid Activity object.
      */
     public static void unregisterForInAppMessages(Activity activity) {
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
+
+        mDialog = null;
         mActivity = null;
     }
 
@@ -86,7 +92,19 @@ public class InAppManager {
 
     private static boolean buildAndShowHtmlInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageHtmlView inAppMessageHtmlView = new InAppMessageHtmlView(context, inAppMessage);
+            InAppMessageHtmlView inAppMessageHtmlView = new InAppMessageHtmlView(context, inAppMessage) {
+                @Override
+                public void onCloseButtonClick(InAppMessage inAppMessage) {
+                    if (mDialog != null) {
+                        mDialog.dismiss();
+                        mDialog = null; // clean up memory.
+                    }
+
+                    // track the click todo: devide event name
+                    Blueshift.getInstance(mActivity).trackInAppMessageClick("close", inAppMessage);
+                }
+            };
+
             return displayInAppDialog(context, inAppMessageHtmlView);
         }
 
@@ -105,9 +123,16 @@ public class InAppManager {
 
     private static boolean displayInAppDialog(Context context, View customView) {
         if (isOurAppRunning(context)) {
+            if (mDialog != null && mDialog.isShowing()) {
+                // todo: check with aswani if this is the right way to do this.
+                // should we skip the current dialog and display the new one or not?
+                mDialog.dismiss();
+            }
+
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setView(customView);
-            builder.create().show();
+            mDialog = builder.create();
+            mDialog.show();
             return true;
         } else {
             Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
