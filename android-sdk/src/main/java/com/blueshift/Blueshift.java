@@ -1080,7 +1080,7 @@ public class Blueshift {
         trackEvent("inapp_view", null, false);
     }
 
-    public void trackInAppMessageClick(InAppMessage inAppMessage) {
+    public void trackInAppMessageClick(String action, InAppMessage inAppMessage) {
         trackEvent("inapp_click", null, false);
     }
 

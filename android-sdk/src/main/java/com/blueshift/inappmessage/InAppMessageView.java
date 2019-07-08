@@ -2,6 +2,7 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
@@ -27,10 +28,10 @@ public abstract class InAppMessageView extends RelativeLayout {
             addView(childView);
         }
 
-        addCloseButton();
+        addCloseButton(inAppMessage);
     }
 
-    private void addCloseButton() {
+    private void addCloseButton(final InAppMessage inAppMessage) {
         ImageButton closeButton = new ImageButton(getContext());
         closeButton.setImageResource(R.drawable.ic_close);
         closeButton.setBackgroundResource(R.drawable.ic_close_backgroud);
@@ -44,7 +45,18 @@ public abstract class InAppMessageView extends RelativeLayout {
         lp.addRule(ALIGN_PARENT_TOP);
         lp.addRule(ALIGN_PARENT_RIGHT);
 
+        closeButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onCloseButtonClick(inAppMessage);
+            }
+        });
+
         addView(closeButton, lp);
+    }
+
+    public void onCloseButtonClick(InAppMessage inAppMessage) {
+        Log.d(LOG_TAG, "Close button clicked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
     public void applyTemplateDimensions(InAppMessage inAppMessage) {
