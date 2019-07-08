@@ -5,13 +5,15 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.view.ViewGroup;
 
+import com.blueshift.BlueshiftLogger;
+import com.blueshift.framework.BlueshiftBaseSQLiteModel;
 import com.blueshift.util.CommonUtils;
 import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
-public class InAppMessage {
-    public static final int INVALID_INT = -999;
+public class InAppMessage extends BlueshiftBaseSQLiteModel {
+    public static final String TAG = InAppMessage.class.getSimpleName();
     public static final String EXTRA_IN_APP = "inapp";
 
     private static final String KEY_TYPE = "type";
@@ -20,14 +22,16 @@ public class InAppMessage {
     private static final String KEY_TEMPLATE_STYLE = "template_style";
     private static final String KEY_CONTENT_STYLE = "content_style";
     private static final String KEY_CONTENT = "content";
+
     private static final String KEY_MARGIN = "margin";
     private static final String KEY_WIDTH = "width";
     private static final String KEY_HEIGHT = "height";
     private static final String KEY_BACKGROUND_COLOR = "background_color";
 
-    private InAppTemplate type;
+    private long id;
+    private String type;
     private long expires_at;
-    private JSONObject trigger;
+    private String trigger; // timestamp/event-name/now
     private JSONObject template_style;
     private JSONObject content_style;
     private JSONObject content;
@@ -35,45 +39,87 @@ public class InAppMessage {
     public static InAppMessage getInstance(JSONObject payload) {
         try {
             InAppMessage inAppMessage = new InAppMessage();
-
-            String templateStr = payload.getString(KEY_TYPE);
-            inAppMessage.type = InAppTemplate.fromString(templateStr);
-
+            inAppMessage.type = payload.getString(KEY_TYPE);
             inAppMessage.expires_at = payload.getLong(KEY_EXPIRES_AT);
-
-            inAppMessage.trigger = payload.getJSONObject(KEY_TRIGGER);
+            inAppMessage.trigger = payload.getString(KEY_TRIGGER);
             inAppMessage.template_style = payload.getJSONObject(KEY_TEMPLATE_STYLE);
             inAppMessage.content_style = payload.getJSONObject(KEY_CONTENT_STYLE);
             inAppMessage.content = payload.getJSONObject(KEY_CONTENT);
 
             return inAppMessage;
         } catch (Exception e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(TAG, e);
         }
 
         return null;
     }
 
-    public InAppTemplate getTemplate() {
+    @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    protected void setId(long id) {
+        this.id = id;
+    }
+
+    public String getType() {
         return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public long getExpiresAt() {
+        return expires_at;
+    }
+
+    public void setExpiresAt(long expiresAt) {
+        this.expires_at = expiresAt;
+    }
+
+    public String getTrigger() {
+        return trigger;
+    }
+
+    public void setTrigger(String trigger) {
+        this.trigger = trigger;
+    }
+
+    public String getTemplateStyleJson() {
+        return template_style != null ? template_style.toString() : null;
+    }
+
+    public void setTemplateStyle(JSONObject templateStyle) {
+        this.template_style = templateStyle;
+    }
+
+    public String getContentStyleJson() {
+        return content_style != null ? content_style.toString() : null;
+    }
+
+    public void setContentStyle(JSONObject contentStyle) {
+        this.content_style = contentStyle;
+    }
+
+    public String getContentJson() {
+        return content != null ? content.toString() : null;
+    }
+
+    public void setContent(JSONObject content) {
+        this.content = content;
     }
 
     public String getContentString(String contentName) {
         try {
             return content.getString(contentName);
         } catch (Exception e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(TAG, e);
         }
 
         return null;
-    }
-
-    public String getContentStyleString(String contentName) {
-        return null;
-    }
-
-    public int getContentStyleInt(String contentName) {
-        return -999;
     }
 
     public Rect getTemplateMargin() {
@@ -81,7 +127,7 @@ public class InAppMessage {
             String json = template_style.getString(KEY_MARGIN);
             return new Gson().fromJson(json, Rect.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(TAG, e);
         }
 
         return new Rect();
@@ -92,7 +138,7 @@ public class InAppMessage {
             int height = template_style.getInt(KEY_HEIGHT);
             if (height >= 0) return CommonUtils.dpToPx(height, context);
         } catch (Exception e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(TAG, e);
         }
 
         return ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -103,7 +149,7 @@ public class InAppMessage {
             int width = template_style.getInt(KEY_WIDTH);
             if (width >= 0) return CommonUtils.dpToPx(width, context);
         } catch (Exception e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(TAG, e);
         }
 
         return ViewGroup.LayoutParams.MATCH_PARENT;
@@ -119,9 +165,13 @@ public class InAppMessage {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(TAG, e);
         }
 
         return 0;
+    }
+
+    public InAppTemplate getTemplate() {
+        return InAppTemplate.fromString(type);
     }
 }

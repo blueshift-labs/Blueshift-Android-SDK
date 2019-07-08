@@ -9,10 +9,6 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 
-import com.blueshift.util.StorageUtils;
-
-import org.json.JSONObject;
-
 public class InAppManager {
 
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -50,23 +46,20 @@ public class InAppManager {
             return;
         }
 
-        JSONObject payload = getSamplePayload(mActivity);
-        if (payload != null) {
-            InAppMessage inAppMessage = InAppMessage.getInstance(payload);
+        InAppMessage inAppMessage = InAppMessageStore.getInstance(mActivity).getInAppMessage();
+        if (shouldDisplay(inAppMessage)) {
             boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
             Log.d(LOG_TAG, "InAppSuccess: " + isSuccess);
         }
     }
 
-    private static JSONObject getSamplePayload(Context context) {
-        try {
-            String json = StorageUtils.getStringFromPrefStore(context.getApplicationContext(), "inapp", "inapp");
-            return new JSONObject(json);
-
-//            return new JSONObject(InAppUtils.readSamplePayload(context, "iam_payload.json"));
-        } catch (Exception e) {
-            return null;
+    private static boolean shouldDisplay(InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            // check expired at
+            return true;
         }
+
+        return false;
     }
 
     private static boolean buildAndShowInAppMessage(Context context, InAppMessage inAppMessage) {

@@ -15,8 +15,10 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.BuildConfig;
 import com.blueshift.inappmessage.InAppMessage;
+import com.blueshift.inappmessage.InAppMessageStore;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.NotificationFactory;
@@ -24,11 +26,12 @@ import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
-import com.blueshift.util.StorageUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+
+import org.json.JSONObject;
 
 import java.util.Map;
 import java.util.Set;
@@ -227,8 +230,13 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     }
 
     private void processInAppMessage(Map<String, String> data) {
-        // decide dedupe logic
-        StorageUtils.saveStringInPrefStore(getApplicationContext(), "inapp", "inapp", data.get("inapp"));
+        try {
+            String json = data.get(InAppMessage.EXTRA_IN_APP);
+            InAppMessage inAppMessage = InAppMessage.getInstance(new JSONObject(json));
+            InAppMessageStore.getInstance(this).insert(inAppMessage);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
     }
 
     private boolean isSeedListSend(String seedListSendValue) {
