@@ -3,6 +3,7 @@ package com.blueshift.inappmessage;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.view.ViewGroup;
 
 import com.blueshift.BlueshiftLogger;
@@ -26,6 +27,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private static final String KEY_MARGIN = "margin";
     private static final String KEY_WIDTH = "width";
     private static final String KEY_HEIGHT = "height";
+    private static final String KEY_CLOSE_BTN = "close_button";
     private static final String KEY_BACKGROUND_COLOR = "background_color";
 
     private long id;
@@ -169,6 +171,17 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         }
 
         return 0;
+    }
+
+    public boolean showCloseButton() {
+        try {
+            return template_style.has(KEY_CLOSE_BTN)
+                    && !TextUtils.isEmpty(template_style.getString(KEY_CLOSE_BTN));
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return true;
     }
 
     public InAppTemplate getTemplate() {

@@ -16,6 +16,8 @@ public abstract class InAppMessageView extends RelativeLayout {
     public InAppMessageView(Context context, InAppMessage inAppMessage) {
         super(context);
 
+        if (inAppMessage == null) return;
+
         applyTemplateDimensions(inAppMessage);
 
         int bgColor = inAppMessage.getTemplateBackgroundColor();
@@ -28,7 +30,9 @@ public abstract class InAppMessageView extends RelativeLayout {
             addView(childView);
         }
 
-        addCloseButton(inAppMessage);
+        if (inAppMessage.showCloseButton()) {
+            addCloseButton(inAppMessage);
+        }
     }
 
     private void addCloseButton(final InAppMessage inAppMessage) {
