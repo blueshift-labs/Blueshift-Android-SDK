@@ -11,8 +11,16 @@ import android.view.View;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.model.Configuration;
+import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.StorageUtils;
 
 public class InAppManager {
+
+    public static final long DEFAULT_INTERVAL = 1000 * 60 * 5; // 5 min
+
+    private static final String PREF_FILE = "inappmanager";
+    private static final String PREF_KEY_LAST_DISPLAY_TIME = "last_display_time";
 
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
 
@@ -27,7 +35,9 @@ public class InAppManager {
      */
     public static void registerForInAppMessages(Activity activity) {
         if (mActivity != null) {
-            Log.w(LOG_TAG, "Possible memory leak detected! Please unregister ");
+            Log.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
+            // do the clean up for old activity to avoid mem leak
+            unregisterForInAppMessages(mActivity);
         }
 
         mActivity = activity;
@@ -41,6 +51,19 @@ public class InAppManager {
      * @param activity valid Activity object.
      */
     public static void unregisterForInAppMessages(Activity activity) {
+        // if unregister is called with old activity when new activity is started,
+        // we need to skip this call. because the clean up would already been done
+        // during the registration call.
+        if (activity != null && mActivity != null) {
+            String oldName = mActivity.getLocalClassName();
+            String newName = activity.getLocalClassName();
+            if (!oldName.equals(newName)) {
+                return;
+            }
+        }
+
+        // clean up the dialog and activity
+
         if (mDialog != null && mDialog.isShowing()) {
             mDialog.dismiss();
         }
@@ -55,25 +78,77 @@ public class InAppManager {
             return;
         }
 
-        InAppMessage inAppMessage = InAppMessageStore.getInstance(mActivity).getInAppMessage();
-        if (shouldDisplay(inAppMessage)) {
-            boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
-            if (isSuccess) {
-                Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
-                InAppMessageStore.getInstance(mActivity).delete(inAppMessage);
-            } else {
-                BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
+        try {
+            InAppMessage inAppMessage = InAppMessageStore.getInstance(mActivity).getInAppMessage();
+            if (shouldDisplay(inAppMessage)) {
+                boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                if (isSuccess) {
+                    logInAppDisplayTime();
+                    Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
+                    InAppMessageStore.getInstance(mActivity).delete(inAppMessage);
+                } else {
+                    BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
+                }
             }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
     private static boolean shouldDisplay(InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
-            // check expired at
-            return true;
+        return checkInterval() && checkExpiry(inAppMessage);
+    }
+
+    private static boolean checkInterval() {
+        boolean result = false;
+
+        Configuration config = BlueshiftUtils.getConfiguration(mActivity);
+        if (config != null) {
+            long intervalMs = config.getInAppInterval();
+            long lastDisplayTimeMs = getLastInAppDisplayTime();
+            long diffMs = System.currentTimeMillis() - lastDisplayTimeMs;
+
+            result = diffMs >= intervalMs;
+
+            if (!result) {
+                BlueshiftLogger.d(LOG_TAG, "Interval between In App Messages should be " + intervalMs / 1000 + " seconds.");
+            }
         }
 
-        return false;
+        return result;
+    }
+
+    private static boolean checkExpiry(InAppMessage inAppMessage) {
+        boolean result = false;
+
+        if (inAppMessage != null) {
+            long currentTimeMs = System.currentTimeMillis();
+            long expiresAtMs = inAppMessage.getExpiresAt() * 1000;
+            result = currentTimeMs < expiresAtMs;
+
+            if (!result) {
+                BlueshiftLogger.d(LOG_TAG, "In App Message expired at " + expiresAtMs);
+            }
+        }
+
+        return result;
+    }
+
+    private static void logInAppDisplayTime() {
+        StorageUtils.saveLongInPrefStore(
+                mActivity,
+                PREF_FILE,
+                PREF_KEY_LAST_DISPLAY_TIME,
+                System.currentTimeMillis()
+        );
+    }
+
+    private static long getLastInAppDisplayTime() {
+        return StorageUtils.getLongFromPrefStore(
+                mActivity,
+                PREF_FILE,
+                PREF_KEY_LAST_DISPLAY_TIME
+        );
     }
 
     private static boolean buildAndShowInAppMessage(Context context, InAppMessage inAppMessage) {
@@ -100,8 +175,19 @@ public class InAppManager {
                         mDialog = null; // clean up memory.
                     }
 
-                    // track the click todo: devide event name
+                    // track the click todo: decide event name
                     Blueshift.getInstance(mActivity).trackInAppMessageClick("close", inAppMessage);
+                }
+
+                @Override
+                public void onDismiss(InAppMessage inAppMessage) {
+                    if (mDialog != null) {
+                        mDialog.dismiss();
+                        mDialog = null; // clean up memory.
+                    }
+
+                    // track the click todo: decide event name
+                    Blueshift.getInstance(mActivity).trackInAppMessageClick("dismiss", inAppMessage);
                 }
             };
 

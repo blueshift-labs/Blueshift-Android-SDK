@@ -9,6 +9,10 @@ public class BlueshiftLogger {
         return TextUtils.isEmpty(tag) ? "Blueshift" : tag;
     }
 
+    public static void d(String tag, String message) {
+        Log.d(checkTag(tag), message);
+    }
+
     public static void e(String tag, String message) {
         Log.e(checkTag(tag), message);
     }

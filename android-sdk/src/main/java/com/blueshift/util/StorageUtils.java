@@ -26,4 +26,22 @@ public class StorageUtils {
         return context.getSharedPreferences(prefFileName, Context.MODE_PRIVATE)
                 .getString(prefKey, null);
     }
+
+    public static void saveLongInPrefStore(Context context, String fileName, String key, long value) {
+        String prefFileName = context.getPackageName() + "." + fileName;
+        String prefKey = context.getPackageName() + "." + key;
+
+        context.getSharedPreferences(prefFileName, Context.MODE_PRIVATE)
+                .edit()
+                .putLong(prefKey, value)
+                .apply();
+    }
+
+    public static long getLongFromPrefStore(Context context, String fileName, String key) {
+        String prefFileName = context.getPackageName() + "." + fileName;
+        String prefKey = context.getPackageName() + "." + key;
+
+        return context.getSharedPreferences(prefFileName, Context.MODE_PRIVATE)
+                .getLong(prefKey, 0);
+    }
 }
