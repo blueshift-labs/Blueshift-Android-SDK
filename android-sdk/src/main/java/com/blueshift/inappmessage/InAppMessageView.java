@@ -12,11 +12,14 @@ import com.blueshift.util.CommonUtils;
 
 public abstract class InAppMessageView extends RelativeLayout {
     private static final String LOG_TAG = "InAppMessageView";
+    private InAppMessage inAppMessage = null;
 
     public InAppMessageView(Context context, InAppMessage inAppMessage) {
         super(context);
 
         if (inAppMessage == null) return;
+
+        this.inAppMessage = inAppMessage;
 
         applyTemplateDimensions(inAppMessage);
 
@@ -59,11 +62,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         addView(closeButton, lp);
     }
 
-    public void onCloseButtonClick(InAppMessage inAppMessage) {
-        Log.d(LOG_TAG, "Close button clicked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
-    }
-
-    public void applyTemplateDimensions(InAppMessage inAppMessage) {
+    private void applyTemplateDimensions(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             LayoutParams lp = new LayoutParams(
                     inAppMessage.getTemplateWidth(getContext()),
@@ -78,6 +77,18 @@ public abstract class InAppMessageView extends RelativeLayout {
 
             setLayoutParams(lp);
         }
+    }
+
+    public InAppMessage getInAppMessage() {
+        return this.inAppMessage;
+    }
+
+    public void onCloseButtonClick(InAppMessage inAppMessage) {
+        Log.d(LOG_TAG, "Close button clicked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
+    }
+
+    public void onDismiss(InAppMessage inAppMessage) {
+        Log.d(LOG_TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
     public abstract View getView(InAppMessage inAppMessage);

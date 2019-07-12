@@ -2,6 +2,8 @@ package com.blueshift.model;
 
 import android.app.AlarmManager;
 
+import com.blueshift.inappmessage.InAppManager;
+
 /**
  * @author Rahul Raveendran V P
  *         Created on 19/2/15 @ 1:01 PM
@@ -34,9 +36,13 @@ public class Configuration {
     private int networkChangeListenerJobId;
     private int bulkEventsJobId;
 
+    // in app message
+    private long inAppInterval;
+
     private boolean enableAutoAppOpen = false;
 
     public Configuration() {
+        inAppInterval = InAppManager.DEFAULT_INTERVAL;
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
         networkChangeListenerJobId = 901;
         bulkEventsJobId = 902;
@@ -201,5 +207,13 @@ public class Configuration {
 
     public void setPushEnabled(boolean pushEnabled) {
         this.pushEnabled = pushEnabled;
+    }
+
+    public long getInAppInterval() {
+        return inAppInterval;
+    }
+
+    public void setInAppInterval(long milliseconds) {
+        this.inAppInterval = milliseconds;
     }
 }
