@@ -1,13 +1,16 @@
 package com.blueshift.inappmessage;
 
 public enum InAppTemplate {
-    HTML;
+    HTML,
+    CENTER_POPUP;
 
     public static InAppTemplate fromString(String name) {
         if (name != null) {
             switch (name) {
                 case "html":
                     return HTML;
+                case "center_popup":
+                    return CENTER_POPUP;
             }
         }
 
@@ -19,6 +22,8 @@ public enum InAppTemplate {
         switch (this) {
             case HTML:
                 return "html";
+            case CENTER_POPUP:
+                return "center_popup";
         }
 
         return super.toString();
