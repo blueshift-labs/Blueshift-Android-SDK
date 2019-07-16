@@ -1,8 +1,14 @@
 package com.blueshift.util;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.blueshift.BlueshiftLogger;
+import com.blueshift.inappmessage.InAppMessage;
+
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,5 +49,70 @@ public class InAppUtils {
 
         return result;
 
+    }
+
+    public static String getStringFromJSONObject(JSONObject jsonObject, String key) {
+        try {
+            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+                return jsonObject.getString(key);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
+    }
+
+    public static boolean validateColorString(String colorString) {
+        try {
+            int len = colorString != null ? colorString.length() : 0;
+            return len > 0 && colorString.startsWith("#") && (len == 4 || len == 7 || len == 9);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return false;
+    }
+
+    public static int getContentColor(InAppMessage inAppMessage, String contentName) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                String colorVal = inAppMessage.getContentStyle().optString(contentName + "_color");
+                if (validateColorString(colorVal)) {
+                    return Color.parseColor(colorVal);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return Color.parseColor("#000000");
+    }
+
+    public static int getContentBackgroundColor(InAppMessage inAppMessage, String contentName) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                String colorVal = inAppMessage.getContentStyle().optString(contentName + "_background_color");
+                if (validateColorString(colorVal)) {
+                    return Color.parseColor(colorVal);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return Color.parseColor("#00000000");
+    }
+
+    public static int getContentSize(InAppMessage inAppMessage, String contentName) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                return inAppMessage.getContentStyle().optInt(contentName + "_size", 14);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return 14;
     }
 }
