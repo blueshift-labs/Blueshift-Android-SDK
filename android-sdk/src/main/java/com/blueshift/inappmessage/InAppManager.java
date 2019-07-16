@@ -158,8 +158,19 @@ public class InAppManager {
                 switch (inAppTemplate) {
                     case HTML:
                         return buildAndShowHtmlInAppMessage(context, inAppMessage);
+                    case CENTER_POPUP:
+                        return buildAndShowCenterPopupInAppMessage(context, inAppMessage);
                 }
             }
+        }
+
+        return false;
+    }
+
+    private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage);
+            return displayInAppDialog(context, inAppMessageCenterPopupView);
         }
 
         return false;
