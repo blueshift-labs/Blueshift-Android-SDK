@@ -1,17 +1,31 @@
 package com.blueshift.inappmessage;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.util.CommonUtils;
+import com.blueshift.util.InAppUtils;
+
+import org.json.JSONObject;
 
 public abstract class InAppMessageView extends RelativeLayout {
+    protected static final String ACTION_DISMISS = "dismiss";
     private static final String LOG_TAG = "InAppMessageView";
+    private static final String ACTION_KEY_TEXT = "text";
+    private static final String ACTION_KEY_TEXT_COLOR = "text_color";
+    private static final String ACTION_KEY_BACKGROUND_COLOR = "background_color";
+
     private InAppMessage inAppMessage = null;
 
     public InAppMessageView(Context context, InAppMessage inAppMessage) {
@@ -89,6 +103,53 @@ public abstract class InAppMessageView extends RelativeLayout {
 
     public void onDismiss(InAppMessage inAppMessage) {
         Log.d(LOG_TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
+    }
+
+    public Button getDismissButton(JSONObject action) {
+        try {
+            if (action != null) {
+                Button button = new Button(getContext());
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    TypedValue typedValue = new TypedValue();
+                    boolean isResolved = getContext()
+                            .getTheme()
+                            .resolveAttribute(android.R.attr.selectableItemBackground, typedValue, true);
+
+                    if (isResolved) {
+                        button.setForeground(ContextCompat.getDrawable(getContext(), typedValue.resourceId));
+                    }
+                }
+
+                button.setAllCaps(false);
+                button.setText(InAppUtils.getStringFromJSONObject(action, ACTION_KEY_TEXT));
+
+                String textColor = InAppUtils.getStringFromJSONObject(action, ACTION_KEY_TEXT_COLOR);
+                if (InAppUtils.validateColorString(textColor)) {
+                    int color = Color.parseColor(textColor);
+                    button.setTextColor(color);
+                }
+
+                String bgColor = InAppUtils.getStringFromJSONObject(action, ACTION_KEY_BACKGROUND_COLOR);
+                if (InAppUtils.validateColorString(bgColor)) {
+                    int color = Color.parseColor(bgColor);
+                    button.setBackgroundColor(color);
+                }
+
+                button.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        onDismiss(inAppMessage);
+                    }
+                });
+
+                return button;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
     }
 
     public abstract View getView(InAppMessage inAppMessage);

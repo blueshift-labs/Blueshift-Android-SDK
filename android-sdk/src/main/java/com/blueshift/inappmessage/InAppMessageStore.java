@@ -26,6 +26,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final String FIELD_TEMPLATE_STYLE = "template_style";
     private static final String FIELD_CONTENT_STYLE = "content_style";
     private static final String FIELD_CONTENT = "content";
+    private static final String FIELD_ACTION = "action";
 
     private static InAppMessageStore sInstance = null;
 
@@ -71,6 +72,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             String cJson = getString(cursor, FIELD_CONTENT);
             if (!TextUtils.isEmpty(cJson)) inAppMessage.setContent(new JSONObject(cJson));
 
+            String aJson = getString(cursor, FIELD_ACTION);
+            if (!TextUtils.isEmpty(aJson)) inAppMessage.setAction(new JSONObject(aJson));
+
             return inAppMessage;
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -90,6 +94,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             values.put(FIELD_TEMPLATE_STYLE, inAppMessage.getTemplateStyleJson());
             values.put(FIELD_CONTENT_STYLE, inAppMessage.getContentStyleJson());
             values.put(FIELD_CONTENT, inAppMessage.getContentJson());
+            values.put(FIELD_ACTION, inAppMessage.getActionJson());
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -106,6 +111,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_TEMPLATE_STYLE, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT_STYLE, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_ACTION, FieldType.Text);
         return fieldTypeHashMap;
     }
 

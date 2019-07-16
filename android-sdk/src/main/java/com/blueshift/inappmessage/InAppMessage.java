@@ -23,6 +23,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private static final String KEY_TEMPLATE_STYLE = "template_style";
     private static final String KEY_CONTENT_STYLE = "content_style";
     private static final String KEY_CONTENT = "content";
+    private static final String KEY_ACTION = "action";
 
     private static final String KEY_MARGIN = "margin";
     private static final String KEY_WIDTH = "width";
@@ -37,6 +38,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private JSONObject template_style;
     private JSONObject content_style;
     private JSONObject content;
+    private JSONObject action;
 
     public static InAppMessage getInstance(JSONObject payload) {
         try {
@@ -47,6 +49,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.template_style = payload.getJSONObject(KEY_TEMPLATE_STYLE);
             inAppMessage.content_style = payload.getJSONObject(KEY_CONTENT_STYLE);
             inAppMessage.content = payload.getJSONObject(KEY_CONTENT);
+            inAppMessage.action = payload.getJSONObject(KEY_ACTION);
 
             return inAppMessage;
         } catch (Exception e) {
@@ -98,6 +101,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         this.template_style = templateStyle;
     }
 
+    public JSONObject getContentStyle() {
+        return content_style;
+    }
+
     public String getContentStyleJson() {
         return content_style != null ? content_style.toString() : null;
     }
@@ -106,12 +113,34 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         this.content_style = contentStyle;
     }
 
+    public JSONObject getContent() {
+        return content;
+    }
+
     public String getContentJson() {
         return content != null ? content.toString() : null;
     }
 
     public void setContent(JSONObject content) {
         this.content = content;
+    }
+
+    public String getActionJson() {
+        return action != null ? action.toString() : null;
+    }
+
+    public JSONObject getAction() {
+        try {
+            return action;
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return null;
+    }
+
+    public void setAction(JSONObject action) {
+        this.action = action;
     }
 
     public String getContentString(String contentName) {
