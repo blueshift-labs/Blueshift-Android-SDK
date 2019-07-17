@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppMessage;
@@ -114,5 +116,23 @@ public class InAppUtils {
         }
 
         return 14;
+    }
+
+    public static void applyTextColor(TextView textView, String colorStr) {
+        if (textView != null) {
+            if (validateColorString(colorStr)) {
+                int color = Color.parseColor(colorStr);
+                textView.setTextColor(color);
+            }
+        }
+    }
+
+    public static void applyBackgroundColor(View view, String colorStr) {
+        if (view != null) {
+            if (validateColorString(colorStr)) {
+                int color = Color.parseColor(colorStr);
+                view.setBackgroundColor(color);
+            }
+        }
     }
 }
