@@ -2,7 +2,7 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
+
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,13 +73,14 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
                 Button actionBtn = null;
                 String action = actionKeys.next();
                 if (action != null) {
-//                    Log.d("XXX", "Action: " + action);
-
                     switch (action) {
                         case ACTION_DISMISS:
                             actionBtn = getDismissButton(actions.optJSONObject(action));
                             break;
 
+                        case ACTION_APP_OPEN:
+                            actionBtn = getOpenAppButton(actions.optJSONObject(action));
+                            break;
                     }
                 }
 
