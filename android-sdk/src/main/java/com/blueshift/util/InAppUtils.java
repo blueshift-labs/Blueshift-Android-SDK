@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 
@@ -76,46 +77,125 @@ public class InAppUtils {
         return false;
     }
 
-    public static int getContentColor(InAppMessage inAppMessage, String contentName) {
+    public static String getContentString(InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                String colorVal = inAppMessage.getContentStyle().optString(contentName + "_color");
-                if (validateColorString(colorVal)) {
-                    return Color.parseColor(colorVal);
-                }
+                String colorVal = inAppMessage.getContentStyle().optString(contentName);
+                return TextUtils.isEmpty(colorVal) ? null : colorVal;
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
 
-        return Color.parseColor("#000000");
+        return null;
     }
 
-    public static int getContentBackgroundColor(InAppMessage inAppMessage, String contentName) {
+    public static String getContentColor(InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                String colorVal = inAppMessage.getContentStyle().optString(contentName + "_background_color");
-                if (validateColorString(colorVal)) {
-                    return Color.parseColor(colorVal);
-                }
+                return getContentString(inAppMessage, contentName + "_color");
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
 
-        return Color.parseColor("#00000000");
+        return null;
     }
 
-    public static int getContentSize(InAppMessage inAppMessage, String contentName) {
+    public static String getContentBackgroundColor(InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return inAppMessage.getContentStyle().optInt(contentName + "_size", 14);
+                return getContentString(inAppMessage, contentName + "_background_color");
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
 
-        return 14;
+        return null;
+    }
+
+    public static int getContentInt(InAppMessage inAppMessage, String contentName, int fallback) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                return inAppMessage.getContentStyle().optInt(contentName, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
+    public static int getContentSize(InAppMessage inAppMessage, String contentName, int fallback) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                return getContentInt(inAppMessage, contentName + "_size", fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
+    private static int parseGravityString(String gravityString) {
+        int gravity = Gravity.START;
+
+        if (gravityString != null) {
+            switch (gravityString) {
+                case "start":
+                    gravity = Gravity.START;
+                    break;
+
+                case "end":
+                    gravity = Gravity.END;
+                    break;
+
+                case "center":
+                    gravity = Gravity.CENTER;
+                    break;
+            }
+        }
+
+        return gravity;
+    }
+
+    public static int getContentGravity(InAppMessage inAppMessage, String contentName) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                String gravity = getContentString(inAppMessage, contentName + "_gravity");
+                return parseGravityString(gravity);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return Gravity.START;
+    }
+
+    public static int getContentLayoutGravity(InAppMessage inAppMessage, String contentName) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                String gravity = getContentString(inAppMessage, contentName + "_layout_gravity");
+                return parseGravityString(gravity);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return Gravity.START;
+    }
+
+    public static int getContentPadding(InAppMessage inAppMessage, String contentName, int fallback) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                return getContentInt(inAppMessage, contentName + "_padding", fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
     }
 
     public static void applyTextColor(TextView textView, String colorStr) {

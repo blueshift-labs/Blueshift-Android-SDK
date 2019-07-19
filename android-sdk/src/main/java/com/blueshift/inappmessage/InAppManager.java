@@ -160,6 +160,8 @@ public class InAppManager {
                         return buildAndShowHtmlInAppMessage(context, inAppMessage);
                     case CENTER_POPUP:
                         return buildAndShowCenterPopupInAppMessage(context, inAppMessage);
+                    case FULL_SCREEN_POPUP:
+                        return buildAndShowFullScreenPopupInAppMessage(context, inAppMessage);
                 }
             }
         }
@@ -170,7 +172,16 @@ public class InAppManager {
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage);
-            return displayInAppDialog(context, inAppMessageCenterPopupView);
+            return displayInAppDialog(context, inAppMessageCenterPopupView, false);
+        }
+
+        return false;
+    }
+
+    private static boolean buildAndShowFullScreenPopupInAppMessage(Context context, InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage);
+            return displayInAppDialog(context, inAppMessageCenterPopupView, true);
         }
 
         return false;
@@ -202,7 +213,7 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageHtmlView);
+            return displayInAppDialog(context, inAppMessageHtmlView, false);
         }
 
         return false;
@@ -218,7 +229,7 @@ public class InAppManager {
         return false;
     }
 
-    private static boolean displayInAppDialog(Context context, View customView) {
+    private static boolean displayInAppDialog(Context context, View customView, boolean fullScreen) {
         if (isOurAppRunning(context)) {
             if (mDialog != null && mDialog.isShowing()) {
                 // todo: check with aswani if this is the right way to do this.
@@ -226,7 +237,7 @@ public class InAppManager {
                 mDialog.dismiss();
             }
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            AlertDialog.Builder builder = fullScreen ? new AlertDialog.Builder(context, android.R.style.Theme_NoTitleBar_Fullscreen) : new AlertDialog.Builder(context);
             builder.setView(customView);
             mDialog = builder.create();
             mDialog.show();

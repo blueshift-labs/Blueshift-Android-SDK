@@ -9,9 +9,12 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
@@ -213,6 +216,73 @@ public abstract class InAppMessageView extends RelativeLayout {
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
+    }
+
+    public LinearLayout getActionButtons(JSONObject actions, int orientation) {
+        if (actions != null) {
+            LinearLayout actionsRootView = new LinearLayout(getContext());
+            if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
+                actionsRootView.setOrientation(orientation);
+            }
+
+            Iterator<String> actionKeys = actions.keys();
+            while (actionKeys.hasNext()) {
+                Button actionBtn = null;
+                String action = actionKeys.next();
+                if (action != null) {
+                    switch (action) {
+                        case ACTION_DISMISS:
+                            actionBtn = getDismissButton(actions.optJSONObject(action));
+                            break;
+
+                        case ACTION_APP_OPEN:
+                            actionBtn = getOpenAppButton(actions.optJSONObject(action));
+                            break;
+                    }
+                }
+
+                if (actionBtn != null) {
+                    LinearLayout.LayoutParams lp =
+                            new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+                    actionsRootView.addView(actionBtn, lp);
+                }
+            }
+
+            return actionsRootView.getChildCount() > 0 ? actionsRootView : null;
+        }
+
+        return null;
+    }
+
+    public TextView getContentTextView(InAppMessage inAppMessage, String contentName) {
+        TextView textView = null;
+
+        if (inAppMessage != null && !TextUtils.isEmpty(contentName)) {
+            String titleText = inAppMessage.getContentString(contentName);
+
+            if (!TextUtils.isEmpty(titleText)) {
+                textView = new TextView(getContext());
+                textView.setText(titleText);
+
+                int padding = InAppUtils.getContentPadding(inAppMessage, contentName, 8);
+                int dpPadding = CommonUtils.dpToPx(padding, getContext());
+                textView.setPadding(dpPadding, dpPadding, dpPadding, dpPadding);
+
+                int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
+                textView.setGravity(contentGravity);
+
+                int val = InAppUtils.getContentSize(inAppMessage, contentName, 14);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
+
+                String contentColor = InAppUtils.getContentColor(inAppMessage, contentName);
+                InAppUtils.applyTextColor(textView, contentColor);
+
+                String backgroundColor = InAppUtils.getContentBackgroundColor(inAppMessage, contentName);
+                InAppUtils.applyBackgroundColor(textView, backgroundColor);
+            }
+        }
+
+        return textView;
     }
 
     public abstract View getView(InAppMessage inAppMessage);
