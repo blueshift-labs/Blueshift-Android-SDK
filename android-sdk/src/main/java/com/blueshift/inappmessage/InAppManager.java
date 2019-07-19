@@ -63,10 +63,7 @@ public class InAppManager {
         }
 
         // clean up the dialog and activity
-
-        if (mDialog != null && mDialog.isShowing()) {
-            mDialog.dismiss();
-        }
+        dismissAndCleanupDialog();
 
         mDialog = null;
         mActivity = null;
@@ -171,7 +168,18 @@ public class InAppManager {
 
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage);
+            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage) {
+                @Override
+                public void onCloseButtonClick(InAppMessage inAppMessage) {
+                    invokeCloseButtonClick(inAppMessage);
+                }
+
+                @Override
+                public void onDismiss(InAppMessage inAppMessage) {
+                    invokeDismissButtonClick(inAppMessage);
+                }
+            };
+
             return displayInAppDialog(context, inAppMessageCenterPopupView, false);
         }
 
@@ -180,7 +188,18 @@ public class InAppManager {
 
     private static boolean buildAndShowFullScreenPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage);
+            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage) {
+                @Override
+                public void onCloseButtonClick(InAppMessage inAppMessage) {
+                    invokeCloseButtonClick(inAppMessage);
+                }
+
+                @Override
+                public void onDismiss(InAppMessage inAppMessage) {
+                    invokeDismissButtonClick(inAppMessage);
+                }
+            };
+
             return displayInAppDialog(context, inAppMessageCenterPopupView, true);
         }
 
@@ -192,24 +211,12 @@ public class InAppManager {
             InAppMessageHtmlView inAppMessageHtmlView = new InAppMessageHtmlView(context, inAppMessage) {
                 @Override
                 public void onCloseButtonClick(InAppMessage inAppMessage) {
-                    if (mDialog != null) {
-                        mDialog.dismiss();
-                        mDialog = null; // clean up memory.
-                    }
-
-                    // track the click todo: decide event name
-                    Blueshift.getInstance(mActivity).trackInAppMessageClick("close", inAppMessage);
+                    invokeCloseButtonClick(inAppMessage);
                 }
 
                 @Override
                 public void onDismiss(InAppMessage inAppMessage) {
-                    if (mDialog != null) {
-                        mDialog.dismiss();
-                        mDialog = null; // clean up memory.
-                    }
-
-                    // track the click todo: decide event name
-                    Blueshift.getInstance(mActivity).trackInAppMessageClick("dismiss", inAppMessage);
+                    invokeDismissButtonClick(inAppMessage);
                 }
             };
 
@@ -270,5 +277,26 @@ public class InAppManager {
         }
 
         return null;
+    }
+
+    private static void invokeCloseButtonClick(InAppMessage inAppMessage) {
+        dismissAndCleanupDialog();
+
+        // track the click todo: decide event name
+        Blueshift.getInstance(mActivity).trackInAppMessageClick("close", inAppMessage);
+    }
+
+    private static void invokeDismissButtonClick(InAppMessage inAppMessage) {
+        dismissAndCleanupDialog();
+
+        // track the click todo: decide event name
+        Blueshift.getInstance(mActivity).trackInAppMessageClick("dismiss", inAppMessage);
+    }
+
+    private static void dismissAndCleanupDialog() {
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+            mDialog = null;
+        }
     }
 }
