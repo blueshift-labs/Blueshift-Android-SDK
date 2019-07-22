@@ -2,7 +2,9 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -53,7 +55,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         applyTemplateDimensions(inAppMessage);
 
         int bgColor = inAppMessage.getTemplateBackgroundColor();
-        if (bgColor > 0) {
+        if (bgColor != 0) {
             setBackgroundColor(bgColor);
         }
 
@@ -291,8 +293,46 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public ImageView getContentImageView(InAppMessage inAppMessage, String contentName) {
+        ImageView imageView = null;
 
-        return null;
+        if (inAppMessage != null && !TextUtils.isEmpty(contentName)) {
+            int dp4 = CommonUtils.dpToPx(4, getContext());
+            imageView = new ImageView(getContext());
+
+            Drawable icon = ContextCompat.getDrawable(getContext(), R.drawable.ic_inapp_videocam);
+            if (icon != null) {
+                try {
+                    String colorString = InAppUtils.getContentColor(inAppMessage, contentName);
+                    boolean isValidColor = InAppUtils.validateColorString(colorString);
+                    if (isValidColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        icon.setTint(Color.parseColor(colorString));
+                    }
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+
+                imageView.setImageDrawable(icon);
+            }
+
+            Drawable iconBackground = ContextCompat.getDrawable(getContext(), R.drawable.inapp_icon_background);
+            if (iconBackground != null) {
+                try {
+                    String colorString = InAppUtils.getContentBackgroundColor(inAppMessage, contentName);
+                    boolean isValidColor = InAppUtils.validateColorString(colorString);
+                    if (isValidColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        iconBackground.setTint(Color.parseColor(colorString));
+                    }
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+
+                imageView.setBackgroundResource(R.drawable.inapp_icon_background);
+            }
+
+            imageView.setPadding(dp4, dp4, dp4, dp4);
+        }
+
+        return imageView;
     }
 
     public abstract View getView(InAppMessage inAppMessage);
