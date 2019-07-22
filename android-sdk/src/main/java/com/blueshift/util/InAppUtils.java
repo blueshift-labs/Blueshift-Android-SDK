@@ -80,8 +80,33 @@ public class InAppUtils {
     public static String getContentString(InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                String colorVal = inAppMessage.getContentStyle().optString(contentName);
-                return TextUtils.isEmpty(colorVal) ? null : colorVal;
+                String stringValue = inAppMessage.getContentStyle().optString(contentName);
+                return TextUtils.isEmpty(stringValue) ? null : stringValue;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
+    }
+
+    public static int getContentInt(InAppMessage inAppMessage, String contentName, int fallback) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                return inAppMessage.getContentStyle().optInt(contentName, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
+    public static String getTemplateString(InAppMessage inAppMessage, String contentName) {
+        try {
+            if (inAppMessage != null && inAppMessage.getTemplateStyle() != null && contentName != null) {
+                String stringValue = inAppMessage.getTemplateStyle().optString(contentName);
+                return TextUtils.isEmpty(stringValue) ? null : stringValue;
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -114,18 +139,6 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getContentInt(InAppMessage inAppMessage, String contentName, int fallback) {
-        try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return inAppMessage.getContentStyle().optInt(contentName, fallback);
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        return fallback;
-    }
-
     public static int getContentSize(InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
@@ -149,6 +162,14 @@ public class InAppUtils {
 
                 case "end":
                     gravity = Gravity.END;
+                    break;
+
+                case "top":
+                    gravity = Gravity.TOP;
+                    break;
+
+                case "bottom":
+                    gravity = Gravity.BOTTOM;
                     break;
 
                 case "center":
@@ -196,6 +217,16 @@ public class InAppUtils {
         }
 
         return fallback;
+    }
+
+    public static boolean isTemplateFullScreen(InAppMessage inAppMessage) {
+        String position = getTemplateString(inAppMessage, "position");
+        return "fullscreen".equals(position);
+    }
+
+    public static int getTemplateGravity(InAppMessage inAppMessage) {
+        String position = getTemplateString(inAppMessage, "position");
+        return parseGravityString(position);
     }
 
     public static void applyTextColor(TextView textView, String colorStr) {

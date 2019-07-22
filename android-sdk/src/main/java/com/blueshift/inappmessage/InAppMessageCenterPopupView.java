@@ -12,9 +12,6 @@ import com.blueshift.util.InAppUtils;
 import org.json.JSONObject;
 
 public class InAppMessageCenterPopupView extends InAppMessageView {
-    private static final String CONTENT_TITLE = "title";
-    private static final String CONTENT_MESSAGE = "message";
-
     public InAppMessageCenterPopupView(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
     }
