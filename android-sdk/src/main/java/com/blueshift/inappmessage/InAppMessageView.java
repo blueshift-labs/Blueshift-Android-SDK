@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -28,6 +29,10 @@ import java.util.Iterator;
 public abstract class InAppMessageView extends RelativeLayout {
     protected static final String ACTION_DISMISS = "dismiss";
     protected static final String ACTION_APP_OPEN = "app_open";
+
+    protected static final String CONTENT_TITLE = "title";
+    protected static final String CONTENT_MESSAGE = "message";
+    protected static final String CONTENT_ICON = "icon";
 
     private static final String LOG_TAG = "InAppMessageView";
     private static final String ACTION_KEY_TEXT = "text";
@@ -283,6 +288,11 @@ public abstract class InAppMessageView extends RelativeLayout {
         }
 
         return textView;
+    }
+
+    public ImageView getContentImageView(InAppMessage inAppMessage, String contentName) {
+
+        return null;
     }
 
     public abstract View getView(InAppMessage inAppMessage);

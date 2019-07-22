@@ -93,6 +93,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         this.trigger = trigger;
     }
 
+    public JSONObject getTemplateStyle() {
+        return template_style;
+    }
+
     public String getTemplateStyleJson() {
         return template_style != null ? template_style.toString() : null;
     }

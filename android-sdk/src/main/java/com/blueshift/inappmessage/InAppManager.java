@@ -8,11 +8,15 @@ import android.content.Context;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.InAppUtils;
 import com.blueshift.util.StorageUtils;
 
 public class InAppManager {
@@ -159,6 +163,8 @@ public class InAppManager {
                         return buildAndShowCenterPopupInAppMessage(context, inAppMessage);
                     case FULL_SCREEN_POPUP:
                         return buildAndShowFullScreenPopupInAppMessage(context, inAppMessage);
+                    case SLIDE_IN_BANNER:
+                        return buildAndShowSlidingBannerInAppMessage(context, inAppMessage);
                 }
             }
         }
@@ -180,7 +186,7 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageCenterPopupView, false);
+            return displayInAppDialog(context, inAppMessageCenterPopupView, inAppMessage);
         }
 
         return false;
@@ -200,7 +206,27 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageCenterPopupView, true);
+            return displayInAppDialog(context, inAppMessageCenterPopupView, inAppMessage);
+        }
+
+        return false;
+    }
+
+    private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            InAppMessageAnimatedView inAppMessageAnimatedView = new InAppMessageAnimatedView(context, inAppMessage) {
+                @Override
+                public void onCloseButtonClick(InAppMessage inAppMessage) {
+                    invokeCloseButtonClick(inAppMessage);
+                }
+
+                @Override
+                public void onDismiss(InAppMessage inAppMessage) {
+                    invokeDismissButtonClick(inAppMessage);
+                }
+            };
+
+            return displayInAppDialogAnimated(context, inAppMessageAnimatedView, inAppMessage);
         }
 
         return false;
@@ -220,7 +246,7 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageHtmlView, false);
+            return displayInAppDialog(context, inAppMessageHtmlView, inAppMessage);
         }
 
         return false;
@@ -236,7 +262,49 @@ public class InAppManager {
         return false;
     }
 
-    private static boolean displayInAppDialog(Context context, View customView, boolean fullScreen) {
+    private static boolean displayInAppDialog(Context context, View customView, InAppMessage inAppMessage) {
+        if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+            return displayInAppDialogFullScreen(context, customView);
+        } else {
+            return displayInAppDialogModal(context, customView);
+        }
+    }
+
+    private static boolean displayInAppDialogModal(Context context, View customView) {
+        if (isOurAppRunning(context)) {
+            // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
+            dismissAndCleanupDialog();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setView(customView);
+
+            mDialog = builder.create();
+            mDialog.show();
+            return true;
+        } else {
+            Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
+            return false;
+        }
+    }
+
+    private static boolean displayInAppDialogFullScreen(Context context, View customView) {
+        if (isOurAppRunning(context)) {
+            // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
+            dismissAndCleanupDialog();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context, android.R.style.Theme_NoTitleBar_Fullscreen);
+            builder.setView(customView);
+
+            mDialog = builder.create();
+            mDialog.show();
+            return true;
+        } else {
+            Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
+            return false;
+        }
+    }
+
+    private static boolean displayInAppDialogAnimated(Context context, View customView, InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
             if (mDialog != null && mDialog.isShowing()) {
                 // todo: check with aswani if this is the right way to do this.
@@ -244,10 +312,17 @@ public class InAppManager {
                 mDialog.dismiss();
             }
 
-            AlertDialog.Builder builder = fullScreen ? new AlertDialog.Builder(context, android.R.style.Theme_NoTitleBar_Fullscreen) : new AlertDialog.Builder(context);
+            AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DialogAnimationSlideFromLeft);
             builder.setView(customView);
             mDialog = builder.create();
             mDialog.show();
+
+            Window window = mDialog.getWindow();
+            if (window != null) {
+                window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
+                window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            }
+
             return true;
         } else {
             Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
