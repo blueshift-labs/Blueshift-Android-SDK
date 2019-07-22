@@ -152,7 +152,7 @@ public class InAppUtils {
     }
 
     private static int parseGravityString(String gravityString) {
-        int gravity = Gravity.START;
+        int gravity = Gravity.CENTER;
 
         if (gravityString != null) {
             switch (gravityString) {

@@ -306,11 +306,8 @@ public class InAppManager {
 
     private static boolean displayInAppDialogAnimated(Context context, View customView, InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            if (mDialog != null && mDialog.isShowing()) {
-                // todo: check with aswani if this is the right way to do this.
-                // should we skip the current dialog and display the new one or not?
-                mDialog.dismiss();
-            }
+            // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
+            dismissAndCleanupDialog();
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DialogAnimationSlideFromLeft);
             builder.setView(customView);
