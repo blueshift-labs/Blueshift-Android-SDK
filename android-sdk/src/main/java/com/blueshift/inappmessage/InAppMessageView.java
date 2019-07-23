@@ -31,6 +31,7 @@ import java.util.Iterator;
 public abstract class InAppMessageView extends RelativeLayout {
     protected static final String ACTION_DISMISS = "dismiss";
     protected static final String ACTION_APP_OPEN = "app_open";
+    protected static final String ACTION_SHARE = "share";
 
     protected static final String CONTENT_TITLE = "title";
     protected static final String CONTENT_MESSAGE = "message";
@@ -152,47 +153,115 @@ public abstract class InAppMessageView extends RelativeLayout {
         return button;
     }
 
-    public Button getDismissButton(JSONObject action) {
-        try {
-            Button button = getBasicButton(action);
+    protected Button getActionButton(String actionName, JSONObject actionJson) {
+        Button button = null;
 
-            if (button != null) {
-                button.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        onDismiss(inAppMessage);
-                    }
-                });
-
-                return button;
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
+        if (!TextUtils.isEmpty(actionName) && actionJson != null) {
+            button = getBasicButton(actionJson);
+            button.setOnClickListener(getActionClickListener(actionName, actionJson));
         }
 
-        return null;
+        return button;
     }
 
-    public Button getOpenAppButton(final JSONObject action) {
+    protected OnClickListener getActionClickListener(String actionName, JSONObject actionJson) {
+        OnClickListener listener = null;
+
+        if (actionName != null) {
+            switch (actionName) {
+                case ACTION_DISMISS:
+                    listener = getDismissDialogClickListener(actionJson);
+                    break;
+
+                case ACTION_APP_OPEN:
+                    listener = getStartActivityClickListener(actionJson);
+                    break;
+
+                case ACTION_SHARE:
+                    listener = getShareClickListener(actionJson);
+                    break;
+            }
+        }
+
+        if (listener == null) {
+            listener = getDismissDialogClickListener(actionJson);
+        }
+
+        return listener;
+    }
+
+    // action click listeners
+
+    protected OnClickListener getDismissDialogClickListener(final JSONObject action) {
+        OnClickListener listener = null;
+
+        if (action != null) {
+            listener = new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // dismiss dialog
+                    onDismiss(getInAppMessage());
+                }
+            };
+        }
+
+        return listener;
+    }
+
+    protected OnClickListener getStartActivityClickListener(final JSONObject action) {
+        OnClickListener listener = null;
+
+        if (action != null) {
+            listener = new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // open activity
+                    startActivity(action);
+
+                    // dismiss dialog
+                    onDismiss(getInAppMessage());
+                }
+            };
+        }
+
+        return listener;
+    }
+
+    protected OnClickListener getShareClickListener(final JSONObject action) {
+        OnClickListener listener = null;
+
+        if (action != null) {
+            listener = new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // open activity
+                    shareText(action);
+
+                    // dismiss dialog
+                    onDismiss(getInAppMessage());
+                }
+            };
+        }
+
+        return listener;
+    }
+
+    // action functions
+
+    private void shareText(JSONObject action) {
         try {
-            Button button = getBasicButton(action);
-
-            if (button != null) {
-                button.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        startActivity(action);
-                        onDismiss(inAppMessage);
-                    }
-                });
-
-                return button;
+            if (action != null) {
+                String text = action.optString(ACTION_KEY_TEXT);
+                if (!TextUtils.isEmpty(text)) {
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+                    shareIntent.setType("text/plain");
+                    getContext().startActivity(shareIntent);
+                }
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
-
-        return null;
     }
 
     private void startActivity(JSONObject action) {
@@ -237,15 +306,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 Button actionBtn = null;
                 String action = actionKeys.next();
                 if (action != null) {
-                    switch (action) {
-                        case ACTION_DISMISS:
-                            actionBtn = getDismissButton(actions.optJSONObject(action));
-                            break;
-
-                        case ACTION_APP_OPEN:
-                            actionBtn = getOpenAppButton(actions.optJSONObject(action));
-                            break;
-                    }
+                    actionBtn = getActionButton(action, actions.optJSONObject(action));
                 }
 
                 if (actionBtn != null) {
