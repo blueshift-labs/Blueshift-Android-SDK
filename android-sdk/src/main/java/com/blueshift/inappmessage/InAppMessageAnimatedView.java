@@ -8,7 +8,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.blueshift.R;
 import com.blueshift.util.CommonUtils;
+
+import org.json.JSONObject;
+
+import java.util.Iterator;
 
 public class InAppMessageAnimatedView extends InAppMessageView {
 
@@ -24,6 +29,7 @@ public class InAppMessageAnimatedView extends InAppMessageView {
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
+        linearLayout.setLayoutParams(layoutParams);
 
         ImageView imageView = getContentImageView(inAppMessage, CONTENT_ICON);
         if (imageView != null) {
@@ -37,12 +43,30 @@ public class InAppMessageAnimatedView extends InAppMessageView {
 
         TextView messageTextView = getContentTextView(inAppMessage, CONTENT_MESSAGE);
         if (messageTextView != null) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
             linearLayout.addView(messageTextView, lp);
         }
 
-        linearLayout.setLayoutParams(layoutParams);
+        ImageView fwdArrow = new ImageView(getContext());
+        fwdArrow.setImageResource(R.drawable.ic_inapp_arrow_forward);
+        int dp20 = CommonUtils.dpToPx(20, getContext());
+        int dp8 = CommonUtils.dpToPx(8, getContext());
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp20, ViewGroup.LayoutParams.MATCH_PARENT);
+        lp.setMargins(dp8, dp8, dp8, dp8);
+        linearLayout.addView(fwdArrow, lp);
+
+        // assumed that only one action is provided. if more actions found, first one is taken.
+        JSONObject actions = inAppMessage.getAction();
+        if (actions != null) {
+            Iterator<String> actionKeys = actions.keys();
+            if (actionKeys.hasNext()) {
+                String actionName = actionKeys.next();
+                JSONObject actionArgs = actions.optJSONObject(actionName);
+                linearLayout.setOnClickListener(getActionClickListener(actionName, actionArgs));
+            }
+        }
+
         return linearLayout;
     }
 }
