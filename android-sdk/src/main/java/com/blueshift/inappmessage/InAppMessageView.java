@@ -43,6 +43,7 @@ public abstract class InAppMessageView extends RelativeLayout {
     private static final String ACTION_KEY_BACKGROUND_COLOR = "background_color";
     private static final String ACTION_KEY_PAGE = "page";
     private static final String ACTION_KEY_EXTRAS = "extras";
+    private static final String ACTION_KEY_CONTENT = "content";
 
     private InAppMessage inAppMessage = null;
 
@@ -251,12 +252,15 @@ public abstract class InAppMessageView extends RelativeLayout {
     private void shareText(JSONObject action) {
         try {
             if (action != null) {
-                String text = action.optString(ACTION_KEY_TEXT);
-                if (!TextUtils.isEmpty(text)) {
-                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.putExtra(Intent.EXTRA_TEXT, text);
-                    shareIntent.setType("text/plain");
-                    getContext().startActivity(shareIntent);
+                JSONObject content = action.optJSONObject(ACTION_KEY_CONTENT);
+                if (content != null) {
+                    String text = content.optString(ACTION_KEY_TEXT);
+                    if (!TextUtils.isEmpty(text)) {
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+                        shareIntent.setType("text/plain");
+                        getContext().startActivity(shareIntent);
+                    }
                 }
             }
         } catch (Exception e) {
