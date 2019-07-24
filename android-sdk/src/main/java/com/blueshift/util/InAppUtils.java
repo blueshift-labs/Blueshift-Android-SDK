@@ -220,8 +220,16 @@ public class InAppUtils {
     }
 
     public static boolean isTemplateFullScreen(InAppMessage inAppMessage) {
-        String position = getTemplateString(inAppMessage, "position");
-        return "fullscreen".equals(position);
+        boolean isFullscreen = false;
+
+        try {
+            String position = getTemplateString(inAppMessage, "fullscreen");
+            isFullscreen = Boolean.valueOf(position);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return isFullscreen;
     }
 
     public static int getTemplateGravity(InAppMessage inAppMessage) {

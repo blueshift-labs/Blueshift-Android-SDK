@@ -24,6 +24,11 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
         rootView.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+            lp2.height = ViewGroup.LayoutParams.MATCH_PARENT;
+        }
+
         rootView.setLayoutParams(lp2);
 
         // title
@@ -41,6 +46,13 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
             messageTextView.setMinHeight(dp80);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+            // message window will take the full screen
+            if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+                lp.height = 0;
+                lp.weight = 1;
+            }
+
             lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, CONTENT_MESSAGE);
             rootView.addView(messageTextView, lp);
         }
