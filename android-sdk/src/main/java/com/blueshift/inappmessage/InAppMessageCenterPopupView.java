@@ -18,7 +18,7 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
 
     @Override
     public View getView(InAppMessage inAppMessage) {
-        int dp8 = CommonUtils.dpToPx(8, getContext());
+        int dp80 = CommonUtils.dpToPx(80, getContext());
 
         LinearLayout rootView = new LinearLayout(getContext());
         rootView.setOrientation(LinearLayout.VERTICAL);
@@ -38,6 +38,7 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
         // message
         TextView messageTextView = getContentTextView(inAppMessage, CONTENT_MESSAGE);
         if (messageTextView != null) {
+            messageTextView.setMinHeight(dp80);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, CONTENT_MESSAGE);

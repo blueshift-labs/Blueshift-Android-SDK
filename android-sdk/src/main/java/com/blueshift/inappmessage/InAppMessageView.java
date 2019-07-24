@@ -305,6 +305,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 actionsRootView.setOrientation(orientation);
             }
 
+            int dp4 = CommonUtils.dpToPx(4, getContext());
             Iterator<String> actionKeys = actions.keys();
             while (actionKeys.hasNext()) {
                 Button actionBtn = null;
@@ -316,6 +317,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 if (actionBtn != null) {
                     LinearLayout.LayoutParams lp =
                             new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+                    lp.setMargins(dp4, dp4, dp4, dp4);
                     actionsRootView.addView(actionBtn, lp);
                 }
             }
