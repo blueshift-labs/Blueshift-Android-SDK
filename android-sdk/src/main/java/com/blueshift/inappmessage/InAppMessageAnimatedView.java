@@ -31,14 +31,14 @@ public class InAppMessageAnimatedView extends InAppMessageView {
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         linearLayout.setLayoutParams(layoutParams);
 
-        ImageView imageView = getContentImageView(inAppMessage, CONTENT_ICON);
-        if (imageView != null) {
+        TextView iconTextView = getContentIconTextView(inAppMessage, CONTENT_ICON);
+        if (iconTextView != null) {
             int dp40 = CommonUtils.dpToPx(40, getContext());
             int dp8 = CommonUtils.dpToPx(8, getContext());
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp40, dp40);
             lp.setMargins(dp8, dp8, dp8, dp8);
 
-            linearLayout.addView(imageView, lp);
+            linearLayout.addView(iconTextView, lp);
         }
 
         TextView messageTextView = getContentTextView(inAppMessage, CONTENT_MESSAGE);

@@ -2,6 +2,7 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -137,6 +138,38 @@ public class InAppUtils {
         }
 
         return null;
+    }
+
+    public static int getContentBackgroundRadius(InAppMessage inAppMessage, String contentName, int fallback) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                return getContentInt(inAppMessage, contentName + "_background_radius", fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
+    public static GradientDrawable getContentBackgroundDrawable(InAppMessage inAppMessage, String contentName) {
+        GradientDrawable shape = new GradientDrawable();
+        try {
+            String colorVal = getContentBackgroundColor(inAppMessage, contentName);
+            if (validateColorString(colorVal)) {
+                int color = Color.parseColor(colorVal);
+                shape.setColor(color);
+            }
+
+            int radius = getContentBackgroundRadius(inAppMessage, contentName, 0);
+            if (radius != 0) {
+                shape.setCornerRadius(radius);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return shape;
     }
 
     public static int getContentSize(InAppMessage inAppMessage, String contentName, int fallback) {

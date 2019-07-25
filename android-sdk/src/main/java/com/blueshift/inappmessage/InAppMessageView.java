@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -353,6 +355,47 @@ public abstract class InAppMessageView extends RelativeLayout {
 
                 String backgroundColor = InAppUtils.getContentBackgroundColor(inAppMessage, contentName);
                 InAppUtils.applyBackgroundColor(textView, backgroundColor);
+            }
+        }
+
+        return textView;
+    }
+
+    public TextView getContentIconTextView(InAppMessage inAppMessage, String contentName) {
+        TextView textView = null;
+
+        if (inAppMessage != null && !TextUtils.isEmpty(contentName)) {
+            String titleText = inAppMessage.getContentString(contentName);
+
+            if (!TextUtils.isEmpty(titleText)) {
+                textView = new TextView(getContext());
+
+                // font-awesome icon font (free)
+                InAppMessageIconFont.getInstance(getContext()).apply(textView);
+
+                // text should be converted to unicode glymph to use here.
+                textView.setText(titleText);
+
+                int padding = InAppUtils.getContentPadding(inAppMessage, contentName, 8);
+                int dpPadding = CommonUtils.dpToPx(padding, getContext());
+                textView.setPadding(dpPadding, dpPadding, dpPadding, dpPadding);
+
+                int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
+                textView.setGravity(contentGravity);
+
+                int val = InAppUtils.getContentSize(inAppMessage, contentName, 14);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
+
+                String contentColor = InAppUtils.getContentColor(inAppMessage, contentName);
+                InAppUtils.applyTextColor(textView, contentColor);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    Drawable background = InAppUtils.getContentBackgroundDrawable(inAppMessage, contentName);
+                    textView.setBackground(background);
+                } else {
+                    String bgColor = InAppUtils.getContentBackgroundColor(inAppMessage, contentName);
+                    InAppUtils.applyBackgroundColor(textView, bgColor);
+                }
             }
         }
 
