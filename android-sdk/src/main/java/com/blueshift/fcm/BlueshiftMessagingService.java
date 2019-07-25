@@ -17,6 +17,7 @@ import android.util.Log;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.BuildConfig;
+import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.inappmessage.InAppMessageStore;
 import com.blueshift.model.Configuration;
@@ -237,6 +238,11 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             InAppMessage inAppMessage = InAppMessage.getInstance(new JSONObject(json));
             InAppMessageStore.getInstance(this).insert(inAppMessage);
             Blueshift.getInstance(this).trackInAppMessageDelivered(inAppMessage);
+
+            // check for instant trigger
+            if (inAppMessage != null && inAppMessage.shouldShowNow()) {
+                InAppManager.invokeTriggers(inAppMessage);
+            }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
