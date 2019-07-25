@@ -37,6 +37,7 @@ public class Configuration {
 
     // in app message
     private long inAppInterval;
+    private boolean inAppEnableJavascript;
 
     private boolean enableAutoAppOpen = false;
 
@@ -206,5 +207,13 @@ public class Configuration {
 
     public void setInAppInterval(long milliseconds) {
         this.inAppInterval = milliseconds;
+    }
+
+    public boolean isInAppEnableJavascript() {
+        return inAppEnableJavascript;
+    }
+
+    public void setInAppEnableJavascript(boolean inAppEnableJavascript) {
+        this.inAppEnableJavascript = inAppEnableJavascript;
     }
 }
