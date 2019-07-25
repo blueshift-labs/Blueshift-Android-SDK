@@ -43,13 +43,13 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public static InAppMessage getInstance(JSONObject payload) {
         try {
             InAppMessage inAppMessage = new InAppMessage();
-            inAppMessage.type = payload.getString(KEY_TYPE);
-            inAppMessage.expires_at = payload.getLong(KEY_EXPIRES_AT);
-            inAppMessage.trigger = payload.getString(KEY_TRIGGER);
-            inAppMessage.template_style = payload.getJSONObject(KEY_TEMPLATE_STYLE);
-            inAppMessage.content_style = payload.getJSONObject(KEY_CONTENT_STYLE);
-            inAppMessage.content = payload.getJSONObject(KEY_CONTENT);
-            inAppMessage.action = payload.getJSONObject(KEY_ACTION);
+            inAppMessage.type = payload.optString(KEY_TYPE);
+            inAppMessage.expires_at = payload.optLong(KEY_EXPIRES_AT);
+            inAppMessage.trigger = payload.optString(KEY_TRIGGER);
+            inAppMessage.template_style = payload.optJSONObject(KEY_TEMPLATE_STYLE);
+            inAppMessage.content_style = payload.optJSONObject(KEY_CONTENT_STYLE);
+            inAppMessage.content = payload.optJSONObject(KEY_CONTENT);
+            inAppMessage.action = payload.optJSONObject(KEY_ACTION);
 
             return inAppMessage;
         } catch (Exception e) {
@@ -149,7 +149,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public String getContentString(String contentName) {
         try {
-            return content.getString(contentName);
+            return content.optString(contentName);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -159,7 +159,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public Rect getTemplateMargin() {
         try {
-            String json = template_style.getString(KEY_MARGIN);
+            String json = template_style.optString(KEY_MARGIN);
             return new Gson().fromJson(json, Rect.class);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -192,7 +192,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public int getTemplateBackgroundColor() {
         try {
-            String color = template_style.getString(KEY_BACKGROUND_COLOR);
+            String color = template_style.optString(KEY_BACKGROUND_COLOR);
             if (color != null && color.startsWith("#")) {
                 int len = color.length();
                 if (len == 4 || len == 7 || len == 9) {
@@ -209,7 +209,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public boolean showCloseButton() {
         try {
             return template_style.has(KEY_CLOSE_BTN)
-                    && !TextUtils.isEmpty(template_style.getString(KEY_CLOSE_BTN));
+                    && !TextUtils.isEmpty(template_style.optString(KEY_CLOSE_BTN));
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }

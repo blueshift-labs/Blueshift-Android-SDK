@@ -57,7 +57,7 @@ public class InAppUtils {
     public static String getStringFromJSONObject(JSONObject jsonObject, String key) {
         try {
             if (jsonObject != null && !TextUtils.isEmpty(key)) {
-                return jsonObject.getString(key);
+                return jsonObject.optString(key);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);

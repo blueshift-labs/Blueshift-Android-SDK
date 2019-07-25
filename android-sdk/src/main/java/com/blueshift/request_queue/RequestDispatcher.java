@@ -256,7 +256,7 @@ class RequestDispatcher {
 
                 // has one event? take it's name
                 if (jsonObject.has("event")) {
-                    event = jsonObject.getString("event");
+                    event = jsonObject.optString("event");
                 }
 
                 // has events in it? mark it as bulk_events

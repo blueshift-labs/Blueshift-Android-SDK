@@ -1,5 +1,6 @@
 package com.blueshift.inappmessage;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -13,6 +14,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.model.Configuration;
+import com.blueshift.util.BlueshiftUtils;
 
 public class InAppMessageHtmlView extends InAppMessageView {
     private static final String TAG = InAppMessageHtmlView.class.getSimpleName();
@@ -22,11 +25,19 @@ public class InAppMessageHtmlView extends InAppMessageView {
         super(context, inAppMessage);
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     public View getView(InAppMessage inAppMessage) {
         String htmlContent = inAppMessage.getContentString(CONTENT_HTML);
         if (!TextUtils.isEmpty(htmlContent)) {
             WebView webView = new WebView(getContext());
+
+            // taking consent from dev to enable js
+            Configuration config = BlueshiftUtils.getConfiguration(getContext());
+            if (config != null && config.isInAppEnableJavascript()) {
+                webView.getSettings().setJavaScriptEnabled(true);
+            }
+
             webView.setWebViewClient(new InAppWebViewClient());
             webView.loadData(htmlContent, "text/html; charset=UTF-8", null);
 
