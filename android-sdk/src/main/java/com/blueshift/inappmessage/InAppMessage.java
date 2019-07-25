@@ -220,4 +220,8 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public InAppTemplate getTemplate() {
         return InAppTemplate.fromString(type);
     }
+
+    public boolean shouldShowNow() {
+        return "now".equalsIgnoreCase(trigger);
+    }
 }

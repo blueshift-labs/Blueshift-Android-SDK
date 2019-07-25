@@ -74,13 +74,20 @@ public class InAppManager {
     }
 
     public static void invokeTriggers() {
+        invokeTriggers(null);
+    }
+
+    public static void invokeTriggers(InAppMessage inAppMessage) {
         if (mActivity == null) {
             Log.d(LOG_TAG, "App isn't running with an eligible Activity to display InAppMessage.");
             return;
         }
 
         try {
-            InAppMessage inAppMessage = InAppMessageStore.getInstance(mActivity).getInAppMessage();
+            if (inAppMessage == null) {
+                inAppMessage = InAppMessageStore.getInstance(mActivity).getInAppMessage();
+            }
+
             if (shouldDisplay(inAppMessage)) {
                 boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
                 if (isSuccess) {
@@ -97,7 +104,11 @@ public class InAppManager {
     }
 
     private static boolean shouldDisplay(InAppMessage inAppMessage) {
-        return checkInterval() && checkExpiry(inAppMessage);
+        return checkIsInstantMessage(inAppMessage) || (checkInterval() && checkExpiry(inAppMessage));
+    }
+
+    private static boolean checkIsInstantMessage(InAppMessage inAppMessage) {
+        return inAppMessage != null && inAppMessage.shouldShowNow();
     }
 
     private static boolean checkInterval() {
