@@ -71,7 +71,11 @@
         <item name="android:gravity">end</item>
     </style>
 
-    <style name="DialogAnimationSlideFromLeft">
+    <style name="dialogStyleSlideFromLeft" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowAnimationStyle">@style/slideInWindowAnimation</item>
+    </style>
+
+    <style name="slideInWindowAnimation" parent="">
         <item name="android:windowEnterAnimation">@anim/translate_left_side</item>
         <item name="android:windowExitAnimation">@anim/translate_right_side</item>
     </style>
