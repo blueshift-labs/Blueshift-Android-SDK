@@ -245,7 +245,7 @@ public class InAppManager {
 
     private static boolean buildAndShowHtmlInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageHtmlView inAppMessageHtmlView = new InAppMessageHtmlView(context, inAppMessage) {
+            InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                 @Override
                 public void onCloseButtonClick(InAppMessage inAppMessage) {
                     invokeCloseButtonClick(inAppMessage);
@@ -257,7 +257,7 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageHtmlView, inAppMessage);
+            return displayInAppDialog(context, inAppMessageViewHTML, inAppMessage);
         }
 
         return false;

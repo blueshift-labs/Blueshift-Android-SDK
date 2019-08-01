@@ -17,11 +17,11 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 
-public class InAppMessageHtmlView extends InAppMessageView {
-    private static final String TAG = InAppMessageHtmlView.class.getSimpleName();
+public class InAppMessageViewHTML extends InAppMessageView {
+    private static final String TAG = InAppMessageViewHTML.class.getSimpleName();
     private static final String CONTENT_HTML = "html";
 
-    public InAppMessageHtmlView(Context context, InAppMessage inAppMessage) {
+    public InAppMessageViewHTML(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
     }
 
