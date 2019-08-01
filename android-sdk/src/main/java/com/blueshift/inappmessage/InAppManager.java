@@ -185,7 +185,7 @@ public class InAppManager {
 
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage) {
+            InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
                 @Override
                 public void onCloseButtonClick(InAppMessage inAppMessage) {
                     invokeCloseButtonClick(inAppMessage);
@@ -197,7 +197,7 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageCenterPopupView, inAppMessage);
+            return displayInAppDialog(context, inAppMessageViewModal, inAppMessage);
         }
 
         return false;
@@ -205,7 +205,7 @@ public class InAppManager {
 
     private static boolean buildAndShowFullScreenPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageCenterPopupView inAppMessageCenterPopupView = new InAppMessageCenterPopupView(context, inAppMessage) {
+            InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
                 @Override
                 public void onCloseButtonClick(InAppMessage inAppMessage) {
                     invokeCloseButtonClick(inAppMessage);
@@ -217,7 +217,7 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageCenterPopupView, inAppMessage);
+            return displayInAppDialog(context, inAppMessageViewModal, inAppMessage);
         }
 
         return false;

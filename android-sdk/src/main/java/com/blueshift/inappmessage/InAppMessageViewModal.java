@@ -10,10 +10,10 @@ import android.widget.TextView;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.InAppUtils;
 
-public class InAppMessageCenterPopupView extends InAppMessageView {
+public class InAppMessageViewModal extends InAppMessageView {
     private static final String TAG = "CenterPopupView";
 
-    public InAppMessageCenterPopupView(Context context, InAppMessage inAppMessage) {
+    public InAppMessageViewModal(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
     }
 
