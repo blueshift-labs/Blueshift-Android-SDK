@@ -2,11 +2,8 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -38,6 +35,7 @@ public abstract class InAppMessageView extends RelativeLayout {
     protected static final String CONTENT_TITLE = "title";
     protected static final String CONTENT_MESSAGE = "message";
     protected static final String CONTENT_ICON = "icon";
+    protected static final String CONTENT_BANNER = "banner";
 
     private static final String LOG_TAG = "InAppMessageView";
     private static final String ACTION_KEY_TEXT = "text";
@@ -300,14 +298,15 @@ public abstract class InAppMessageView extends RelativeLayout {
         }
     }
 
-    public LinearLayout getActionButtons(JSONObject actions, int orientation) {
-        if (actions != null) {
+    public LinearLayout getActionButtons(InAppMessage inAppMessage) {
+        if (inAppMessage != null && inAppMessage.getAction() != null) {
+            JSONObject actions = inAppMessage.getAction();
             LinearLayout actionsRootView = new LinearLayout(getContext());
+            int orientation = InAppUtils.getActionOrientation(inAppMessage);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
                 actionsRootView.setOrientation(orientation);
             }
 
-            int dp4 = CommonUtils.dpToPx(4, getContext());
             Iterator<String> actionKeys = actions.keys();
             while (actionKeys.hasNext()) {
                 Button actionBtn = null;
@@ -317,9 +316,42 @@ public abstract class InAppMessageView extends RelativeLayout {
                 }
 
                 if (actionBtn != null) {
-                    LinearLayout.LayoutParams lp =
-                            new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
-                    lp.setMargins(dp4, dp4, dp4, dp4);
+                    Rect padding = InAppUtils.getActionPadding(inAppMessage, action);
+                    if (padding != null) {
+                        actionBtn.setPadding(
+                                dp2px(padding.left),
+                                dp2px(padding.top),
+                                dp2px(padding.right),
+                                dp2px(padding.bottom)
+                        );
+                    }
+
+                    Drawable bg = InAppUtils.getActionBackgroundDrawable(inAppMessage, action);
+                    if (bg != null) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            actionBtn.setBackground(bg);
+                        } else {
+                            actionBtn.setBackgroundDrawable(bg);
+                        }
+                    }
+
+                    LinearLayout.LayoutParams lp;
+                    if (actionsRootView.getOrientation() == LinearLayout.VERTICAL) {
+                        lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
+                    } else {
+                        lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+                    }
+
+                    Rect margin = InAppUtils.getActionMargin(inAppMessage, action);
+                    if (margin != null) {
+                        lp.setMargins(
+                                dp2px(margin.left),
+                                dp2px(margin.top),
+                                dp2px(margin.right),
+                                dp2px(margin.bottom)
+                        );
+                    }
+
                     actionsRootView.addView(actionBtn, lp);
                 }
             }
@@ -406,43 +438,21 @@ public abstract class InAppMessageView extends RelativeLayout {
         ImageView imageView = null;
 
         if (inAppMessage != null && !TextUtils.isEmpty(contentName)) {
-            int dp4 = CommonUtils.dpToPx(4, getContext());
+            String imageUrl = inAppMessage.getContentString(contentName);
+            if (TextUtils.isEmpty(imageUrl)) return null;
+
             imageView = new ImageView(getContext());
+            InAppUtils.loadImageAsync(imageView, imageUrl);
 
-            Drawable icon = ContextCompat.getDrawable(getContext(), R.drawable.ic_inapp_videocam);
-            if (icon != null) {
-                try {
-                    String colorString = InAppUtils.getContentColor(inAppMessage, contentName);
-                    boolean isValidColor = InAppUtils.validateColorString(colorString);
-                    if (isValidColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        icon.setTint(Color.parseColor(colorString));
-                    }
-                } catch (Exception e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
-                }
-
-                imageView.setImageDrawable(icon);
-            }
-
-            Drawable iconBackground = ContextCompat.getDrawable(getContext(), R.drawable.inapp_icon_background);
-            if (iconBackground != null) {
-                try {
-                    String colorString = InAppUtils.getContentBackgroundColor(inAppMessage, contentName);
-                    boolean isValidColor = InAppUtils.validateColorString(colorString);
-                    if (isValidColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        iconBackground.setTint(Color.parseColor(colorString));
-                    }
-                } catch (Exception e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
-                }
-
-                imageView.setBackgroundResource(R.drawable.inapp_icon_background);
-            }
-
-            imageView.setPadding(dp4, dp4, dp4, dp4);
+            // fill image
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         }
 
         return imageView;
+    }
+
+    private int dp2px(int dp) {
+        return CommonUtils.dpToPx(dp, getContext());
     }
 
     public abstract View getView(InAppMessage inAppMessage);

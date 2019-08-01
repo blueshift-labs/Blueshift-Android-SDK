@@ -3,23 +3,22 @@ package com.blueshift.inappmessage;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.blueshift.util.CommonUtils;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.InAppUtils;
 
-import org.json.JSONObject;
-
 public class InAppMessageCenterPopupView extends InAppMessageView {
+    private static final String TAG = "CenterPopupView";
+
     public InAppMessageCenterPopupView(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
     }
 
     @Override
     public View getView(InAppMessage inAppMessage) {
-        int dp80 = CommonUtils.dpToPx(80, getContext());
-
         LinearLayout rootView = new LinearLayout(getContext());
         rootView.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(
@@ -30,6 +29,26 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
         }
 
         rootView.setLayoutParams(lp2);
+
+        // banner
+        final ImageView bannerImageView = getContentImageView(inAppMessage, CONTENT_BANNER);
+        if (bannerImageView != null) {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            rootView.addView(bannerImageView, lp);
+
+            bannerImageView.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int width = bannerImageView.getWidth();
+                        bannerImageView.getLayoutParams().height = width / 2;
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(TAG, e);
+                    }
+                }
+            });
+        }
 
         // title
         TextView titleTextView = getContentTextView(inAppMessage, CONTENT_TITLE);
@@ -43,7 +62,6 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
         // message
         TextView messageTextView = getContentTextView(inAppMessage, CONTENT_MESSAGE);
         if (messageTextView != null) {
-            messageTextView.setMinHeight(dp80);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
@@ -58,8 +76,7 @@ public class InAppMessageCenterPopupView extends InAppMessageView {
         }
 
         // action
-        JSONObject actions = inAppMessage.getAction();
-        LinearLayout actionsLayout = getActionButtons(actions, LinearLayout.HORIZONTAL);
+        LinearLayout actionsLayout = getActionButtons(inAppMessage);
         if (actionsLayout != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
