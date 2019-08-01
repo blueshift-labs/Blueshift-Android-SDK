@@ -1,22 +1,31 @@
 package com.blueshift.util;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppMessage;
+import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 
 public class InAppUtils {
 
@@ -116,10 +125,34 @@ public class InAppUtils {
         return null;
     }
 
+    public static int getTemplateInt(InAppMessage inAppMessage, String contentName, int fallback) {
+        try {
+            if (inAppMessage != null && inAppMessage.getTemplateStyle() != null && contentName != null) {
+                return inAppMessage.getTemplateStyle().optInt(contentName, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
     public static String getContentColor(InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
                 return getContentString(inAppMessage, contentName + "_color");
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
+    }
+
+    public static String getContentImageUrl(InAppMessage inAppMessage, String contentName) {
+        try {
+            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+                return getContentString(inAppMessage, contentName + "_image");
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -285,6 +318,158 @@ public class InAppUtils {
                 int color = Color.parseColor(colorStr);
                 view.setBackgroundColor(color);
             }
+        }
+    }
+
+    public static void loadImageAsync(final ImageView imageView, String path) {
+        if (imageView != null && path != null) {
+            new LoadImageTask() {
+                @Override
+                protected void onPostExecute(Bitmap bitmap) {
+                    if (bitmap != null) {
+                        imageView.setImageBitmap(bitmap);
+                    }
+                }
+            }.execute(path);
+        }
+    }
+
+    private static JSONObject getActionFromName(InAppMessage inAppMessage, String actionName) {
+        JSONObject action = null;
+
+        try {
+            if (inAppMessage != null && inAppMessage.getAction() != null && !TextUtils.isEmpty(actionName)) {
+                JSONObject actions = inAppMessage.getAction();
+                if (actions != null) {
+                    return actions.optJSONObject(actionName);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return action;
+    }
+
+    public static Rect getActionRect(InAppMessage inAppMessage, String actionName, String argName) {
+        Rect value = null;
+
+        try {
+            JSONObject action = getActionFromName(inAppMessage, actionName);
+            if (action != null) {
+                String json = action.optString(argName);
+                value = new Gson().fromJson(json, Rect.class);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return value;
+    }
+
+    public static String getActionString(InAppMessage inAppMessage, String actionName, String argName) {
+        String value = null;
+
+        try {
+            JSONObject action = getActionFromName(inAppMessage, actionName);
+            if (action != null) {
+                value = action.optString(argName);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return value;
+    }
+
+    public static int getActionInt(InAppMessage inAppMessage, String actionName, String argName, int fallback) {
+        int value = fallback;
+
+        try {
+            JSONObject action = getActionFromName(inAppMessage, actionName);
+            if (action != null) {
+                value = action.optInt(argName, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return value;
+    }
+
+    public static String getActionText(InAppMessage inAppMessage, String actionName) {
+        return getActionString(inAppMessage, actionName, "text");
+    }
+
+    public static Drawable getActionBackgroundDrawable(InAppMessage inAppMessage, String actionName) {
+        GradientDrawable shape = new GradientDrawable();
+
+        try {
+            int bgColor = getActionBackgroundColor(inAppMessage, actionName);
+            if (bgColor != 0) {
+                shape.setColor(bgColor);
+            }
+
+            int bgRadius = getActionBackgroundRadius(inAppMessage, actionName);
+            shape.setCornerRadius(bgRadius);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return shape;
+    }
+
+    public static int getActionBackgroundColor(InAppMessage inAppMessage, String actionName) {
+        int color = 0;
+
+        try {
+            String colorStr = getActionString(inAppMessage, actionName, "background_color");
+            if (validateColorString(colorStr)) {
+                return Color.parseColor(colorStr);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return color;
+    }
+
+    public static int getActionBackgroundRadius(InAppMessage inAppMessage, String actionName) {
+        return getActionInt(inAppMessage, actionName, "background_radius", 0);
+    }
+
+    public static Rect getActionMargin(InAppMessage inAppMessage, String actionName) {
+        Rect margins = getActionRect(inAppMessage, actionName, "margin");
+        return margins != null ? margins : new Rect(0, 0, 0, 0);
+    }
+
+    public static Rect getActionPadding(InAppMessage inAppMessage, String actionName) {
+        Rect padding = getActionRect(inAppMessage, actionName, "padding");
+        return padding != null ? padding : new Rect(0, 0, 0, 0);
+    }
+
+    public static int getActionOrientation(InAppMessage inAppMessage) {
+        return getTemplateInt(inAppMessage, "action_orientation", 0);
+    }
+
+    private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+            Bitmap result = null;
+
+            if (strings != null && strings.length > 0) {
+                String url = strings[0];
+                try {
+                    if (!TextUtils.isEmpty(url)) {
+                        InputStream inputStream = new URL(url).openStream();
+                        result = BitmapFactory.decodeStream(inputStream);
+                    }
+                } catch (IOException e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
+
+            return result;
         }
     }
 }
