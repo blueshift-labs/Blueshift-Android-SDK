@@ -225,7 +225,7 @@ public class InAppManager {
 
     private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageAnimatedView inAppMessageAnimatedView = new InAppMessageAnimatedView(context, inAppMessage) {
+            InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
                 @Override
                 public void onCloseButtonClick(InAppMessage inAppMessage) {
                     invokeCloseButtonClick(inAppMessage);
@@ -237,7 +237,7 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialogAnimated(context, inAppMessageAnimatedView, inAppMessage);
+            return displayInAppDialogAnimated(context, inAppMessageViewBanner, inAppMessage);
         }
 
         return false;

@@ -15,9 +15,9 @@ import org.json.JSONObject;
 
 import java.util.Iterator;
 
-public class InAppMessageAnimatedView extends InAppMessageView {
+public class InAppMessageViewBanner extends InAppMessageView {
 
-    public InAppMessageAnimatedView(Context context, InAppMessage inAppMessage) {
+    public InAppMessageViewBanner(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
     }
 
