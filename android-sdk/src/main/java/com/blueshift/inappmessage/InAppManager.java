@@ -170,10 +170,8 @@ public class InAppManager {
                 switch (inAppTemplate) {
                     case HTML:
                         return buildAndShowHtmlInAppMessage(context, inAppMessage);
-                    case CENTER_POPUP:
+                    case MODAL:
                         return buildAndShowCenterPopupInAppMessage(context, inAppMessage);
-                    case FULL_SCREEN_POPUP:
-                        return buildAndShowFullScreenPopupInAppMessage(context, inAppMessage);
                     case SLIDE_IN_BANNER:
                         return buildAndShowSlidingBannerInAppMessage(context, inAppMessage);
                 }

@@ -2,8 +2,7 @@ package com.blueshift.inappmessage;
 
 public enum InAppTemplate {
     HTML,
-    CENTER_POPUP,
-    FULL_SCREEN_POPUP,
+    MODAL,
     SLIDE_IN_BANNER;
 
     public static InAppTemplate fromString(String name) {
@@ -11,10 +10,8 @@ public enum InAppTemplate {
             switch (name) {
                 case "html":
                     return HTML;
-                case "center_popup":
-                    return CENTER_POPUP;
-                case "full_screen_popup":
-                    return FULL_SCREEN_POPUP;
+                case "modal":
+                    return MODAL;
                 case "slide_in_banner":
                     return SLIDE_IN_BANNER;
             }
@@ -28,10 +25,8 @@ public enum InAppTemplate {
         switch (this) {
             case HTML:
                 return "html";
-            case CENTER_POPUP:
-                return "center_popup";
-            case FULL_SCREEN_POPUP:
-                return "full_screen_popup";
+            case MODAL:
+                return "modal";
             case SLIDE_IN_BANNER:
                 return "slide_in_banner";
         }
