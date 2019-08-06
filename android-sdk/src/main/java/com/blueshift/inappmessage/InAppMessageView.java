@@ -31,6 +31,7 @@ public abstract class InAppMessageView extends RelativeLayout {
     protected static final String ACTION_DISMISS = "dismiss";
     protected static final String ACTION_APP_OPEN = "app_open";
     protected static final String ACTION_SHARE = "share";
+    protected static final String ACTION_SUBMIT = "submit";
 
     protected static final String CONTENT_TITLE = "title";
     protected static final String CONTENT_MESSAGE = "message";
@@ -455,7 +456,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         return imageView;
     }
 
-    private int dp2px(int dp) {
+    protected int dp2px(int dp) {
         return CommonUtils.dpToPx(dp, getContext());
     }
 

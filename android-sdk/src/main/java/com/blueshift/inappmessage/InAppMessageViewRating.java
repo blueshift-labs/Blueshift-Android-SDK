@@ -1,6 +1,9 @@
 package com.blueshift.inappmessage;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Rect;
+import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -105,15 +108,8 @@ public class InAppMessageViewRating extends InAppMessageView {
         lpBtnRoot.gravity = Gravity.CENTER;
         rootView.addView(buttonLayout, lpBtnRoot);
 
-        LinearLayout.LayoutParams lpAction;
-        if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {
-            lpAction = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
-        } else {
-            lpAction = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
-        }
-
-        // Submit
-        Button submit = getActionButton(inAppMessage, "submit");
+        // Submit button
+        Button submit = getActionButton(inAppMessage, ACTION_SUBMIT);
         if (submit == null) {
             submit = InAppUtils.getActionButtonDefault(getContext());
             submit.setText(R.string.bsft_rating_submit);
@@ -126,18 +122,74 @@ public class InAppMessageViewRating extends InAppMessageView {
             }
         });
 
-        buttonLayout.addView(submit, lpAction);
+        LinearLayout.LayoutParams lpSubmit;
+        if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {
+            lpSubmit = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
+        } else {
+            lpSubmit = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        }
+        Rect marginsSubmit = InAppUtils.getActionMargin(inAppMessage, ACTION_SUBMIT);
+        lpSubmit.setMargins(
+                dp2px(marginsSubmit.left),
+                dp2px(marginsSubmit.top),
+                dp2px(marginsSubmit.right),
+                dp2px(marginsSubmit.bottom)
+        );
 
-        // Not now
-        Button notNow = getActionButton(inAppMessage, "dismiss");
+        buttonLayout.addView(submit, lpSubmit);
+
+        // Not now button
+        Button notNow = getActionButton(inAppMessage, ACTION_DISMISS);
         if (notNow != null) {
-            buttonLayout.addView(notNow, lpAction);
+            LinearLayout.LayoutParams lpNotNow;
+            if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {
+                lpNotNow = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
+            } else {
+                lpNotNow = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+            }
+            Rect marginsNotNow = InAppUtils.getActionMargin(inAppMessage, ACTION_DISMISS);
+            lpNotNow.setMargins(
+                    dp2px(marginsNotNow.left),
+                    dp2px(marginsNotNow.top),
+                    dp2px(marginsNotNow.right),
+                    dp2px(marginsNotNow.bottom)
+            );
+            buttonLayout.addView(notNow, lpNotNow);
         }
 
         return rootView;
     }
 
     private void submitRating() {
+        // send starts as events
+        logRatingToBlueshift();
+
+        // open store
+        openMarketApp();
+
         onDismiss(getInAppMessage());
+    }
+
+    private void logRatingToBlueshift() {
+        // TODO: 2019-08-06 decide the event name
+    }
+
+    private void openMarketApp() {
+        String pkgName = getContext().getPackageName();
+        try {
+            Uri marketUri = Uri.parse("market://details?id=" + pkgName);
+            Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
+            getContext().startActivity(marketIntent);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+
+            try {
+                Uri marketWebUri = Uri.parse("https://play.google.com/store/apps/details?id=" + pkgName);
+                Intent marketWebIntent = new Intent(Intent.ACTION_VIEW, marketWebUri);
+                getContext().startActivity(marketWebIntent);
+            } catch (Exception ex) {
+                BlueshiftLogger.e(TAG, ex);
+            }
+        }
     }
 }
