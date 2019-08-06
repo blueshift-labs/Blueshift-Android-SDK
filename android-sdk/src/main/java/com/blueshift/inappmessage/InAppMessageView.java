@@ -124,7 +124,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         Log.d(LOG_TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
-    private Button getBasicButton(JSONObject action) {
+    private Button getActionButtonBasic(InAppMessage inAppMessage, String actionName) {
         Button button = new Button(getContext());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -140,26 +140,49 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         button.setAllCaps(false);
 
-        // apply basic style
-        if (action != null) {
-            button.setText(InAppUtils.getStringFromJSONObject(action, ACTION_KEY_TEXT));
+        String text = InAppUtils.getActionString(inAppMessage, actionName, ACTION_KEY_TEXT);
+        if (text != null) {
+            button.setText(text);
+        }
 
-            String textColor = InAppUtils.getStringFromJSONObject(action, ACTION_KEY_TEXT_COLOR);
-            InAppUtils.applyTextColor(button, textColor);
+        String textColor = InAppUtils.getActionString(inAppMessage, actionName, ACTION_KEY_TEXT_COLOR);
+        InAppUtils.applyTextColor(button, textColor);
 
-            String bgColor = InAppUtils.getStringFromJSONObject(action, ACTION_KEY_BACKGROUND_COLOR);
-            InAppUtils.applyBackgroundColor(button, bgColor);
+        Drawable drawable = InAppUtils.getActionBackgroundDrawable(inAppMessage, actionName);
+        if (drawable == null) {
+            drawable = InAppUtils.getActionBackgroundDrawableDefault();
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            button.setBackground(drawable);
+        } else {
+            button.setBackgroundDrawable(drawable);
+        }
+
+        Rect padding = InAppUtils.getActionPadding(inAppMessage, actionName);
+        if (padding != null) {
+            button.setPadding(
+                    dp2px(padding.left),
+                    dp2px(padding.top),
+                    dp2px(padding.right),
+                    dp2px(padding.bottom)
+            );
         }
 
         return button;
     }
 
-    protected Button getActionButton(String actionName, JSONObject actionJson) {
+    protected Button getActionButton(InAppMessage inAppMessage, String actionName) {
         Button button = null;
 
-        if (!TextUtils.isEmpty(actionName) && actionJson != null) {
-            button = getBasicButton(actionJson);
-            button.setOnClickListener(getActionClickListener(actionName, actionJson));
+        try {
+            JSONObject actionJson = InAppUtils.getActionFromName(inAppMessage, actionName);
+            if (actionJson != null) {
+                button = getActionButtonBasic(inAppMessage, actionName);
+                button.setOnClickListener(getActionClickListener(actionName, actionJson));
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
 
         return button;
@@ -312,29 +335,10 @@ public abstract class InAppMessageView extends RelativeLayout {
                 Button actionBtn = null;
                 String action = actionKeys.next();
                 if (action != null) {
-                    actionBtn = getActionButton(action, actions.optJSONObject(action));
+                    actionBtn = getActionButton(inAppMessage, action);
                 }
 
                 if (actionBtn != null) {
-                    Rect padding = InAppUtils.getActionPadding(inAppMessage, action);
-                    if (padding != null) {
-                        actionBtn.setPadding(
-                                dp2px(padding.left),
-                                dp2px(padding.top),
-                                dp2px(padding.right),
-                                dp2px(padding.bottom)
-                        );
-                    }
-
-                    Drawable bg = InAppUtils.getActionBackgroundDrawable(inAppMessage, action);
-                    if (bg != null) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                            actionBtn.setBackground(bg);
-                        } else {
-                            actionBtn.setBackgroundDrawable(bg);
-                        }
-                    }
-
                     LinearLayout.LayoutParams lp;
                     if (actionsRootView.getOrientation() == LinearLayout.VERTICAL) {
                         lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);

@@ -174,6 +174,8 @@ public class InAppManager {
                         return buildAndShowCenterPopupInAppMessage(context, inAppMessage);
                     case SLIDE_IN_BANNER:
                         return buildAndShowSlidingBannerInAppMessage(context, inAppMessage);
+                    case RATING:
+                        return buildAndShowRatingInAppMessage(context, inAppMessage);
                 }
             }
         }
@@ -236,6 +238,26 @@ public class InAppManager {
             };
 
             return displayInAppDialogAnimated(context, inAppMessageViewBanner, inAppMessage);
+        }
+
+        return false;
+    }
+
+    private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
+                @Override
+                public void onCloseButtonClick(InAppMessage inAppMessage) {
+                    invokeCloseButtonClick(inAppMessage);
+                }
+
+                @Override
+                public void onDismiss(InAppMessage inAppMessage) {
+                    invokeDismissButtonClick(inAppMessage);
+                }
+            };
+
+            return displayInAppDialog(context, inAppMessageViewRating, inAppMessage);
         }
 
         return false;
