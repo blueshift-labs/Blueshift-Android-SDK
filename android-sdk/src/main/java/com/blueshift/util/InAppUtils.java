@@ -8,10 +8,14 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -334,7 +338,7 @@ public class InAppUtils {
         }
     }
 
-    private static JSONObject getActionFromName(InAppMessage inAppMessage, String actionName) {
+    public static JSONObject getActionFromName(InAppMessage inAppMessage, String actionName) {
         JSONObject action = null;
 
         try {
@@ -399,6 +403,52 @@ public class InAppUtils {
 
     public static String getActionText(InAppMessage inAppMessage, String actionName) {
         return getActionString(inAppMessage, actionName, "text");
+    }
+
+    public static Button getActionButtonDefault(Context context) {
+        if (context != null) {
+            Button button = new Button(context);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                TypedValue typedValue = new TypedValue();
+                boolean isResolved = context
+                        .getTheme()
+                        .resolveAttribute(android.R.attr.selectableItemBackground, typedValue, true);
+
+                if (isResolved) {
+                    button.setForeground(ContextCompat.getDrawable(context, typedValue.resourceId));
+                }
+            }
+
+            button.setAllCaps(false);
+
+            Drawable bg = getActionBackgroundDrawableDefault();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                button.setBackground(bg);
+            } else {
+                button.setBackgroundDrawable(bg);
+            }
+
+            button.setTextColor(Color.WHITE);
+
+            return button;
+        }
+
+        return null;
+    }
+
+    public static Drawable getActionBackgroundDrawableDefault() {
+        GradientDrawable shape = new GradientDrawable();
+
+        try {
+            // blue
+            shape.setColor(Color.parseColor("#2196f3"));
+            shape.setCornerRadius(3);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return shape;
     }
 
     public static Drawable getActionBackgroundDrawable(InAppMessage inAppMessage, String actionName) {
