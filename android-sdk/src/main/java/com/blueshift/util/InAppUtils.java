@@ -17,6 +17,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
@@ -33,7 +34,7 @@ import java.net.URL;
 
 public class InAppUtils {
 
-    private static final String LOG_TAG = "AssetsUtils";
+    private static final String LOG_TAG = "InAppUtils";
 
     public static String readSamplePayload(Context context, String fileName) {
         String result = null;
@@ -80,6 +81,18 @@ public class InAppUtils {
         return null;
     }
 
+    public static int getIntFromJSONObject(JSONObject jsonObject, String key, int fallback) {
+        try {
+            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+                return jsonObject.optInt(key, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
     public static boolean validateColorString(String colorString) {
         try {
             int len = colorString != null ? colorString.length() : 0;
@@ -93,8 +106,8 @@ public class InAppUtils {
 
     public static String getContentString(InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                String stringValue = inAppMessage.getContentStyle().optString(contentName);
+            if (inAppMessage != null) {
+                String stringValue = getStringFromJSONObject(inAppMessage.getContentStyle(), contentName);
                 return TextUtils.isEmpty(stringValue) ? null : stringValue;
             }
         } catch (Exception e) {
@@ -107,7 +120,7 @@ public class InAppUtils {
     public static int getContentInt(InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return inAppMessage.getContentStyle().optInt(contentName, fallback);
+                return getIntFromJSONObject(inAppMessage.getContentStyle(), contentName, fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -118,8 +131,8 @@ public class InAppUtils {
 
     public static String getTemplateString(InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getTemplateStyle() != null && contentName != null) {
-                String stringValue = inAppMessage.getTemplateStyle().optString(contentName);
+            if (inAppMessage != null) {
+                String stringValue = getStringFromJSONObject(inAppMessage.getTemplateStyle(), contentName);
                 return TextUtils.isEmpty(stringValue) ? null : stringValue;
             }
         } catch (Exception e) {
@@ -131,14 +144,27 @@ public class InAppUtils {
 
     public static int getTemplateInt(InAppMessage inAppMessage, String contentName, int fallback) {
         try {
-            if (inAppMessage != null && inAppMessage.getTemplateStyle() != null && contentName != null) {
-                return inAppMessage.getTemplateStyle().optInt(contentName, fallback);
+            if (inAppMessage != null) {
+                return getIntFromJSONObject(inAppMessage.getTemplateStyle(), contentName, fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
 
         return fallback;
+    }
+
+    public static int getContentOrientation(InAppMessage inAppMessage, String contentName) {
+        try {
+            int orientation = getContentInt(inAppMessage, contentName + "_orientation", LinearLayout.HORIZONTAL);
+            if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
+                return orientation;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return LinearLayout.HORIZONTAL;
     }
 
     public static String getContentColor(InAppMessage inAppMessage, String contentName) {
@@ -342,8 +368,8 @@ public class InAppUtils {
         JSONObject action = null;
 
         try {
-            if (inAppMessage != null && inAppMessage.getAction() != null && !TextUtils.isEmpty(actionName)) {
-                JSONObject actions = inAppMessage.getAction();
+            if (inAppMessage != null && inAppMessage.getActionsJSONObject() != null && !TextUtils.isEmpty(actionName)) {
+                JSONObject actions = inAppMessage.getActionsJSONObject();
                 if (actions != null) {
                     return actions.optJSONObject(actionName);
                 }
@@ -499,7 +525,7 @@ public class InAppUtils {
     }
 
     public static int getActionOrientation(InAppMessage inAppMessage) {
-        return getTemplateInt(inAppMessage, "action_orientation", 0);
+        return getContentOrientation(inAppMessage, "actions");
     }
 
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {

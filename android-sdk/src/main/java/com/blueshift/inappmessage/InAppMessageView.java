@@ -323,8 +323,8 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public LinearLayout getActionButtons(InAppMessage inAppMessage) {
-        if (inAppMessage != null && inAppMessage.getAction() != null) {
-            JSONObject actions = inAppMessage.getAction();
+        if (inAppMessage != null && inAppMessage.getActionsJSONObject() != null) {
+            JSONObject actions = inAppMessage.getActionsJSONObject();
             LinearLayout actionsRootView = new LinearLayout(getContext());
             int orientation = InAppUtils.getActionOrientation(inAppMessage);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {

@@ -57,7 +57,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
         linearLayout.addView(fwdArrow, lp);
 
         // assumed that only one action is provided. if more actions found, first one is taken.
-        JSONObject actions = inAppMessage.getAction();
+        JSONObject actions = inAppMessage.getActionsJSONObject();
         if (actions != null) {
             Iterator<String> actionKeys = actions.keys();
             if (actionKeys.hasNext()) {
