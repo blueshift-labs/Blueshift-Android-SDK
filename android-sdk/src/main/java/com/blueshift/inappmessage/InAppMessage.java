@@ -3,7 +3,6 @@ package com.blueshift.inappmessage;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.text.TextUtils;
 import android.view.ViewGroup;
 
 import com.blueshift.BlueshiftLogger;
@@ -200,8 +199,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public boolean showCloseButton() {
         try {
-            return template_style.has(KEY_CLOSE_BTN)
-                    && !TextUtils.isEmpty(template_style.optString(KEY_CLOSE_BTN));
+            return template_style.has(KEY_CLOSE_BTN);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
