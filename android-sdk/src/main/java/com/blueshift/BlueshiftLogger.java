@@ -3,6 +3,9 @@ package com.blueshift;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public class BlueshiftLogger {
 
     private static String checkTag(String tag) {
@@ -18,6 +21,14 @@ public class BlueshiftLogger {
     }
 
     public static void e(String tag, Exception e) {
-        Log.e(checkTag(tag), e != null ? e.getMessage() : "Unknown error!");
+        if (e != null) {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(stringWriter);
+            e.printStackTrace(printWriter);
+            String stackTrace = stringWriter.toString();
+            Log.e(checkTag(tag), stackTrace);
+        } else {
+            Log.e(checkTag(tag), "Unknown error!");
+        }
     }
 }
