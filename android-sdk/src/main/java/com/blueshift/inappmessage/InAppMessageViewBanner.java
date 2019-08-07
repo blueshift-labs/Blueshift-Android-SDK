@@ -31,7 +31,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         linearLayout.setLayoutParams(layoutParams);
 
-        TextView iconTextView = getContentIconTextView(inAppMessage, CONTENT_ICON);
+        TextView iconTextView = getContentIconTextView(inAppMessage, InAppConstants.ICON);
         if (iconTextView != null) {
             int dp40 = CommonUtils.dpToPx(40, getContext());
             int dp8 = CommonUtils.dpToPx(8, getContext());
@@ -41,7 +41,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
             linearLayout.addView(iconTextView, lp);
         }
 
-        TextView messageTextView = getContentTextView(inAppMessage, CONTENT_MESSAGE);
+        TextView messageTextView = getContentTextView(inAppMessage, InAppConstants.MESSAGE);
         if (messageTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
             linearLayout.addView(messageTextView, lp);

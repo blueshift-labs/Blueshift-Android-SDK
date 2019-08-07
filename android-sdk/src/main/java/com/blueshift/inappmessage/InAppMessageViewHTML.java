@@ -19,7 +19,6 @@ import com.blueshift.util.BlueshiftUtils;
 
 public class InAppMessageViewHTML extends InAppMessageView {
     private static final String TAG = InAppMessageViewHTML.class.getSimpleName();
-    private static final String CONTENT_HTML = "html";
 
     public InAppMessageViewHTML(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
@@ -28,7 +27,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     public View getView(InAppMessage inAppMessage) {
-        String htmlContent = inAppMessage.getContentString(CONTENT_HTML);
+        String htmlContent = inAppMessage.getContentString(InAppConstants.HTML);
         if (!TextUtils.isEmpty(htmlContent)) {
             WebView webView = new WebView(getContext());
 

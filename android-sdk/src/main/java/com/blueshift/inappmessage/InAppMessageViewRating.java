@@ -18,7 +18,7 @@ import com.blueshift.R;
 import com.blueshift.util.InAppUtils;
 
 public class InAppMessageViewRating extends InAppMessageView {
-    private static final String TAG = "CenterPopupView";
+    private static final String TAG = InAppMessageViewRating.class.getSimpleName();
 
     public InAppMessageViewRating(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
@@ -39,7 +39,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         rootView.setLayoutParams(lpRoot);
 
         // banner
-        final ImageView bannerImageView = getContentImageView(inAppMessage, CONTENT_BANNER);
+        final ImageView bannerImageView = getContentImageView(inAppMessage, InAppConstants.BANNER);
         if (bannerImageView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -59,16 +59,16 @@ public class InAppMessageViewRating extends InAppMessageView {
         }
 
         // title
-        TextView titleTextView = getContentTextView(inAppMessage, CONTENT_TITLE);
+        TextView titleTextView = getContentTextView(inAppMessage, InAppConstants.TITLE);
         if (titleTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, CONTENT_TITLE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.TITLE);
             rootView.addView(titleTextView, lp);
         }
 
         // message
-        TextView messageTextView = getContentTextView(inAppMessage, CONTENT_MESSAGE);
+        TextView messageTextView = getContentTextView(inAppMessage, InAppConstants.MESSAGE);
         if (messageTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -79,7 +79,7 @@ public class InAppMessageViewRating extends InAppMessageView {
                 lp.weight = 1;
             }
 
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, CONTENT_MESSAGE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.MESSAGE);
             rootView.addView(messageTextView, lp);
         }
 
@@ -109,7 +109,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         rootView.addView(buttonLayout, lpBtnRoot);
 
         // Submit button
-        Button submit = getActionButton(inAppMessage, ACTION_SUBMIT);
+        Button submit = getActionButton(inAppMessage, InAppConstants.ACTION_SUBMIT);
         if (submit == null) {
             submit = InAppUtils.getActionButtonDefault(getContext());
             submit.setText(R.string.bsft_rating_submit);
@@ -128,7 +128,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         } else {
             lpSubmit = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
         }
-        Rect marginsSubmit = InAppUtils.getActionMargin(inAppMessage, ACTION_SUBMIT);
+        Rect marginsSubmit = InAppUtils.getActionMargin(inAppMessage, InAppConstants.ACTION_SUBMIT);
         lpSubmit.setMargins(
                 dp2px(marginsSubmit.left),
                 dp2px(marginsSubmit.top),
@@ -139,7 +139,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         buttonLayout.addView(submit, lpSubmit);
 
         // Not now button
-        Button notNow = getActionButton(inAppMessage, ACTION_DISMISS);
+        Button notNow = getActionButton(inAppMessage, InAppConstants.ACTION_DISMISS);
         if (notNow != null) {
             LinearLayout.LayoutParams lpNotNow;
             if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {
@@ -147,7 +147,7 @@ public class InAppMessageViewRating extends InAppMessageView {
             } else {
                 lpNotNow = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
             }
-            Rect marginsNotNow = InAppUtils.getActionMargin(inAppMessage, ACTION_DISMISS);
+            Rect marginsNotNow = InAppUtils.getActionMargin(inAppMessage, InAppConstants.ACTION_DISMISS);
             lpNotNow.setMargins(
                     dp2px(marginsNotNow.left),
                     dp2px(marginsNotNow.top),

@@ -1,6 +1,8 @@
 package com.blueshift.inappmessage;
 
 import android.content.Context;
+import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -11,7 +13,7 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.InAppUtils;
 
 public class InAppMessageViewModal extends InAppMessageView {
-    private static final String TAG = "CenterPopupView";
+    private static final String TAG = InAppMessageViewModal.class.getSimpleName();
 
     public InAppMessageViewModal(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
@@ -31,7 +33,7 @@ public class InAppMessageViewModal extends InAppMessageView {
         rootView.setLayoutParams(lp2);
 
         // banner
-        final ImageView bannerImageView = getContentImageView(inAppMessage, CONTENT_BANNER);
+        final ImageView bannerImageView = getContentImageView(inAppMessage, InAppConstants.BANNER);
         if (bannerImageView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -41,7 +43,7 @@ public class InAppMessageViewModal extends InAppMessageView {
                 @Override
                 public void run() {
                     try {
-                        int width = bannerImageView.getWidth();
+                        int width = bannerImageView.getMeasuredWidth();
                         bannerImageView.getLayoutParams().height = width / 2;
                     } catch (Exception e) {
                         BlueshiftLogger.e(TAG, e);
@@ -51,16 +53,16 @@ public class InAppMessageViewModal extends InAppMessageView {
         }
 
         // title
-        TextView titleTextView = getContentTextView(inAppMessage, CONTENT_TITLE);
+        TextView titleTextView = getContentTextView(inAppMessage, InAppConstants.TITLE);
         if (titleTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, CONTENT_TITLE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.TITLE);
             rootView.addView(titleTextView, lp);
         }
 
         // message
-        TextView messageTextView = getContentTextView(inAppMessage, CONTENT_MESSAGE);
+        TextView messageTextView = getContentTextView(inAppMessage, InAppConstants.MESSAGE);
         if (messageTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -71,7 +73,7 @@ public class InAppMessageViewModal extends InAppMessageView {
                 lp.weight = 1;
             }
 
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, CONTENT_MESSAGE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.MESSAGE);
             rootView.addView(messageTextView, lp);
         }
 
@@ -80,6 +82,15 @@ public class InAppMessageViewModal extends InAppMessageView {
         if (actionsLayout != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            Rect margins = InAppUtils.getContentMargin(inAppMessage, InAppConstants.ACTIONS);
+            if (margins != null) {
+                lp.setMargins(
+                        dp2px(margins.left),
+                        dp2px(margins.top),
+                        dp2px(margins.right),
+                        dp2px(margins.bottom)
+                );
+            }
             rootView.addView(actionsLayout, lp);
         }
 

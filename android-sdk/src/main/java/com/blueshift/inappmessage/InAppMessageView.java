@@ -9,6 +9,7 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -28,23 +29,7 @@ import org.json.JSONObject;
 import java.util.Iterator;
 
 public abstract class InAppMessageView extends RelativeLayout {
-    protected static final String ACTION_DISMISS = "dismiss";
-    protected static final String ACTION_APP_OPEN = "app_open";
-    protected static final String ACTION_SHARE = "share";
-    protected static final String ACTION_SUBMIT = "submit";
-
-    protected static final String CONTENT_TITLE = "title";
-    protected static final String CONTENT_MESSAGE = "message";
-    protected static final String CONTENT_ICON = "icon";
-    protected static final String CONTENT_BANNER = "banner";
-
-    private static final String LOG_TAG = "InAppMessageView";
-    private static final String ACTION_KEY_TEXT = "text";
-    private static final String ACTION_KEY_TEXT_COLOR = "text_color";
-    private static final String ACTION_KEY_BACKGROUND_COLOR = "background_color";
-    private static final String ACTION_KEY_PAGE = "page";
-    private static final String ACTION_KEY_EXTRAS = "extras";
-    private static final String ACTION_KEY_CONTENT = "content";
+    private static final String TAG = InAppMessageView.class.getSimpleName();
 
     private InAppMessage inAppMessage = null;
 
@@ -118,11 +103,11 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public void onCloseButtonClick(InAppMessage inAppMessage) {
-        Log.d(LOG_TAG, "Close button clicked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
+        Log.d(TAG, "Close button clicked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
     public void onDismiss(InAppMessage inAppMessage) {
-        Log.d(LOG_TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
+        Log.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
     private Button getActionButtonBasic(InAppMessage inAppMessage, String actionName) {
@@ -141,12 +126,12 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         button.setAllCaps(false);
 
-        String text = InAppUtils.getActionString(inAppMessage, actionName, ACTION_KEY_TEXT);
+        String text = InAppUtils.getActionString(inAppMessage, actionName, InAppConstants.TEXT);
         if (text != null) {
             button.setText(text);
         }
 
-        String textColor = InAppUtils.getActionString(inAppMessage, actionName, ACTION_KEY_TEXT_COLOR);
+        String textColor = InAppUtils.getActionString(inAppMessage, actionName, InAppConstants.COLOR(InAppConstants.TEXT));
         InAppUtils.applyTextColor(button, textColor);
 
         Drawable drawable = InAppUtils.getActionBackgroundDrawable(inAppMessage, actionName);
@@ -183,7 +168,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 button.setOnClickListener(getActionClickListener(actionName, actionJson));
             }
         } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
+            BlueshiftLogger.e(TAG, e);
         }
 
         return button;
@@ -194,15 +179,15 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         if (actionName != null) {
             switch (actionName) {
-                case ACTION_DISMISS:
+                case InAppConstants.ACTION_DISMISS:
                     listener = getDismissDialogClickListener(actionJson);
                     break;
 
-                case ACTION_APP_OPEN:
+                case InAppConstants.ACTION_OPEN:
                     listener = getStartActivityClickListener(actionJson);
                     break;
 
-                case ACTION_SHARE:
+                case InAppConstants.ACTION_SHARE:
                     listener = getShareClickListener(actionJson);
                     break;
             }
@@ -276,33 +261,30 @@ public abstract class InAppMessageView extends RelativeLayout {
     private void shareText(JSONObject action) {
         try {
             if (action != null) {
-                JSONObject content = action.optJSONObject(ACTION_KEY_CONTENT);
-                if (content != null) {
-                    String text = content.optString(ACTION_KEY_TEXT);
-                    if (!TextUtils.isEmpty(text)) {
-                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                        shareIntent.putExtra(Intent.EXTRA_TEXT, text);
-                        shareIntent.setType("text/plain");
-                        getContext().startActivity(shareIntent);
-                    }
+                String text = action.optString(InAppConstants.SHAREABLE_TEXT);
+                if (!TextUtils.isEmpty(text)) {
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+                    shareIntent.setType("text/plain");
+                    getContext().startActivity(shareIntent);
                 }
             }
         } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
+            BlueshiftLogger.e(TAG, e);
         }
     }
 
     private void startActivity(JSONObject action) {
         try {
             if (action != null) {
-                String activityName = action.optString(ACTION_KEY_PAGE);
+                String activityName = action.optString(InAppConstants.PAGE);
                 if (!TextUtils.isEmpty(activityName)) {
                     String pkgName = getContext().getPackageName();
                     if (!TextUtils.isEmpty(pkgName)) {
                         Class<?> clazz = Class.forName(pkgName + "." + activityName);
                         Intent launcher = new Intent(getContext(), clazz);
 
-                        JSONObject extras = action.optJSONObject(ACTION_KEY_EXTRAS);
+                        JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);
                         if (extras != null) {
                             Iterator<String> keys = extras.keys();
                             while (keys.hasNext()) {
@@ -318,7 +300,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 }
             }
         } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
+            BlueshiftLogger.e(TAG, e);
         }
     }
 
@@ -329,6 +311,24 @@ public abstract class InAppMessageView extends RelativeLayout {
             int orientation = InAppUtils.getActionOrientation(inAppMessage);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
                 actionsRootView.setOrientation(orientation);
+                actionsRootView.setGravity(Gravity.CENTER);
+            }
+
+            Drawable drawable = InAppUtils.getContentBackgroundDrawable(inAppMessage, InAppConstants.ACTIONS);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                actionsRootView.setBackground(drawable);
+            } else {
+                actionsRootView.setBackgroundDrawable(drawable);
+            }
+
+            Rect padding = InAppUtils.getContentPadding(inAppMessage, InAppConstants.ACTIONS);
+            if (padding != null) {
+                actionsRootView.setPadding(
+                        dp2px(padding.left),
+                        dp2px(padding.top),
+                        dp2px(padding.right),
+                        dp2px(padding.bottom)
+                );
             }
 
             Iterator<String> actionKeys = actions.keys();
@@ -377,9 +377,18 @@ public abstract class InAppMessageView extends RelativeLayout {
                 textView = new TextView(getContext());
                 textView.setText(titleText);
 
-                int padding = InAppUtils.getContentPadding(inAppMessage, contentName, 8);
-                int dpPadding = CommonUtils.dpToPx(padding, getContext());
-                textView.setPadding(dpPadding, dpPadding, dpPadding, dpPadding);
+                Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
+                if (padding != null) {
+                    textView.setPadding(
+                            dp2px(padding.left),
+                            dp2px(padding.top),
+                            dp2px(padding.right),
+                            dp2px(padding.bottom)
+                    );
+                } else {
+                    int dp8 = dp2px(8);
+                    textView.setPadding(dp8, dp8, dp8, dp8);
+                }
 
                 int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
                 textView.setGravity(contentGravity);
@@ -413,9 +422,18 @@ public abstract class InAppMessageView extends RelativeLayout {
                 // text should be converted to unicode glymph to use here.
                 textView.setText(titleText);
 
-                int padding = InAppUtils.getContentPadding(inAppMessage, contentName, 8);
-                int dpPadding = CommonUtils.dpToPx(padding, getContext());
-                textView.setPadding(dpPadding, dpPadding, dpPadding, dpPadding);
+                Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
+                if (padding != null) {
+                    textView.setPadding(
+                            dp2px(padding.left),
+                            dp2px(padding.top),
+                            dp2px(padding.right),
+                            dp2px(padding.bottom)
+                    );
+                } else {
+                    int dp8 = dp2px(8);
+                    textView.setPadding(dp8, dp8, dp8, dp8);
+                }
 
                 int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
                 textView.setGravity(contentGravity);
