@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -190,6 +191,10 @@ public abstract class InAppMessageView extends RelativeLayout {
                 case InAppConstants.ACTION_SHARE:
                     listener = getShareClickListener(actionJson);
                     break;
+
+                case InAppConstants.ACTION_RATE_APP:
+                    listener = getRateAppClickListener(actionJson);
+                    break;
             }
         }
 
@@ -256,7 +261,49 @@ public abstract class InAppMessageView extends RelativeLayout {
         return listener;
     }
 
+    protected OnClickListener getRateAppClickListener(final JSONObject action) {
+        OnClickListener listener = null;
+
+        if (action != null) {
+            listener = new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // rate app in play store
+                    rateAppInGooglePlayStore(action);
+
+                    // dismiss dialog
+                    onDismiss(getInAppMessage());
+                }
+            };
+        }
+
+        return listener;
+    }
+
     // action functions
+
+    private void rateAppInGooglePlayStore(JSONObject action) {
+        try {
+            String pkgName = getContext().getPackageName();
+            try {
+                Uri marketUri = Uri.parse("market://details?id=" + pkgName);
+                Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
+                getContext().startActivity(marketIntent);
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+
+                try {
+                    Uri marketWebUri = Uri.parse("https://play.google.com/store/apps/details?id=" + pkgName);
+                    Intent marketWebIntent = new Intent(Intent.ACTION_VIEW, marketWebUri);
+                    getContext().startActivity(marketWebIntent);
+                } catch (Exception ex) {
+                    BlueshiftLogger.e(TAG, ex);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+    }
 
     private void shareText(JSONObject action) {
         try {

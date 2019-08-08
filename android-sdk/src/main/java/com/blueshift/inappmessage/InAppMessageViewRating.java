@@ -109,7 +109,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         rootView.addView(buttonLayout, lpBtnRoot);
 
         // Submit button
-        Button submit = getActionButton(inAppMessage, InAppConstants.ACTION_SUBMIT);
+        Button submit = getActionButton(inAppMessage, InAppConstants.ACTION_RATE_APP);
         if (submit == null) {
             submit = InAppUtils.getActionButtonDefault(getContext());
             submit.setText(R.string.bsft_rating_submit);
@@ -128,7 +128,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         } else {
             lpSubmit = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
         }
-        Rect marginsSubmit = InAppUtils.getActionMargin(inAppMessage, InAppConstants.ACTION_SUBMIT);
+        Rect marginsSubmit = InAppUtils.getActionMargin(inAppMessage, InAppConstants.ACTION_RATE_APP);
         lpSubmit.setMargins(
                 dp2px(marginsSubmit.left),
                 dp2px(marginsSubmit.top),

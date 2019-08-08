@@ -5,7 +5,7 @@ public class InAppConstants {
     public static final String ACTION_DISMISS = "dismiss";
     public static final String ACTION_OPEN = "open";
     public static final String ACTION_SHARE = "share";
-    public static final String ACTION_SUBMIT = "submit";
+    public static final String ACTION_RATE_APP = "rate_app";
 
     // payload: level-1 keys
     public static final String TYPE = "type";
