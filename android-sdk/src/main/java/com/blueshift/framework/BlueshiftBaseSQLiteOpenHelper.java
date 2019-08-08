@@ -101,6 +101,16 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
         }
     }
 
+    public void deleteAll(String whereClause, String[] selectionArgs) {
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                db.delete(getTableName(), whereClause, selectionArgs);
+                db.close();
+            }
+        }
+    }
+
     abstract protected String getTableName();
 
     abstract protected T getObject(Cursor cursor);
