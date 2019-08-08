@@ -241,7 +241,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
             // check for instant trigger
             if (inAppMessage != null && inAppMessage.shouldShowNow()) {
-                // InAppManager.invokeTriggers(inAppMessage);
+                InAppManager.invokeTriggers(inAppMessage);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);

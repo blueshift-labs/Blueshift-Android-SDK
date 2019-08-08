@@ -12,6 +12,7 @@ import android.view.Window;
 import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
@@ -301,16 +302,22 @@ public class InAppManager {
         }
     }
 
-    private static boolean displayInAppDialogModal(Context context, View customView) {
+    private static boolean displayInAppDialogModal(final Context context, final View customView) {
         if (isOurAppRunning(context)) {
-            // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
-            dismissAndCleanupDialog();
+            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
+                @Override
+                public void run() {
+                    // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
+                    dismissAndCleanupDialog();
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setView(customView);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setView(customView);
 
-            mDialog = builder.create();
-            mDialog.show();
+                    mDialog = builder.create();
+                    mDialog.show();
+                }
+            });
+
             return true;
         } else {
             Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
@@ -318,16 +325,23 @@ public class InAppManager {
         }
     }
 
-    private static boolean displayInAppDialogFullScreen(Context context, View customView) {
+    private static boolean displayInAppDialogFullScreen(final Context context, final View customView) {
         if (isOurAppRunning(context)) {
-            // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
-            dismissAndCleanupDialog();
+            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
+                @Override
+                public void run() {
+                    // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
+                    dismissAndCleanupDialog();
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context, android.R.style.Theme_NoTitleBar_Fullscreen);
-            builder.setView(customView);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                            context, android.R.style.Theme_NoTitleBar_Fullscreen);
+                    builder.setView(customView);
 
-            mDialog = builder.create();
-            mDialog.show();
+                    mDialog = builder.create();
+                    mDialog.show();
+                }
+            });
+
             return true;
         } else {
             Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
@@ -335,21 +349,27 @@ public class InAppManager {
         }
     }
 
-    private static boolean displayInAppDialogAnimated(Context context, View customView, InAppMessage inAppMessage) {
+    private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
-            dismissAndCleanupDialog();
+            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
+                @Override
+                public void run() {
+                    // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
+                    dismissAndCleanupDialog();
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.inAppSlideFromLeft);
-            builder.setView(customView);
-            mDialog = builder.create();
-            mDialog.show();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                            context, R.style.inAppSlideFromLeft);
+                    builder.setView(customView);
+                    mDialog = builder.create();
+                    mDialog.show();
 
-            Window window = mDialog.getWindow();
-            if (window != null) {
-                window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
-                window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            }
+                    Window window = mDialog.getWindow();
+                    if (window != null) {
+                        window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
+                        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    }
+                }
+            });
 
             return true;
         } else {
