@@ -554,6 +554,104 @@ public class InAppUtils {
         return getContentOrientation(inAppMessage, InAppConstants.ACTIONS);
     }
 
+    public static void setContentTextView(TextView textView, InAppMessage inAppMessage, String contentName) {
+        if (textView != null && inAppMessage != null && !TextUtils.isEmpty(contentName)) {
+            // TEXT
+            textView.setText(inAppMessage.getContentString(contentName));
+
+            // TEXT COLOR
+            String colorHashCode = InAppUtils.getContentColor(inAppMessage, contentName);
+            if (InAppUtils.validateColorString(colorHashCode)) {
+                try {
+                    textView.setTextColor(Color.parseColor(colorHashCode));
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
+
+            // TEXT SIZE
+            int val = InAppUtils.getContentSize(inAppMessage, contentName, 14);
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
+
+            // TEXT GRAVITY (DEF: CENTER)
+            int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
+            textView.setGravity(contentGravity);
+
+            // BACKGROUND
+            Drawable background = InAppUtils.getContentBackgroundDrawable(inAppMessage, contentName);
+            if (background != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    textView.setBackground(background);
+                } else {
+                    textView.setBackgroundDrawable(background);
+                }
+            }
+
+            // PADDING (DEF: 4dp)
+            Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
+            if (padding != null) {
+                Context context = textView.getContext();
+                textView.setPadding(
+                        CommonUtils.dpToPx(padding.left, context),
+                        CommonUtils.dpToPx(padding.top, context),
+                        CommonUtils.dpToPx(padding.right, context),
+                        CommonUtils.dpToPx(padding.bottom, context)
+                );
+            } else {
+                Context context = textView.getContext();
+                int dp4 = CommonUtils.dpToPx(4, context);
+                textView.setPadding(dp4, dp4, dp4, dp4);
+            }
+        }
+    }
+
+    public static void setActionTextView(TextView textView, InAppMessage inAppMessage, String actionName) {
+        if (textView != null && inAppMessage != null && !TextUtils.isEmpty(actionName)) {
+            // TEXT
+            textView.setText(InAppUtils.getActionText(inAppMessage, actionName));
+
+            // TEXT COLOR
+            String colorHashCode = InAppUtils.getActionString(inAppMessage, actionName, InAppConstants.COLOR(InAppConstants.TEXT));
+            if (InAppUtils.validateColorString(colorHashCode)) {
+                try {
+                    textView.setTextColor(Color.parseColor(colorHashCode));
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
+
+            // TEXT SIZE
+            int val = InAppUtils.getActionInt(inAppMessage, actionName, InAppConstants.SIZE(InAppConstants.TEXT), 14);
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
+
+            // TEXT GRAVITY (DEF: CENTER)
+            int contentGravity = InAppUtils.getActionInt(inAppMessage, actionName, InAppConstants.GRAVITY(InAppConstants.TEXT), Gravity.CENTER);
+            textView.setGravity(contentGravity);
+
+            // BACKGROUND
+            Drawable background = InAppUtils.getActionBackgroundDrawable(inAppMessage, actionName);
+            if (background != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    textView.setBackground(background);
+                } else {
+                    textView.setBackgroundDrawable(background);
+                }
+            }
+
+            // PADDING
+            Rect padding = InAppUtils.getActionPadding(inAppMessage, actionName);
+            if (padding != null) {
+                Context context = textView.getContext();
+                textView.setPadding(
+                        CommonUtils.dpToPx(padding.left, context),
+                        CommonUtils.dpToPx(padding.top, context),
+                        CommonUtils.dpToPx(padding.right, context),
+                        CommonUtils.dpToPx(padding.bottom, context)
+                );
+            }
+        }
+    }
+
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
         @Override
         protected Bitmap doInBackground(String... strings) {

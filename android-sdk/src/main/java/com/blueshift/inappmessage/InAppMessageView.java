@@ -127,34 +127,7 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         button.setAllCaps(false);
 
-        String text = InAppUtils.getActionString(inAppMessage, actionName, InAppConstants.TEXT);
-        if (text != null) {
-            button.setText(text);
-        }
-
-        String textColor = InAppUtils.getActionString(inAppMessage, actionName, InAppConstants.COLOR(InAppConstants.TEXT));
-        InAppUtils.applyTextColor(button, textColor);
-
-        Drawable drawable = InAppUtils.getActionBackgroundDrawable(inAppMessage, actionName);
-        if (drawable == null) {
-            drawable = InAppUtils.getActionBackgroundDrawableDefault();
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            button.setBackground(drawable);
-        } else {
-            button.setBackgroundDrawable(drawable);
-        }
-
-        Rect padding = InAppUtils.getActionPadding(inAppMessage, actionName);
-        if (padding != null) {
-            button.setPadding(
-                    dp2px(padding.left),
-                    dp2px(padding.top),
-                    dp2px(padding.right),
-                    dp2px(padding.bottom)
-            );
-        }
+        InAppUtils.setActionTextView(button, inAppMessage, actionName);
 
         return button;
     }
@@ -422,32 +395,7 @@ public abstract class InAppMessageView extends RelativeLayout {
 
             if (!TextUtils.isEmpty(titleText)) {
                 textView = new TextView(getContext());
-                textView.setText(titleText);
-
-                Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
-                if (padding != null) {
-                    textView.setPadding(
-                            dp2px(padding.left),
-                            dp2px(padding.top),
-                            dp2px(padding.right),
-                            dp2px(padding.bottom)
-                    );
-                } else {
-                    int dp8 = dp2px(8);
-                    textView.setPadding(dp8, dp8, dp8, dp8);
-                }
-
-                int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
-                textView.setGravity(contentGravity);
-
-                int val = InAppUtils.getContentSize(inAppMessage, contentName, 14);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
-
-                String contentColor = InAppUtils.getContentColor(inAppMessage, contentName);
-                InAppUtils.applyTextColor(textView, contentColor);
-
-                String backgroundColor = InAppUtils.getContentBackgroundColor(inAppMessage, contentName);
-                InAppUtils.applyBackgroundColor(textView, backgroundColor);
+                InAppUtils.setContentTextView(textView, inAppMessage, contentName);
             }
         }
 
@@ -466,38 +414,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 // font-awesome icon font (free)
                 InAppMessageIconFont.getInstance(getContext()).apply(textView);
 
-                // text should be converted to unicode glymph to use here.
-                textView.setText(titleText);
-
-                Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
-                if (padding != null) {
-                    textView.setPadding(
-                            dp2px(padding.left),
-                            dp2px(padding.top),
-                            dp2px(padding.right),
-                            dp2px(padding.bottom)
-                    );
-                } else {
-                    int dp8 = dp2px(8);
-                    textView.setPadding(dp8, dp8, dp8, dp8);
-                }
-
-                int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
-                textView.setGravity(contentGravity);
-
-                int val = InAppUtils.getContentSize(inAppMessage, contentName, 14);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
-
-                String contentColor = InAppUtils.getContentColor(inAppMessage, contentName);
-                InAppUtils.applyTextColor(textView, contentColor);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    Drawable background = InAppUtils.getContentBackgroundDrawable(inAppMessage, contentName);
-                    textView.setBackground(background);
-                } else {
-                    String bgColor = InAppUtils.getContentBackgroundColor(inAppMessage, contentName);
-                    InAppUtils.applyBackgroundColor(textView, bgColor);
-                }
+                InAppUtils.setContentTextView(textView, inAppMessage, contentName);
             }
         }
 

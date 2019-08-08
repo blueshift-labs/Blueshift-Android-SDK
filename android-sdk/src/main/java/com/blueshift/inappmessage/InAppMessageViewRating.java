@@ -113,14 +113,13 @@ public class InAppMessageViewRating extends InAppMessageView {
         if (submit == null) {
             submit = InAppUtils.getActionButtonDefault(getContext());
             submit.setText(R.string.bsft_rating_submit);
+            submit.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    submitRating();
+                }
+            });
         }
-
-        submit.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submitRating();
-            }
-        });
 
         LinearLayout.LayoutParams lpSubmit;
         if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {
