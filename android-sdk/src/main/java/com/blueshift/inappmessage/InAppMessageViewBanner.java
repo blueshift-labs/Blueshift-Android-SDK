@@ -43,7 +43,8 @@ public class InAppMessageViewBanner extends InAppMessageView {
 
         TextView messageTextView = getContentTextView(inAppMessage, InAppConstants.MESSAGE);
         if (messageTextView != null) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
             linearLayout.addView(messageTextView, lp);
         }
 
@@ -52,7 +53,8 @@ public class InAppMessageViewBanner extends InAppMessageView {
         int dp20 = CommonUtils.dpToPx(20, getContext());
         int dp8 = CommonUtils.dpToPx(8, getContext());
 
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp20, ViewGroup.LayoutParams.MATCH_PARENT);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                dp20, ViewGroup.LayoutParams.MATCH_PARENT);
         lp.setMargins(dp8, dp8, dp8, dp8);
         linearLayout.addView(fwdArrow, lp);
 

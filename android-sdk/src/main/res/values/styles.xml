@@ -71,7 +71,13 @@
         <item name="android:gravity">end</item>
     </style>
 
-    <style name="dialogStyleSlideFromLeft" parent="Theme.AppCompat.Light.Dialog">
+    <style name="dialogStyleInApp" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowIsFloating">true</item>
+    </style>
+
+    <style name="inAppSlideFromLeft" parent="dialogStyleInApp">
         <item name="android:windowAnimationStyle">@style/slideInWindowAnimation</item>
     </style>
 
