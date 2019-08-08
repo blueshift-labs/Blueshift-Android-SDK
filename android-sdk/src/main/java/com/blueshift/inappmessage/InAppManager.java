@@ -340,7 +340,7 @@ public class InAppManager {
             // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
             dismissAndCleanupDialog();
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.dialogStyleSlideFromLeft);
+            AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.inAppSlideFromLeft);
             builder.setView(customView);
             mDialog = builder.create();
             mDialog.show();
