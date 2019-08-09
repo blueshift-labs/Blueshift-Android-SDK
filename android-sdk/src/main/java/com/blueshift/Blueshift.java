@@ -24,6 +24,7 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
+import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
@@ -987,7 +988,7 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        new TrackNotificationEventTask(
+        new TrackCampaignEventTask(
                 BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams).execute(mContext);
     }
 
@@ -1016,7 +1017,7 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        new TrackNotificationEventTask(
+        new TrackCampaignEventTask(
                 BlueshiftConstants.EVENT_PUSH_CLICK, eventParams).execute(mContext);
     }
 
@@ -1073,23 +1074,35 @@ public class Blueshift {
     }
 
     public void trackInAppMessageDelivered(InAppMessage inAppMessage) {
-        trackEvent("inapp_delivered", null, false);
+        if (inAppMessage != null) {
+            new TrackCampaignEventTask(
+                    InAppConstants.EVENT_DELIVERED, inAppMessage.getCampaignParamsMap()
+            ).execute(mContext);
+        }
     }
 
     public void trackInAppMessageView(InAppMessage inAppMessage) {
-        trackEvent("inapp_view", null, false);
+        if (inAppMessage != null) {
+            new TrackCampaignEventTask(
+                    InAppConstants.EVENT_VIEW, inAppMessage.getCampaignParamsMap()
+            ).execute(mContext);
+        }
     }
 
-    public void trackInAppMessageClick(String action, InAppMessage inAppMessage) {
-        trackEvent("inapp_click", null, false);
+    public void trackInAppMessageClick(InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            new TrackCampaignEventTask(
+                    InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap()
+            ).execute(mContext);
+        }
     }
 
-    private static class TrackNotificationEventTask extends AsyncTask<Context, Void, Void> {
+    private static class TrackCampaignEventTask extends AsyncTask<Context, Void, Void> {
 
         private String mEventName;
         private HashMap<String, Object> mParams;
 
-        TrackNotificationEventTask(String eventName, HashMap<String, Object> params) {
+        TrackCampaignEventTask(String eventName, HashMap<String, Object> params) {
             mEventName = eventName;
             mParams = params;
         }

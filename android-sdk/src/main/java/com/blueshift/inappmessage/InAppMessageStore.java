@@ -26,6 +26,8 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final String FIELD_TEMPLATE_STYLE = "template_style";
     private static final String FIELD_CONTENT_STYLE = "content_style";
     private static final String FIELD_CONTENT = "content";
+    private static final String FIELD_CAMPAIGN_PARAMS = "campaign_params";
+    private static final String FIELD_EXTRAS = "extras";
 
     private static InAppMessageStore sInstance = null;
 
@@ -71,6 +73,12 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             String cJson = getString(cursor, FIELD_CONTENT);
             if (!TextUtils.isEmpty(cJson)) inAppMessage.setContent(new JSONObject(cJson));
 
+            String cpJson = getString(cursor, FIELD_CAMPAIGN_PARAMS);
+            if (!TextUtils.isEmpty(cpJson)) inAppMessage.setCampaignParams(new JSONObject(cpJson));
+
+            String xJson = getString(cursor, FIELD_EXTRAS);
+            if (!TextUtils.isEmpty(xJson)) inAppMessage.setExtras(new JSONObject(xJson));
+
             return inAppMessage;
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -90,6 +98,8 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             values.put(FIELD_TEMPLATE_STYLE, inAppMessage.getTemplateStyleJson());
             values.put(FIELD_CONTENT_STYLE, inAppMessage.getContentStyleJson());
             values.put(FIELD_CONTENT, inAppMessage.getContentJson());
+            values.put(FIELD_CAMPAIGN_PARAMS, inAppMessage.getCampaignParamsJson());
+            values.put(FIELD_EXTRAS, inAppMessage.getExtrasJson());
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -106,6 +116,8 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_TEMPLATE_STYLE, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT_STYLE, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_CAMPAIGN_PARAMS, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_EXTRAS, FieldType.Text);
         return fieldTypeHashMap;
     }
 

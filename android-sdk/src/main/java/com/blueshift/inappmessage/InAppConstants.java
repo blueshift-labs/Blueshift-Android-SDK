@@ -1,6 +1,12 @@
 package com.blueshift.inappmessage;
 
+@SuppressWarnings("WeakerAccess")
 public class InAppConstants {
+    // events
+    public static final String EVENT_DELIVERED = "delivered";
+    public static final String EVENT_VIEW = "view";
+    public static final String EVENT_CLICK = "click";
+
     // actions
     public static final String ACTION_DISMISS = "dismiss";
     public static final String ACTION_OPEN = "open";
@@ -41,6 +47,7 @@ public class InAppConstants {
     public static final String BACKGROUND_RADIUS = "background_radius";
     public static final String MARGIN = "margin";
     public static final String PADDING = "padding";
+    public static final String CLOSE_BUTTON = "close_button";
 
     private static String append(String prefix, String suffix) {
         return prefix != null && suffix != null ? prefix + "_" + suffix : null;

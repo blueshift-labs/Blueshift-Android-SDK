@@ -7,28 +7,20 @@ import android.view.ViewGroup;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BlueshiftBaseSQLiteModel;
+import com.blueshift.rich_push.Message;
 import com.blueshift.util.CommonUtils;
+import com.blueshift.util.InAppUtils;
 import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public static final String TAG = InAppMessage.class.getSimpleName();
     public static final String EXTRA_IN_APP = "inapp";
-
-    private static final String KEY_TYPE = "type";
-    private static final String KEY_EXPIRES_AT = "expires_at";
-    private static final String KEY_TRIGGER = "trigger";
-    private static final String KEY_TEMPLATE_STYLE = "template_style";
-    private static final String KEY_CONTENT_STYLE = "content_style";
-    private static final String KEY_CONTENT = "content";
-    private static final String KEY_ACTIONS = "actions";
-
-    private static final String KEY_MARGIN = "margin";
-    private static final String KEY_WIDTH = "width";
-    private static final String KEY_HEIGHT = "height";
-    private static final String KEY_CLOSE_BTN = "close_button";
-    private static final String KEY_BACKGROUND_COLOR = "background_color";
 
     private long id;
     private String type;
@@ -37,16 +29,32 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private JSONObject template_style;
     private JSONObject content_style;
     private JSONObject content;
+    private JSONObject campaign_params;
+    private JSONObject extras;
 
-    public static InAppMessage getInstance(JSONObject payload) {
+    public static InAppMessage getInstance(Map<String, String> pushPayload) {
         try {
+            String json = pushPayload.get(InAppMessage.EXTRA_IN_APP);
+            JSONObject inAppPayload = new JSONObject(json);
+
             InAppMessage inAppMessage = new InAppMessage();
-            inAppMessage.type = payload.optString(KEY_TYPE);
-            inAppMessage.expires_at = payload.optLong(KEY_EXPIRES_AT);
-            inAppMessage.trigger = payload.optString(KEY_TRIGGER);
-            inAppMessage.template_style = payload.optJSONObject(KEY_TEMPLATE_STYLE);
-            inAppMessage.content_style = payload.optJSONObject(KEY_CONTENT_STYLE);
-            inAppMessage.content = payload.optJSONObject(KEY_CONTENT);
+            inAppMessage.type = inAppPayload.optString(InAppConstants.TYPE);
+            inAppMessage.expires_at = inAppPayload.optLong(InAppConstants.EXPIRES_AT);
+            inAppMessage.trigger = inAppPayload.optString(InAppConstants.TRIGGER);
+            inAppMessage.template_style = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE);
+            inAppMessage.content_style = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE);
+            inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
+            inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
+
+            JSONObject campaignAttr = new JSONObject();
+
+            // CAMPAIGN METADATA CHECK
+            campaignAttr.put(Message.EXTRA_BSFT_MESSAGE_UUID, pushPayload.get(Message.EXTRA_BSFT_MESSAGE_UUID));
+            campaignAttr.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
+            campaignAttr.put(Message.EXTRA_BSFT_USER_UUID, pushPayload.get(Message.EXTRA_BSFT_USER_UUID));
+            campaignAttr.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, pushPayload.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
+
+            inAppMessage.campaign_params = campaignAttr;
 
             return inAppMessage;
         } catch (Exception e) {
@@ -129,7 +137,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public JSONObject getActionsJSONObject() {
         if (content != null) {
             try {
-                return content.optJSONObject(KEY_ACTIONS);
+                return content.optJSONObject(InAppConstants.ACTIONS);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             }
@@ -150,7 +158,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public Rect getTemplateMargin() {
         try {
-            String json = template_style.optString(KEY_MARGIN);
+            String json = InAppUtils.getTemplateString(this, InAppConstants.MARGIN);
             return new Gson().fromJson(json, Rect.class);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -161,7 +169,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public int getTemplateHeight(Context context) {
         try {
-            int height = template_style.getInt(KEY_HEIGHT);
+            int height = InAppUtils.getTemplateInt(this, InAppConstants.HEIGHT, -2);
             if (height >= 0) return CommonUtils.dpToPx(height, context);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -172,7 +180,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public int getTemplateWidth(Context context) {
         try {
-            int width = template_style.getInt(KEY_WIDTH);
+            int width = InAppUtils.getTemplateInt(this, InAppConstants.WIDTH, -2);
             if (width >= 0) return CommonUtils.dpToPx(width, context);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -183,12 +191,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public int getTemplateBackgroundColor() {
         try {
-            String color = template_style.optString(KEY_BACKGROUND_COLOR);
-            if (color != null && color.startsWith("#")) {
-                int len = color.length();
-                if (len == 4 || len == 7 || len == 9) {
-                    return Color.parseColor(color);
-                }
+            String color = InAppUtils.getTemplateString(this, InAppConstants.BACKGROUND_COLOR);
+            if (InAppUtils.validateColorString(color)) {
+                return Color.parseColor(color);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -197,9 +202,40 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return 0;
     }
 
+    public String getCampaignParamsJson() {
+        return campaign_params != null ? campaign_params.toString() : null;
+    }
+
+    public HashMap<String, Object> getCampaignParamsMap() {
+        HashMap<String, Object> map = new HashMap<>();
+
+        if (campaign_params != null) {
+            Iterator<String> keys = campaign_params.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object val = campaign_params.opt(key);
+                map.put(key, val);
+            }
+        }
+
+        return map;
+    }
+
+    public void setCampaignParams(JSONObject campaignParams) {
+        this.campaign_params = campaignParams;
+    }
+
+    public String getExtrasJson() {
+        return extras != null ? extras.toString() : null;
+    }
+
+    public void setExtras(JSONObject extras) {
+        this.extras = extras;
+    }
+
     public boolean showCloseButton() {
         try {
-            return template_style.has(KEY_CLOSE_BTN);
+            return template_style.has(InAppConstants.CLOSE_BUTTON);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }

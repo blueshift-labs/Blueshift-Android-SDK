@@ -91,11 +91,7 @@ public class InAppManager {
 
             if (shouldDisplay(inAppMessage)) {
                 boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
-                if (isSuccess) {
-                    logInAppDisplayTime();
-                    Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
-                    InAppMessageStore.getInstance(mActivity).delete(inAppMessage);
-                } else {
+                if (!isSuccess) {
                     BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
                 }
             }
@@ -264,21 +260,28 @@ public class InAppManager {
         return false;
     }
 
-    private static boolean buildAndShowHtmlInAppMessage(Context context, InAppMessage inAppMessage) {
+    private static boolean buildAndShowHtmlInAppMessage(final Context context, final InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
+            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
                 @Override
-                public void onCloseButtonClick(InAppMessage inAppMessage) {
-                    invokeCloseButtonClick(inAppMessage);
-                }
+                public void run() {
+                    InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
+                        @Override
+                        public void onCloseButtonClick(InAppMessage inAppMessage) {
+                            invokeCloseButtonClick(inAppMessage);
+                        }
 
-                @Override
-                public void onDismiss(InAppMessage inAppMessage) {
-                    invokeDismissButtonClick(inAppMessage);
-                }
-            };
+                        @Override
+                        public void onDismiss(InAppMessage inAppMessage) {
+                            invokeDismissButtonClick(inAppMessage);
+                        }
+                    };
 
-            return displayInAppDialog(context, inAppMessageViewHTML, inAppMessage);
+                    displayInAppDialog(context, inAppMessageViewHTML, inAppMessage);
+                }
+            });
+
+            return true;
         }
 
         return false;
@@ -296,13 +299,13 @@ public class InAppManager {
 
     private static boolean displayInAppDialog(Context context, View customView, InAppMessage inAppMessage) {
         if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
-            return displayInAppDialogFullScreen(context, customView);
+            return displayInAppDialogFullScreen(context, customView, inAppMessage);
         } else {
-            return displayInAppDialogModal(context, customView);
+            return displayInAppDialogModal(context, customView, inAppMessage);
         }
     }
 
-    private static boolean displayInAppDialogModal(final Context context, final View customView) {
+    private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
             BlueshiftExecutor.runOnMainThread(context, new Runnable() {
                 @Override
@@ -315,6 +318,8 @@ public class InAppManager {
 
                     mDialog = builder.create();
                     mDialog.show();
+
+                    invokeOnInAppViewed(inAppMessage);
                 }
             });
 
@@ -325,7 +330,7 @@ public class InAppManager {
         }
     }
 
-    private static boolean displayInAppDialogFullScreen(final Context context, final View customView) {
+    private static boolean displayInAppDialogFullScreen(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
             BlueshiftExecutor.runOnMainThread(context, new Runnable() {
                 @Override
@@ -339,6 +344,8 @@ public class InAppManager {
 
                     mDialog = builder.create();
                     mDialog.show();
+
+                    invokeOnInAppViewed(inAppMessage);
                 }
             });
 
@@ -368,6 +375,8 @@ public class InAppManager {
                         window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
                         window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                     }
+
+                    invokeOnInAppViewed(inAppMessage);
                 }
             });
 
@@ -406,14 +415,23 @@ public class InAppManager {
         dismissAndCleanupDialog();
 
         // track the click todo: decide event name
-        Blueshift.getInstance(mActivity).trackInAppMessageClick("close", inAppMessage);
+        Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage);
     }
 
     private static void invokeDismissButtonClick(InAppMessage inAppMessage) {
         dismissAndCleanupDialog();
 
         // track the click todo: decide event name
-        Blueshift.getInstance(mActivity).trackInAppMessageClick("dismiss", inAppMessage);
+        Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage);
+    }
+
+    private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
+        // log display time
+        logInAppDisplayTime();
+        // send stats
+        Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
+        // cleanup db
+        InAppMessageStore.getInstance(mActivity).delete(inAppMessage);
     }
 
     private static void dismissAndCleanupDialog() {
