@@ -232,8 +232,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     private void processInAppMessage(Map<String, String> data) {
         try {
-            String json = data.get(InAppMessage.EXTRA_IN_APP);
-            InAppMessage inAppMessage = InAppMessage.getInstance(new JSONObject(json));
+            InAppMessage inAppMessage = InAppMessage.getInstance(data);
             InAppMessageStore.getInstance(this).insert(inAppMessage);
             Blueshift.getInstance(this).trackInAppMessageDelivered(inAppMessage);
 
