@@ -3,6 +3,7 @@ package com.blueshift.inappmessage;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.view.ViewGroup;
 
 import com.blueshift.BlueshiftLogger;
@@ -249,5 +250,21 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public boolean shouldShowNow() {
         return "now".equalsIgnoreCase(trigger);
+    }
+
+    public boolean isExpired() {
+        return expires_at * 1000 < System.currentTimeMillis();
+    }
+
+    public long getDisplayFromMillis() {
+        try {
+            if (trigger != null && TextUtils.isDigitsOnly(trigger)) {
+                return Long.valueOf(trigger) * 1000;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return 0;
     }
 }

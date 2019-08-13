@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -78,30 +80,78 @@ public class InAppManager {
         invokeTriggers(null);
     }
 
-    public static void invokeTriggers(InAppMessage inAppMessage) {
+    public static void invokeTriggers(final InAppMessage inAppMessage) {
         if (mActivity == null) {
             Log.d(LOG_TAG, "App isn't running with an eligible Activity to display InAppMessage.");
             return;
         }
 
         try {
-            if (inAppMessage == null) {
-                inAppMessage = InAppMessageStore.getInstance(mActivity).getInAppMessage();
-            }
+            final Handler workerHandler = new Handler(Looper.myLooper());
+            workerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    InAppMessage input = inAppMessage;
+                    if (input == null) {
+                        input = InAppMessageStore.getInstance(mActivity).getInAppMessage();
+                    }
 
-            if (shouldDisplay(inAppMessage)) {
-                boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
-                if (!isSuccess) {
-                    BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
+                    if (input.isExpired()) {
+                        // delete expired one
+                        InAppMessageStore.getInstance(mActivity).delete(input);
+                        // pick next
+                        input = InAppMessageStore.getInstance(mActivity).getInAppMessage();
+                    }
+
+                    if (shouldDisplay(input)) {
+                        boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
+                        if (!isSuccess) {
+                            BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
+                        }
+                    } else {
+                        // put back as new entry
+                        InAppMessageStore.getInstance(mActivity).insert(input);
+                        // delete from top
+                        InAppMessageStore.getInstance(mActivity).delete(input);
+
+                        // check for next in-app message after interval.
+                        Configuration config = BlueshiftUtils.getConfiguration(mActivity);
+                        if (config != null && config.getInAppInterval() > 0) {
+                            workerHandler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    invokeTriggers();
+                                }
+                            }, config.getInAppInterval());
+                        }
+                    }
                 }
-            }
+            });
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
     private static boolean shouldDisplay(InAppMessage inAppMessage) {
-        return checkIsInstantMessage(inAppMessage) || (checkInterval() && checkExpiry(inAppMessage));
+        return checkIsInstantMessage(inAppMessage) || (checkInterval() && checkDisplayTimeInterval(inAppMessage));
+    }
+
+    private static boolean checkDisplayTimeInterval(InAppMessage inAppMessage) {
+        return checkDisplayFrom(inAppMessage) && checkExpiry(inAppMessage);
+    }
+
+    private static boolean checkDisplayFrom(InAppMessage inAppMessage) {
+        try {
+            if (inAppMessage != null) {
+                long currentTime = System.currentTimeMillis();
+                long displayFrom = inAppMessage.getDisplayFromMillis();
+                return currentTime > displayFrom;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return false;
     }
 
     private static boolean checkIsInstantMessage(InAppMessage inAppMessage) {
@@ -387,7 +437,7 @@ public class InAppManager {
         }
     }
 
-    private static boolean isOurAppRunning(Context context) {
+    public static boolean isOurAppRunning(Context context) {
         if (context != null) {
             ComponentName topActivity = getCurrentActivity(context);
             if (topActivity != null) {
