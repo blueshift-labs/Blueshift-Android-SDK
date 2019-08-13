@@ -24,11 +24,11 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
-import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
 import com.blueshift.model.UserInfo;
+import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.DeviceUtils;
@@ -36,6 +36,7 @@ import com.blueshift.util.PermissionUtils;
 import com.blueshift.util.SdkLog;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
@@ -83,15 +84,25 @@ public class Blueshift {
      * update inside mDeviceParams.
      */
     private static void updateDeviceTokenAsync() {
-        Task<InstanceIdResult> result  = FirebaseInstanceId.getInstance().getInstanceId();
-        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                String token = instanceIdResult.getToken();
-                updateDeviceToken(token);
-                // Log.d("Blueshift", "FCM token 2: " + token);
-            }
-        });
+        try {
+            Task<InstanceIdResult> result = FirebaseInstanceId.getInstance().getInstanceId();
+            result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+                @Override
+                public void onSuccess(InstanceIdResult instanceIdResult) {
+                    String token = instanceIdResult.getToken();
+                    updateDeviceToken(token);
+                    // Log.d("Blueshift", "FCM token 2: " + token);
+                }
+            });
+        } catch (IllegalStateException e) {
+            FirebaseApp.initializeApp(mContext);
+            updateDeviceTokenAsync();
+        } catch (RuntimeException e) {
+            FirebaseApp.initializeApp(mContext);
+            updateDeviceTokenAsync();
+        } catch (Exception e) {
+            SdkLog.e(LOG_TAG, (e != null) ? e.getMessage() : null);
+        }
     }
 
     /**
@@ -261,7 +272,7 @@ public class Blueshift {
         // Collect app details
         initAppInfo(mContext);
         // Sync the http request queue.
-        RequestQueue.getInstance().sync(mContext);
+        RequestQueue.getInstance().syncInBackground(mContext);
         // schedule job to sync request queue on nw change
         RequestQueue.scheduleQueueSyncJob(mContext);
         // schedule the bulk events dispatch
