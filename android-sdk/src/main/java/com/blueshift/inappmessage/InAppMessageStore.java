@@ -152,10 +152,12 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     }
 
     public void clean() {
-        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
-        String whereClause = FIELD_EXPIRES_AT + "<?";
-        String[] selectionArgs = new String[]{timestamp};
+        if (getTotalRecordCount() > 30) {
+            String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+            String whereClause = FIELD_EXPIRES_AT + "<?";
+            String[] selectionArgs = new String[]{timestamp};
 
-        deleteAll(whereClause, selectionArgs);
+            deleteAll(whereClause, selectionArgs);
+        }
     }
 }

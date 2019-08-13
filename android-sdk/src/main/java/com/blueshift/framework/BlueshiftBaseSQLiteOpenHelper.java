@@ -3,6 +3,7 @@ package com.blueshift.framework;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.Nullable;
@@ -101,13 +102,25 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
         }
     }
 
-    public void deleteAll(String whereClause, String[] selectionArgs) {
+    protected void deleteAll(String whereClause, String[] selectionArgs) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
                 db.delete(getTableName(), whereClause, selectionArgs);
                 db.close();
             }
+        }
+    }
+
+    public long getTotalRecordCount() {
+        synchronized (_LOCK) {
+            long count = 0;
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                count = DatabaseUtils.queryNumEntries(db, getTableName());
+                db.close();
+            }
+            return count;
         }
     }
 
