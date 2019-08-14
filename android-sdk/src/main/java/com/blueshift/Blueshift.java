@@ -26,7 +26,6 @@ import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppMessage;
-import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
@@ -989,7 +988,7 @@ public class Blueshift {
         }
 
         new TrackCampaignEventTask(
-                BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams).execute(mContext);
+                BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, null).execute(mContext);
     }
 
     public void trackNotificationClick(Message message) {
@@ -1018,7 +1017,7 @@ public class Blueshift {
         }
 
         new TrackCampaignEventTask(
-                BlueshiftConstants.EVENT_PUSH_CLICK, eventParams).execute(mContext);
+                BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, null).execute(mContext);
     }
 
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
@@ -1076,7 +1075,7 @@ public class Blueshift {
     public void trackInAppMessageDelivered(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             new TrackCampaignEventTask(
-                    InAppConstants.EVENT_DELIVERED, inAppMessage.getCampaignParamsMap()
+                    InAppConstants.EVENT_DELIVERED, inAppMessage.getCampaignParamsMap(), null
             ).execute(mContext);
         }
     }
@@ -1084,53 +1083,33 @@ public class Blueshift {
     public void trackInAppMessageView(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             new TrackCampaignEventTask(
-                    InAppConstants.EVENT_VIEW, inAppMessage.getCampaignParamsMap()
+                    InAppConstants.EVENT_VIEW, inAppMessage.getCampaignParamsMap(), null
             ).execute(mContext);
         }
     }
 
-    public void trackInAppMessageClick(InAppMessage inAppMessage) {
+    public void trackInAppMessageClick(InAppMessage inAppMessage, String elementName) {
         if (inAppMessage != null) {
-            new TrackCampaignEventTask(
-                    InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap()
-            ).execute(mContext);
-        }
-    }
-
-    private static class TrackCampaignEventTask extends AsyncTask<Context, Void, Void> {
-
-        private String mEventName;
-        private HashMap<String, Object> mParams;
-
-        TrackCampaignEventTask(String eventName, HashMap<String, Object> params) {
-            mEventName = eventName;
-            mParams = params;
-        }
-
-        @Override
-        protected Void doInBackground(Context... contexts) {
-            if (mEventName != null && mParams != null) {
-                Context context = contexts != null && contexts.length > 0 ? contexts[0] : null;
-                if (context != null) {
-                    Blueshift blueshift = Blueshift.getInstance(context);
-                    boolean isSuccess = blueshift.sendNotificationEvent(mEventName, mParams);
-                    Log.d(LOG_TAG, "Event: " + mEventName + "," +
-                            " Tracking status: " + (isSuccess ? "success" : "failed"));
-                }
+            // sending the element name to identify click
+            HashMap<String, Object> extras = new HashMap<>();
+            if (elementName != null) {
+                extras.put(InAppConstants.EVENT_EXTRA_ELEMENT, elementName);
             }
 
-            return null;
+            new TrackCampaignEventTask(
+                    InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras
+            ).execute(mContext);
         }
     }
 
-    private boolean sendNotificationEvent(String eventName, HashMap<String, Object> params) {
-        if (params != null) {
+    private boolean sendNotificationEvent(String eventName, HashMap<String, Object> campaignParams, HashMap<String, Object> extras) {
+        if (campaignParams != null) {
             HashMap<String, Object> eventParams = new HashMap<>();
             eventParams.put(BlueshiftConstants.KEY_ACTION, eventName);
-            eventParams.put(BlueshiftConstants.KEY_UID, params.get(Message.EXTRA_BSFT_USER_UUID));
-            eventParams.put(BlueshiftConstants.KEY_EID, params.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
+            eventParams.put(BlueshiftConstants.KEY_UID, campaignParams.get(Message.EXTRA_BSFT_USER_UUID));
+            eventParams.put(BlueshiftConstants.KEY_EID, campaignParams.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
 
-            Object txnUuidObj = params.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+            Object txnUuidObj = campaignParams.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
             if (txnUuidObj != null) {
                 String txnUuid = (String) txnUuidObj;
                 if (!TextUtils.isEmpty(txnUuid)) {
@@ -1138,7 +1117,7 @@ public class Blueshift {
                 }
             }
 
-            Object msgUuidObj = params.get(BlueshiftConstants.KEY_MESSAGE_UUID);
+            Object msgUuidObj = campaignParams.get(BlueshiftConstants.KEY_MESSAGE_UUID);
             if (msgUuidObj != null) {
                 String messageUuid = (String) msgUuidObj;
                 if (!TextUtils.isEmpty(messageUuid)) {
@@ -1148,6 +1127,11 @@ public class Blueshift {
 
             // Add Sdk version to the params
             eventParams.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+
+            // any extra info available
+            if (extras != null) {
+                eventParams.putAll(extras);
+            }
 
             String paramsUrl = getUrlParams(eventParams);
             if (!TextUtils.isEmpty(paramsUrl)) {
@@ -1170,6 +1154,34 @@ public class Blueshift {
             }
         } else {
             return false;
+        }
+    }
+
+    private static class TrackCampaignEventTask extends AsyncTask<Context, Void, Void> {
+
+        private String mEventName;
+        private HashMap<String, Object> mCampaignParams;
+        private HashMap<String, Object> mExtraParams;
+
+        TrackCampaignEventTask(String eventName, HashMap<String, Object> campaignParams, HashMap<String, Object> extraParams) {
+            mEventName = eventName;
+            mCampaignParams = campaignParams;
+            mExtraParams = extraParams;
+        }
+
+        @Override
+        protected Void doInBackground(Context... contexts) {
+            if (mEventName != null && mCampaignParams != null) {
+                Context context = contexts != null && contexts.length > 0 ? contexts[0] : null;
+                if (context != null) {
+                    Blueshift blueshift = Blueshift.getInstance(context);
+                    boolean isSuccess = blueshift.sendNotificationEvent(mEventName, mCampaignParams, mExtraParams);
+                    Log.d(LOG_TAG, "Event: " + mEventName + "," +
+                            " Tracking status: " + (isSuccess ? "success" : "failed"));
+                }
+            }
+
+            return null;
         }
     }
 

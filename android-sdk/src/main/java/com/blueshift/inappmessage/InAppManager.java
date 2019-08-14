@@ -6,7 +6,6 @@ import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -87,13 +86,17 @@ public class InAppManager {
         }
 
         try {
-            final Handler workerHandler = new Handler(Looper.myLooper());
-            workerHandler.post(new Runnable() {
+            BlueshiftExecutor.getInstance().runOnWorkerThread(new Runnable() {
                 @Override
                 public void run() {
                     InAppMessage input = inAppMessage;
                     if (input == null) {
                         input = InAppMessageStore.getInstance(mActivity).getInAppMessage();
+                    }
+
+                    if (input == null) {
+                        // this means, there are no pending in-app messages in the db.
+                        return;
                     }
 
                     if (input.isExpired()) {
@@ -117,7 +120,8 @@ public class InAppManager {
                         // check for next in-app message after interval.
                         Configuration config = BlueshiftUtils.getConfiguration(mActivity);
                         if (config != null && config.getInAppInterval() > 0) {
-                            workerHandler.postDelayed(new Runnable() {
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
                                     invokeTriggers();
@@ -233,14 +237,8 @@ public class InAppManager {
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
-                @Override
-                public void onCloseButtonClick(InAppMessage inAppMessage) {
-                    invokeCloseButtonClick(inAppMessage);
-                }
-
-                @Override
-                public void onDismiss(InAppMessage inAppMessage) {
-                    invokeDismissButtonClick(inAppMessage);
+                public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
 
@@ -253,14 +251,8 @@ public class InAppManager {
     private static boolean buildAndShowFullScreenPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
-                @Override
-                public void onCloseButtonClick(InAppMessage inAppMessage) {
-                    invokeCloseButtonClick(inAppMessage);
-                }
-
-                @Override
-                public void onDismiss(InAppMessage inAppMessage) {
-                    invokeDismissButtonClick(inAppMessage);
+                public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
 
@@ -273,14 +265,8 @@ public class InAppManager {
     private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
-                @Override
-                public void onCloseButtonClick(InAppMessage inAppMessage) {
-                    invokeCloseButtonClick(inAppMessage);
-                }
-
-                @Override
-                public void onDismiss(InAppMessage inAppMessage) {
-                    invokeDismissButtonClick(inAppMessage);
+                public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
 
@@ -293,14 +279,8 @@ public class InAppManager {
     private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
-                @Override
-                public void onCloseButtonClick(InAppMessage inAppMessage) {
-                    invokeCloseButtonClick(inAppMessage);
-                }
-
-                @Override
-                public void onDismiss(InAppMessage inAppMessage) {
-                    invokeDismissButtonClick(inAppMessage);
+                public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
 
@@ -312,34 +292,19 @@ public class InAppManager {
 
     private static boolean buildAndShowHtmlInAppMessage(final Context context, final InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                         @Override
-                        public void onCloseButtonClick(InAppMessage inAppMessage) {
-                            invokeCloseButtonClick(inAppMessage);
-                        }
-
-                        @Override
-                        public void onDismiss(InAppMessage inAppMessage) {
-                            invokeDismissButtonClick(inAppMessage);
+                        public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                            invokeDismissButtonClick(inAppMessage, elementName);
                         }
                     };
 
                     displayInAppDialog(context, inAppMessageViewHTML, inAppMessage);
                 }
             });
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private static boolean displayInAppActivity(Context context, View customView) {
-        if (mActivity != null && !mActivity.isFinishing()) {
-            mActivity.addContentView(customView, customView.getLayoutParams());
 
             return true;
         }
@@ -357,7 +322,7 @@ public class InAppManager {
 
     private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
@@ -382,7 +347,7 @@ public class InAppManager {
 
     private static boolean displayInAppDialogFullScreen(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
@@ -408,7 +373,7 @@ public class InAppManager {
 
     private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            BlueshiftExecutor.runOnMainThread(context, new Runnable() {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
@@ -461,18 +426,11 @@ public class InAppManager {
         return null;
     }
 
-    private static void invokeCloseButtonClick(InAppMessage inAppMessage) {
+    private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
         dismissAndCleanupDialog();
 
         // track the click todo: decide event name
-        Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage);
-    }
-
-    private static void invokeDismissButtonClick(InAppMessage inAppMessage) {
-        dismissAndCleanupDialog();
-
-        // track the click todo: decide event name
-        Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage);
+        Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage, elementName);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {

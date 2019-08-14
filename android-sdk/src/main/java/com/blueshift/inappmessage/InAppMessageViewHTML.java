@@ -55,11 +55,19 @@ public class InAppMessageViewHTML extends InAppMessageView {
     }
 
     private void launchUri(Uri uri) {
-        if (uri != null) {
-            Log.d(TAG, "URL: " + uri.toString());
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(uri);
-            getContext().startActivity(intent);
+        try {
+            if (uri != null) {
+                Log.d(TAG, "URL: " + uri.toString());
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(uri);
+                getContext().startActivity(intent);
+
+                // dismiss dialog.
+                onDismiss(getInAppMessage(), uri.toString());
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+            onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
         }
     }
 
@@ -73,9 +81,9 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
 
-            onDismiss(getInAppMessage());
             return true;
         }
 
@@ -86,9 +94,9 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 launchUri(uri);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
 
-            onDismiss(getInAppMessage());
             return true;
         }
     }
