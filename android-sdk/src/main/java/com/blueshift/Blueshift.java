@@ -83,26 +83,36 @@ public class Blueshift {
      * This method will read latest device token from firebase and will
      * update inside mDeviceParams.
      */
-    private static void updateDeviceTokenAsync() {
+    private static void updateFCMToken() {
         try {
-            Task<InstanceIdResult> result = FirebaseInstanceId.getInstance().getInstanceId();
-            result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-                @Override
-                public void onSuccess(InstanceIdResult instanceIdResult) {
+            updateFCMTokenAsync();
+        } catch (Exception e) {
+            // tickets#8919 reported an issue with fcm token fetch. this is the
+            // fix for the same. we are manually calling initializeApp and trying
+            // to get token again.
+            FirebaseApp.initializeApp(mContext);
+            // try one more time.
+            try {
+                updateFCMTokenAsync();
+            } catch (Exception ex) {
+                SdkLog.w(LOG_TAG, ex.getMessage());
+            }
+        }
+    }
+
+    private static void updateFCMTokenAsync() {
+        Task<InstanceIdResult> result = FirebaseInstanceId.getInstance().getInstanceId();
+        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                try {
                     String token = instanceIdResult.getToken();
                     updateDeviceToken(token);
-                    // Log.d("Blueshift", "FCM token 2: " + token);
+                } catch (Exception e) {
+                    SdkLog.e(LOG_TAG, e.getMessage());
                 }
-            });
-        } catch (IllegalStateException e) {
-            FirebaseApp.initializeApp(mContext);
-            updateDeviceTokenAsync();
-        } catch (RuntimeException e) {
-            FirebaseApp.initializeApp(mContext);
-            updateDeviceTokenAsync();
-        } catch (Exception e) {
-            SdkLog.e(LOG_TAG, (e != null) ? e.getMessage() : null);
-        }
+            }
+        });
     }
 
     /**
@@ -206,7 +216,8 @@ public class Blueshift {
         }
 
         new FetchAndUpdateAdIdTask().execute();
-        updateDeviceTokenAsync();
+
+        updateFCMToken();
     }
 
     private void initAppInfo(Context context) {
