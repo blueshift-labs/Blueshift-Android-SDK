@@ -9,6 +9,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.request_queue.RequestQueueJobService;
 import com.blueshift.model.Configuration;
@@ -124,12 +125,12 @@ public class RequestQueue {
 
     public void syncInBackground(final Context context) {
         if (context != null) {
-            new Thread(new Runnable() {
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
                 @Override
                 public void run() {
                     sync(context);
                 }
-            }).start();
+            });
         }
     }
 
@@ -154,7 +155,7 @@ public class RequestQueue {
 
                                         @Override
                                         public void onDispatchComplete() {
-                                            sync(context);
+                                            syncInBackground(context);
                                         }
                                     })
                                     .build();
