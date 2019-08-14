@@ -166,7 +166,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         // open store
         openMarketApp();
 
-        onDismiss(getInAppMessage());
+        onDismiss(getInAppMessage(), InAppConstants.ACTION_RATE_APP);
     }
 
     private void logRatingToBlueshift() {

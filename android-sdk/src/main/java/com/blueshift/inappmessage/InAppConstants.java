@@ -6,12 +6,14 @@ public class InAppConstants {
     public static final String EVENT_DELIVERED = "delivered";
     public static final String EVENT_VIEW = "view";
     public static final String EVENT_CLICK = "click";
+    public static final String EVENT_EXTRA_ELEMENT = "element";
 
     // actions
     public static final String ACTION_DISMISS = "dismiss";
     public static final String ACTION_OPEN = "open";
     public static final String ACTION_SHARE = "share";
     public static final String ACTION_RATE_APP = "rate_app";
+    public static final String ACTION_CLOSE = "close"; // to track close button clicks
 
     // payload: level-1 keys
     public static final String TYPE = "type";
