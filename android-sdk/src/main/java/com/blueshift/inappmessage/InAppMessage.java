@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BlueshiftBaseSQLiteModel;
 import com.blueshift.rich_push.Message;
-import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 import com.google.gson.Gson;
 
@@ -168,21 +167,19 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return new Rect();
     }
 
-    public int getTemplateHeight(Context context) {
+    public int getTemplateHeight() {
         try {
-            int height = InAppUtils.getTemplateInt(this, InAppConstants.HEIGHT, -2);
-            if (height >= 0) return CommonUtils.dpToPx(height, context);
+            return InAppUtils.getTemplateInt(this, InAppConstants.HEIGHT, -1);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
 
-        return ViewGroup.LayoutParams.WRAP_CONTENT;
+        return ViewGroup.LayoutParams.MATCH_PARENT;
     }
 
-    public int getTemplateWidth(Context context) {
+    public int getTemplateWidth() {
         try {
-            int width = InAppUtils.getTemplateInt(this, InAppConstants.WIDTH, -2);
-            if (width >= 0) return CommonUtils.dpToPx(width, context);
+            return InAppUtils.getTemplateInt(this, InAppConstants.WIDTH, -1);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }

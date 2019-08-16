@@ -17,6 +17,8 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+
 public class InAppMessageViewHTML extends InAppMessageView {
     private static final String TAG = InAppMessageViewHTML.class.getSimpleName();
 
@@ -40,13 +42,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
             webView.setWebViewClient(new InAppWebViewClient());
             webView.loadData(htmlContent, "text/html; charset=UTF-8", null);
 
-            // Note: For WebView, the parent's size depends on the size of WebView, so we are
-            // using the same dimensions of the template for this view.
-            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(
-                    inAppMessage.getTemplateWidth(getContext()),
-                    inAppMessage.getTemplateHeight(getContext()));
-
-            webView.setLayoutParams(lp);
+            webView.setLayoutParams(new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
             return webView;
         }
