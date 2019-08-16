@@ -2,18 +2,21 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -46,6 +49,8 @@ public abstract class InAppMessageView extends RelativeLayout {
         int bgColor = inAppMessage.getTemplateBackgroundColor();
         if (bgColor != 0) {
             setBackgroundColor(bgColor);
+        } else {
+            setBackgroundColor(Color.WHITE);
         }
 
         View childView = getView(inAppMessage);
@@ -82,20 +87,49 @@ public abstract class InAppMessageView extends RelativeLayout {
         addView(closeButton, lp);
     }
 
-    private void applyTemplateDimensions(InAppMessage inAppMessage) {
+    private void applyTemplateDimensions(final InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            LayoutParams lp = new LayoutParams(
-                    inAppMessage.getTemplateWidth(getContext()),
-                    inAppMessage.getTemplateHeight(getContext()));
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) getLayoutParams();
+                    if (lp != null) {
+                        Rect margins = inAppMessage.getTemplateMargin();
+                        if (margins != null) {
+                            lp.leftMargin = CommonUtils.dpToPx(margins.left, getContext());
+                            lp.topMargin = CommonUtils.dpToPx(margins.top, getContext());
+                            lp.rightMargin = CommonUtils.dpToPx(margins.right, getContext());
+                            lp.bottomMargin = CommonUtils.dpToPx(margins.bottom, getContext());
+                        }
 
-            Rect margins = inAppMessage.getTemplateMargin();
-            lp.setMargins(
-                    CommonUtils.dpToPx(margins.left, getContext()),
-                    CommonUtils.dpToPx(margins.top, getContext()),
-                    CommonUtils.dpToPx(margins.right, getContext()),
-                    CommonUtils.dpToPx(margins.bottom, getContext()));
+                        DisplayMetrics metrics = getResources().getDisplayMetrics();
 
-            setLayoutParams(lp);
+                        float wPercentage = inAppMessage.getTemplateWidth();
+                        if (wPercentage > 0) {
+                            int horizontalMargn = (lp.leftMargin + lp.rightMargin);
+                            lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargn);
+                        }
+
+                        int statusBarHeight = 0;
+                        try {
+                            int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+                            if (resourceId > 0) {
+                                statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+                            }
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(TAG, e.getMessage());
+                        }
+
+                        float hPercentage = inAppMessage.getTemplateHeight();
+                        if (hPercentage > 0) {
+                            int verticalMargin = (lp.topMargin + lp.bottomMargin + statusBarHeight);
+                            lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
+                        }
+
+                        setLayoutParams(lp);
+                    }
+                }
+            });
         }
     }
 
