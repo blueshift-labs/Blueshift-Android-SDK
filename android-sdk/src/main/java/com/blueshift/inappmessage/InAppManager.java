@@ -86,7 +86,7 @@ public class InAppManager {
         }
 
         try {
-            BlueshiftExecutor.getInstance().runOnWorkerThread(new Runnable() {
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
                 @Override
                 public void run() {
                     InAppMessage input = inAppMessage;
