@@ -1,40 +1,20 @@
 package com.blueshift.request_queue;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.text.TextUtils;
 import android.util.Log;
 
-import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftConstants;
-import com.blueshift.batch.Event;
-import com.blueshift.batch.FailedEventsTable;
-import com.blueshift.httpmanager.HTTPManager;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.httpmanager.Request;
-import com.blueshift.httpmanager.Response;
 import com.blueshift.httpmanager.request_queue.RequestQueueJobService;
 import com.blueshift.model.Configuration;
-import com.blueshift.model.UserInfo;
-import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.SdkLog;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Type;
-import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
@@ -143,6 +123,17 @@ public class RequestQueue {
         mStatus = Status.BUSY;
     }
 
+    public void syncInBackground(final Context context) {
+        if (context != null) {
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
+                @Override
+                public void run() {
+                    sync(context);
+                }
+            });
+        }
+    }
+
     public void sync(final Context context) {
         synchronized (lock) {
             if (mStatus == Status.AVAILABLE && NetworkUtils.isConnected(context)) {
@@ -164,7 +155,7 @@ public class RequestQueue {
 
                                         @Override
                                         public void onDispatchComplete() {
-                                            sync(context);
+                                            syncInBackground(context);
                                         }
                                     })
                                     .build();

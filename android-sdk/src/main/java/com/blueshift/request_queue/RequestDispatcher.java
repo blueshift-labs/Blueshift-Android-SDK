@@ -20,6 +20,7 @@ import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.SdkLog;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
@@ -57,13 +58,30 @@ class RequestDispatcher {
             return;
         }
 
-        // get the latest device token from FCM before sending the event
+        // now, get the latest device token from FCM and call dispatch
+        try {
+            getLatestFCMTokenAndDispatch();
+        } catch (Exception e) {
+            try {
+                FirebaseApp.initializeApp(mContext);
+                getLatestFCMTokenAndDispatch();
+            } catch (Exception ex) {
+                SdkLog.e(LOG_TAG, ex.getMessage());
+            }
+        }
+    }
+
+    private void getLatestFCMTokenAndDispatch() {
         Task<InstanceIdResult> result = FirebaseInstanceId.getInstance().getInstanceId();
         result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
             @Override
             public void onSuccess(InstanceIdResult instanceIdResult) {
-                String latestToken = instanceIdResult.getToken();
-                new RequestDispatchTask(latestToken, RequestDispatcher.this).execute();
+                try {
+                    String latestToken = instanceIdResult.getToken();
+                    new RequestDispatchTask(latestToken, RequestDispatcher.this).execute();
+                } catch (Exception e) {
+                    SdkLog.e(LOG_TAG, e.getMessage());
+                }
             }
         });
     }
