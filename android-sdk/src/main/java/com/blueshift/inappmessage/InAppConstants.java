@@ -31,6 +31,7 @@ public class InAppConstants {
 
     public static final String TEXT = "text";
     public static final String ACTIONS = "actions";
+    public static final String ACTION_TYPE = "type";
     public static final String HTML = "html";
     public static final String MESSAGE = "message";
     public static final String BANNER = "banner";

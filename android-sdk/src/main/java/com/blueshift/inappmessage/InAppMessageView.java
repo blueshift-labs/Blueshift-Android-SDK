@@ -28,6 +28,7 @@ import com.blueshift.R;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Iterator;
@@ -141,7 +142,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         Log.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
-    private Button getActionButtonBasic(InAppMessage inAppMessage, String actionName) {
+    private Button getActionButtonBasic(JSONObject actionJson) {
         Button button = new Button(getContext());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -157,18 +158,34 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         button.setAllCaps(false);
 
-        InAppUtils.setActionTextView(button, inAppMessage, actionName);
+        InAppUtils.setActionTextView(button, actionJson);
 
         return button;
     }
 
+    protected Button getActionButton(JSONObject actionJson) {
+        Button button = null;
+
+        try {
+            if (actionJson != null) {
+                button = getActionButtonBasic(actionJson);
+                button.setOnClickListener(getActionClickListener(actionJson));
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return button;
+    }
+
+    @Deprecated
     protected Button getActionButton(InAppMessage inAppMessage, String actionName) {
         Button button = null;
 
         try {
             JSONObject actionJson = InAppUtils.getActionFromName(inAppMessage, actionName);
             if (actionJson != null) {
-                button = getActionButtonBasic(inAppMessage, actionName);
+//                button = getActionButtonBasic(inAppMessage, actionName);
                 button.setOnClickListener(getActionClickListener(actionName, actionJson));
             }
         } catch (Exception e) {
@@ -176,6 +193,39 @@ public abstract class InAppMessageView extends RelativeLayout {
         }
 
         return button;
+    }
+
+    protected OnClickListener getActionClickListener(JSONObject actionJson) {
+        OnClickListener listener = null;
+
+        if (actionJson != null) {
+            String actionName = actionJson.optString(InAppConstants.ACTION_TYPE);
+            if (actionName != null) {
+                switch (actionName) {
+                    case InAppConstants.ACTION_DISMISS:
+                        listener = getDismissDialogClickListener(actionName, actionJson);
+                        break;
+
+                    case InAppConstants.ACTION_OPEN:
+                        listener = getStartActivityClickListener(actionName, actionJson);
+                        break;
+
+                    case InAppConstants.ACTION_SHARE:
+                        listener = getShareClickListener(actionName, actionJson);
+                        break;
+
+                    case InAppConstants.ACTION_RATE_APP:
+                        listener = getRateAppClickListener(actionName, actionJson);
+                        break;
+                }
+            }
+        }
+
+        if (listener == null) {
+            listener = getDismissDialogClickListener(InAppConstants.ACTION_DISMISS, actionJson);
+        }
+
+        return listener;
     }
 
     protected OnClickListener getActionClickListener(String actionName, JSONObject actionJson) {
@@ -355,8 +405,8 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public LinearLayout getActionButtons(InAppMessage inAppMessage) {
-        if (inAppMessage != null && inAppMessage.getActionsJSONObject() != null) {
-            JSONObject actions = inAppMessage.getActionsJSONObject();
+        if (inAppMessage != null && inAppMessage.getActionsJSONArray() != null) {
+            JSONArray actions = inAppMessage.getActionsJSONArray();
             LinearLayout actionsRootView = new LinearLayout(getContext());
             int orientation = InAppUtils.getActionOrientation(inAppMessage);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
@@ -381,33 +431,35 @@ public abstract class InAppMessageView extends RelativeLayout {
                 );
             }
 
-            Iterator<String> actionKeys = actions.keys();
-            while (actionKeys.hasNext()) {
-                Button actionBtn = null;
-                String action = actionKeys.next();
-                if (action != null) {
-                    actionBtn = getActionButton(inAppMessage, action);
-                }
+            // todo: discuss if we need to set this limit
+            int len = actions.length() > 3 ? 3 : actions.length();
 
-                if (actionBtn != null) {
-                    LinearLayout.LayoutParams lp;
-                    if (actionsRootView.getOrientation() == LinearLayout.VERTICAL) {
-                        lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
-                    } else {
-                        lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+            for (int i = 0; i < len; i++) {
+                try {
+                    JSONObject actionObject = actions.getJSONObject(i);
+                    Button actionBtn = getActionButton(actionObject);
+                    if (actionBtn != null) {
+                        LinearLayout.LayoutParams lp;
+                        if (actionsRootView.getOrientation() == LinearLayout.VERTICAL) {
+                            lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
+                        } else {
+                            lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+                        }
+
+                        Rect margin = InAppUtils.getRectFromJSONObject(actionObject, InAppConstants.MARGIN);
+                        if (margin != null) {
+                            lp.setMargins(
+                                    dp2px(margin.left),
+                                    dp2px(margin.top),
+                                    dp2px(margin.right),
+                                    dp2px(margin.bottom)
+                            );
+                        }
+
+                        actionsRootView.addView(actionBtn, lp);
                     }
-
-                    Rect margin = InAppUtils.getActionMargin(inAppMessage, action);
-                    if (margin != null) {
-                        lp.setMargins(
-                                dp2px(margin.left),
-                                dp2px(margin.top),
-                                dp2px(margin.right),
-                                dp2px(margin.bottom)
-                        );
-                    }
-
-                    actionsRootView.addView(actionBtn, lp);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(TAG, e);
                 }
             }
 

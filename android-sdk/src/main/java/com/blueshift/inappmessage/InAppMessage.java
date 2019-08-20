@@ -1,6 +1,5 @@
 package com.blueshift.inappmessage;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.text.TextUtils;
@@ -12,6 +11,7 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.util.InAppUtils;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -134,10 +134,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return content != null ? content.toString() : null;
     }
 
-    public JSONObject getActionsJSONObject() {
+    public JSONArray getActionsJSONArray() {
         if (content != null) {
             try {
-                return content.optJSONObject(InAppConstants.ACTIONS);
+                return content.optJSONArray(InAppConstants.ACTIONS);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             }

@@ -25,6 +25,7 @@ import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppMessage;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -394,10 +395,18 @@ public class InAppUtils {
         JSONObject action = null;
 
         try {
-            if (inAppMessage != null && inAppMessage.getActionsJSONObject() != null && !TextUtils.isEmpty(actionName)) {
-                JSONObject actions = inAppMessage.getActionsJSONObject();
-                if (actions != null) {
-                    return actions.optJSONObject(actionName);
+            if (inAppMessage != null && inAppMessage.getActionsJSONArray() != null
+                    && !TextUtils.isEmpty(actionName)) {
+                JSONArray actions = inAppMessage.getActionsJSONArray();
+                for (int i = 0; i < actions.length(); i++) {
+                    try {
+                        JSONObject object = actions.getJSONObject(i);
+                        if (actionName.equals(object.optString(InAppConstants.ACTION_TYPE))) {
+                            return object;
+                        }
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -503,16 +512,16 @@ public class InAppUtils {
         return shape;
     }
 
-    public static Drawable getActionBackgroundDrawable(InAppMessage inAppMessage, String actionName) {
+    public static Drawable getActionBackgroundDrawable(JSONObject actionJson) {
         GradientDrawable shape = new GradientDrawable();
 
         try {
-            int bgColor = getActionBackgroundColor(inAppMessage, actionName);
+            int bgColor = getActionBackgroundColor(actionJson);
             if (bgColor != 0) {
                 shape.setColor(bgColor);
             }
 
-            int bgRadius = getActionBackgroundRadius(inAppMessage, actionName);
+            int bgRadius = getActionBackgroundRadius(actionJson);
             shape.setCornerRadius(bgRadius);
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -521,11 +530,11 @@ public class InAppUtils {
         return shape;
     }
 
-    public static int getActionBackgroundColor(InAppMessage inAppMessage, String actionName) {
+    public static int getActionBackgroundColor(JSONObject actionJson) {
         int color = 0;
 
         try {
-            String colorStr = getActionString(inAppMessage, actionName, InAppConstants.BACKGROUND_COLOR);
+            String colorStr = getStringFromJSONObject(actionJson, InAppConstants.BACKGROUND_COLOR);
             if (validateColorString(colorStr)) {
                 return Color.parseColor(colorStr);
             }
@@ -536,8 +545,8 @@ public class InAppUtils {
         return color;
     }
 
-    public static int getActionBackgroundRadius(InAppMessage inAppMessage, String actionName) {
-        return getActionInt(inAppMessage, actionName, InAppConstants.BACKGROUND_RADIUS, 0);
+    public static int getActionBackgroundRadius(JSONObject actionJson) {
+        return getIntFromJSONObject(actionJson, InAppConstants.BACKGROUND_RADIUS, 0);
     }
 
     public static Rect getActionMargin(InAppMessage inAppMessage, String actionName) {
@@ -605,13 +614,13 @@ public class InAppUtils {
         }
     }
 
-    public static void setActionTextView(TextView textView, InAppMessage inAppMessage, String actionName) {
-        if (textView != null && inAppMessage != null && !TextUtils.isEmpty(actionName)) {
+    public static void setActionTextView(TextView textView, JSONObject actionJson) {
+        if (textView != null && actionJson != null) {
             // TEXT
-            textView.setText(InAppUtils.getActionText(inAppMessage, actionName));
+            textView.setText(InAppUtils.getStringFromJSONObject(actionJson, InAppConstants.TEXT));
 
             // TEXT COLOR
-            String colorHashCode = InAppUtils.getActionString(inAppMessage, actionName, InAppConstants.COLOR(InAppConstants.TEXT));
+            String colorHashCode = InAppUtils.getStringFromJSONObject(actionJson, InAppConstants.COLOR(InAppConstants.TEXT));
             if (InAppUtils.validateColorString(colorHashCode)) {
                 try {
                     textView.setTextColor(Color.parseColor(colorHashCode));
@@ -621,15 +630,15 @@ public class InAppUtils {
             }
 
             // TEXT SIZE
-            int val = InAppUtils.getActionInt(inAppMessage, actionName, InAppConstants.SIZE(InAppConstants.TEXT), 14);
+            int val = InAppUtils.getIntFromJSONObject(actionJson, InAppConstants.SIZE(InAppConstants.TEXT), 14);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
 
             // TEXT GRAVITY (DEF: CENTER)
-            int contentGravity = InAppUtils.getActionInt(inAppMessage, actionName, InAppConstants.GRAVITY(InAppConstants.TEXT), Gravity.CENTER);
+            int contentGravity = InAppUtils.getIntFromJSONObject(actionJson, InAppConstants.GRAVITY(InAppConstants.TEXT), Gravity.CENTER);
             textView.setGravity(contentGravity);
 
             // BACKGROUND
-            Drawable background = InAppUtils.getActionBackgroundDrawable(inAppMessage, actionName);
+            Drawable background = InAppUtils.getActionBackgroundDrawable(actionJson);
             if (background != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     textView.setBackground(background);
@@ -639,7 +648,7 @@ public class InAppUtils {
             }
 
             // PADDING
-            Rect padding = InAppUtils.getActionPadding(inAppMessage, actionName);
+            Rect padding = InAppUtils.getRectFromJSONObject(actionJson, InAppConstants.PADDING);
             if (padding != null) {
                 Context context = textView.getContext();
                 textView.setPadding(

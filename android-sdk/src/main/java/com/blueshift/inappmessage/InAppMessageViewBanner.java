@@ -11,9 +11,9 @@ import android.widget.TextView;
 import com.blueshift.R;
 import com.blueshift.util.CommonUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Iterator;
 
 public class InAppMessageViewBanner extends InAppMessageView {
 
@@ -59,13 +59,13 @@ public class InAppMessageViewBanner extends InAppMessageView {
         linearLayout.addView(fwdArrow, lp);
 
         // assumed that only one action is provided. if more actions found, first one is taken.
-        JSONObject actions = inAppMessage.getActionsJSONObject();
-        if (actions != null) {
-            Iterator<String> actionKeys = actions.keys();
-            if (actionKeys.hasNext()) {
-                String actionName = actionKeys.next();
-                JSONObject actionArgs = actions.optJSONObject(actionName);
-                linearLayout.setOnClickListener(getActionClickListener(actionName, actionArgs));
+        JSONArray actions = inAppMessage.getActionsJSONArray();
+        if (actions != null && actions.length() > 0) {
+            try {
+                JSONObject actionJson = actions.getJSONObject(0);
+                linearLayout.setOnClickListener(getActionClickListener(actionJson));
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
 
