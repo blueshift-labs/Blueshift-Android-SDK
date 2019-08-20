@@ -17,6 +17,8 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.util.InAppUtils;
 
+import org.json.JSONObject;
+
 public class InAppMessageViewRating extends InAppMessageView {
     private static final String TAG = InAppMessageViewRating.class.getSimpleName();
 
@@ -109,7 +111,8 @@ public class InAppMessageViewRating extends InAppMessageView {
         rootView.addView(buttonLayout, lpBtnRoot);
 
         // Submit button
-        Button submit = getActionButton(inAppMessage, InAppConstants.ACTION_RATE_APP);
+        JSONObject submitAction = InAppUtils.getActionFromName(inAppMessage, InAppConstants.ACTION_RATE_APP);
+        Button submit = getActionButton(submitAction);
         if (submit == null) {
             submit = InAppUtils.getActionButtonDefault(getContext());
             submit.setText(R.string.bsft_rating_submit);
@@ -138,7 +141,8 @@ public class InAppMessageViewRating extends InAppMessageView {
         buttonLayout.addView(submit, lpSubmit);
 
         // Not now button
-        Button notNow = getActionButton(inAppMessage, InAppConstants.ACTION_DISMISS);
+        JSONObject action = InAppUtils.getActionFromName(inAppMessage, InAppConstants.ACTION_DISMISS);
+        Button notNow = getActionButton(action);
         if (notNow != null) {
             LinearLayout.LayoutParams lpNotNow;
             if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {
