@@ -178,23 +178,6 @@ public abstract class InAppMessageView extends RelativeLayout {
         return button;
     }
 
-    @Deprecated
-    protected Button getActionButton(InAppMessage inAppMessage, String actionName) {
-        Button button = null;
-
-        try {
-            JSONObject actionJson = InAppUtils.getActionFromName(inAppMessage, actionName);
-            if (actionJson != null) {
-//                button = getActionButtonBasic(inAppMessage, actionName);
-                button.setOnClickListener(getActionClickListener(actionName, actionJson));
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
-        }
-
-        return button;
-    }
-
     protected OnClickListener getActionClickListener(JSONObject actionJson) {
         OnClickListener listener = null;
 
@@ -223,36 +206,6 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         if (listener == null) {
             listener = getDismissDialogClickListener(InAppConstants.ACTION_DISMISS, actionJson);
-        }
-
-        return listener;
-    }
-
-    protected OnClickListener getActionClickListener(String actionName, JSONObject actionJson) {
-        OnClickListener listener = null;
-
-        if (actionName != null) {
-            switch (actionName) {
-                case InAppConstants.ACTION_DISMISS:
-                    listener = getDismissDialogClickListener(actionName, actionJson);
-                    break;
-
-                case InAppConstants.ACTION_OPEN:
-                    listener = getStartActivityClickListener(actionName, actionJson);
-                    break;
-
-                case InAppConstants.ACTION_SHARE:
-                    listener = getShareClickListener(actionName, actionJson);
-                    break;
-
-                case InAppConstants.ACTION_RATE_APP:
-                    listener = getRateAppClickListener(actionName, actionJson);
-                    break;
-            }
-        }
-
-        if (listener == null) {
-            listener = getDismissDialogClickListener(actionName, actionJson);
         }
 
         return listener;
