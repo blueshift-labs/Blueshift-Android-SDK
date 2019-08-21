@@ -26,6 +26,7 @@ import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppMessage;
+import com.blueshift.inappmessage.InAppMessageIconFont;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
@@ -296,6 +297,8 @@ public class Blueshift {
         if (mConfiguration != null && mConfiguration.isAutoAppOpenFiringEnabled()) {
             trackAppOpen(true);
         }
+        // pull latest font from server
+        InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
     }
 
     /**
