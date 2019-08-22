@@ -96,9 +96,4 @@ public class InAppMessageViewModal extends InAppMessageView {
 
         return rootView;
     }
-
-    @Override
-    public void cleanup() {
-        InAppManager.clearCachedAssets(getInAppMessage(), getContext());
-    }
 }
