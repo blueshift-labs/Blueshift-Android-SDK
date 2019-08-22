@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
+import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 import com.google.gson.Gson;
 
@@ -29,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -380,14 +382,29 @@ public class InAppUtils {
 
     public static void loadImageAsync(final ImageView imageView, String path) {
         if (imageView != null && path != null) {
-            new LoadImageTask() {
-                @Override
-                protected void onPostExecute(Bitmap bitmap) {
-                    if (bitmap != null) {
-                        imageView.setImageBitmap(bitmap);
+            File cached = InAppManager.getCachedImageFile(imageView.getContext(), path);
+            if (cached != null && cached.exists()) {
+                Log.d(LOG_TAG, "Using cached image. " + cached.getAbsolutePath());
+                // use cached copy
+                new LoadImageFromFileTask() {
+                    @Override
+                    protected void onPostExecute(Bitmap bitmap) {
+                        if (bitmap != null) {
+                            imageView.setImageBitmap(bitmap);
+                        }
                     }
-                }
-            }.execute(path);
+                }.execute(cached);
+            } else {
+                Log.d(LOG_TAG, "Using remote image. " + path);
+                new LoadImageTask() {
+                    @Override
+                    protected void onPostExecute(Bitmap bitmap) {
+                        if (bitmap != null) {
+                            imageView.setImageBitmap(bitmap);
+                        }
+                    }
+                }.execute(path);
+            }
         }
     }
 
@@ -675,6 +692,22 @@ public class InAppUtils {
                     }
                 } catch (IOException e) {
                     BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
+
+            return result;
+        }
+    }
+
+    private static class LoadImageFromFileTask extends AsyncTask<File, Void, Bitmap> {
+        @Override
+        protected Bitmap doInBackground(File... files) {
+            Bitmap result = null;
+
+            if (files != null && files.length > 0) {
+                File imgFile = files[0];
+                if (imgFile.exists()) {
+                    result = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                 }
             }
 

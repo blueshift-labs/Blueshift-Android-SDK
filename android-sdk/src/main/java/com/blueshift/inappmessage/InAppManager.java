@@ -7,9 +7,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.webkit.WebView;
 import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
@@ -19,7 +21,12 @@ import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.InAppUtils;
+import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.StorageUtils;
+
+import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class InAppManager {
 
@@ -447,5 +454,114 @@ public class InAppManager {
             mDialog.dismiss();
             mDialog = null;
         }
+    }
+
+    public static void cacheAssets(final InAppMessage inAppMessage, final Context context) {
+        if (inAppMessage != null) {
+            if (InAppConstants.HTML.equals(inAppMessage.getType())) {
+                // html, cache inside WebView
+                BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
+                    @SuppressLint("SetJavaScriptEnabled")
+                    @Override
+                    public void run() {
+                        String htmlContent = inAppMessage.getContentString(InAppConstants.HTML);
+                        if (!TextUtils.isDigitsOnly(htmlContent)) {
+                            WebView webView = new WebView(context);
+
+                            // taking consent from dev to enable js
+                            Configuration config = BlueshiftUtils.getConfiguration(context);
+                            if (config != null && config.isInAppEnableJavascript()) {
+                                webView.getSettings().setJavaScriptEnabled(true);
+                            }
+
+                            webView.loadData(htmlContent, "text/html; charset=UTF-8", null);
+                        }
+                    }
+                });
+            } else {
+                // cache for modals and other templates
+
+                // modal with banner
+                String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
+                if (!TextUtils.isEmpty(bannerImage)) {
+                    cacheImage(context, bannerImage);
+                }
+            }
+        }
+    }
+
+    private static void cacheImage(final Context context, final String url) {
+        final File file = getCachedImageFile(context, url);
+
+        if (file != null) {
+            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        boolean success = NetworkUtils.downloadFile(url, file.getAbsolutePath());
+                        Log.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
+                }
+            });
+        }
+    }
+
+    private static String getCachedImageFileName(String url) {
+        String emailHash = "";
+
+        if (!TextUtils.isEmpty(url)) {
+            try {
+                MessageDigest md5 = MessageDigest.getInstance("MD5");
+                md5.update(url.getBytes());
+                byte[] byteArray = md5.digest();
+
+                StringBuilder sb = new StringBuilder();
+                for (byte data : byteArray) {
+                    sb.append(Integer.toString((data & 0xff) + 0x100, 16).substring(1));
+                }
+
+                emailHash = sb.toString();
+
+                // Log.d("email-md5", emailHash);
+
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return emailHash;
+    }
+
+    public static File getCachedImageFile(Context context, String url) {
+        File imageCacheDir = getImageCacheDir(context);
+        if (imageCacheDir != null && imageCacheDir.exists()) {
+            String fileName = getCachedImageFileName(url);
+            File imgFile = new File(imageCacheDir, fileName);
+            Log.d(LOG_TAG, "Image file name. Remote: " + url + ", Local: " + imgFile.getAbsolutePath());
+            return imgFile;
+        } else {
+            return null;
+        }
+    }
+
+    private static File getImageCacheDir(Context context) {
+        File imagesDir = null;
+
+        if (context != null) {
+            File filesDir = context.getFilesDir();
+            imagesDir = new File(filesDir, "images");
+            if (!imagesDir.exists()) {
+                boolean val = imagesDir.mkdirs();
+                if (val) {
+                    Log.d(LOG_TAG, "Directory created! " + imagesDir.getAbsolutePath());
+                } else {
+                    Log.d(LOG_TAG, "Could not create dir.");
+                }
+            }
+        }
+
+        return imagesDir;
     }
 }
