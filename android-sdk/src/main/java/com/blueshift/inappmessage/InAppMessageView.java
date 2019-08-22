@@ -139,7 +139,6 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public void onDismiss(InAppMessage inAppMessage, String trigger) {
-        cleanup();
         Log.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
@@ -479,6 +478,4 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public abstract View getView(InAppMessage inAppMessage);
-
-    public abstract void cleanup();
 }

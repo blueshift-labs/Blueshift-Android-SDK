@@ -50,11 +50,6 @@ public class InAppMessageViewHTML extends InAppMessageView {
         return null;
     }
 
-    @Override
-    public void cleanup() {
-        InAppManager.clearCachedAssets(getInAppMessage(), getContext());
-    }
-
     private void launchUri(Uri uri) {
         try {
             if (uri != null) {

@@ -71,9 +71,4 @@ public class InAppMessageViewBanner extends InAppMessageView {
 
         return linearLayout;
     }
-
-    @Override
-    public void cleanup() {
-        InAppManager.clearCachedAssets(getInAppMessage(), getContext());
-    }
 }

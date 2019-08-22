@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
@@ -245,7 +246,6 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -260,7 +260,6 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -275,7 +274,6 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -290,7 +288,6 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -309,7 +306,6 @@ public class InAppManager {
                     InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                         @Override
                         public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                            super.onDismiss(inAppMessage, elementName);
                             invokeDismissButtonClick(inAppMessage, elementName);
                         }
                     };
@@ -334,21 +330,7 @@ public class InAppManager {
 
     private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
-                    dismissAndCleanupDialog();
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.dialogStyleInApp);
-                    builder.setView(customView);
-
-                    mDialog = builder.create();
-                    mDialog.show();
-
-                    invokeOnInAppViewed(inAppMessage);
-                }
-            });
+            buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp);
 
             return true;
         } else {
@@ -359,22 +341,7 @@ public class InAppManager {
 
     private static boolean displayInAppDialogFullScreen(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
-                    dismissAndCleanupDialog();
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                            context, android.R.style.Theme_NoTitleBar_Fullscreen);
-                    builder.setView(customView);
-
-                    mDialog = builder.create();
-                    mDialog.show();
-
-                    invokeOnInAppViewed(inAppMessage);
-                }
-            });
+            buildAndShowAlertDialog(context, inAppMessage, customView, android.R.style.Theme_NoTitleBar_Fullscreen);
 
             return true;
         } else {
@@ -385,27 +352,7 @@ public class InAppManager {
 
     private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
         if (isOurAppRunning(context)) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    // todo: check with aswani if this is the right way to do this. should we skip the current dialog and display the new one or not?
-                    dismissAndCleanupDialog();
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(
-                            context, R.style.inAppSlideFromLeft);
-                    builder.setView(customView);
-                    mDialog = builder.create();
-                    mDialog.show();
-
-                    Window window = mDialog.getWindow();
-                    if (window != null) {
-                        window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
-                        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    }
-
-                    invokeOnInAppViewed(inAppMessage);
-                }
-            });
+            buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft);
 
             return true;
         } else {
@@ -461,7 +408,41 @@ public class InAppManager {
         }
     }
 
-    public static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
+    private static void buildAndShowAlertDialog(final Context context, final InAppMessage inAppMessage,
+                                                final View content, final int theme) {
+        BlueshiftExecutor.getInstance().runOnMainThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mDialog == null || !mDialog.isShowing()) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
+                            builder.setView(content);
+                            mDialog = builder.create();
+                            mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                @Override
+                                public void onDismiss(DialogInterface dialogInterface) {
+                                    InAppManager.clearCachedAssets(inAppMessage, context);
+                                }
+                            });
+                            mDialog.show();
+
+                            Window window = mDialog.getWindow();
+                            if (window != null) {
+                                window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
+                                window.setLayout(
+                                        LinearLayout.LayoutParams.MATCH_PARENT,
+                                        LinearLayout.LayoutParams.WRAP_CONTENT
+                                );
+                            }
+
+                            invokeOnInAppViewed(inAppMessage);
+                        }
+                    }
+                }
+        );
+    }
+
+    private static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
         if (inAppMessage != null && context != null) {
             //noinspection StatementWithEmptyBody
             if (InAppConstants.HTML.equals(inAppMessage.getType())) {
