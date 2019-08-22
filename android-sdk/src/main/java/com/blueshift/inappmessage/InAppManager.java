@@ -245,6 +245,7 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -259,6 +260,7 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -273,6 +275,7 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -287,6 +290,7 @@ public class InAppManager {
         if (inAppMessage != null) {
             InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    super.onDismiss(inAppMessage, elementName);
                     invokeDismissButtonClick(inAppMessage, elementName);
                 }
             };
@@ -305,6 +309,7 @@ public class InAppManager {
                     InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                         @Override
                         public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                            super.onDismiss(inAppMessage, elementName);
                             invokeDismissButtonClick(inAppMessage, elementName);
                         }
                     };
@@ -456,6 +461,21 @@ public class InAppManager {
         }
     }
 
+    public static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
+        if (inAppMessage != null && context != null) {
+            //noinspection StatementWithEmptyBody
+            if (InAppConstants.HTML.equals(inAppMessage.getType())) {
+                // do nothing. cache is managed by WebView
+            } else {
+                // modal with banner
+                String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
+                if (!TextUtils.isEmpty(bannerImage)) {
+                    deleteCachedImage(context, bannerImage);
+                }
+            }
+        }
+    }
+
     public static void cacheAssets(final InAppMessage inAppMessage, final Context context) {
         if (inAppMessage != null) {
             if (InAppConstants.HTML.equals(inAppMessage.getType())) {
@@ -486,6 +506,16 @@ public class InAppManager {
                 if (!TextUtils.isEmpty(bannerImage)) {
                     cacheImage(context, bannerImage);
                 }
+            }
+        }
+    }
+
+    private static void deleteCachedImage(Context context, String url) {
+        if (context != null && url != null) {
+            File imgFile = getCachedImageFile(context, url);
+            if (imgFile != null && imgFile.exists()) {
+                Log.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
+                        + imgFile.getAbsolutePath());
             }
         }
     }

@@ -163,6 +163,11 @@ public class InAppMessageViewRating extends InAppMessageView {
         return rootView;
     }
 
+    @Override
+    public void cleanup() {
+        InAppManager.clearCachedAssets(getInAppMessage(), getContext());
+    }
+
     private void submitRating() {
         // send starts as events
         logRatingToBlueshift();
