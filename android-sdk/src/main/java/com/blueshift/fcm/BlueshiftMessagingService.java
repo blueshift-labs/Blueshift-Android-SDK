@@ -237,6 +237,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                 Blueshift.getInstance(this).trackInAppMessageDelivered(inAppMessage);
 
                 InAppMessageStore.getInstance(this).clean();
+                InAppManager.cacheAssets(inAppMessage, this);
 
                 // Check if we should show it now.
                 if (inAppMessage.shouldShowNow() && InAppManager.isOurAppRunning(getApplicationContext())) {
