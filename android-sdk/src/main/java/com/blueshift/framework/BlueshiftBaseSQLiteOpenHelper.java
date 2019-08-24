@@ -16,6 +16,10 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
     private static final String TAG = BlueshiftBaseSQLiteOpenHelper.class.getSimpleName();
     protected static final String _ID = "_id";
     protected static final Boolean _LOCK = true;
+    protected static final String _AND_ = " AND ";
+    protected static final String _AND = " AND";
+    protected static final String _OR_ = " OR ";
+    protected static final String _OR = " OR";
 
     public BlueshiftBaseSQLiteOpenHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);

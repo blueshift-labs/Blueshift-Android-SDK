@@ -1,11 +1,13 @@
 package com.blueshift.inappmessage;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BlueshiftBaseSQLiteOpenHelper;
@@ -19,10 +21,13 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final int DB_VERSION = 1;
     private static final String DB_NAME = "bsft_inappmessage_db";
     private static final String TABLE_NAME = "bsft_inappmessage";
+    private static final String LIMIT_ONE = "1";
+    private static final String NOW = "now";
 
     private static final String FIELD_TYPE = "type";
     private static final String FIELD_EXPIRES_AT = "expires_at";
     private static final String FIELD_TRIGGER = "trigger";
+    private static final String FIELD_DISPLAY_ON = "display_on";
     private static final String FIELD_TEMPLATE_STYLE = "template_style";
     private static final String FIELD_CONTENT_STYLE = "content_style";
     private static final String FIELD_CONTENT = "content";
@@ -63,6 +68,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             inAppMessage.setType(getString(cursor, FIELD_TYPE));
             inAppMessage.setExpiresAt(getLong(cursor, FIELD_EXPIRES_AT));
             inAppMessage.setTrigger(getString(cursor, FIELD_TRIGGER));
+            inAppMessage.setDisplayOn(getString(cursor, FIELD_DISPLAY_ON));
 
             String tsJson = getString(cursor, FIELD_TEMPLATE_STYLE);
             if (!TextUtils.isEmpty(tsJson)) inAppMessage.setTemplateStyle(new JSONObject(tsJson));
@@ -95,6 +101,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             values.put(FIELD_TYPE, inAppMessage.getType());
             values.put(FIELD_EXPIRES_AT, inAppMessage.getExpiresAt());
             values.put(FIELD_TRIGGER, inAppMessage.getTrigger());
+            values.put(FIELD_DISPLAY_ON, inAppMessage.getDisplayOn());
             values.put(FIELD_TEMPLATE_STYLE, inAppMessage.getTemplateStyleJson());
             values.put(FIELD_CONTENT_STYLE, inAppMessage.getContentStyleJson());
             values.put(FIELD_CONTENT, inAppMessage.getContentJson());
@@ -113,6 +120,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_TYPE, FieldType.Text);
         fieldTypeHashMap.put(FIELD_EXPIRES_AT, FieldType.Long);
         fieldTypeHashMap.put(FIELD_TRIGGER, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_DISPLAY_ON, FieldType.Text);
         fieldTypeHashMap.put(FIELD_TEMPLATE_STYLE, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT_STYLE, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT, FieldType.Text);
@@ -121,29 +129,73 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         return fieldTypeHashMap;
     }
 
-    public InAppMessage getInAppMessage() {
+    InAppMessage getNextInAppMessage(Activity activity) {
         synchronized (_LOCK) {
             InAppMessage inAppMessage = null;
             SQLiteDatabase db = getReadableDatabase();
             if (db != null) {
-                long now = System.currentTimeMillis() / 1000;
-                String selection = FIELD_EXPIRES_AT + ">?";
-                String[] selectionArgs = new String[]{String.valueOf(now)};
+                if (activity != null) {
+                    String className = activity.getClass().getName();
 
-                Cursor cursor = db.query(
-                        getTableName(),
-                        null,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        _ID + " DESC, " + FIELD_EXPIRES_AT,
-                        "1");
+                    // take IAM with current screen as display time and trigger as 'now' and has less expiry time
+                    String selection = FIELD_DISPLAY_ON + "=?" + " AND " + FIELD_TRIGGER + "=?";
+                    String[] selectionArgs = new String[]{className, NOW};
+                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            Log.d(TAG, "IAM Found. Selection: " + selection);
+                            inAppMessage = getObject(cursor);
+                        }
 
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) inAppMessage = getObject(cursor);
-                    cursor.close();
+                        cursor.close();
+                    }
+
+                    if (inAppMessage == null) {
+                        // take IAM with current screen as display time and has less expiry time
+                        String selection2 = FIELD_DISPLAY_ON + "=?";
+                        String[] selectionArgs2 = new String[]{className};
+                        Cursor cursor2 = db.query(getTableName(), null, selection2, selectionArgs2, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                        if (cursor2 != null) {
+                            if (cursor2.moveToFirst()) {
+                                Log.d(TAG, "IAM Found. Selection: " + selection2);
+                                inAppMessage = getObject(cursor2);
+                            }
+
+                            cursor2.close();
+                        }
+                    }
                 }
+
+                if (inAppMessage == null) {
+                    // take IAM with current screen as display time and has less expiry time
+                    String selection = FIELD_TRIGGER + "=?";
+                    String[] selectionArgs = new String[]{NOW};
+                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            Log.d(TAG, "IAM Found. Selection: " + selection);
+                            inAppMessage = getObject(cursor);
+                        }
+
+                        cursor.close();
+                    }
+                }
+
+                if (inAppMessage == null) {
+                    String selection = FIELD_DISPLAY_ON + " IS NULL" + _OR_ + FIELD_DISPLAY_ON + "=?";
+                    String[] selectionArgs = new String[]{"''"};
+                    // take IAM with current screen as display time and has less expiry time
+                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            Log.d(TAG, "IAM Found. Selection: " + null);
+                            inAppMessage = getObject(cursor);
+                        }
+
+                        cursor.close();
+                    }
+                }
+
                 db.close();
             }
 

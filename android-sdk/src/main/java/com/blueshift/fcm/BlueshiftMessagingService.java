@@ -32,8 +32,6 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import org.json.JSONObject;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -239,16 +237,12 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                 Blueshift.getInstance(this).trackInAppMessageDelivered(inAppMessage);
 
                 InAppMessageStore.getInstance(this).clean();
-                InAppManager.cacheAssets(inAppMessage, this);
 
-                // Check if we should show it now.
-                if (inAppMessage.shouldShowNow() && InAppManager.isOurAppRunning(getApplicationContext())) {
-                    InAppManager.invokeTriggers(inAppMessage);
-                } else {
-                    // Check if we have received an expired notification
-                    if (!inAppMessage.isExpired()) {
-                        InAppMessageStore.getInstance(this).insert(inAppMessage);
-                    }
+                // Check if we have received an expired notification
+                if (!inAppMessage.isExpired()) {
+                    InAppMessageStore.getInstance(this).insert(inAppMessage);
+                    InAppManager.cacheAssets(inAppMessage, this);
+                    InAppManager.invokeTriggers();
                 }
             }
         } catch (Exception e) {
