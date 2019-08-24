@@ -26,6 +26,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private String type;
     private long expires_at;
     private String trigger; // timestamp/event-name/now
+    private String display_on; // activity on which it should be displayed
     private JSONObject template_style;
     private JSONObject content_style;
     private JSONObject content;
@@ -41,6 +42,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.type = inAppPayload.optString(InAppConstants.TYPE);
             inAppMessage.expires_at = inAppPayload.optLong(InAppConstants.EXPIRES_AT);
             inAppMessage.trigger = inAppPayload.optString(InAppConstants.TRIGGER);
+            inAppMessage.display_on = inAppPayload.optString(InAppConstants.DISPLAY_ON);
             inAppMessage.template_style = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE);
             inAppMessage.content_style = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE);
             inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
@@ -263,5 +265,13 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         }
 
         return 0;
+    }
+
+    public String getDisplayOn() {
+        return display_on;
+    }
+
+    public void setDisplayOn(String displayOn) {
+        this.display_on = displayOn;
     }
 }

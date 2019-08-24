@@ -84,10 +84,6 @@ public class InAppManager {
     }
 
     public static void invokeTriggers() {
-        invokeTriggers(null);
-    }
-
-    public static void invokeTriggers(final InAppMessage inAppMessage) {
         if (mActivity == null) {
             Log.d(LOG_TAG, "App isn't running with an eligible Activity to display InAppMessage.");
             return;
@@ -97,24 +93,14 @@ public class InAppManager {
             BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
                 @Override
                 public void run() {
-                    InAppMessage input = inAppMessage;
-                    if (input == null) {
-                        input = InAppMessageStore.getInstance(mActivity).getInAppMessage();
-                    }
+                    InAppMessage input = InAppMessageStore.getInstance(mActivity).getNextInAppMessage(mActivity);
 
                     if (input == null) {
                         // this means, there are no pending in-app messages in the db.
                         return;
                     }
 
-                    if (input.isExpired()) {
-                        // delete expired one
-                        InAppMessageStore.getInstance(mActivity).delete(input);
-                        // pick next
-                        input = InAppMessageStore.getInstance(mActivity).getInAppMessage();
-                    }
-
-                    if (shouldDisplay(input)) {
+                    if (validate(input)) {
                         boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
                         if (!isSuccess) {
                             BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
@@ -144,7 +130,7 @@ public class InAppManager {
         }
     }
 
-    private static boolean shouldDisplay(InAppMessage inAppMessage) {
+    private static boolean validate(InAppMessage inAppMessage) {
         return checkIsInstantMessage(inAppMessage) || (checkInterval() && checkDisplayTimeInterval(inAppMessage));
     }
 
