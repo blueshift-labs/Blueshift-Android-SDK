@@ -143,7 +143,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                     Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
-                            Log.d(TAG, "IAM Found. Selection: " + selection);
+                            Log.d(TAG, "IAM Found. Selection: " + String.format(selection, className, NOW));
                             inAppMessage = getObject(cursor);
                         }
 
@@ -157,7 +157,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                         Cursor cursor2 = db.query(getTableName(), null, selection2, selectionArgs2, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
                         if (cursor2 != null) {
                             if (cursor2.moveToFirst()) {
-                                Log.d(TAG, "IAM Found. Selection: " + selection2);
+                                Log.d(TAG, "IAM Found. Selection: " + String.format(selection, className));
                                 inAppMessage = getObject(cursor2);
                             }
 
@@ -173,7 +173,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                     Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
-                            Log.d(TAG, "IAM Found. Selection: " + selection);
+                            Log.d(TAG, "IAM Found. Selection: " + String.format(selection, NOW));
                             inAppMessage = getObject(cursor);
                         }
 
@@ -188,7 +188,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                     Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
-                            Log.d(TAG, "IAM Found. Selection: " + null);
+                            Log.d(TAG, "IAM Found. Selection: " + String.format(selection, "''"));
                             inAppMessage = getObject(cursor);
                         }
 
