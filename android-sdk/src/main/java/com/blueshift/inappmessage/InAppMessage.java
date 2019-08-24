@@ -15,7 +15,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class InAppMessage extends BlueshiftBaseSQLiteModel {
@@ -30,8 +29,41 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private JSONObject template_style;
     private JSONObject content_style;
     private JSONObject content;
-    private JSONObject campaign_params;
     private JSONObject extras;
+
+    // campaign params
+    private String message_uuid;
+    private String experiment_uuid;
+    private String user_uuid;
+    private String transaction_uuid;
+
+    public static InAppMessage getInstance(JSONObject jsonObject) {
+        try {
+            String json = jsonObject.optString(InAppMessage.EXTRA_IN_APP);
+            JSONObject inAppPayload = new JSONObject(json);
+
+            InAppMessage inAppMessage = new InAppMessage();
+            inAppMessage.type = inAppPayload.optString(InAppConstants.TYPE);
+            inAppMessage.expires_at = inAppPayload.optLong(InAppConstants.EXPIRES_AT);
+            inAppMessage.trigger = inAppPayload.optString(InAppConstants.TRIGGER);
+            inAppMessage.display_on = inAppPayload.optString(InAppConstants.DISPLAY_ON);
+            inAppMessage.template_style = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE);
+            inAppMessage.content_style = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE);
+            inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
+            inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
+
+            inAppMessage.message_uuid = jsonObject.optString(Message.EXTRA_BSFT_MESSAGE_UUID);
+            inAppMessage.experiment_uuid = jsonObject.optString(Message.EXTRA_BSFT_EXPERIMENT_UUID);
+            inAppMessage.user_uuid = jsonObject.optString(Message.EXTRA_BSFT_USER_UUID);
+            inAppMessage.transaction_uuid = jsonObject.optString(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+
+            return inAppMessage;
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return null;
+    }
 
     public static InAppMessage getInstance(Map<String, String> pushPayload) {
         try {
@@ -48,15 +80,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
             inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
 
-            JSONObject campaignAttr = new JSONObject();
-
-            // CAMPAIGN METADATA CHECK
-            campaignAttr.put(Message.EXTRA_BSFT_MESSAGE_UUID, pushPayload.get(Message.EXTRA_BSFT_MESSAGE_UUID));
-            campaignAttr.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
-            campaignAttr.put(Message.EXTRA_BSFT_USER_UUID, pushPayload.get(Message.EXTRA_BSFT_USER_UUID));
-            campaignAttr.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, pushPayload.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
-
-            inAppMessage.campaign_params = campaignAttr;
+            inAppMessage.message_uuid = pushPayload.get(Message.EXTRA_BSFT_MESSAGE_UUID);
+            inAppMessage.experiment_uuid = pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
+            inAppMessage.user_uuid = pushPayload.get(Message.EXTRA_BSFT_USER_UUID);
+            inAppMessage.transaction_uuid = pushPayload.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
 
             return inAppMessage;
         } catch (Exception e) {
@@ -202,27 +229,15 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return 0;
     }
 
-    public String getCampaignParamsJson() {
-        return campaign_params != null ? campaign_params.toString() : null;
-    }
-
     public HashMap<String, Object> getCampaignParamsMap() {
         HashMap<String, Object> map = new HashMap<>();
 
-        if (campaign_params != null) {
-            Iterator<String> keys = campaign_params.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                Object val = campaign_params.opt(key);
-                map.put(key, val);
-            }
-        }
+        map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
+        map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
+        map.put(Message.EXTRA_BSFT_USER_UUID, user_uuid);
+        map.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, transaction_uuid);
 
         return map;
-    }
-
-    public void setCampaignParams(JSONObject campaignParams) {
-        this.campaign_params = campaignParams;
     }
 
     public String getExtrasJson() {
@@ -273,5 +288,37 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public void setDisplayOn(String displayOn) {
         this.display_on = displayOn;
+    }
+
+    public String getMessageUuid() {
+        return message_uuid;
+    }
+
+    public void setMessageUuid(String message_uuid) {
+        this.message_uuid = message_uuid;
+    }
+
+    public String getExperimentUuid() {
+        return experiment_uuid;
+    }
+
+    public void setExperimentUuid(String experiment_uuid) {
+        this.experiment_uuid = experiment_uuid;
+    }
+
+    public String getUserUuid() {
+        return user_uuid;
+    }
+
+    public void setUserUuid(String user_uuid) {
+        this.user_uuid = user_uuid;
+    }
+
+    public String getTransactionUuid() {
+        return transaction_uuid;
+    }
+
+    public void setTransactionUuid(String transaction_uuid) {
+        this.transaction_uuid = transaction_uuid;
     }
 }

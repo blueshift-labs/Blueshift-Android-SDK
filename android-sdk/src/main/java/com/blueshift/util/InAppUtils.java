@@ -344,6 +344,19 @@ public class InAppUtils {
         return null;
     }
 
+    public static boolean isHeightSet(InAppMessage inAppMessage) {
+        boolean isSet = false;
+
+        try {
+            int height = getTemplateInt(inAppMessage, InAppConstants.HEIGHT, -1);
+            isSet = height > 0;
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return isSet;
+    }
+
     public static boolean isTemplateFullScreen(InAppMessage inAppMessage) {
         boolean isFullscreen = false;
 

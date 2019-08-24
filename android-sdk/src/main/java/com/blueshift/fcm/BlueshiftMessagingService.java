@@ -234,16 +234,9 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         try {
             InAppMessage inAppMessage = InAppMessage.getInstance(data);
             if (inAppMessage != null) {
-                Blueshift.getInstance(this).trackInAppMessageDelivered(inAppMessage);
-
+                InAppManager.onInAppMessageReceived(this, inAppMessage);
                 InAppMessageStore.getInstance(this).clean();
-
-                // Check if we have received an expired notification
-                if (!inAppMessage.isExpired()) {
-                    InAppMessageStore.getInstance(this).insert(inAppMessage);
-                    InAppManager.cacheAssets(inAppMessage, this);
-                    InAppManager.invokeTriggers();
-                }
+                InAppManager.invokeTriggers();
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);

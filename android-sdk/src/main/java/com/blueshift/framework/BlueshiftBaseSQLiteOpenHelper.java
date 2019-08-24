@@ -139,6 +139,7 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
     protected enum FieldType {
         String,
         Text,
+        UniqueText,
         Autoincrement,
         Long;
 
@@ -149,6 +150,8 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
                     return "STRING";
                 case Text:
                     return "TEXT";
+                case UniqueText:
+                    return "TEXT NOT NULL UNIQUE";
                 case Long:
                     return "INTEGER";
                 case Autoincrement:
