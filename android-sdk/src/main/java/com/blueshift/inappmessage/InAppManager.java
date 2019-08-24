@@ -18,12 +18,17 @@ import android.widget.LinearLayout;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.LiveContentCallback;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.InAppUtils;
 import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.StorageUtils;
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.security.MessageDigest;
@@ -81,6 +86,52 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
+    }
+
+    public static void fetchInAppFromServer(final Context context) {
+        Blueshift.getInstance(context).getLiveContentByDeviceId("releasecheckinappandroid", new LiveContentCallback() {
+            @Override
+            public void onReceive(String response) {
+                try {
+                    JSONObject responseJson = new JSONObject(response);
+                    JSONArray payloadArray = responseJson.optJSONArray("content");
+                    Log.d(LOG_TAG, "Content JSON: " + payloadArray.toString());
+                    cacheInAppArray(context, payloadArray);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
+        });
+    }
+
+    private static void cacheInAppArray(Context context, JSONArray jsonArray) {
+        try {
+            if (jsonArray != null) {
+                int len = jsonArray.length();
+                for (int i = 0; i < len; i++) {
+                    JSONObject payload = jsonArray.getJSONObject(i);
+                    JSONObject inApp = payload.optJSONObject("data");
+                    InAppMessage message = InAppMessage.getInstance(inApp);
+                    InAppManager.onInAppMessageReceived(context, message);
+
+                    Log.d(LOG_TAG, "Cached InApp: " + new Gson().toJson(message) + "\n");
+                }
+                InAppManager.invokeTriggers();
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+    }
+
+    public static void onInAppMessageReceived(Context context, InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
+
+            if (!inAppMessage.isExpired()) {
+                InAppMessageStore.getInstance(context).insert(inAppMessage);
+                InAppManager.cacheAssets(inAppMessage, context);
+            }
+        }
     }
 
     public static void invokeTriggers() {

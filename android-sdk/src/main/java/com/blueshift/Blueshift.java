@@ -25,6 +25,7 @@ import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.inappmessage.InAppConstants;
+import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.inappmessage.InAppMessageIconFont;
 import com.blueshift.model.Configuration;
@@ -297,6 +298,7 @@ public class Blueshift {
         }
         // pull latest font from server
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
+        InAppManager.fetchInAppFromServer(mContext);
     }
 
     /**
