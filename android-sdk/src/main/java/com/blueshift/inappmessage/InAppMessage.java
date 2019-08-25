@@ -31,6 +31,8 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private JSONObject content;
     private JSONObject extras;
 
+    private long displayed_at;
+
     // campaign params
     private String message_uuid;
     private String experiment_uuid;
@@ -283,7 +285,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     }
 
     public String getDisplayOn() {
-        return display_on;
+        return display_on != null ? display_on : "";
     }
 
     public void setDisplayOn(String displayOn) {
@@ -320,5 +322,13 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public void setTransactionUuid(String transaction_uuid) {
         this.transaction_uuid = transaction_uuid;
+    }
+
+    public long getDisplayedAt() {
+        return displayed_at;
+    }
+
+    public void setDisplayedAt(long displayed_at) {
+        this.displayed_at = displayed_at;
     }
 }

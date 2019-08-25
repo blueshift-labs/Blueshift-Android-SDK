@@ -144,7 +144,7 @@ public class InAppManager {
             BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
                 @Override
                 public void run() {
-                    InAppMessage input = InAppMessageStore.getInstance(mActivity).getNextInAppMessage(mActivity);
+                    InAppMessage input = InAppMessageStore.getInstance(mActivity).getInAppMessage(mActivity);
 
                     if (input == null) {
                         // this means, there are no pending in-app messages in the db.
@@ -434,8 +434,9 @@ public class InAppManager {
         logInAppDisplayTime();
         // send stats
         Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
-        // cleanup db
-        InAppMessageStore.getInstance(mActivity).delete(inAppMessage);
+        // update with displayed at timing
+        inAppMessage.setDisplayedAt(System.currentTimeMillis());
+        InAppMessageStore.getInstance(mActivity).update(inAppMessage);
     }
 
     private static void dismissAndCleanupDialog() {
