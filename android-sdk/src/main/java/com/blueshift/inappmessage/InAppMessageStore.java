@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,8 +22,10 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final int DB_VERSION = 1;
     private static final String DB_NAME = "bsft_inappmessage_db";
     private static final String TABLE_NAME = "bsft_inappmessage";
-    private static final String LIMIT_ONE = "1";
+
+    private static final String ONE = "1";
     private static final String NOW = "now";
+    private static final String EMPTY = "";
 
     private static final String FIELD_TYPE = "type";
     private static final String FIELD_EXPIRES_AT = "expires_at";
@@ -37,6 +40,8 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final String FIELD_EXPERIMENT_UUID = "experiment_uuid";
     private static final String FIELD_USER_UUID = "user_uuid";
     private static final String FIELD_TRANSACTION_UUID = "transaction_uuid";
+
+    private static final String FIELD_DISPLAYED_AT = "displayed_at";
 
     private static InAppMessageStore sInstance = null;
 
@@ -77,6 +82,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             inAppMessage.setExperimentUuid(getString(cursor, FIELD_EXPERIMENT_UUID));
             inAppMessage.setUserUuid(getString(cursor, FIELD_USER_UUID));
             inAppMessage.setTransactionUuid(getString(cursor, FIELD_TRANSACTION_UUID));
+            inAppMessage.setDisplayedAt(getLong(cursor, FIELD_TRANSACTION_UUID));
 
             String tsJson = getString(cursor, FIELD_TEMPLATE_STYLE);
             if (!TextUtils.isEmpty(tsJson)) inAppMessage.setTemplateStyle(new JSONObject(tsJson));
@@ -115,6 +121,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             values.put(FIELD_USER_UUID, inAppMessage.getUserUuid());
             values.put(FIELD_TRANSACTION_UUID, inAppMessage.getTransactionUuid());
             values.put(FIELD_EXTRAS, inAppMessage.getExtrasJson());
+            values.put(FIELD_DISPLAYED_AT, inAppMessage.getDisplayedAt());
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -137,6 +144,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_USER_UUID, FieldType.Text);
         fieldTypeHashMap.put(FIELD_TRANSACTION_UUID, FieldType.Text);
         fieldTypeHashMap.put(FIELD_EXTRAS, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_DISPLAYED_AT, FieldType.Long);
         return fieldTypeHashMap;
     }
 
@@ -149,9 +157,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                     String className = activity.getClass().getName();
 
                     // take IAM with current screen as display time and trigger as 'now' and has less expiry time
-                    String selection = FIELD_DISPLAY_ON + "=?" + " AND " + FIELD_TRIGGER + "=?";
-                    String[] selectionArgs = new String[]{className, NOW};
-                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                    String selection = FIELD_DISPLAY_ON + "=?" + _AND_ + FIELD_TRIGGER + "=?" + _AND_ + FIELD_DISPLAYED_AT + " IS NULL" + _OR_ + FIELD_DISPLAYED_AT + "=?";
+                    String[] selectionArgs = new String[]{className, NOW, "''"};
+                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, ONE);
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
                             Log.d(TAG, "IAM Found. Selection: " + String.format(selection, className, NOW));
@@ -163,9 +171,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
 
                     if (inAppMessage == null) {
                         // take IAM with current screen as display time and has less expiry time
-                        String selection2 = FIELD_DISPLAY_ON + "=?";
-                        String[] selectionArgs2 = new String[]{className};
-                        Cursor cursor2 = db.query(getTableName(), null, selection2, selectionArgs2, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                        String selection2 = FIELD_DISPLAY_ON + "=?" + _AND_ + FIELD_DISPLAYED_AT + " IS NULL" + _OR_ + FIELD_DISPLAYED_AT + "=?";
+                        String[] selectionArgs2 = new String[]{className, "''"};
+                        Cursor cursor2 = db.query(getTableName(), null, selection2, selectionArgs2, null, null, FIELD_EXPIRES_AT, ONE);
                         if (cursor2 != null) {
                             if (cursor2.moveToFirst()) {
                                 Log.d(TAG, "IAM Found. Selection: " + String.format(selection, className));
@@ -179,9 +187,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
 
                 if (inAppMessage == null) {
                     // take IAM with current screen as display time and has less expiry time
-                    String selection = FIELD_TRIGGER + "=?";
-                    String[] selectionArgs = new String[]{NOW};
-                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                    String selection = FIELD_TRIGGER + "=?" + _AND_ + FIELD_DISPLAYED_AT + " IS NULL" + _OR_ + FIELD_DISPLAYED_AT + "=?";
+                    String[] selectionArgs = new String[]{NOW, "''"};
+                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, ONE);
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
                             Log.d(TAG, "IAM Found. Selection: " + String.format(selection, NOW));
@@ -193,10 +201,10 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                 }
 
                 if (inAppMessage == null) {
-                    String selection = FIELD_DISPLAY_ON + " IS NULL" + _OR_ + FIELD_DISPLAY_ON + "=?";
-                    String[] selectionArgs = new String[]{"''"};
+                    String selection = FIELD_DISPLAY_ON + " IS NULL" + _OR_ + FIELD_DISPLAY_ON + "=?" + _AND_ + FIELD_DISPLAYED_AT + " IS NULL" + _OR_ + FIELD_DISPLAYED_AT + "=?";
+                    String[] selectionArgs = new String[]{"''", "''"};
                     // take IAM with current screen as display time and has less expiry time
-                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, LIMIT_ONE);
+                    Cursor cursor = db.query(getTableName(), null, selection, selectionArgs, null, null, FIELD_EXPIRES_AT, ONE);
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
                             Log.d(TAG, "IAM Found. Selection: " + String.format(selection, "''"));
@@ -214,11 +222,89 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         }
     }
 
+    InAppMessage getInAppMessage(Activity activity) {
+        synchronized (_LOCK) {
+            InAppMessage inAppMessage = null;
+
+            String className = activity != null ? activity.getClass().getName() : "unknown";
+
+            SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+            qb.setTables(getTableName());
+
+            StringBuilder where = new StringBuilder();
+
+            where.append("(");
+            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #1 className
+            where.append(" AND ");
+            where.append(FIELD_TRIGGER).append("=?"); // ARG #2 now
+            where.append(" AND ");
+            where.append(FIELD_DISPLAYED_AT).append("=0");
+            where.append(")");
+
+            where.append(" OR ");
+
+            where.append("(");
+            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #3 className
+            where.append(" AND ");
+            where.append(FIELD_DISPLAYED_AT).append("=0");
+            where.append(")");
+
+            where.append(" OR ");
+
+            where.append("(");
+            where.append(FIELD_TRIGGER).append("=?"); // ARG #4 now
+            where.append(" AND ");
+            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #5 empty('')
+            where.append(" AND ");
+            where.append(FIELD_DISPLAYED_AT).append("=0");
+            where.append(")");
+
+            where.append(" OR ");
+
+            where.append("(");
+            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #6 empty('')
+            where.append(" AND ");
+            where.append(FIELD_DISPLAYED_AT).append("=0");
+            where.append(")");
+
+            qb.appendWhere(where);
+
+            Log.d(TAG, where.toString());
+
+            String[] selectionArgs = new String[]{
+                    className,
+                    NOW,
+                    className,
+                    NOW,
+                    EMPTY,
+                    EMPTY
+            };
+
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        inAppMessage = getObject(cursor);
+                    }
+
+                    cursor.close();
+                }
+
+                db.close();
+            }
+
+            return inAppMessage;
+        }
+    }
+
     public void clean() {
-        if (getTotalRecordCount() > 30) {
+        synchronized (_LOCK) {
+//            String days30 = String.valueOf(System.currentTimeMillis() - 2.592e+9); // -30days
+            String days30 = String.valueOf(System.currentTimeMillis() - (1000 * 30)); // -30seconds
             String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
-            String whereClause = FIELD_EXPIRES_AT + "<?";
-            String[] selectionArgs = new String[]{timestamp};
+            String whereClause = FIELD_EXPIRES_AT + "<?" + _OR_ + FIELD_DISPLAYED_AT + " BETWEEN 1 AND ?";
+            String[] selectionArgs = new String[]{timestamp, days30};
 
             deleteAll(whereClause, selectionArgs);
         }

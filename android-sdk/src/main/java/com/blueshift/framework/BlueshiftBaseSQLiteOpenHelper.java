@@ -153,7 +153,7 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
                 case UniqueText:
                     return "TEXT NOT NULL UNIQUE";
                 case Long:
-                    return "INTEGER";
+                    return "INTEGER DEFAULT 0";
                 case Autoincrement:
                     return "INTEGER PRIMARY KEY AUTOINCREMENT";
                 default:
