@@ -361,8 +361,9 @@ public class InAppUtils {
         boolean isFullscreen = false;
 
         try {
-            String position = getTemplateString(inAppMessage, InAppConstants.FULLSCREEN);
-            isFullscreen = Boolean.valueOf(position);
+            int width = getTemplateInt(inAppMessage, InAppConstants.WIDTH, -1);
+            int height = getTemplateInt(inAppMessage, InAppConstants.HEIGHT, -1);
+            isFullscreen = (width == 100) && (height == 100);
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
