@@ -195,16 +195,16 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
 
             qb.appendWhere(where);
 
-            long nowSeconds = System.currentTimeMillis() / 1000;
+            String nowSeconds = String.valueOf(System.currentTimeMillis() / 1000);
 
             String[] selectionArgs = new String[]{
-                    className,
-                    NOW,
-                    className,
-                    NOW,
-                    EMPTY,
-                    EMPTY,
-                    String.valueOf(nowSeconds)
+                    className,  // #1
+                    NOW,        // #2
+                    className,  // #3
+                    NOW,        // #4
+                    EMPTY,      // #5
+                    EMPTY,      // #6
+                    nowSeconds  // #7
             };
 
             SQLiteDatabase db = getReadableDatabase();
