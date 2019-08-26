@@ -25,7 +25,6 @@ import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.InAppUtils;
 import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.StorageUtils;
-import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -93,10 +92,8 @@ public class InAppManager {
             @Override
             public void onReceive(String response) {
                 try {
-                    JSONObject responseJson = new JSONObject(response);
-                    JSONArray payloadArray = responseJson.optJSONArray("content");
-                    Log.d(LOG_TAG, "Content JSON: " + payloadArray.toString());
-                    cacheInAppArray(context, payloadArray);
+                    JSONArray inAppJsonArray = decodeResponse(response);
+                    onInAppMessageArrayReceived(context, inAppJsonArray);
                 } catch (Exception e) {
                     BlueshiftLogger.e(LOG_TAG, e);
                 }
@@ -104,19 +101,43 @@ public class InAppManager {
         });
     }
 
-    private static void cacheInAppArray(Context context, JSONArray jsonArray) {
-        try {
-            if (jsonArray != null) {
-                int len = jsonArray.length();
-                for (int i = 0; i < len; i++) {
-                    JSONObject payload = jsonArray.getJSONObject(i);
-                    JSONObject inApp = payload.optJSONObject("data");
-                    InAppMessage message = InAppMessage.getInstance(inApp);
-                    InAppManager.onInAppMessageReceived(context, message);
+    private static JSONArray decodeResponse(String response) {
+        JSONArray jsonArray = null;
 
-                    Log.d(LOG_TAG, "Cached InApp: " + new Gson().toJson(message) + "\n");
+        try {
+            if (response != null) {
+                JSONObject responseJson = new JSONObject(response);
+                jsonArray = responseJson.optJSONArray("content");
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return jsonArray;
+    }
+
+    private static void onInAppMessageArrayReceived(Context context, JSONArray inAppContentArray) {
+        try {
+            if (inAppContentArray != null) {
+                int len = inAppContentArray.length();
+                for (int i = 0; i < len; i++) {
+                    JSONObject content = inAppContentArray.getJSONObject(i);
+                    if (content != null) {
+                        JSONObject inApp = content.optJSONObject("data");
+                        if (inApp != null) {
+                            InAppMessage message = InAppMessage.getInstance(inApp);
+                            InAppManager.onInAppMessageReceived(context, message);
+                        }
+                    }
                 }
-                InAppManager.invokeTriggers();
+
+                if (len > 0) {
+                    InAppManager.invokeTriggers();
+                } else {
+                    Log.d(LOG_TAG, "No items found inside 'content'.");
+                }
+            } else {
+                Log.d(LOG_TAG, "'content' is NULL.");
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -124,12 +145,16 @@ public class InAppManager {
     }
 
     public static void onInAppMessageReceived(Context context, InAppMessage inAppMessage) {
+        Log.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
+
         if (inAppMessage != null) {
             Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
 
             if (!inAppMessage.isExpired()) {
                 InAppMessageStore.getInstance(context).insert(inAppMessage);
                 InAppManager.cacheAssets(inAppMessage, context);
+            } else {
+                Log.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
             }
         }
     }
