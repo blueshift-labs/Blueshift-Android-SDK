@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BlueshiftBaseSQLiteOpenHelper;
@@ -209,7 +208,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
 
             SQLiteDatabase db = getReadableDatabase();
             if (db != null) {
-                Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, null);
+                Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, null, ONE);
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
                         inAppMessage = getObject(cursor);
