@@ -16,10 +16,12 @@ import android.webkit.WebView;
 import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.LiveContentCallback;
 import com.blueshift.R;
+import com.blueshift.httpmanager.HTTPManager;
+import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.InAppUtils;
@@ -88,17 +90,26 @@ public class InAppManager {
     }
 
     public static void fetchInAppFromServer(final Context context) {
-        Blueshift.getInstance(context).getLiveContentByDeviceId("releasecheckinappandroid", new LiveContentCallback() {
-            @Override
-            public void onReceive(String response) {
-                try {
-                    JSONArray inAppJsonArray = decodeResponse(response);
-                    onInAppMessageArrayReceived(context, inAppJsonArray);
-                } catch (Exception e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
+                        Response response = httpManager.get();
+                        if (response.getStatusCode() == 200) {
+                            String responseBody = response.getResponseBody();
+                            if (!TextUtils.isEmpty(responseBody)) {
+                                try {
+                                    JSONArray inAppJsonArray = decodeResponse(responseBody);
+                                    onInAppMessageArrayReceived(context, inAppJsonArray);
+                                } catch (Exception e) {
+                                    BlueshiftLogger.e(LOG_TAG, e);
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        });
+        );
     }
 
     private static JSONArray decodeResponse(String response) {
