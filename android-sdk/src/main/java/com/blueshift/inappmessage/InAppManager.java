@@ -6,7 +6,6 @@ import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
@@ -55,7 +54,7 @@ public class InAppManager {
      */
     public static void registerForInAppMessages(Activity activity) {
         if (mActivity != null) {
-            Log.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
+            // Log.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
             // do the clean up for old activity to avoid mem leak
             unregisterForInAppMessages(mActivity);
         }
@@ -183,38 +182,51 @@ public class InAppManager {
                     InAppMessage input = InAppMessageStore.getInstance(mActivity).getInAppMessage(mActivity);
 
                     if (input == null) {
-                        // this means, there are no pending in-app messages in the db.
+                        Log.d(LOG_TAG, "No pending in-app messages found.");
                         return;
                     }
 
-                    if (validate(input)) {
-                        boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
-                        if (!isSuccess) {
-                            BlueshiftLogger.e(LOG_TAG, "InAppMessage display failed");
-                        }
-                    } else {
-                        // put back as new entry
-                        InAppMessageStore.getInstance(mActivity).insert(input);
-                        // delete from top
-                        InAppMessageStore.getInstance(mActivity).delete(input);
-
-                        // check for next in-app message after interval.
-                        Configuration config = BlueshiftUtils.getConfiguration(mActivity);
-                        if (config != null && config.getInAppInterval() > 0) {
-                            Handler handler = new Handler();
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    invokeTriggers();
-                                }
-                            }, config.getInAppInterval());
-                        }
+                    if (!validate(input)) {
+                        Log.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
+                        return;
                     }
+
+                    displayInAppMessage(input);
                 }
             });
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
+    }
+
+    private static void displayInAppMessage(final InAppMessage input) {
+        BlueshiftExecutor.getInstance().runOnMainThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
+                        if (isSuccess) {
+                            markAsDisplayed(input);
+                        }
+
+                        BlueshiftLogger.e(LOG_TAG, "InAppMessage display " + (isSuccess ? "success!" : "failed!"));
+                    }
+                }
+        );
+    }
+
+    private static void markAsDisplayed(final InAppMessage input) {
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (input != null && mActivity != null) {
+                            input.setDisplayedAt(System.currentTimeMillis());
+                            InAppMessageStore.getInstance(mActivity).update(input);
+                        }
+                    }
+                }
+        );
     }
 
     private static boolean validate(InAppMessage inAppMessage) {
@@ -329,20 +341,6 @@ public class InAppManager {
         return false;
     }
 
-    private static boolean buildAndShowFullScreenPopupInAppMessage(Context context, InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
-            InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    invokeDismissButtonClick(inAppMessage, elementName);
-                }
-            };
-
-            return displayInAppDialog(context, inAppMessageViewModal, inAppMessage);
-        }
-
-        return false;
-    }
-
     private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
@@ -373,21 +371,14 @@ public class InAppManager {
 
     private static boolean buildAndShowHtmlInAppMessage(final Context context, final InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
+            InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                 @Override
-                public void run() {
-                    InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
-                        @Override
-                        public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                            invokeDismissButtonClick(inAppMessage, elementName);
-                        }
-                    };
-
-                    displayInAppDialog(context, inAppMessageViewHTML, inAppMessage);
+                public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    invokeDismissButtonClick(inAppMessage, elementName);
                 }
-            });
+            };
 
-            return true;
+            return displayInAppDialog(context, inAppMessageViewHTML, inAppMessage);
         }
 
         return false;
@@ -402,36 +393,15 @@ public class InAppManager {
     }
 
     private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
-        if (isOurAppRunning(context)) {
-            buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp);
-
-            return true;
-        } else {
-            Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
-            return false;
-        }
+        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp);
     }
 
     private static boolean displayInAppDialogFullScreen(final Context context, final View customView, final InAppMessage inAppMessage) {
-        if (isOurAppRunning(context)) {
-            buildAndShowAlertDialog(context, inAppMessage, customView, android.R.style.Theme_NoTitleBar_Fullscreen);
-
-            return true;
-        } else {
-            Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
-            return false;
-        }
+        return buildAndShowAlertDialog(context, inAppMessage, customView, android.R.style.Theme_NoTitleBar_Fullscreen);
     }
 
     private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
-        if (isOurAppRunning(context)) {
-            buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft);
-
-            return true;
-        } else {
-            Log.d(LOG_TAG, "App isn't running. Skipping InAppMessage!" + context.getPackageName());
-            return false;
-        }
+        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft);
     }
 
     public static boolean isOurAppRunning(Context context) {
@@ -482,38 +452,55 @@ public class InAppManager {
         }
     }
 
-    private static void buildAndShowAlertDialog(final Context context, final InAppMessage inAppMessage,
-                                                final View content, final int theme) {
-        BlueshiftExecutor.getInstance().runOnMainThread(
-                new Runnable() {
+    private static boolean buildAndShowAlertDialog(
+            final Context context, final InAppMessage inAppMessage, final View content, final int theme) {
+        if (isOurAppRunning(context)) {
+            if (mDialog == null || !mDialog.isShowing()) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
+                builder.setView(content);
+                mDialog = builder.create();
+                mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
-                    public void run() {
-                        if (mDialog == null || !mDialog.isShowing()) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
-                            builder.setView(content);
-                            mDialog = builder.create();
-                            mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                                @Override
-                                public void onDismiss(DialogInterface dialogInterface) {
-                                    InAppManager.clearCachedAssets(inAppMessage, context);
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        InAppManager.clearCachedAssets(inAppMessage, context);
+                                    }
                                 }
-                            });
-                            mDialog.show();
-
-                            Window window = mDialog.getWindow();
-                            if (window != null) {
-                                window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
-                                window.setLayout(
-                                        LinearLayout.LayoutParams.MATCH_PARENT,
-                                        LinearLayout.LayoutParams.WRAP_CONTENT
-                                );
-                            }
-
-                            invokeOnInAppViewed(inAppMessage);
-                        }
+                        );
                     }
+                });
+                mDialog.show();
+
+                Window window = mDialog.getWindow();
+                if (window != null) {
+                    window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
+                    window.setLayout(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
                 }
-        );
+
+                BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                               InAppManager.invokeOnInAppViewed(inAppMessage);
+                            }
+                        }
+                );
+
+                return true;
+            } else {
+                Log.d(LOG_TAG, "Already an in-app is in display.");
+            }
+        } else {
+            Log.d(LOG_TAG, "All is not running in foreground.");
+        }
+
+        return false;
     }
 
     private static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
@@ -531,7 +518,7 @@ public class InAppManager {
         }
     }
 
-    public static void cacheAssets(final InAppMessage inAppMessage, final Context context) {
+    private static void cacheAssets(final InAppMessage inAppMessage, final Context context) {
         if (inAppMessage != null) {
             if (InAppConstants.HTML.equals(inAppMessage.getType())) {
                 // html, cache inside WebView
