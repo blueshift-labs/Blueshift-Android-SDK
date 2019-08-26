@@ -234,19 +234,16 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             StringBuilder where = new StringBuilder();
 
             where.append("(");
+            where.append("(");
             where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #1 className
             where.append(" AND ");
             where.append(FIELD_TRIGGER).append("=?"); // ARG #2 now
-            where.append(" AND ");
-            where.append(FIELD_DISPLAYED_AT).append("=0");
             where.append(")");
 
             where.append(" OR ");
 
             where.append("(");
             where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #3 className
-            where.append(" AND ");
-            where.append(FIELD_DISPLAYED_AT).append("=0");
             where.append(")");
 
             where.append(" OR ");
@@ -255,21 +252,24 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             where.append(FIELD_TRIGGER).append("=?"); // ARG #4 now
             where.append(" AND ");
             where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #5 empty('')
-            where.append(" AND ");
-            where.append(FIELD_DISPLAYED_AT).append("=0");
             where.append(")");
 
             where.append(" OR ");
 
             where.append("(");
             where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #6 empty('')
+            where.append(")");
+            where.append(")");
+
+            // common conditions
             where.append(" AND ");
             where.append(FIELD_DISPLAYED_AT).append("=0");
-            where.append(")");
+            where.append(" AND ");
+            where.append(FIELD_EXPIRES_AT).append(">?"); // ARG #7 current time (seconds)
 
             qb.appendWhere(where);
 
-            Log.d(TAG, where.toString());
+            long nowSeconds = System.currentTimeMillis() / 1000;
 
             String[] selectionArgs = new String[]{
                     className,
@@ -277,7 +277,8 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                     className,
                     NOW,
                     EMPTY,
-                    EMPTY
+                    EMPTY,
+                    String.valueOf(nowSeconds)
             };
 
             SQLiteDatabase db = getReadableDatabase();
