@@ -127,6 +127,8 @@ public abstract class InAppMessageView extends RelativeLayout {
                             lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
                         }
 
+                        lp.gravity = Gravity.CENTER;
+
                         setLayoutParams(lp);
                     }
                 }
