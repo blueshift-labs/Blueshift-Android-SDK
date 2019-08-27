@@ -35,12 +35,17 @@ public class NetworkUtils {
             inputStream = httpURLConnection.getInputStream();
             outputStream = new FileOutputStream(destinationPath);
 
-            byte data[] = new byte[4096];
+            byte[] data = new byte[4096];
             int count = 0;
 
             while ((count = inputStream.read(data)) != -1) {
                 outputStream.write(data, 0, count);
             }
+
+            // clean up memory
+            outputStream.close();
+            inputStream.close();
+            httpURLConnection.disconnect();
         } catch (Exception e) {
             try {
                 if (outputStream != null) {
