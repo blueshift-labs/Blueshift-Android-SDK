@@ -6,6 +6,8 @@ import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
@@ -194,6 +196,25 @@ public class InAppManager {
                     displayInAppMessage(input);
                 }
             });
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+    }
+
+    private static void scheduleNextInAppMessage(final Context context) {
+        try {
+            Configuration config = BlueshiftUtils.getConfiguration(context);
+            if (config != null) {
+                long delay = config.getInAppInterval();
+                Log.d(LOG_TAG, "Scheduling next in-app in " + delay + "ms");
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        InAppManager.invokeTriggers();
+                    }
+                }, delay);
+            }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
@@ -467,6 +488,7 @@ public class InAppManager {
                                     @Override
                                     public void run() {
                                         InAppManager.clearCachedAssets(inAppMessage, context);
+                                        InAppManager.scheduleNextInAppMessage(context);
                                     }
                                 }
                         );
