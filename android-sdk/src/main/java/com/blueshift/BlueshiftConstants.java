@@ -112,6 +112,9 @@ public class BlueshiftConstants {
     public static final String KEY_USER  = "user";
     public static final String KEY_CONTEXT = "context";
 
+    // in-app message
+    public static final String KEY_ENABLE_INAPP = "enable_inapp";
+
     /**
      * Subscription status values
      */

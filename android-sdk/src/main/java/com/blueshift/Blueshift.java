@@ -656,6 +656,10 @@ public class Blueshift {
                 userParams.putAll(details);
             }
 
+            // enable or disable in-app
+            boolean enableInApp = mConfiguration != null && mConfiguration.isInAppEnabled();
+            userParams.put(BlueshiftConstants.KEY_ENABLE_INAPP, enableInApp);
+
             trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams, canBatchThisEvent);
 
         } else {

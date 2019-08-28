@@ -35,7 +35,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
             // taking consent from dev to enable js
             Configuration config = BlueshiftUtils.getConfiguration(getContext());
-            if (config != null && config.isInAppEnableJavascript()) {
+            if (config != null && config.isJavaScriptForInAppWebViewEnabled()) {
                 webView.getSettings().setJavaScriptEnabled(true);
             }
 
