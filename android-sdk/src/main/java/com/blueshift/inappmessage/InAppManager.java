@@ -554,7 +554,7 @@ public class InAppManager {
 
                             // taking consent from dev to enable js
                             Configuration config = BlueshiftUtils.getConfiguration(context);
-                            if (config != null && config.isInAppEnableJavascript()) {
+                            if (config != null && config.isJavaScriptForInAppWebViewEnabled()) {
                                 webView.getSettings().setJavaScriptEnabled(true);
                             }
 

@@ -38,7 +38,8 @@ public class Configuration {
 
     // in app message
     private long inAppInterval;
-    private boolean inAppEnableJavascript;
+    private boolean inAppEnableJavascript = false;
+    private boolean inAppEnabled = false;
 
     private boolean enableAutoAppOpen = false;
 
@@ -218,11 +219,19 @@ public class Configuration {
         this.inAppInterval = milliseconds;
     }
 
-    public boolean isInAppEnableJavascript() {
+    public boolean isJavaScriptForInAppWebViewEnabled() {
         return inAppEnableJavascript;
     }
 
-    public void setInAppEnableJavascript(boolean inAppEnableJavascript) {
-        this.inAppEnableJavascript = inAppEnableJavascript;
+    public void setJavaScriptForInAppWebViewEnabled(boolean enable) {
+        this.inAppEnableJavascript = enable;
+    }
+
+    public boolean isInAppEnabled() {
+        return inAppEnabled;
+    }
+
+    public void setInAppEnabled(boolean inAppEnabled) {
+        this.inAppEnabled = inAppEnabled;
     }
 }
