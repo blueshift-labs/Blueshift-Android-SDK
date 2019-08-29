@@ -163,8 +163,12 @@ public class InAppManager {
             Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
 
             if (!inAppMessage.isExpired()) {
-                InAppMessageStore.getInstance(context).insert(inAppMessage);
-                InAppManager.cacheAssets(inAppMessage, context);
+                boolean inserted = InAppMessageStore.getInstance(context).insert(inAppMessage);
+                if (inserted) {
+                    InAppManager.cacheAssets(inAppMessage, context);
+                } else {
+                    Log.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                }
             } else {
                 Log.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
             }
