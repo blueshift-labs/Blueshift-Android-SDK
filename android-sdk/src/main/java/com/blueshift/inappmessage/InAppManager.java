@@ -33,8 +33,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class InAppManager {
 
@@ -91,26 +89,29 @@ public class InAppManager {
     }
 
     public static void fetchInAppFromServer(final Context context) {
-        BlueshiftExecutor.getInstance().runOnNetworkThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
-                        Response response = httpManager.get();
-                        if (response.getStatusCode() == 200) {
-                            String responseBody = response.getResponseBody();
-                            if (!TextUtils.isEmpty(responseBody)) {
-                                try {
-                                    JSONArray inAppJsonArray = decodeResponse(responseBody);
-                                    onInAppMessageArrayReceived(context, inAppJsonArray);
-                                } catch (Exception e) {
-                                    BlueshiftLogger.e(LOG_TAG, e);
+        boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
+        if (isEnabled) {
+            BlueshiftExecutor.getInstance().runOnNetworkThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
+                            Response response = httpManager.get();
+                            if (response.getStatusCode() == 200) {
+                                String responseBody = response.getResponseBody();
+                                if (!TextUtils.isEmpty(responseBody)) {
+                                    try {
+                                        JSONArray inAppJsonArray = decodeResponse(responseBody);
+                                        InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
+                                    } catch (Exception e) {
+                                        BlueshiftLogger.e(LOG_TAG, e);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-        );
+            );
+        }
     }
 
     private static JSONArray decodeResponse(String response) {
@@ -157,20 +158,23 @@ public class InAppManager {
     }
 
     public static void onInAppMessageReceived(Context context, InAppMessage inAppMessage) {
-        Log.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
+        boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
+        if (isEnabled) {
+            Log.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
 
-        if (inAppMessage != null) {
-            Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
+            if (inAppMessage != null) {
+                Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
 
-            if (!inAppMessage.isExpired()) {
-                boolean inserted = InAppMessageStore.getInstance(context).insert(inAppMessage);
-                if (inserted) {
-                    InAppManager.cacheAssets(inAppMessage, context);
+                if (!inAppMessage.isExpired()) {
+                    boolean inserted = InAppMessageStore.getInstance(context).insert(inAppMessage);
+                    if (inserted) {
+                        InAppManager.cacheAssets(inAppMessage, context);
+                    } else {
+                        Log.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                    }
                 } else {
-                    Log.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                    Log.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
                 }
-            } else {
-                Log.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
             }
         }
     }
@@ -181,27 +185,30 @@ public class InAppManager {
             return;
         }
 
-        try {
-            BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
-                @Override
-                public void run() {
-                    InAppMessage input = InAppMessageStore.getInstance(mActivity).getInAppMessage(mActivity);
+        boolean isEnabled = BlueshiftUtils.isInAppEnabled(mActivity);
+        if (isEnabled) {
+            try {
+                BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        InAppMessage input = InAppMessageStore.getInstance(mActivity).getInAppMessage(mActivity);
 
-                    if (input == null) {
-                        Log.d(LOG_TAG, "No pending in-app messages found.");
-                        return;
+                        if (input == null) {
+                            Log.d(LOG_TAG, "No pending in-app messages found.");
+                            return;
+                        }
+
+                        if (!validate(input)) {
+                            Log.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
+                            return;
+                        }
+
+                        displayInAppMessage(input);
                     }
-
-                    if (!validate(input)) {
-                        Log.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
-                        return;
-                    }
-
-                    displayInAppMessage(input);
-                }
-            });
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
+                });
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
         }
     }
 
@@ -429,7 +436,7 @@ public class InAppManager {
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft);
     }
 
-    public static boolean isOurAppRunning(Context context) {
+    private static boolean isOurAppRunning(Context context) {
         if (context != null) {
             ComponentName topActivity = getCurrentActivity(context);
             if (topActivity != null) {
@@ -580,7 +587,7 @@ public class InAppManager {
 
     private static void deleteCachedImage(Context context, String url) {
         if (context != null && url != null) {
-            File imgFile = getCachedImageFile(context, url);
+            File imgFile = InAppUtils.getCachedImageFile(context, url);
             if (imgFile != null && imgFile.exists()) {
                 Log.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
                         + imgFile.getAbsolutePath());
@@ -589,7 +596,7 @@ public class InAppManager {
     }
 
     private static void cacheImage(final Context context, final String url) {
-        final File file = getCachedImageFile(context, url);
+        final File file = InAppUtils.getCachedImageFile(context, url);
 
         if (file != null) {
             BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
@@ -604,62 +611,5 @@ public class InAppManager {
                 }
             });
         }
-    }
-
-    private static String getCachedImageFileName(String url) {
-        String emailHash = "";
-
-        if (!TextUtils.isEmpty(url)) {
-            try {
-                MessageDigest md5 = MessageDigest.getInstance("MD5");
-                md5.update(url.getBytes());
-                byte[] byteArray = md5.digest();
-
-                StringBuilder sb = new StringBuilder();
-                for (byte data : byteArray) {
-                    sb.append(Integer.toString((data & 0xff) + 0x100, 16).substring(1));
-                }
-
-                emailHash = sb.toString();
-
-                // Log.d("email-md5", emailHash);
-
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return emailHash;
-    }
-
-    public static File getCachedImageFile(Context context, String url) {
-        File imageCacheDir = getImageCacheDir(context);
-        if (imageCacheDir != null && imageCacheDir.exists()) {
-            String fileName = getCachedImageFileName(url);
-            File imgFile = new File(imageCacheDir, fileName);
-            Log.d(LOG_TAG, "Image file name. Remote: " + url + ", Local: " + imgFile.getAbsolutePath());
-            return imgFile;
-        } else {
-            return null;
-        }
-    }
-
-    private static File getImageCacheDir(Context context) {
-        File imagesDir = null;
-
-        if (context != null) {
-            File filesDir = context.getFilesDir();
-            imagesDir = new File(filesDir, "images");
-            if (!imagesDir.exists()) {
-                boolean val = imagesDir.mkdirs();
-                if (val) {
-                    Log.d(LOG_TAG, "Directory created! " + imagesDir.getAbsolutePath());
-                } else {
-                    Log.d(LOG_TAG, "Could not create dir.");
-                }
-            }
-        }
-
-        return imagesDir;
     }
 }

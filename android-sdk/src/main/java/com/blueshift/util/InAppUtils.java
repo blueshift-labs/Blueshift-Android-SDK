@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class InAppUtils {
 
@@ -396,7 +398,7 @@ public class InAppUtils {
 
     public static void loadImageAsync(final ImageView imageView, String path) {
         if (imageView != null && path != null) {
-            File cached = InAppManager.getCachedImageFile(imageView.getContext(), path);
+            File cached = getCachedImageFile(imageView.getContext(), path);
             if (cached != null && cached.exists()) {
                 Log.d(LOG_TAG, "Using cached image. " + cached.getAbsolutePath());
                 // use cached copy
@@ -727,5 +729,60 @@ public class InAppUtils {
 
             return result;
         }
+    }
+
+    public static File getCachedImageFile(Context context, String url) {
+        File imageCacheDir = getImageCacheDir(context);
+        if (imageCacheDir != null && imageCacheDir.exists()) {
+            String fileName = getCachedImageFileName(url);
+            File imgFile = new File(imageCacheDir, fileName);
+            Log.d(LOG_TAG, "Image file name. Remote: " + url + ", Local: " + imgFile.getAbsolutePath());
+            return imgFile;
+        } else {
+            return null;
+        }
+    }
+
+    private static File getImageCacheDir(Context context) {
+        File imagesDir = null;
+
+        if (context != null) {
+            File filesDir = context.getFilesDir();
+            imagesDir = new File(filesDir, "images");
+            if (!imagesDir.exists()) {
+                boolean val = imagesDir.mkdirs();
+                if (val) {
+                    Log.d(LOG_TAG, "Directory created! " + imagesDir.getAbsolutePath());
+                } else {
+                    Log.d(LOG_TAG, "Could not create dir.");
+                }
+            }
+        }
+
+        return imagesDir;
+    }
+
+    private static String getCachedImageFileName(String url) {
+        String md5Hash = "";
+
+        if (!TextUtils.isEmpty(url)) {
+            try {
+                MessageDigest md5 = MessageDigest.getInstance("MD5");
+                md5.update(url.getBytes());
+                byte[] byteArray = md5.digest();
+
+                StringBuilder sb = new StringBuilder();
+                for (byte data : byteArray) {
+                    sb.append(Integer.toString((data & 0xff) + 0x100, 16).substring(1));
+                }
+
+                md5Hash = sb.toString();
+
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return md5Hash;
     }
 }

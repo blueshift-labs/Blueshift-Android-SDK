@@ -53,4 +53,19 @@ public class BlueshiftUtils {
 
         return null;
     }
+
+    public static boolean isInAppEnabled(Context context) {
+        boolean isEnabled = false;
+
+        Configuration config = getConfiguration(context);
+        if (config != null) {
+            isEnabled = config.isInAppEnabled();
+            if (!isEnabled) {
+                Log.e(LOG_TAG, "In-App is not enabled. Please call setInAppEnabled(true) " +
+                        "to enable it during SDK initialization.");
+            }
+        }
+
+        return isEnabled;
+    }
 }
