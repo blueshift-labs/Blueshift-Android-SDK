@@ -35,9 +35,6 @@ import org.json.JSONObject;
 import java.io.File;
 
 public class InAppManager {
-
-    public static final long DEFAULT_INTERVAL = 1000 * 60 * 5; // 5 min
-
     private static final String PREF_FILE = "inappmanager";
     private static final String PREF_KEY_LAST_DISPLAY_TIME = "last_display_time";
 
@@ -46,6 +43,7 @@ public class InAppManager {
     @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
     private static Activity mActivity = null;
     private static AlertDialog mDialog = null;
+    private static InAppActionCallback mActionCallback = null;
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -86,6 +84,14 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
+    }
+
+    public static void setActionCallback(InAppActionCallback callback) {
+        mActionCallback = callback;
+    }
+
+    public static InAppActionCallback getActionCallback() {
+        return mActionCallback;
     }
 
     public static void fetchInAppFromServer(final Context context) {
