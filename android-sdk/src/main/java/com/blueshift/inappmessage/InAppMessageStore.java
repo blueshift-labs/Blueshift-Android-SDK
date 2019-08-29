@@ -158,52 +158,43 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
 
             StringBuilder where = new StringBuilder();
 
+            // check for the screen to display on
             where.append("(");
-            where.append("(");
-            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #1 className
+            where.append(FIELD_DISPLAY_ON).append("=?");    // ARG #1 className
+            where.append(" OR ");
+            where.append(FIELD_DISPLAY_ON).append("=?");    // ARG #2 empty('')
+            where.append(")");
+
             where.append(" AND ");
-            where.append(FIELD_TRIGGER).append("=?"); // ARG #2 now
-            where.append(")");
 
-            where.append(" OR ");
-
+            // check for valid trigger
             where.append("(");
-            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #3 className
-            where.append(")");
-
+            where.append(FIELD_TRIGGER).append("=?");       // ARG #3 now
             where.append(" OR ");
-
-            where.append("(");
-            where.append(FIELD_TRIGGER).append("=?"); // ARG #4 now
-            where.append(" AND ");
-            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #5 empty('')
-            where.append(")");
-
+            where.append(FIELD_TRIGGER).append("<?");       // ARG #4 current time (seconds)
             where.append(" OR ");
-
-            where.append("(");
-            where.append(FIELD_DISPLAY_ON).append("=?"); // ARG #6 empty('')
-            where.append(")");
+            where.append(FIELD_TRIGGER).append("=?");       // ARG #5 empty
             where.append(")");
 
-            // common conditions
+            // omit displayed items
             where.append(" AND ");
             where.append(FIELD_DISPLAYED_AT).append("=0");
+
+            // omit expired items
             where.append(" AND ");
-            where.append(FIELD_EXPIRES_AT).append(">?"); // ARG #7 current time (seconds)
+            where.append(FIELD_EXPIRES_AT).append(">?");    // ARG #6 current time (seconds)
 
             qb.appendWhere(where);
 
             String nowSeconds = String.valueOf(System.currentTimeMillis() / 1000);
 
             String[] selectionArgs = new String[]{
-                    className,  // #1
-                    NOW,        // #2
-                    className,  // #3
-                    NOW,        // #4
-                    EMPTY,      // #5
-                    EMPTY,      // #6
-                    nowSeconds  // #7
+                    className,      // #1
+                    EMPTY,          // #2
+                    NOW,            // #3
+                    nowSeconds,     // #4
+                    EMPTY,          // #5
+                    nowSeconds      // #6
             };
 
             SQLiteDatabase db = getReadableDatabase();
