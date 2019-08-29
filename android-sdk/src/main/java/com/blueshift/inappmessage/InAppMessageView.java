@@ -183,6 +183,11 @@ public abstract class InAppMessageView extends RelativeLayout {
     protected OnClickListener getActionClickListener(JSONObject actionJson) {
         OnClickListener listener = null;
 
+        if (InAppManager.getActionCallback() != null) {
+            // user has overridden the clicks by setting an action callback.
+            return getActionCallbackListener(actionJson);
+        }
+
         if (actionJson != null) {
             String actionName = actionJson.optString(InAppConstants.ACTION_TYPE);
             if (actionName != null) {
@@ -214,6 +219,18 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     // action click listeners
+
+    protected OnClickListener getActionCallbackListener(final JSONObject actionJson) {
+        return new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                InAppActionCallback callback = InAppManager.getActionCallback();
+                if (callback != null) {
+                    callback.onAction(actionJson);
+                }
+            }
+        };
+    }
 
     protected OnClickListener getDismissDialogClickListener(final String actionName, final JSONObject action) {
         OnClickListener listener = null;
