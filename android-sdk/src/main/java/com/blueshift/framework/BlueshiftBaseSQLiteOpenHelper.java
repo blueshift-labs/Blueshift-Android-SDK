@@ -9,7 +9,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLiteModel> extends SQLiteOpenHelper {
@@ -70,14 +72,17 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
         return cursor.getString(cursor.getColumnIndex(fieldName));
     }
 
-    public void insert(T t) {
+    public boolean insert(T t) {
         synchronized (_LOCK) {
+            long id = -1;
             SQLiteDatabase db = getWritableDatabase();
 
             if (db != null) {
-                db.insert(getTableName(), null, getContentValues(t));
+                id = db.insert(getTableName(), null, getContentValues(t));
                 db.close();
             }
+
+            return id != -1;
         }
     }
 
@@ -126,6 +131,27 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
             }
             return count;
         }
+    }
+
+    public List<T> findAll() {
+        List<T> records = new ArrayList<>();
+
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = db.query(getTableName(), null, null, null, null, null, null);
+                if (cursor != null) {
+                    while (!cursor.isAfterLast()) {
+                        records.add(getObject(cursor));
+                        cursor.moveToNext();
+                    }
+                    cursor.close();
+                }
+                db.close();
+            }
+        }
+
+        return records;
     }
 
     abstract protected String getTableName();
