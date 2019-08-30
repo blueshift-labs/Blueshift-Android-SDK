@@ -517,8 +517,14 @@ public class Blueshift {
      */
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
-        final HashMap<String, Object> eventParams = new HashMap<>();
+        HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
+
+        // enable or disable in-app
+        boolean enableInApp = mConfiguration != null && mConfiguration.isInAppEnabled();
+        eventParams.put(BlueshiftConstants.KEY_ENABLE_INAPP, enableInApp);
+
+        // insert extra params (if any)
         if (params != null) {
             eventParams.putAll(params);
         }
@@ -655,10 +661,6 @@ public class Blueshift {
             if (details != null) {
                 userParams.putAll(details);
             }
-
-            // enable or disable in-app
-            boolean enableInApp = mConfiguration != null && mConfiguration.isInAppEnabled();
-            userParams.put(BlueshiftConstants.KEY_ENABLE_INAPP, enableInApp);
 
             trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams, canBatchThisEvent);
 
