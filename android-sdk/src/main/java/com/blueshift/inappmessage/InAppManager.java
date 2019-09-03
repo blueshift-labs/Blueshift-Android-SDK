@@ -25,9 +25,9 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 import com.blueshift.util.NetworkUtils;
-import com.blueshift.util.StorageUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -35,9 +35,6 @@ import org.json.JSONObject;
 import java.io.File;
 
 public class InAppManager {
-    private static final String PREF_FILE = "inappmanager";
-    private static final String PREF_KEY_LAST_DISPLAY_TIME = "last_display_time";
-
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
 
     @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
@@ -299,9 +296,11 @@ public class InAppManager {
         Configuration config = BlueshiftUtils.getConfiguration(mActivity);
         if (config != null) {
             long intervalMs = config.getInAppInterval();
-            long lastDisplayTimeMs = getLastInAppDisplayTime();
-            long diffMs = System.currentTimeMillis() - lastDisplayTimeMs;
+            long lastDisplayedAt = InAppMessageStore.getInstance(mActivity).getLastDisplayedAt();
 
+            BlueshiftLogger.d(LOG_TAG, "Last In App Message was displayed at " + CommonUtils.formatMilliseconds(lastDisplayedAt));
+
+            long diffMs = System.currentTimeMillis() - lastDisplayedAt;
             result = diffMs >= intervalMs;
 
             if (!result) {
@@ -326,23 +325,6 @@ public class InAppManager {
         }
 
         return result;
-    }
-
-    private static void logInAppDisplayTime() {
-        StorageUtils.saveLongInPrefStore(
-                mActivity,
-                PREF_FILE,
-                PREF_KEY_LAST_DISPLAY_TIME,
-                System.currentTimeMillis()
-        );
-    }
-
-    private static long getLastInAppDisplayTime() {
-        return StorageUtils.getLongFromPrefStore(
-                mActivity,
-                PREF_FILE,
-                PREF_KEY_LAST_DISPLAY_TIME
-        );
     }
 
     private static boolean buildAndShowInAppMessage(Context context, InAppMessage inAppMessage) {
@@ -467,15 +449,13 @@ public class InAppManager {
     }
 
     private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
+        // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
-
-        // track the click todo: decide event name
+        // log the click event
         Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage, elementName);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
-        // log display time
-        logInAppDisplayTime();
         // send stats
         Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
         // update with displayed at timing

@@ -215,6 +215,28 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         }
     }
 
+    long getLastDisplayedAt() {
+        synchronized (_LOCK) {
+            long displayedAt = 0;
+
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                String[] columns = new String[]{"max(" + FIELD_DISPLAYED_AT + ")"};
+                Cursor cursor = db.query(getTableName(), columns, null, null, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        displayedAt = cursor.getLong(0);
+                    }
+
+                    cursor.close();
+                }
+                db.close();
+            }
+
+            return displayedAt;
+        }
+    }
+
     public void clean() {
         synchronized (_LOCK) {
             if (getTotalRecordCount() > 40) {
