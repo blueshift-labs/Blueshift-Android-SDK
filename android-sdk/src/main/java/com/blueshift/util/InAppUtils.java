@@ -20,9 +20,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
-import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 import com.google.gson.Gson;
 
@@ -378,49 +378,62 @@ public class InAppUtils {
         return parseGravityString(position);
     }
 
-    public static void applyTextColor(TextView textView, String colorStr) {
-        if (textView != null) {
-            if (validateColorString(colorStr)) {
-                int color = Color.parseColor(colorStr);
-                textView.setTextColor(color);
-            }
-        }
-    }
-
-    public static void applyBackgroundColor(View view, String colorStr) {
-        if (view != null) {
-            if (validateColorString(colorStr)) {
-                int color = Color.parseColor(colorStr);
-                view.setBackgroundColor(color);
-            }
-        }
-    }
-
-    public static void loadImageAsync(final ImageView imageView, String path) {
+    public static void loadImageAsync(final ImageView imageView, final String path) {
         if (imageView != null && path != null) {
-            File cached = getCachedImageFile(imageView.getContext(), path);
-            if (cached != null && cached.exists()) {
-                Log.d(LOG_TAG, "Using cached image. " + cached.getAbsolutePath());
-                // use cached copy
-                new LoadImageFromFileTask() {
-                    @Override
-                    protected void onPostExecute(Bitmap bitmap) {
-                        if (bitmap != null) {
-                            imageView.setImageBitmap(bitmap);
+            final Context context = imageView.getContext();
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            Bitmap bitmap = null;
+                            File imgFile = getCachedImageFile(context, path);
+                            if (imgFile != null && imgFile.exists()) {
+                                // load from disk
+                                try {
+                                    bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                                } catch (Exception e) {
+                                    BlueshiftLogger.e(LOG_TAG, e);
+                                }
+
+                                Log.d(LOG_TAG, "Using cached image. " + imgFile.getAbsolutePath());
+                            } else {
+                                // load from network
+                                InputStream inputStream = null;
+                                try {
+                                    if (!TextUtils.isEmpty(path)) {
+                                        inputStream = new URL(path).openStream();
+                                        bitmap = BitmapFactory.decodeStream(inputStream);
+                                        inputStream.close();
+
+                                        Log.d(LOG_TAG, "Using remote image. " + path);
+                                    }
+                                } catch (IOException e) {
+                                    try {
+                                        if (inputStream != null) {
+                                            inputStream.close();
+                                        }
+                                    } catch (Exception ex) {
+                                        BlueshiftLogger.e(LOG_TAG, e);
+                                    }
+
+                                    BlueshiftLogger.e(LOG_TAG, e);
+                                }
+                            }
+
+                            if (bitmap != null) {
+                                final Bitmap finalBitmap = bitmap;
+                                BlueshiftExecutor.getInstance().runOnMainThread(
+                                        new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                imageView.setImageBitmap(finalBitmap);
+                                            }
+                                        }
+                                );
+                            }
                         }
                     }
-                }.execute(cached);
-            } else {
-                Log.d(LOG_TAG, "Using remote image. " + path);
-                new LoadImageTask() {
-                    @Override
-                    protected void onPostExecute(Bitmap bitmap) {
-                        if (bitmap != null) {
-                            imageView.setImageBitmap(bitmap);
-                        }
-                    }
-                }.execute(path);
-            }
+            );
         }
     }
 
@@ -691,43 +704,6 @@ public class InAppUtils {
                         CommonUtils.dpToPx(padding.bottom, context)
                 );
             }
-        }
-    }
-
-    private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
-        @Override
-        protected Bitmap doInBackground(String... strings) {
-            Bitmap result = null;
-
-            if (strings != null && strings.length > 0) {
-                String url = strings[0];
-                try {
-                    if (!TextUtils.isEmpty(url)) {
-                        InputStream inputStream = new URL(url).openStream();
-                        result = BitmapFactory.decodeStream(inputStream);
-                    }
-                } catch (IOException e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
-                }
-            }
-
-            return result;
-        }
-    }
-
-    private static class LoadImageFromFileTask extends AsyncTask<File, Void, Bitmap> {
-        @Override
-        protected Bitmap doInBackground(File... files) {
-            Bitmap result = null;
-
-            if (files != null && files.length > 0) {
-                File imgFile = files[0];
-                if (imgFile.exists()) {
-                    result = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                }
-            }
-
-            return result;
         }
     }
 

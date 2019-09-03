@@ -5,6 +5,9 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.util.TypedValue;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 /**
  * @author Rahul Raveendran V P
  *         Created on 17/01/18 @ 4:41 PM
@@ -42,5 +45,9 @@ public class CommonUtils {
         }
 
         return value;
+    }
+
+    public static String formatMilliseconds(long milliseconds) {
+        return new SimpleDateFormat("dd/MMM/yyyy hh:mm:ss aa", Locale.getDefault()).format(milliseconds);
     }
 }
