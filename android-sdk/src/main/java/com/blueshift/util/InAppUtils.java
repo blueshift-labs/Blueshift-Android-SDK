@@ -7,14 +7,12 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -385,39 +383,9 @@ public class InAppUtils {
                     new Runnable() {
                         @Override
                         public void run() {
-                            Bitmap bitmap = null;
-                            File imgFile = getCachedImageFile(context, path);
-                            if (imgFile != null && imgFile.exists()) {
-                                // load from disk
-                                try {
-                                    bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                                } catch (Exception e) {
-                                    BlueshiftLogger.e(LOG_TAG, e);
-                                }
-
-                                Log.d(LOG_TAG, "Using cached image. " + imgFile.getAbsolutePath());
-                            } else {
-                                // load from network
-                                InputStream inputStream = null;
-                                try {
-                                    if (!TextUtils.isEmpty(path)) {
-                                        inputStream = new URL(path).openStream();
-                                        bitmap = BitmapFactory.decodeStream(inputStream);
-                                        inputStream.close();
-
-                                        Log.d(LOG_TAG, "Using remote image. " + path);
-                                    }
-                                } catch (IOException e) {
-                                    try {
-                                        if (inputStream != null) {
-                                            inputStream.close();
-                                        }
-                                    } catch (Exception ex) {
-                                        BlueshiftLogger.e(LOG_TAG, e);
-                                    }
-
-                                    BlueshiftLogger.e(LOG_TAG, e);
-                                }
+                            Bitmap bitmap = loadFromDisk(context, path);
+                            if (bitmap == null) {
+                                bitmap = loadFromNetwork(path);
                             }
 
                             if (bitmap != null) {
@@ -430,11 +398,64 @@ public class InAppUtils {
                                             }
                                         }
                                 );
+                            } else {
+                                BlueshiftLogger.e(LOG_TAG, "Could not load the image from " + path);
                             }
                         }
                     }
             );
         }
+    }
+
+    private static Bitmap loadFromDisk(Context context, String url) {
+        Bitmap bitmap = null;
+
+        try {
+            File imgFile = getCachedImageFile(context, url);
+            if (imgFile != null && imgFile.exists()) {
+                try {
+                    bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+
+                if (bitmap != null) {
+                    Log.d(LOG_TAG, "Using cached image. " + imgFile.getAbsolutePath());
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return bitmap;
+    }
+
+    private static Bitmap loadFromNetwork(String url) {
+        Bitmap bitmap = null;
+        InputStream inputStream = null;
+        try {
+            if (!TextUtils.isEmpty(url)) {
+                inputStream = new URL(url).openStream();
+                bitmap = BitmapFactory.decodeStream(inputStream);
+                inputStream.close();
+
+                if (bitmap != null) {
+                    Log.d(LOG_TAG, "Using remote image. " + url);
+                }
+            }
+        } catch (Exception e) {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (Exception ex) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return bitmap;
     }
 
     public static JSONObject getActionFromName(InAppMessage inAppMessage, String actionName) {
