@@ -3,7 +3,7 @@ package com.blueshift.inappmessage;
 @SuppressWarnings("WeakerAccess")
 public class InAppConstants {
     // local constants
-    public static final long IN_APP_INTERVAL = 1000 * 60 * 5; // 5 minutes
+    public static final long IN_APP_INTERVAL = 60000; // (1000 * 60)ms, ie; 1 minute
 
     // events
     public static final String EVENT_DELIVERED = "delivered";
