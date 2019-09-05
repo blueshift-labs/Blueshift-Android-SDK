@@ -199,7 +199,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
 
             SQLiteDatabase db = getReadableDatabase();
             if (db != null) {
-                Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, null, ONE);
+                Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, FIELD_DISPLAY_ON + " DESC," + _ID + " DESC", ONE);
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
                         inAppMessage = getObject(cursor);
