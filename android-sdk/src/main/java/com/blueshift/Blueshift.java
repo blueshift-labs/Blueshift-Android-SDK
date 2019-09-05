@@ -992,7 +992,7 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackNotificationView(String notificationId, HashMap<String, Object> params) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
+        eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -1021,7 +1021,7 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackNotificationClick(String notificationId, HashMap<String, Object> params) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
+        eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -1050,7 +1050,7 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackNotificationPageOpen(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
+        eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -1074,7 +1074,7 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackAlertDismiss(String notificationId, HashMap<String, Object> params, boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_MESSAGE_UUID, notificationId);
+        eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, notificationId);
 
         if (params != null) {
             eventParams.putAll(params);
@@ -1128,7 +1128,7 @@ public class Blueshift {
                 }
             }
 
-            Object msgUuidObj = campaignParams.get(BlueshiftConstants.KEY_MESSAGE_UUID);
+            Object msgUuidObj = campaignParams.get(Message.EXTRA_BSFT_MESSAGE_UUID);
             if (msgUuidObj != null) {
                 String messageUuid = (String) msgUuidObj;
                 if (!TextUtils.isEmpty(messageUuid)) {
