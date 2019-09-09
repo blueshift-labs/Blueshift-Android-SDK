@@ -406,7 +406,7 @@ public class InAppManager {
 
     private static boolean displayInAppDialog(Context context, View customView, InAppMessage inAppMessage) {
         if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
-            return displayInAppDialogFullScreen(context, customView, inAppMessage);
+            return displayInAppDialogModal(context, customView, inAppMessage);
         } else {
             return displayInAppDialogModal(context, customView, inAppMessage);
         }
@@ -496,10 +496,16 @@ public class InAppManager {
                 Window window = mDialog.getWindow();
                 if (window != null) {
                     window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
-                    window.setLayout(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                    );
+
+                    int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+                    int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+
+                    if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+                        height = LinearLayout.LayoutParams.MATCH_PARENT;
+                        width = LinearLayout.LayoutParams.MATCH_PARENT;
+                    }
+
+                    window.setLayout(width, height);
                 }
 
                 BlueshiftExecutor.getInstance().runOnDiskIOThread(
