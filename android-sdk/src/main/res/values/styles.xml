@@ -73,6 +73,7 @@
 
     <style name="dialogStyleInApp" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
         <item name="android:windowBackground">@null</item>
         <item name="android:windowIsFloating">true</item>
     </style>
