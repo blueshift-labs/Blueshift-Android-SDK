@@ -83,6 +83,14 @@ public class Blueshift {
         return instance;
     }
 
+    public void registerForInAppMessages(Activity activity) {
+        InAppManager.registerForInAppMessages(activity);
+    }
+
+    public void unregisterForInAppMessages(Activity activity) {
+        InAppManager.unregisterForInAppMessages(activity);
+    }
+
     /**
      * This method will read latest device token from firebase and will
      * update inside mDeviceParams.
