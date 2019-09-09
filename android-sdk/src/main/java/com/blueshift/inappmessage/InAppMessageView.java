@@ -111,19 +111,9 @@ public abstract class InAppMessageView extends RelativeLayout {
                             lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargn);
                         }
 
-                        int statusBarHeight = 0;
-                        try {
-                            int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-                            if (resourceId > 0) {
-                                statusBarHeight = getResources().getDimensionPixelSize(resourceId);
-                            }
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(TAG, e.getMessage());
-                        }
-
                         float hPercentage = inAppMessage.getTemplateHeight();
                         if (hPercentage > 0) {
-                            int verticalMargin = (lp.topMargin + lp.bottomMargin + statusBarHeight);
+                            int verticalMargin = lp.topMargin + lp.bottomMargin;
                             lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
                         }
 
