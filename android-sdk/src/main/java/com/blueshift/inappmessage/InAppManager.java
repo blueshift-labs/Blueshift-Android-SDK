@@ -355,7 +355,36 @@ public class InAppManager {
                 }
             };
 
-            return displayInAppDialog(context, inAppMessageViewModal, inAppMessage);
+            return displayInAppDialogModal(context, inAppMessageViewModal, inAppMessage);
+        }
+
+        return false;
+    }
+
+    private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
+                public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    invokeDismissButtonClick(inAppMessage, elementName);
+                }
+            };
+
+            return displayInAppDialogModal(context, inAppMessageViewRating, inAppMessage);
+        }
+
+        return false;
+    }
+
+    private static boolean buildAndShowHtmlInAppMessage(final Context context, final InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
+                @Override
+                public void onDismiss(InAppMessage inAppMessage, String elementName) {
+                    invokeDismissButtonClick(inAppMessage, elementName);
+                }
+            };
+
+            return displayInAppDialogModal(context, inAppMessageViewHTML, inAppMessage);
         }
 
         return false;
@@ -375,49 +404,8 @@ public class InAppManager {
         return false;
     }
 
-    private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
-            InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    invokeDismissButtonClick(inAppMessage, elementName);
-                }
-            };
-
-            return displayInAppDialog(context, inAppMessageViewRating, inAppMessage);
-        }
-
-        return false;
-    }
-
-    private static boolean buildAndShowHtmlInAppMessage(final Context context, final InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
-            InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
-                @Override
-                public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    invokeDismissButtonClick(inAppMessage, elementName);
-                }
-            };
-
-            return displayInAppDialog(context, inAppMessageViewHTML, inAppMessage);
-        }
-
-        return false;
-    }
-
-    private static boolean displayInAppDialog(Context context, View customView, InAppMessage inAppMessage) {
-        if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
-            return displayInAppDialogModal(context, customView, inAppMessage);
-        } else {
-            return displayInAppDialogModal(context, customView, inAppMessage);
-        }
-    }
-
     private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp);
-    }
-
-    private static boolean displayInAppDialogFullScreen(final Context context, final View customView, final InAppMessage inAppMessage) {
-        return buildAndShowAlertDialog(context, inAppMessage, customView, android.R.style.Theme_NoTitleBar_Fullscreen);
     }
 
     private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
