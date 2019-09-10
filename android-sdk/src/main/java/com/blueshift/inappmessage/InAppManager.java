@@ -24,15 +24,20 @@ import com.blueshift.R;
 import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
+import com.blueshift.model.UserInfo;
+import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
+import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.InAppUtils;
 import com.blueshift.util.NetworkUtils;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.HashMap;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -99,56 +104,66 @@ public class InAppManager {
                         @Override
                         public void run() {
                             // TODO: 2019-09-10 expected api call.
-//                            try {
-//                                String deviceId = DeviceUtils.getAdvertisingID(context);
-//                                if (deviceId != null) {
-//                                    HashMap<String, String> map = new HashMap<>();
-//
-//                                    String uuid = InAppMessageStore.getInstance(context).getLastMessageUUID();
-//                                    if (uuid != null) {
-//                                        BlueshiftLogger.d(LOG_TAG, "Recent message UUID: " + uuid);
-//                                        map.put(Message.EXTRA_BSFT_MESSAGE_UUID, uuid);
-//                                    }
-//
-//                                    String url = BlueshiftConstants.IN_APP_API_URL(deviceId);
-//                                    BlueshiftLogger.d(LOG_TAG, "In App API: " + url);
-//                                    HTTPManager httpManager = new HTTPManager(url);
-//
-//                                    String apiKey = BlueshiftUtils.getApiKey(context);
-//                                    if (apiKey != null) {
-//                                        httpManager.addBasicAuthentication(apiKey,"");
-//                                    }
-//
-//                                    Response response = httpManager.post(new Gson().toJson(map));
-//                                    if (response.getStatusCode() == 200) {
-//                                        String responseBody = response.getResponseBody();
-//                                        if (!TextUtils.isEmpty(responseBody)) {
-//                                            try {
-//                                                JSONArray inAppJsonArray = decodeResponse(responseBody);
-//                                                InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
-//                                            } catch (Exception e) {
-//                                                BlueshiftLogger.e(LOG_TAG, e);
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            } catch (Exception e) {
-//                                BlueshiftLogger.e(LOG_TAG, e);
-//                            }
+                            try {
+                                HashMap<String, String> map = new HashMap<>();
 
-                            HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
-                            Response response = httpManager.get();
-                            if (response.getStatusCode() == 200) {
-                                String responseBody = response.getResponseBody();
-                                if (!TextUtils.isEmpty(responseBody)) {
-                                    try {
-                                        JSONArray inAppJsonArray = decodeResponse(responseBody);
-                                        InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
-                                    } catch (Exception e) {
-                                        BlueshiftLogger.e(LOG_TAG, e);
+                                // device id
+                                String deviceId = DeviceUtils.getAdvertisingID(context);
+                                if (deviceId != null) {
+                                    map.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+                                }
+
+                                // email
+                                String email = UserInfo.getInstance(context).getEmail();
+                                if (email != null) {
+                                    map.put(BlueshiftConstants.KEY_EMAIL, email);
+                                }
+
+                                // message uuid
+                                String uuid = InAppMessageStore.getInstance(context).getLastMessageUUID();
+                                if (uuid != null) {
+                                    map.put(Message.EXTRA_BSFT_MESSAGE_UUID, uuid);
+                                }
+
+                                HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
+
+                                String apiKey = BlueshiftUtils.getApiKey(context);
+                                if (apiKey != null) {
+                                    httpManager.addBasicAuthentication(apiKey, "");
+                                }
+
+                                String json = new Gson().toJson(map);
+                                BlueshiftLogger.d(LOG_TAG, "In-App API params: " + json);
+
+                                Response response = httpManager.post(json);
+                                if (response.getStatusCode() == 200) {
+                                    String responseBody = response.getResponseBody();
+                                    if (!TextUtils.isEmpty(responseBody)) {
+                                        try {
+                                            JSONArray inAppJsonArray = decodeResponse(responseBody);
+                                            InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
+                                        } catch (Exception e) {
+                                            BlueshiftLogger.e(LOG_TAG, e);
+                                        }
                                     }
                                 }
+                            } catch (Exception e) {
+                                BlueshiftLogger.e(LOG_TAG, e);
                             }
+
+//                            HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
+//                            Response response = httpManager.get();
+//                            if (response.getStatusCode() == 200) {
+//                                String responseBody = response.getResponseBody();
+//                                if (!TextUtils.isEmpty(responseBody)) {
+//                                    try {
+//                                        JSONArray inAppJsonArray = decodeResponse(responseBody);
+//                                        InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
+//                                    } catch (Exception e) {
+//                                        BlueshiftLogger.e(LOG_TAG, e);
+//                                    }
+//                                }
+//                            }
                         }
                     }
             );
