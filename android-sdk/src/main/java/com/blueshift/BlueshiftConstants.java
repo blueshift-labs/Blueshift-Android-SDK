@@ -18,6 +18,10 @@ public class BlueshiftConstants {
     public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
     public static final String IN_APP_API_URL = "https://api.getblueshift.com/live?slot=releasecheckinappandroid&email=testuser@getblueshift.com&x=5dfe3c9aee8b375bcc616079b08156d9";
 
+    public static String IN_APP_API_URL(String deviceId) {
+        return BASE_URL + "/inappmsg/" + (deviceId != null ? deviceId : "");
+    }
+
     /**
      * Event names sent to Blueshift server
      */
