@@ -237,6 +237,29 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         }
     }
 
+    String getLastMessageUUID() {
+        synchronized (_LOCK) {
+            String uuid = null;
+
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                String[] columns = new String[]{FIELD_MESSAGE_UUID};
+                Cursor cursor = db.query(getTableName(), columns, null, null, null, null, _ID + " DESC", ONE);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        uuid = cursor.getString(0);
+                    }
+
+                    cursor.close();
+                }
+
+                db.close();
+            }
+
+            return uuid;
+        }
+    }
+
     public void clean() {
         synchronized (_LOCK) {
             if (getTotalRecordCount() > 40) {
