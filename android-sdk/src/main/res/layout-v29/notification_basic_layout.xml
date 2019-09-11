@@ -24,7 +24,7 @@
         android:layout_height="18dp"
         android:layout_toEndOf="@id/notification_small_icon"
         android:gravity="center"
-        android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+        style="@style/TextAppearance.Compat.Notification.Info" />
 
     <TextView
         android:id="@+id/notification_sub_text"
@@ -32,7 +32,7 @@
         android:layout_height="18dp"
         android:layout_toEndOf="@id/notification_app_name_text"
         android:gravity="center"
-        android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+        style="@style/TextAppearance.Compat.Notification.Info" />
 
     <TextView
         android:id="@+id/notification_time"
@@ -42,7 +42,7 @@
         android:layout_toEndOf="@id/notification_sub_text"
         android:gravity="center"
         android:maxLines="1"
-        android:textAppearance="@style/TextAppearance.Compat.Notification.Time" />
+        style="@style/TextAppearance.Compat.Notification.Time" />
 
     <TextView
         android:id="@+id/notification_content_title"
@@ -52,7 +52,7 @@
         android:layout_marginTop="5dp"
         android:layout_toStartOf="@id/icon_group"
         android:gravity="center_vertical"
-        android:textAppearance="@style/TextAppearance.Compat.Notification.Title" />
+        style="@style/TextAppearance.Compat.Notification.Title" />
 
     <TextView
         android:id="@+id/notification_content_text"
@@ -61,7 +61,7 @@
         android:layout_below="@id/notification_content_title"
         android:layout_toStartOf="@id/icon_group"
         android:maxLines="1"
-        android:textAppearance="@style/TextAppearance.Compat.Notification.Line2" />
+        style="@style/TextAppearance.Compat.Notification.Line2" />
 
     <!--Notification icon group-->
 

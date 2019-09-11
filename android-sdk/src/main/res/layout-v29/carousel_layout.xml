@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:theme="@style/Theme.AppCompat.DayNight">
+    android:layout_height="match_parent">
 
     <include
         layout="@layout/notification_basic_layout"
@@ -61,11 +60,5 @@
             android:layout_marginStart="40dp" />
 
     </RelativeLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="@dimen/bs_notification_min_height"
-        android:background="#ededed" />
 
 </FrameLayout>
