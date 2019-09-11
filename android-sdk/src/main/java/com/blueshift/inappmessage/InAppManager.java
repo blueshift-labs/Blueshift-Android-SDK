@@ -129,6 +129,8 @@ public class InAppManager {
 
                                 String apiKey = BlueshiftUtils.getApiKey(context);
                                 if (apiKey != null) {
+                                    map.put(BlueshiftConstants.KEY_API_KEY, apiKey);
+
                                     httpManager.addBasicAuthentication(apiKey, "");
                                 }
 
