@@ -306,7 +306,9 @@ public class Blueshift {
         }
         // pull latest font from server
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
-        InAppManager.fetchInAppFromServer(mContext);
+
+        // TODO: 2019-09-12 uncomment when api is ready.
+        // InAppManager.fetchInAppFromServer(mContext);
     }
 
     /**
