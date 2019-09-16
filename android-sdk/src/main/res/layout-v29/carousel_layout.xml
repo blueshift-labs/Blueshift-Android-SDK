@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+        layout="@layout/notification_basic_layout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bs_notification_min_height" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bs_notification_big_pic_height"
+        android:layout_marginTop="@dimen/bs_notification_min_height">
+
+        <ImageView
+            android:id="@+id/big_picture"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/big_picture"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/animated_carousel_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/prev_button"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@color/bs_notification_btn_bg"
+            android:contentDescription="@string/carousel_prev_button"
+            android:src="@drawable/bs_carousel_previous"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/next_button"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@color/bs_notification_btn_bg"
+            android:contentDescription="@string/carousel_next_button"
+            android:src="@drawable/bs_carousel_next"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/carousel_overlay_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="40dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:layout_marginStart="40dp" />
+
+    </RelativeLayout>
+
+</FrameLayout>
