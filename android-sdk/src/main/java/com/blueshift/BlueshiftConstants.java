@@ -16,7 +16,6 @@ public class BlueshiftConstants {
     public static final String V1_API_URL = BASE_URL + "/api/v1";
     public static final String EVENT_API_URL = V1_API_URL + "/event";
     public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
-    //    public static final String IN_APP_API_URL = "https://api.getblueshift.com/live?slot=releasecheckinappandroid&email=testuser@getblueshift.com&x=5dfe3c9aee8b375bcc616079b08156d9";
     public static final String IN_APP_API_URL = BASE_URL + "/inapp/msg";
 
     /**
