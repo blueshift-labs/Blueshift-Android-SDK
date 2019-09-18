@@ -14,7 +14,7 @@ import java.io.File;
 public class InAppMessageIconFont {
     private static final Boolean _LOCK = false;
     private static final String TAG = "InAppMessageIconFont";
-    private static final String FILE_NAME = "FontAwesome.otf";
+    private static final String FILE_NAME = "Font+Awesome+5+Free-Solid-900.otf";
     private static Typeface sFontAwesomeFont = null;
     private static InAppMessageIconFont sInstance = null;
 
@@ -58,8 +58,7 @@ public class InAppMessageIconFont {
                 synchronized (_LOCK) {
                     try {
                         // download
-                        // todo: remove static URL
-                        String source = "https://firebasestorage.googleapis.com/v0/b/cargonex-6251f.appspot.com/o/" + FILE_NAME + "?alt=media&token=da8d5411-04dd-47a3-a4a8-be76603ca117";
+                        String source = "https://bsftassets.s3-us-west-2.amazonaws.com/inapp/" + FILE_NAME;
                         File fontFile = getFontFile(context);
 
                         NetworkUtils.downloadFile(source, fontFile.getAbsolutePath());
