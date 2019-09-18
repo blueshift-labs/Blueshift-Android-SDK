@@ -31,7 +31,7 @@ ext {
 // ANDROID
 // =================================================================================================
 android {
-    compileSdkVersion 27
+    compileSdkVersion 29
     buildToolsVersion "27.0.2"
 
     defaultConfig {
