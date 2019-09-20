@@ -45,6 +45,9 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
             Message message = (Message) extraBundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
             if (message != null) {
                 try {
+                    // mark 'click'
+                    Blueshift.getInstance(this).trackNotificationClick(message);
+
                     Intent intent;
 
                     if (TextUtils.isEmpty(action)) {
@@ -69,6 +72,9 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
                     // start the activity
                     startActivity(intent);
 
+                    // mark 'app_open'
+                    Blueshift.getInstance(this).trackNotificationPageOpen(message, false);
+
                     // remove cached images(if any) for this notification
                     NotificationUtils.removeCachedCarouselImages(this, message);
 
@@ -79,8 +85,6 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
                         int notificationID = intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0);
                         notificationManager.cancel(notificationID);
                     }
-
-                    Blueshift.getInstance(this).trackNotificationClick(message);
 
                     sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
                 } catch (Exception e) {
