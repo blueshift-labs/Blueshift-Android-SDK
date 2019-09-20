@@ -2,7 +2,12 @@ package com.blueshift.util;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -23,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 
 /**
  * A class with helper methods to show custom notification.
@@ -306,5 +312,167 @@ public class NotificationUtils {
         Log.d(LOG_TAG, "Notification Channel Creation - " + (channel != null ? "Done!" : "Failed!"));
 
         return channel;
+    }
+
+    /**
+     * Check if user has defined an activity to handle clicks. if yes, launch that first.
+     * The check is made by searching for activities with intent filters that has the below action.
+     * com.blueshift.NOTIFICATION_CLICK_EVENT
+     *
+     * @param context Application's context to get stack
+     * @return Valid intent object to launch
+     */
+    public static Intent getUserDefinedNotificationEventsActivity(Context context) {
+        Intent intent = null;
+
+        if (context != null) {
+            // search for service that handles notification clicks (custom or built-in)
+            Intent activityIntent = new Intent();
+            activityIntent.setAction("com.blueshift.NOTIFICATION_CLICK_EVENT");
+            activityIntent.setPackage(context.getPackageName());
+
+            PackageManager packageManager = context.getPackageManager();
+            List<ResolveInfo> resInfo = packageManager.queryIntentActivities(activityIntent, 0);
+            if (!resInfo.isEmpty()) {
+                // read default service
+                ActivityInfo activityInfo;
+
+                // check if service is overridden
+                if (resInfo.size() == 1) {
+                    activityInfo = resInfo.get(0).activityInfo;
+                } else {
+                    Log.d(LOG_TAG, "Declared more than one activity to receive this action.");
+
+                    // consider adding backup activity info here if needed.
+                    activityInfo = null;
+                }
+
+                if (activityInfo != null) {
+                    ComponentName cmpActivity = new ComponentName(
+                            activityInfo.applicationInfo.packageName, activityInfo.name);
+
+                    intent = new Intent();
+                    intent.setComponent(cmpActivity);
+                }
+            }
+        }
+
+        return intent;
+    }
+
+    /**
+     * Get the activity marked as cart activity inside the configuration object with extras
+     *
+     * @param context Application's context to get configuration object
+     * @param message Message object to get values required to add inside bundle
+     * @return Valid intent object to launch
+     */
+    public static Intent getAddToCartActivityIntent(Context context, Message message) {
+        Intent pageLauncherIntent = null;
+
+        if (message != null && context != null) {
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
+            if (configuration != null && configuration.getCartPage() != null) {
+                pageLauncherIntent = new Intent(context, configuration.getCartPage());
+                // add product specific items.
+                pageLauncherIntent.putExtra("product_id", message.getProductId());
+                pageLauncherIntent.putExtra("mrp", message.getMrp());
+                pageLauncherIntent.putExtra("price", message.getPrice());
+                pageLauncherIntent.putExtra("data", message.getData());
+            } else {
+                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+            }
+        }
+
+        return pageLauncherIntent;
+    }
+
+    /**
+     * Get the activity marked as cart activity inside the configuration object
+     *
+     * @param context Application's context to get configuration object
+     * @param message Message object to get values required to add inside bundle
+     * @return Valid intent object to launch
+     */
+    public static Intent getViewCartActivityIntent(Context context, Message message) {
+        Intent pageLauncherIntent = null;
+
+        if (message != null && context != null) {
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
+            if (configuration != null && configuration.getCartPage() != null) {
+                pageLauncherIntent = new Intent(context, configuration.getCartPage());
+            } else {
+                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+            }
+        }
+
+        return pageLauncherIntent;
+    }
+
+    /**
+     * Get the activity marked as product details activity inside the configuration object with extras
+     *
+     * @param context Application's context to get configuration object
+     * @param message Message object to get values required to add inside bundle
+     * @return Valid intent object to launch
+     */
+    public static Intent getViewProductActivityIntent(Context context, Message message) {
+        Intent pageLauncherIntent = null;
+
+        if (message != null && context != null) {
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
+            if (configuration != null && configuration.getProductPage() != null) {
+                pageLauncherIntent = new Intent(context, configuration.getProductPage());
+                // add product specific items.
+                pageLauncherIntent.putExtra("product_id", message.getProductId());
+                pageLauncherIntent.putExtra("mrp", message.getMrp());
+                pageLauncherIntent.putExtra("price", message.getPrice());
+                pageLauncherIntent.putExtra("data", message.getData());
+            } else {
+                Log.i(LOG_TAG, "Could not find product activity class inside configuration. Opening MAIN activity.");
+            }
+        }
+
+        return pageLauncherIntent;
+    }
+
+    /**
+     * Get the activity marked as offer display activity inside the configuration object
+     *
+     * @param context Application's context to get configuration object
+     * @param message Message object to get values required to add inside bundle
+     * @return Valid intent object to launch
+     */
+    public static Intent getViewOffersActivityIntent(Context context, Message message) {
+        Intent pageLauncherIntent = null;
+
+        if (message != null && context != null) {
+            Configuration configuration = BlueshiftUtils.getConfiguration(context);
+            if (configuration != null && configuration.getOfferDisplayPage() != null) {
+                pageLauncherIntent = new Intent(context, configuration.getOfferDisplayPage());
+            } else {
+                Log.i(LOG_TAG, "Could not find offer's page activity class inside configuration. Opening MAIN activity.");
+            }
+        }
+
+        return pageLauncherIntent;
+    }
+
+    /**
+     * Get the activity marked as LAUNCHER in the AndroidManifest.xml
+     *
+     * @param context Application's context to get configuration object
+     * @param message Message object to get values required to add inside bundle
+     * @return Valid intent object to launch
+     */
+    public static Intent getOpenAppIntent(Context context, Message message) {
+        Intent launcherIntent = null;
+
+        if (message != null && context != null) {
+            PackageManager packageManager = context.getPackageManager();
+            launcherIntent = packageManager.getLaunchIntentForPackage(context.getPackageName());
+        }
+
+        return launcherIntent;
     }
 }

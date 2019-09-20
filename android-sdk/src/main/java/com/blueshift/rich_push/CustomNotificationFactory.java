@@ -10,7 +10,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -678,30 +680,36 @@ class CustomNotificationFactory {
      * @return {@link PendingIntent}
      */
     private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element, int notificationId) {
-        String action;
+        String action = RichPushConstants.ACTION_OPEN_APP(context); // default is OPEN_APP
+
+        Bundle bundle = new Bundle();
+        bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
+        bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
+        bundle.putSerializable(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
 
         if (element.isDeepLinkingEnabled()) {
-            action = RichPushConstants.ACTION_OPEN_APP(context);
+            bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
         } else {
             action = RichPushConstants.buildAction(context, element.getAction());
         }
 
-        Intent bcIntent = new Intent(context, BlueshiftNotificationEventsActivity.class);
-        bcIntent.setAction(action);
-
-        bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
-        bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-        bcIntent.putExtra(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
-
-        if (element.isDeepLinkingEnabled()) {
-            bcIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
+        // check if user has his own implementation
+        Intent intent = NotificationUtils.getUserDefinedNotificationEventsActivity(context);
+        if (intent == null) {
+            // if not use sdk's activity
+            intent = new Intent(context, BlueshiftNotificationEventsActivity.class);
         }
 
-        return PendingIntent.getActivity(
-                context,
+        intent.setAction(action);
+        intent.putExtras(bundle);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addNextIntentWithParentStack(intent);
+
+        return stackBuilder.getPendingIntent(
                 NotificationFactory.getRandomPIRequestCode(),
-                bcIntent,
-                PendingIntent.FLAG_ONE_SHOT);
+                PendingIntent.FLAG_ONE_SHOT
+        );
     }
 
     /**

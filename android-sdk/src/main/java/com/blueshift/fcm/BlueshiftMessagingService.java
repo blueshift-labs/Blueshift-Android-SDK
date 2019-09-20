@@ -107,7 +107,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         titleText = packageManager.getApplicationLabel(info).toString();
                     }
                 } catch (PackageManager.NameNotFoundException e) {
-                    Log.e(LOG_TAG, e.getMessage());
+                    Log.e(LOG_TAG, String.valueOf(e.getMessage()));
                 }
             }
 
@@ -190,7 +190,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                              */
                             SdkLog.i(LOG_TAG, "A silent push received.");
                         } else {
-                            NotificationFactory.handleMessage(this, message);
+                            NotificationFactory.handleMessage(getApplicationContext(), message);
                         }
                     } else {
                         Log.e(LOG_TAG, "Null message found in push message.");
