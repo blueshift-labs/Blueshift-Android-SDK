@@ -12,13 +12,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
-import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
@@ -372,34 +372,33 @@ public class NotificationFactory {
         return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
-    public static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message, int notificationId) {
+    static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message, int notificationId) {
         // if deep link url is available, despite the fact that we have a category based action,
         // we will use the open app action to launch app and pass the deep link url to it.
         if (TextUtils.isEmpty(action) || (message != null && message.isDeepLinkingEnabled())) {
             action = RichPushConstants.ACTION_OPEN_APP(context);
         }
 
-        Intent bcIntent = new Intent(context, BlueshiftNotificationEventsActivity.class);
-        bcIntent.setAction(action);
+        // set extra params
+        Bundle bundle = new Bundle();
+        bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
         if (message != null) {
-            bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
-            bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+            bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
 
-            // add deep link URL if available.
             if (message.isDeepLinkingEnabled()) {
-                bcIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, message.getDeepLinkUrl());
+                bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, message.getDeepLinkUrl());
             }
         }
 
-//        return PendingIntent.getBroadcast(context,
-//                NotificationFactory.getRandomPIRequestCode(), bcIntent, PendingIntent.FLAG_ONE_SHOT);
-
+        // get the activity to handle clicks (user defined or sdk defined
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
         return PendingIntent.getActivity(
                 context,
                 NotificationFactory.getRandomPIRequestCode(),
-                bcIntent,
-                PendingIntent.FLAG_ONE_SHOT);
+                intent,
+                PendingIntent.FLAG_ONE_SHOT
+        );
     }
 
     // [END] PendingIntent builder methods.

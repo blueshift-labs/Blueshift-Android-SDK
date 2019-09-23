@@ -25,7 +25,7 @@ import com.blueshift.util.SdkLog;
  *         https://github.com/rahulrvp
  */
 
-
+@Deprecated
 public class BlueshiftNotificationEventsService extends IntentService {
 
     private static final String LOG_TAG = "NotificationEvents";

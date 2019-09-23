@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -21,7 +22,6 @@ import android.widget.RemoteViews;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
-import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
@@ -370,8 +370,13 @@ class CustomNotificationFactory {
                         // set icon color
                         int bgColor = configuration.getNotificationColor();
                         if (bgColor != 0) {
+                            bgColor |= 0xFF000000; // no alpha for custom colors (AOSP)
                             contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
-                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+
+                            // after version OREO, text color isn't changing.
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                                contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                            }
                         }
                     } else {
                         contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
@@ -404,8 +409,13 @@ class CustomNotificationFactory {
                         // set icon color
                         int bgColor = configuration.getNotificationColor();
                         if (bgColor != 0) {
+                            bgColor |= 0xFF000000; // no alpha for custom colors (AOSP)
                             contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
-                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+
+                            // after version OREO, text color isn't changing.
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                                contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                            }
                         }
                     }
                 } else {
@@ -497,9 +507,11 @@ class CustomNotificationFactory {
              */
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 // bigger text size on N+ devices for content text
-                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, 14);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, 14);
+                } else {
+                    contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
+                }
             }
 
             /*
@@ -678,30 +690,27 @@ class CustomNotificationFactory {
      * @return {@link PendingIntent}
      */
     private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element, int notificationId) {
-        String action;
+        String action = RichPushConstants.ACTION_OPEN_APP(context); // default is OPEN_APP
+
+        Bundle bundle = new Bundle();
+        bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
+        bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
+        bundle.putSerializable(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
 
         if (element.isDeepLinkingEnabled()) {
-            action = RichPushConstants.ACTION_OPEN_APP(context);
+            bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
         } else {
             action = RichPushConstants.buildAction(context, element.getAction());
         }
 
-        Intent bcIntent = new Intent(context, BlueshiftNotificationEventsActivity.class);
-        bcIntent.setAction(action);
-
-        bcIntent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
-        bcIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-        bcIntent.putExtra(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
-
-        if (element.isDeepLinkingEnabled()) {
-            bcIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
-        }
-
+        // get the activity to handle clicks (user defined or sdk defined
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
         return PendingIntent.getActivity(
                 context,
                 NotificationFactory.getRandomPIRequestCode(),
-                bcIntent,
-                PendingIntent.FLAG_ONE_SHOT);
+                intent,
+                PendingIntent.FLAG_ONE_SHOT
+        );
     }
 
     /**
