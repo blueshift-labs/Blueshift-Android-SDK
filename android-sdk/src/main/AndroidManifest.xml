@@ -19,9 +19,6 @@
         <activity
             android:name=".pn.BlueshiftNotificationEventsActivity"
             android:configChanges="orientation|screenSize"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:taskAffinity=":BsftNotificationEventActivity"
             android:theme="@style/TransparentActivity" />
 
         <!--Events batching-->

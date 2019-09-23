@@ -11,6 +11,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -18,6 +19,7 @@ import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
+import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
@@ -315,6 +317,33 @@ public class NotificationUtils {
     }
 
     /**
+     * Checks for the activity responsible for handling notification clicks based on the action.
+     *
+     * @param context context object to create intent
+     * @param action  action string
+     * @param extras  extra params as bundle
+     * @return Intent object to launch activity.
+     */
+    public static Intent getNotificationEventsActivity(Context context, String action, Bundle extras) {
+        // check if user has his own implementation
+        Intent intent = NotificationUtils.getUserDefinedNotificationEventsActivity(context);
+        if (intent == null) {
+            // if not use sdk's activity
+            intent = new Intent(context, BlueshiftNotificationEventsActivity.class);
+        }
+
+        if (!TextUtils.isEmpty(action)) {
+            intent.setAction(action);
+        }
+
+        if (extras != null) {
+            intent.putExtras(extras);
+        }
+
+        return intent;
+    }
+
+    /**
      * Check if user has defined an activity to handle clicks. if yes, launch that first.
      * The check is made by searching for activities with intent filters that has the below action.
      * com.blueshift.NOTIFICATION_CLICK_EVENT
@@ -322,7 +351,7 @@ public class NotificationUtils {
      * @param context Application's context to get stack
      * @return Valid intent object to launch
      */
-    public static Intent getUserDefinedNotificationEventsActivity(Context context) {
+    private static Intent getUserDefinedNotificationEventsActivity(Context context) {
         Intent intent = null;
 
         if (context != null) {

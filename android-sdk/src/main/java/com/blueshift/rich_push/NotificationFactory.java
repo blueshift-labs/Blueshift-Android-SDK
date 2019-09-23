@@ -14,13 +14,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.model.Configuration;
-import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
@@ -381,16 +379,6 @@ public class NotificationFactory {
             action = RichPushConstants.ACTION_OPEN_APP(context);
         }
 
-        // check if user has his own implementation
-        Intent intent = NotificationUtils.getUserDefinedNotificationEventsActivity(context);
-        if (intent == null) {
-            // if not use sdk's activity
-            intent = new Intent(context, BlueshiftNotificationEventsActivity.class);
-        }
-
-        // set action
-        intent.setAction(action);
-
         // set extra params
         Bundle bundle = new Bundle();
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
@@ -403,13 +391,12 @@ public class NotificationFactory {
             }
         }
 
-        intent.putExtras(bundle);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addNextIntentWithParentStack(intent);
-
-        return stackBuilder.getPendingIntent(
+        // get the activity to handle clicks (user defined or sdk defined
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
+        return PendingIntent.getActivity(
+                context,
                 NotificationFactory.getRandomPIRequestCode(),
+                intent,
                 PendingIntent.FLAG_ONE_SHOT
         );
     }

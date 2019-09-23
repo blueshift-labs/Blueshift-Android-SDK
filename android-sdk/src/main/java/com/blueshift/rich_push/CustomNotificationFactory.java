@@ -12,7 +12,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -23,7 +22,6 @@ import android.widget.RemoteViews;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
-import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 import com.blueshift.util.SdkLog;
@@ -372,8 +370,13 @@ class CustomNotificationFactory {
                         // set icon color
                         int bgColor = configuration.getNotificationColor();
                         if (bgColor != 0) {
+                            bgColor |= 0xFF000000; // no alpha for custom colors (AOSP)
                             contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
-                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+
+                            // after version OREO, text color isn't changing.
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                                contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                            }
                         }
                     } else {
                         contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
@@ -406,8 +409,13 @@ class CustomNotificationFactory {
                         // set icon color
                         int bgColor = configuration.getNotificationColor();
                         if (bgColor != 0) {
+                            bgColor |= 0xFF000000; // no alpha for custom colors (AOSP)
                             contentView.setInt(R.id.notification_small_icon, "setColorFilter", bgColor);
-                            contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+
+                            // after version OREO, text color isn't changing.
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                                contentView.setInt(R.id.notification_app_name_text, "setTextColor", bgColor);
+                            }
                         }
                     }
                 } else {
@@ -499,9 +507,11 @@ class CustomNotificationFactory {
              */
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 // bigger text size on N+ devices for content text
-                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, 14);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, 14);
+                } else {
+                    contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
+                }
             }
 
             /*
@@ -693,21 +703,12 @@ class CustomNotificationFactory {
             action = RichPushConstants.buildAction(context, element.getAction());
         }
 
-        // check if user has his own implementation
-        Intent intent = NotificationUtils.getUserDefinedNotificationEventsActivity(context);
-        if (intent == null) {
-            // if not use sdk's activity
-            intent = new Intent(context, BlueshiftNotificationEventsActivity.class);
-        }
-
-        intent.setAction(action);
-        intent.putExtras(bundle);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addNextIntentWithParentStack(intent);
-
-        return stackBuilder.getPendingIntent(
+        // get the activity to handle clicks (user defined or sdk defined
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
+        return PendingIntent.getActivity(
+                context,
                 NotificationFactory.getRandomPIRequestCode(),
+                intent,
                 PendingIntent.FLAG_ONE_SHOT
         );
     }
