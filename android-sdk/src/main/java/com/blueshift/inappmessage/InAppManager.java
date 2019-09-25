@@ -2,8 +2,6 @@ package com.blueshift.inappmessage;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Handler;
@@ -31,13 +29,11 @@ import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.InAppUtils;
 import com.blueshift.util.NetworkUtils;
-import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.HashMap;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -105,36 +101,31 @@ public class InAppManager {
                         public void run() {
                             // TODO: 2019-09-10 expected api call.
                             try {
-                                HashMap<String, String> map = new HashMap<>();
+                                JSONObject params = new JSONObject();
+
+                                // api key
+                                String apiKey = BlueshiftUtils.getApiKey(context);
+                                params.put(BlueshiftConstants.KEY_API_KEY, apiKey != null ? apiKey : "");
 
                                 // device id
                                 String deviceId = DeviceUtils.getAdvertisingID(context);
-                                if (deviceId != null) {
-                                    map.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
-                                }
+                                params.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId != null ? deviceId : "");
 
                                 // email
                                 String email = UserInfo.getInstance(context).getEmail();
-                                if (email != null) {
-                                    map.put(BlueshiftConstants.KEY_EMAIL, email);
-                                }
+                                params.put(BlueshiftConstants.KEY_EMAIL, email != null ? email : "");
 
                                 // message uuid
                                 String uuid = InAppMessageStore.getInstance(context).getLastMessageUUID();
-                                if (uuid != null) {
-                                    map.put(Message.EXTRA_BSFT_MESSAGE_UUID, uuid);
-                                }
+                                params.put(Message.EXTRA_BSFT_MESSAGE_UUID, uuid != null ? uuid : "");
 
                                 HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
 
-                                String apiKey = BlueshiftUtils.getApiKey(context);
                                 if (apiKey != null) {
-                                    map.put(BlueshiftConstants.KEY_API_KEY, apiKey);
-
                                     httpManager.addBasicAuthentication(apiKey, "");
                                 }
 
-                                String json = new Gson().toJson(map);
+                                String json = params.toString();
                                 BlueshiftLogger.d(LOG_TAG, "In-App API params: " + json);
 
                                 Response response = httpManager.post(json);
@@ -152,20 +143,6 @@ public class InAppManager {
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
                             }
-
-//                            HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
-//                            Response response = httpManager.get();
-//                            if (response.getStatusCode() == 200) {
-//                                String responseBody = response.getResponseBody();
-//                                if (!TextUtils.isEmpty(responseBody)) {
-//                                    try {
-//                                        JSONArray inAppJsonArray = decodeResponse(responseBody);
-//                                        InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
-//                                    } catch (Exception e) {
-//                                        BlueshiftLogger.e(LOG_TAG, e);
-//                                    }
-//                                }
-//                            }
                         }
                     }
             );
@@ -191,18 +168,18 @@ public class InAppManager {
         try {
             if (inAppContentArray != null) {
                 int len = inAppContentArray.length();
-                for (int i = 0; i < len; i++) {
-                    JSONObject content = inAppContentArray.getJSONObject(i);
-                    if (content != null) {
-                        JSONObject inApp = content.optJSONObject("data");
-                        if (inApp != null) {
-                            InAppMessage message = InAppMessage.getInstance(inApp);
-                            InAppManager.onInAppMessageReceived(context, message);
+                if (len > 0) {
+                    for (int i = 0; i < len; i++) {
+                        JSONObject content = inAppContentArray.getJSONObject(i);
+                        if (content != null) {
+                            JSONObject inApp = content.optJSONObject("data");
+                            if (inApp != null) {
+                                InAppMessage message = InAppMessage.getInstance(inApp);
+                                InAppManager.onInAppMessageReceived(context, message);
+                            }
                         }
                     }
-                }
 
-                if (len > 0) {
                     InAppManager.invokeTriggers();
                 } else {
                     Log.d(LOG_TAG, "No items found inside 'content'.");
@@ -467,30 +444,6 @@ public class InAppManager {
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft);
     }
 
-    private static boolean isOurAppRunning(Context context) {
-        if (context != null) {
-            ComponentName topActivity = getCurrentActivity(context);
-            if (topActivity != null) {
-                Log.d(LOG_TAG, "Component pkg name: " + topActivity.getPackageName());
-                Log.d(LOG_TAG, "App pkg name: " + context.getPackageName());
-                return topActivity.getPackageName().equals(context.getPackageName());
-            }
-        }
-
-        return false;
-    }
-
-    private static ComponentName getCurrentActivity(Context context) {
-        if (context != null) {
-            ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            if (am != null) {
-                return am.getRunningTasks(1).get(0).topActivity;
-            }
-        }
-
-        return null;
-    }
-
     private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
@@ -515,7 +468,7 @@ public class InAppManager {
 
     private static boolean buildAndShowAlertDialog(
             final Context context, final InAppMessage inAppMessage, final View content, final int theme) {
-        if (isOurAppRunning(context)) {
+        if (mActivity != null && !mActivity.isFinishing()) {
             if (mDialog == null || !mDialog.isShowing()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
                 builder.setView(content);
@@ -565,7 +518,7 @@ public class InAppManager {
                 Log.d(LOG_TAG, "Already an in-app is in display.");
             }
         } else {
-            Log.d(LOG_TAG, "All is not running in foreground.");
+            Log.d(LOG_TAG, "App is not running in foreground.");
         }
 
         return false;

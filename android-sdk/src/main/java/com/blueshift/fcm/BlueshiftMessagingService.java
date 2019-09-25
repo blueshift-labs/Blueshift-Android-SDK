@@ -32,6 +32,8 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import org.json.JSONObject;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -257,12 +259,18 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     private void logPayload(Map<String, String> map) {
         if (map != null) {
-            Set<String> keySet = map.keySet();
-            Log.d(LOG_TAG, "******** Push Payload - Start ********");
-            for (String key : keySet) {
-                Log.d(LOG_TAG, key + " ==> " + map.get(key));
+            try {
+                Set<String> keySet = map.keySet();
+                JSONObject jsonObject = new JSONObject();
+                for (String key : keySet) {
+                    jsonObject.put(key, map.get(key));
+                }
+
+                BlueshiftLogger.d(LOG_TAG, "Push payload received:" +
+                        "\n" + jsonObject.toString(2));
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
             }
-            Log.d(LOG_TAG, "******** Push Payload - End ********");
         }
     }
 
