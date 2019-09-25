@@ -341,24 +341,21 @@ public abstract class InAppMessageView extends RelativeLayout {
             if (action != null) {
                 String activityName = action.optString(InAppConstants.PAGE);
                 if (!TextUtils.isEmpty(activityName)) {
-                    String pkgName = getContext().getPackageName();
-                    if (!TextUtils.isEmpty(pkgName)) {
-                        Class<?> clazz = Class.forName(pkgName + "." + activityName);
-                        Intent launcher = new Intent(getContext(), clazz);
+                    Class<?> clazz = Class.forName(activityName);
+                    Intent launcher = new Intent(getContext(), clazz);
 
-                        JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);
-                        if (extras != null) {
-                            Iterator<String> keys = extras.keys();
-                            while (keys.hasNext()) {
-                                String key = keys.next();
-                                String val = extras.optString(key);
-                                launcher.putExtra(key, val);
-                            }
-
+                    JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);
+                    if (extras != null) {
+                        Iterator<String> keys = extras.keys();
+                        while (keys.hasNext()) {
+                            String key = keys.next();
+                            String val = extras.optString(key);
+                            launcher.putExtra(key, val);
                         }
 
-                        getContext().startActivity(launcher);
                     }
+
+                    getContext().startActivity(launcher);
                 }
             }
         } catch (Exception e) {
