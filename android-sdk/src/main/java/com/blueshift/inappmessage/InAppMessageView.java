@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -245,8 +246,8 @@ public abstract class InAppMessageView extends RelativeLayout {
             listener = new OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    // open activity
-                    startActivity(action);
+                    // open
+                    open(action);
 
                     // dismiss dialog
                     onDismiss(getInAppMessage(), actionName);
@@ -336,31 +337,60 @@ public abstract class InAppMessageView extends RelativeLayout {
         }
     }
 
-    private void startActivity(JSONObject action) {
+    private void open(JSONObject action) {
         try {
             if (action != null) {
-                String activityName = action.optString(InAppConstants.PAGE);
-                if (!TextUtils.isEmpty(activityName)) {
-                    Class<?> clazz = Class.forName(activityName);
-                    Intent launcher = new Intent(getContext(), clazz);
+                String link = action.optString(InAppConstants.ANDROID_LINK);
+                if (!TextUtils.isEmpty(link)) {
+                    BlueshiftLogger.d(TAG, "deep-link: " + link);
 
                     JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);
+                    Bundle bundle = null;
                     if (extras != null) {
+                        bundle = new Bundle();
                         Iterator<String> keys = extras.keys();
                         while (keys.hasNext()) {
                             String key = keys.next();
                             String val = extras.optString(key);
-                            launcher.putExtra(key, val);
+                            bundle.putString(key, val);
                         }
-
                     }
 
-                    getContext().startActivity(launcher);
+                    try {
+                        openLink(link, bundle);
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(TAG, e);
+
+                        try {
+                            openActivity(link, bundle);
+                        } catch (Exception ex) {
+                            BlueshiftLogger.e(TAG, ex);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
+    }
+
+    private void openLink(String link, Bundle extras) {
+        Uri linkUri = Uri.parse(link);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(linkUri);
+        if (extras != null) {
+            intent.putExtras(extras);
+        }
+        getContext().startActivity(intent);
+    }
+
+    private void openActivity(String className, Bundle extras) throws ClassNotFoundException {
+        Class<?> clazz = Class.forName(className);
+        Intent intent = new Intent(getContext(), clazz);
+        if (extras != null) {
+            intent.putExtras(extras);
+        }
+        getContext().startActivity(intent);
     }
 
     public LinearLayout getActionButtons(InAppMessage inAppMessage) {

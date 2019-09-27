@@ -41,7 +41,7 @@ public class InAppConstants {
     public static final String BANNER = "banner";
     public static final String ICON = "icon";
     public static final String TITLE = "title";
-    public static final String PAGE = "page";
+    public static final String ANDROID_LINK = "android_link";
     public static final String EXTRAS = "extras";
     public static final String SHAREABLE_TEXT = "shareable_text";
 
