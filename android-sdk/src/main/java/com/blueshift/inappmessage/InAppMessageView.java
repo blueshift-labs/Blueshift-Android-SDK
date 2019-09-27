@@ -378,6 +378,8 @@ public abstract class InAppMessageView extends RelativeLayout {
         Uri linkUri = Uri.parse(link);
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(linkUri);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
         if (extras != null) {
             intent.putExtras(extras);
         }
