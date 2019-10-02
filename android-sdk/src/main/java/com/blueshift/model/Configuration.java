@@ -25,6 +25,7 @@ public class Configuration {
     private int smallIconResId;
     private int largeIconResId;
     private int notificationColor;
+    private boolean pushEnabled = true;
     private String defaultNotificationChannelId;
     private String defaultNotificationChannelName;
     private String defaultNotificationChannelDescription;
@@ -192,5 +193,13 @@ public class Configuration {
      */
     public void setEnableAutoAppOpenFiring(boolean enableAutoAppOpen) {
         this.enableAutoAppOpen = enableAutoAppOpen;
+    }
+
+    public boolean isPushEnabled() {
+        return pushEnabled;
+    }
+
+    public void setPushEnabled(boolean pushEnabled) {
+        this.pushEnabled = pushEnabled;
     }
 }

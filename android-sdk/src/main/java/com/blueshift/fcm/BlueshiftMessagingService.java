@@ -44,6 +44,10 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        // check if push is enabled. if not, skip the received push.
+        Configuration config = BlueshiftUtils.getConfiguration(this);
+        if (config == null || !config.isPushEnabled()) return;
+
         RemoteMessage.Notification notification = remoteMessage.getNotification();
 
         /*
@@ -103,9 +107,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             if (TextUtils.isEmpty(titleText)) {
                 try {
                     ApplicationInfo info = packageManager.getApplicationInfo(getPackageName(), 0);
-                    if (info != null) {
-                        titleText = packageManager.getApplicationLabel(info).toString();
-                    }
+                    titleText = packageManager.getApplicationLabel(info).toString();
                 } catch (PackageManager.NameNotFoundException e) {
                     Log.e(LOG_TAG, String.valueOf(e.getMessage()));
                 }
