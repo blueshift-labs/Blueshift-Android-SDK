@@ -548,7 +548,7 @@ public class InAppManager {
                     @Override
                     public void run() {
                         String htmlContent = inAppMessage.getContentString(InAppConstants.HTML);
-                        if (!TextUtils.isDigitsOnly(htmlContent)) {
+                        if (!TextUtils.isEmpty(htmlContent)) {
                             WebView webView = new WebView(context);
 
                             // taking consent from dev to enable js
@@ -557,7 +557,7 @@ public class InAppManager {
                                 webView.getSettings().setJavaScriptEnabled(true);
                             }
 
-                            webView.loadData(htmlContent, "text/html; charset=UTF-8", null);
+                            webView.loadData(CommonUtils.getBase64(htmlContent), "text/html; charset=UTF-8", "base64");
                         }
                     }
                 });

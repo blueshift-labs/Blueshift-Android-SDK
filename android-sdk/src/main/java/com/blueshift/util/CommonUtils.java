@@ -3,6 +3,7 @@ package com.blueshift.util;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.util.Base64;
 import android.util.TypedValue;
 
 import java.text.SimpleDateFormat;
@@ -49,5 +50,15 @@ public class CommonUtils {
 
     public static String formatMilliseconds(long milliseconds) {
         return new SimpleDateFormat("dd/MMM/yyyy hh:mm:ss aa", Locale.getDefault()).format(milliseconds);
+    }
+
+    public static String getBase64(String input) {
+        String output = null;
+
+        if (input != null) {
+            output = Base64.encodeToString(input.getBytes(), Base64.DEFAULT);
+        }
+
+        return output;
     }
 }

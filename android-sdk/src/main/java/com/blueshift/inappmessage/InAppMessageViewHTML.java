@@ -16,6 +16,7 @@ import android.webkit.WebViewClient;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
@@ -40,7 +41,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
             }
 
             webView.setWebViewClient(new InAppWebViewClient());
-            webView.loadData(htmlContent, "text/html; charset=UTF-8", null);
+            webView.loadData(CommonUtils.getBase64(htmlContent), "text/html; charset=UTF-8", "base64");
 
             webView.setLayoutParams(new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
