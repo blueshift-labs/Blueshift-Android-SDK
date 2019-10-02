@@ -165,18 +165,21 @@ public class Blueshift {
         getLiveContentByCustomerId(slot, null, callback);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void getLiveContentByEmail(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
         new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
                 .execute();
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void getLiveContentByDeviceId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
         new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
                 .execute();
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void getLiveContentByCustomerId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
         new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
                 .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
@@ -190,10 +193,7 @@ public class Blueshift {
      */
     private HashMap<String, Object> getDeviceParams() {
         synchronized (sDeviceParams) {
-            HashMap<String, Object> params = new HashMap<>();
-            params.putAll(sDeviceParams);
-
-            return params;
+            return new HashMap<>(sDeviceParams);
         }
     }
 
@@ -217,7 +217,9 @@ public class Blueshift {
 
         new FetchAndUpdateAdIdTask().execute();
 
-        updateFCMToken();
+        if (mConfiguration != null && mConfiguration.isPushEnabled()) {
+            updateFCMToken();
+        }
     }
 
     private void initAppInfo(Context context) {
@@ -1186,7 +1188,7 @@ public class Blueshift {
             mCallback = callback;
         }
 
-        public FetchLiveContentTask setUniqueKey(String uniqueKey) {
+        FetchLiveContentTask setUniqueKey(String uniqueKey) {
             mUniqueKey = uniqueKey;
 
             return this;

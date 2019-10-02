@@ -14,6 +14,7 @@ import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
+import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
@@ -58,7 +59,17 @@ class RequestDispatcher {
             return;
         }
 
-        // now, get the latest device token from FCM and call dispatch
+        Configuration config = BlueshiftUtils.getConfiguration(mContext);
+        if (config != null) {
+            if (config.isPushEnabled()) {
+                dispatchWithPushToken();
+            } else {
+                dispatchWithoutPushToken();
+            }
+        }
+    }
+
+    private void dispatchWithPushToken() {
         try {
             getLatestFCMTokenAndDispatch();
         } catch (Exception e) {
@@ -68,6 +79,14 @@ class RequestDispatcher {
             } catch (Exception ex) {
                 SdkLog.e(LOG_TAG, ex.getMessage());
             }
+        }
+    }
+
+    private void dispatchWithoutPushToken() {
+        try {
+            new RequestDispatchTask(null, RequestDispatcher.this).execute();
+        } catch (Exception e) {
+            SdkLog.e(LOG_TAG, e.getMessage());
         }
     }
 
