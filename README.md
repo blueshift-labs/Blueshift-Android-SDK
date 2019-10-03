@@ -1,8 +1,10 @@
 ## Blueshift Android SDK
 
-* v2.0.9 Current stable version - using FCM
-* v1.1.7 Unsupported. Soon to be deprecated GCM version.
+[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=2.1.1) ](https://bintray.com/nipun/maven/android-sdk/2.1.1/link)
 
-Official documentation link: https://goo.gl/rgfNqp
+Get started [here](https://help.blueshift.com/hc/en-us/articles/115002731534-Android-SDK)
 
-For the latest code, please refer `development_mainline` branch.
+Hot branch `development_mainline`
+
+### Deprecated GCM version
+[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=1.1.7) ](https://bintray.com/nipun/maven/android-sdk/1.1.7/link)
