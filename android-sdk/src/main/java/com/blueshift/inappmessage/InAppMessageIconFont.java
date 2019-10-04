@@ -61,9 +61,10 @@ public class InAppMessageIconFont {
                         String source = "https://bsftassets.s3-us-west-2.amazonaws.com/inapp/" + FILE_NAME;
                         File fontFile = getFontFile(context);
 
-                        NetworkUtils.downloadFile(source, fontFile.getAbsolutePath());
-
-                        Log.d(TAG, "File download complete: " + fontFile.getAbsolutePath());
+                        if (!fontFile.exists()) {
+                            Log.d(TAG, "Downloading font to " + fontFile.getAbsolutePath());
+                            NetworkUtils.downloadFile(source, fontFile.getAbsolutePath());
+                        }
 
                         // refresh variables
                         sFontAwesomeFont = Typeface.createFromFile(fontFile);

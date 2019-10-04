@@ -673,10 +673,6 @@ public class InAppUtils {
                         CommonUtils.dpToPx(padding.right, context),
                         CommonUtils.dpToPx(padding.bottom, context)
                 );
-            } else {
-                Context context = textView.getContext();
-                int dp4 = CommonUtils.dpToPx(4, context);
-                textView.setPadding(dp4, dp4, dp4, dp4);
             }
         }
     }

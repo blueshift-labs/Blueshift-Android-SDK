@@ -40,6 +40,7 @@ public class InAppConstants {
     public static final String MESSAGE = "message";
     public static final String BANNER = "banner";
     public static final String ICON = "icon";
+    public static final String SECONDARY_ICON = "secondary_icon";
     public static final String TITLE = "title";
     public static final String ANDROID_LINK = "android_link";
     public static final String EXTRAS = "extras";

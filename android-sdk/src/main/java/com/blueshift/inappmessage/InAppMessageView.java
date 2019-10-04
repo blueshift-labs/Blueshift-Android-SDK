@@ -483,10 +483,8 @@ public abstract class InAppMessageView extends RelativeLayout {
 
             if (!TextUtils.isEmpty(titleText)) {
                 textView = new TextView(getContext());
-
                 // font-awesome icon font (free)
                 InAppMessageIconFont.getInstance(getContext()).apply(textView);
-
                 InAppUtils.setContentTextView(textView, inAppMessage, contentName);
             }
         }
