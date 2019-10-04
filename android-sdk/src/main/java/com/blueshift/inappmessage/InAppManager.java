@@ -119,6 +119,10 @@ public class InAppManager {
                                 String uuid = InAppMessageStore.getInstance(context).getLastMessageUUID();
                                 params.put(Message.EXTRA_BSFT_MESSAGE_UUID, uuid != null ? uuid : "");
 
+                                // timestamp
+                                long seconds = System.currentTimeMillis() / 1000;
+                                params.put(BlueshiftConstants.KEY_TIMESTAMP, seconds);
+
                                 HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
 
                                 if (apiKey != null) {
