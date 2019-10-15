@@ -35,6 +35,11 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class InAppUtils {
 
@@ -777,5 +782,27 @@ public class InAppUtils {
         }
 
         return md5Hash;
+    }
+
+    public static long timestampToEpochSeconds(String srcTimestamp) {
+        long epoch = 0;
+
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                Instant instant = Instant.parse(srcTimestamp);
+                epoch = instant.getEpochSecond();
+            } else {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSSSS'Z'", Locale.getDefault());
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Date date = sdf.parse(srcTimestamp);
+                if (date != null) {
+                    epoch = date.getTime() / 1000;
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return epoch;
     }
 }

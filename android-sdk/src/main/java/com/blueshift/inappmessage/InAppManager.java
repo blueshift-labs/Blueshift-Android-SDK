@@ -99,7 +99,6 @@ public class InAppManager {
                     new Runnable() {
                         @Override
                         public void run() {
-                            // TODO: 2019-09-10 expected api call.
                             try {
                                 JSONObject params = new JSONObject();
 
@@ -115,13 +114,20 @@ public class InAppManager {
                                 String email = UserInfo.getInstance(context).getEmail();
                                 params.put(BlueshiftConstants.KEY_EMAIL, email != null ? email : "");
 
+                                String messageUuid = null;
+                                long timestamp = 0;
+
+                                InAppMessage inAppMessage = InAppMessageStore.getInstance(context).getLastInAppMessage();
+                                if (inAppMessage != null) {
+                                    messageUuid = inAppMessage.getMessageUuid();
+                                    timestamp = inAppMessage.getTimestamp();
+                                }
+
                                 // message uuid
-                                String uuid = InAppMessageStore.getInstance(context).getLastMessageUUID();
-                                params.put(Message.EXTRA_BSFT_MESSAGE_UUID, uuid != null ? uuid : "");
+                                params.put(Message.EXTRA_BSFT_MESSAGE_UUID, messageUuid != null ? messageUuid : "");
 
                                 // timestamp
-                                long seconds = System.currentTimeMillis() / 1000;
-                                params.put(BlueshiftConstants.KEY_TIMESTAMP, seconds);
+                                params.put(BlueshiftConstants.KEY_LAST_TIMESTAMP, timestamp >= 0 ? timestamp : 0);
 
                                 HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
 
@@ -130,12 +136,13 @@ public class InAppManager {
                                 }
 
                                 String json = params.toString();
-                                BlueshiftLogger.d(LOG_TAG, "In-App API params: " + json);
+                                BlueshiftLogger.d(LOG_TAG, "In-App API Req Params: " + json);
 
                                 Response response = httpManager.post(json);
                                 if (response.getStatusCode() == 200) {
                                     String responseBody = response.getResponseBody();
                                     if (!TextUtils.isEmpty(responseBody)) {
+                                        BlueshiftLogger.d(LOG_TAG, "In-App API Response: " + responseBody);
                                         try {
                                             JSONArray inAppJsonArray = decodeResponse(responseBody);
                                             InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);

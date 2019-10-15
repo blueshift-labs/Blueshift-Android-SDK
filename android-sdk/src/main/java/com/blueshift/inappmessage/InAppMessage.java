@@ -5,6 +5,7 @@ import android.graphics.Rect;
 import android.text.TextUtils;
 import android.view.ViewGroup;
 
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BlueshiftBaseSQLiteModel;
 import com.blueshift.rich_push.Message;
@@ -38,6 +39,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private String experiment_uuid;
     private String user_uuid;
     private String transaction_uuid;
+    private long timestamp;
 
     public static InAppMessage getInstance(JSONObject jsonObject) {
         try {
@@ -58,6 +60,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.experiment_uuid = jsonObject.optString(Message.EXTRA_BSFT_EXPERIMENT_UUID);
             inAppMessage.user_uuid = jsonObject.optString(Message.EXTRA_BSFT_USER_UUID);
             inAppMessage.transaction_uuid = jsonObject.optString(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+
+            // process timestamp
+            String timestampStr = jsonObject.optString(BlueshiftConstants.KEY_TIMESTAMP);
+            inAppMessage.timestamp = InAppUtils.timestampToEpochSeconds(timestampStr);
 
             return inAppMessage;
         } catch (Exception e) {
@@ -86,6 +92,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.experiment_uuid = pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
             inAppMessage.user_uuid = pushPayload.get(Message.EXTRA_BSFT_USER_UUID);
             inAppMessage.transaction_uuid = pushPayload.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+
+            // process timestamp
+            String timestampStr = pushPayload.get(BlueshiftConstants.KEY_TIMESTAMP);
+            inAppMessage.timestamp = InAppUtils.timestampToEpochSeconds(timestampStr);
 
             return inAppMessage;
         } catch (Exception e) {
@@ -330,5 +340,13 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public void setDisplayedAt(long displayed_at) {
         this.displayed_at = displayed_at;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }
