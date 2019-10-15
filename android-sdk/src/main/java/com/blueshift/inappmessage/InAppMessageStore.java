@@ -39,6 +39,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final String FIELD_EXPERIMENT_UUID = "experiment_uuid";
     private static final String FIELD_USER_UUID = "user_uuid";
     private static final String FIELD_TRANSACTION_UUID = "transaction_uuid";
+    private static final String FIELD_TIMESTAMP = "timestamp";
 
     private static final String FIELD_DISPLAYED_AT = "displayed_at";
 
@@ -82,6 +83,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             inAppMessage.setUserUuid(getString(cursor, FIELD_USER_UUID));
             inAppMessage.setTransactionUuid(getString(cursor, FIELD_TRANSACTION_UUID));
             inAppMessage.setDisplayedAt(getLong(cursor, FIELD_TRANSACTION_UUID));
+            inAppMessage.setTimestamp(getLong(cursor, FIELD_TIMESTAMP));
 
             String tsJson = getString(cursor, FIELD_TEMPLATE_STYLE);
             if (!TextUtils.isEmpty(tsJson)) inAppMessage.setTemplateStyle(new JSONObject(tsJson));
@@ -119,6 +121,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             values.put(FIELD_EXPERIMENT_UUID, inAppMessage.getExperimentUuid());
             values.put(FIELD_USER_UUID, inAppMessage.getUserUuid());
             values.put(FIELD_TRANSACTION_UUID, inAppMessage.getTransactionUuid());
+            values.put(FIELD_TIMESTAMP, inAppMessage.getTimestamp());
             values.put(FIELD_EXTRAS, inAppMessage.getExtrasJson());
             values.put(FIELD_DISPLAYED_AT, inAppMessage.getDisplayedAt());
         } catch (Exception e) {
@@ -142,6 +145,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_EXPERIMENT_UUID, FieldType.Text);
         fieldTypeHashMap.put(FIELD_USER_UUID, FieldType.Text);
         fieldTypeHashMap.put(FIELD_TRANSACTION_UUID, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_TIMESTAMP, FieldType.Long);
         fieldTypeHashMap.put(FIELD_EXTRAS, FieldType.Text);
         fieldTypeHashMap.put(FIELD_DISPLAYED_AT, FieldType.Long);
         return fieldTypeHashMap;
@@ -257,6 +261,28 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             }
 
             return uuid;
+        }
+    }
+
+    InAppMessage getLastInAppMessage() {
+        synchronized (_LOCK) {
+            InAppMessage inAppMessage = null;
+
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = db.query(getTableName(), null, null, null, null, null, _ID + " DESC", ONE);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        inAppMessage = getObject(cursor);
+                    }
+
+                    cursor.close();
+                }
+
+                db.close();
+            }
+
+            return inAppMessage;
         }
     }
 
