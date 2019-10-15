@@ -39,7 +39,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private String experiment_uuid;
     private String user_uuid;
     private String transaction_uuid;
-    private long timestamp;
+    private String timestamp;
 
     public static InAppMessage getInstance(JSONObject jsonObject) {
         try {
@@ -60,10 +60,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.experiment_uuid = jsonObject.optString(Message.EXTRA_BSFT_EXPERIMENT_UUID);
             inAppMessage.user_uuid = jsonObject.optString(Message.EXTRA_BSFT_USER_UUID);
             inAppMessage.transaction_uuid = jsonObject.optString(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
-
-            // process timestamp
-            String timestampStr = jsonObject.optString(BlueshiftConstants.KEY_TIMESTAMP);
-            inAppMessage.timestamp = InAppUtils.timestampToEpochSeconds(timestampStr);
+            inAppMessage.timestamp = jsonObject.optString(BlueshiftConstants.KEY_TIMESTAMP);
 
             return inAppMessage;
         } catch (Exception e) {
@@ -92,10 +89,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.experiment_uuid = pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
             inAppMessage.user_uuid = pushPayload.get(Message.EXTRA_BSFT_USER_UUID);
             inAppMessage.transaction_uuid = pushPayload.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
-
-            // process timestamp
-            String timestampStr = pushPayload.get(BlueshiftConstants.KEY_TIMESTAMP);
-            inAppMessage.timestamp = InAppUtils.timestampToEpochSeconds(timestampStr);
+            inAppMessage.timestamp = pushPayload.get(BlueshiftConstants.KEY_TIMESTAMP);
 
             return inAppMessage;
         } catch (Exception e) {
@@ -342,11 +336,11 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         this.displayed_at = displayed_at;
     }
 
-    public long getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 }

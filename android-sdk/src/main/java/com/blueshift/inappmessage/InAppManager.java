@@ -115,19 +115,19 @@ public class InAppManager {
                                 params.put(BlueshiftConstants.KEY_EMAIL, email != null ? email : "");
 
                                 String messageUuid = null;
-                                long timestamp = 0;
+                                String lastTimestamp = null;
 
                                 InAppMessage inAppMessage = InAppMessageStore.getInstance(context).getLastInAppMessage();
                                 if (inAppMessage != null) {
                                     messageUuid = inAppMessage.getMessageUuid();
-                                    timestamp = inAppMessage.getTimestamp();
+                                    lastTimestamp = inAppMessage.getTimestamp();
                                 }
 
                                 // message uuid
                                 params.put(Message.EXTRA_BSFT_MESSAGE_UUID, messageUuid != null ? messageUuid : "");
 
-                                // timestamp
-                                params.put(BlueshiftConstants.KEY_LAST_TIMESTAMP, timestamp >= 0 ? timestamp : 0);
+                                // lastTimestamp
+                                params.put(BlueshiftConstants.KEY_LAST_TIMESTAMP, lastTimestamp != null ? lastTimestamp : 0);
 
                                 HTTPManager httpManager = new HTTPManager(BlueshiftConstants.IN_APP_API_URL);
 

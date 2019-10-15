@@ -83,7 +83,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             inAppMessage.setUserUuid(getString(cursor, FIELD_USER_UUID));
             inAppMessage.setTransactionUuid(getString(cursor, FIELD_TRANSACTION_UUID));
             inAppMessage.setDisplayedAt(getLong(cursor, FIELD_TRANSACTION_UUID));
-            inAppMessage.setTimestamp(getLong(cursor, FIELD_TIMESTAMP));
+            inAppMessage.setTimestamp(getString(cursor, FIELD_TIMESTAMP));
 
             String tsJson = getString(cursor, FIELD_TEMPLATE_STYLE);
             if (!TextUtils.isEmpty(tsJson)) inAppMessage.setTemplateStyle(new JSONObject(tsJson));
@@ -145,7 +145,7 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_EXPERIMENT_UUID, FieldType.Text);
         fieldTypeHashMap.put(FIELD_USER_UUID, FieldType.Text);
         fieldTypeHashMap.put(FIELD_TRANSACTION_UUID, FieldType.Text);
-        fieldTypeHashMap.put(FIELD_TIMESTAMP, FieldType.Long);
+        fieldTypeHashMap.put(FIELD_TIMESTAMP, FieldType.Text);
         fieldTypeHashMap.put(FIELD_EXTRAS, FieldType.Text);
         fieldTypeHashMap.put(FIELD_DISPLAYED_AT, FieldType.Long);
         return fieldTypeHashMap;
