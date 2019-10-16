@@ -7,7 +7,7 @@ public class InAppConstants {
 
     // events
     public static final String EVENT_DELIVERED = "delivered";
-    public static final String EVENT_VIEW = "view";
+    public static final String EVENT_OPEN = "open";
     public static final String EVENT_CLICK = "click";
     public static final String EVENT_EXTRA_ELEMENT = "element";
 

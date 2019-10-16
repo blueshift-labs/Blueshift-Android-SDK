@@ -1104,7 +1104,7 @@ public class Blueshift {
     public void trackInAppMessageView(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             new TrackCampaignEventTask(
-                    InAppConstants.EVENT_VIEW, inAppMessage.getCampaignParamsMap(), null
+                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), null
             ).execute(mContext);
         }
     }
