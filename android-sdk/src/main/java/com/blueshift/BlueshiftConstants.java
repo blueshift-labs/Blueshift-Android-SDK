@@ -16,6 +16,7 @@ public class BlueshiftConstants {
     public static final String V1_API_URL = BASE_URL + "/api/v1";
     public static final String EVENT_API_URL = V1_API_URL + "/event";
     public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
+    public static final String IN_APP_API_URL = BASE_URL + "/inapp/msg";
 
     /**
      * Event names sent to Blueshift server
@@ -96,7 +97,6 @@ public class BlueshiftConstants {
     public static final String KEY_SUBSCRIPTION_AMOUNT = "subscription_amount";
     public static final String KEY_SUBSCRIPTION_START_DATE = "subscription_start_date";
     public static final String KEY_SUBSCRIPTION_STATUS = "subscription_status";
-    public static final String KEY_MESSAGE_UUID = "message_uuid";
     public static final String KEY_TIMESTAMP = "timestamp";
     public static final String KEY_SDK_VERSION = "bsft_sdk_version";
     public static final String KEY_UID = "uid";
@@ -110,6 +110,10 @@ public class BlueshiftConstants {
     public static final String KEY_API_KEY = "api_key";
     public static final String KEY_USER  = "user";
     public static final String KEY_CONTEXT = "context";
+
+    // in-app message
+    public static final String KEY_ENABLE_INAPP = "enable_inapp";
+    public static final String KEY_LAST_TIMESTAMP = "last_timestamp";
 
     /**
      * Subscription status values
