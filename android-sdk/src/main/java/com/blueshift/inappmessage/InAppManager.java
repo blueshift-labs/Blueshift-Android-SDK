@@ -57,7 +57,7 @@ public class InAppManager {
 
         mActivity = activity;
 
-        invokeTriggers();
+        invokeTriggerWithinSdk();
     }
 
     /**
@@ -92,9 +92,28 @@ public class InAppManager {
         return mActionCallback;
     }
 
-    public static void fetchInAppFromServer(final Context context) {
+    /**
+     * Creates a Handler with current looper.
+     *
+     * @param callback callback to invoke after API call
+     * @return Handler object to run the callback
+     */
+    private static Handler getCallbackHandler(InAppApiCallback callback) {
+        Handler handler = null;
+        if (callback != null) {
+            Looper looper = Looper.myLooper();
+            if (looper != null) {
+                handler = new Handler(looper);
+            }
+        }
+
+        return handler;
+    }
+
+    public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
         boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
         if (isEnabled) {
+            final Handler finalHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
                     new Runnable() {
                         @Override
@@ -151,6 +170,15 @@ public class InAppManager {
                                         }
                                     }
                                 }
+
+                                if (finalHandler != null) {
+                                    finalHandler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (callback != null) callback.onApiCallComplete();
+                                        }
+                                    });
+                                }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
                             }
@@ -191,7 +219,7 @@ public class InAppManager {
                         }
                     }
 
-                    InAppManager.invokeTriggers();
+                    InAppManager.invokeTriggerWithinSdk();
                 } else {
                     Log.d(LOG_TAG, "No items found inside 'content'.");
                 }
@@ -221,6 +249,19 @@ public class InAppManager {
                 } else {
                     Log.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
                 }
+            }
+        }
+    }
+
+    /**
+     * This method checks if the dev has enabled the manual triggering of in-app
+     * and then decides if we should call the invokeTrigger or not based on that
+     */
+    public static void invokeTriggerWithinSdk() {
+        if (mActivity != null) {
+            Configuration config = BlueshiftUtils.getConfiguration(mActivity);
+            if (config != null && !config.isInAppManualTriggerEnabled()) {
+                invokeTriggers();
             }
         }
     }
@@ -268,7 +309,7 @@ public class InAppManager {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        InAppManager.invokeTriggers();
+                        InAppManager.invokeTriggerWithinSdk();
                     }
                 }, delay);
             }

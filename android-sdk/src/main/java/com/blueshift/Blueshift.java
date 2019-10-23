@@ -24,6 +24,7 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
+import com.blueshift.inappmessage.InAppApiCallback;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -90,6 +91,14 @@ public class Blueshift {
 
     public void unregisterForInAppMessages(Activity activity) {
         InAppManager.unregisterForInAppMessages(activity);
+    }
+
+    public void fetchInAppMessages(InAppApiCallback callback) {
+     InAppManager.fetchInAppFromServer(mContext, callback);
+    }
+
+    public void displayInAppMessages() {
+        InAppManager.invokeTriggers();
     }
 
     /**
@@ -320,7 +329,9 @@ public class Blueshift {
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
 
         // fetch from API
-        InAppManager.fetchInAppFromServer(mContext);
+        if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
+            InAppManager.fetchInAppFromServer(mContext, null);
+        }
     }
 
     /**
