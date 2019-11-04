@@ -102,6 +102,18 @@ public class InAppUtils {
         return fallback;
     }
 
+    public static double getDoubleFromJSONObject(JSONObject jsonObject, String key, double fallback) {
+        try {
+            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+                return jsonObject.optDouble(key, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
     public static Rect getRectFromJSONObject(JSONObject jsonObject, String key) {
         try {
             if (jsonObject != null && !TextUtils.isEmpty(key)) {
@@ -186,6 +198,22 @@ public class InAppUtils {
         }
 
         return fallback;
+    }
+
+    public static double getTemplateDouble(InAppMessage inAppMessage, String contentName, double fallback) {
+        try {
+            if (inAppMessage != null) {
+                return getDoubleFromJSONObject(inAppMessage.getTemplateStyle(), contentName, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
+    public static double getTemplateBackgroundDimAmount(InAppMessage inAppMessage, double fallback) {
+        return getTemplateDouble(inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
     }
 
     public static int getContentOrientation(InAppMessage inAppMessage, String contentName) {

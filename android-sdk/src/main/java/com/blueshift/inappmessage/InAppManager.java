@@ -489,11 +489,13 @@ public class InAppManager {
     }
 
     private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
-        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp);
+        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(inAppMessage, 0.5);
+        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp, dimAmount);
     }
 
     private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
-        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft);
+        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(inAppMessage, 0.0);
+        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft, dimAmount);
     }
 
     private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
@@ -519,7 +521,7 @@ public class InAppManager {
     }
 
     private static boolean buildAndShowAlertDialog(
-            final Context context, final InAppMessage inAppMessage, final View content, final int theme) {
+            final Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
         if (mActivity != null && !mActivity.isFinishing()) {
             if (mDialog == null || !mDialog.isShowing()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
@@ -544,6 +546,7 @@ public class InAppManager {
                 Window window = mDialog.getWindow();
                 if (window != null) {
                     window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
+                    window.setDimAmount(dimAmount);
 
                     int width = LinearLayout.LayoutParams.WRAP_CONTENT;
                     int height = LinearLayout.LayoutParams.WRAP_CONTENT;
