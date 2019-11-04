@@ -29,6 +29,7 @@ public class InAppConstants {
 
     // payload: level-2 keys
     public static final String WIDTH = "width";
+    public static final String BACKGROUND_DIM_AMOUNT = "background_dim_amount";
     public static final String HEIGHT = "height";
     public static final String POSITION = "position";
     public static final String FULLSCREEN = "fullscreen";
