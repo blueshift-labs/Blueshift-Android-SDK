@@ -51,6 +51,7 @@ public class BlueshiftConstants {
     public static final String KEY_APP_VERSION = "app_version";
 
     // Device
+    public static final String KEY_LIMIT_AD_TRACKING = "limit_ad_tracking";
     public static final String KEY_DEVICE_IDENTIFIER = "device_id";
     public static final String KEY_DEVICE_TYPE = "device_type";
     public static final String KEY_DEVICE_TOKEN = "device_token";

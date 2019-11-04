@@ -49,28 +49,47 @@ public class DeviceUtils {
     public static String getAdvertisingID(Context context) {
         String advertisingId = null;
 
-        String libNotFoundMessage = context.getString(R.string.gps_not_found_msg);
-
-        try {
-            AdvertisingIdClient.Info info = AdvertisingIdClient.getAdvertisingIdInfo(context);
+        if (!isLimitAdTrackingEnabled(context)) {
+            AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
             if (info != null) {
-                if (info.isLimitAdTrackingEnabled()) {
-                    Log.w(LOG_TAG, "User has limit ad tracking enabled.");
-                }
-
                 advertisingId = info.getId();
             }
-        } catch (IOException e) {
-            String logMessage = e.getMessage() != null ? e.getMessage() : "";
-            SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
-        } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
-            Log.e(LOG_TAG, libNotFoundMessage);
-            installNewGooglePlayServicesApp(context);
-        } catch (GooglePlayServicesRepairableException e) {
-            SdkLog.e(LOG_TAG, e.getMessage());
         }
 
         return advertisingId;
+    }
+
+    public static boolean isLimitAdTrackingEnabled(Context context) {
+        boolean status = true; // by default the opt-out is turned ON
+
+        AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
+        if (info != null) {
+            status = info.isLimitAdTrackingEnabled();
+        }
+
+        return status;
+    }
+
+    private static AdvertisingIdClient.Info getAdvertisingIdClientInfo(Context context) {
+        AdvertisingIdClient.Info info = null;
+
+        if (context != null) {
+            String libNotFoundMessage = context.getString(R.string.gps_not_found_msg);
+
+            try {
+                info = AdvertisingIdClient.getAdvertisingIdInfo(context);
+            } catch (IOException e) {
+                String logMessage = e.getMessage() != null ? e.getMessage() : "";
+                SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
+            } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
+                Log.e(LOG_TAG, libNotFoundMessage);
+                installNewGooglePlayServicesApp(context);
+            } catch (GooglePlayServicesRepairableException e) {
+                SdkLog.e(LOG_TAG, e.getMessage());
+            }
+        }
+
+        return info;
     }
 
     public static String getIP4Address() {
