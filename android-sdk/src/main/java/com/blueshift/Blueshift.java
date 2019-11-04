@@ -93,7 +93,7 @@ public class Blueshift {
     }
 
     public void fetchInAppMessages(InAppApiCallback callback) {
-     InAppManager.fetchInAppFromServer(mContext, callback);
+        InAppManager.fetchInAppFromServer(mContext, callback);
     }
 
     public void displayInAppMessages() {
