@@ -238,7 +238,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             if (inAppMessage != null) {
                 InAppManager.onInAppMessageReceived(this, inAppMessage);
                 InAppMessageStore.getInstance(this).clean();
-                InAppManager.invokeTriggers();
+                InAppManager.invokeTriggerWithinSdk();
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
