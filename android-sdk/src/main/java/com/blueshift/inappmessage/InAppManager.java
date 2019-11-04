@@ -113,7 +113,7 @@ public class InAppManager {
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
         boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
         if (isEnabled) {
-            final Handler finalHandler = getCallbackHandler(callback);
+            final Handler callbackHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
                     new Runnable() {
                         @Override
@@ -171,11 +171,11 @@ public class InAppManager {
                                     }
                                 }
 
-                                if (finalHandler != null) {
-                                    finalHandler.post(new Runnable() {
+                                if (callbackHandler != null && callback != null) {
+                                    callbackHandler.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            if (callback != null) callback.onApiCallComplete();
+                                            callback.onApiCallComplete();
                                         }
                                     });
                                 }
