@@ -253,7 +253,16 @@ public class Blueshift {
                         }
 
                         if (pkgInfo != null && pkgInfo.versionName != null) {
-                            String version = pkgInfo.versionName + " (" + pkgInfo.versionCode + ")";
+                            String versionName = pkgInfo.versionName;
+                            String versionCode;
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                versionCode = String.valueOf(pkgInfo.getLongVersionCode());
+                            } else {
+                                versionCode = String.valueOf(pkgInfo.versionCode);
+                            }
+
+                            String version = versionName + " (" + versionCode + ")";
                             sAppParams.put(BlueshiftConstants.KEY_APP_VERSION, version);
                         }
 
@@ -466,6 +475,11 @@ public class Blueshift {
 
                         // adding timestamp
                         requestParams.put(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
+
+                        // get status of fresh device id & ad opt out
+                        // calling this synchronously as this method is called from a bg thread
+                        requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getAdvertisingID(mContext));
+                        requestParams.put(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, DeviceUtils.isLimitAdTrackingEnabled(mContext));
 
                         String reqParamsJSON = new Gson().toJson(requestParams);
 
