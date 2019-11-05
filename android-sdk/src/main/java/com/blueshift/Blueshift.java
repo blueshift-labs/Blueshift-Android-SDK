@@ -24,6 +24,7 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
+import com.blueshift.inappmessage.InAppActionCallback;
 import com.blueshift.inappmessage.InAppApiCallback;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppManager;
@@ -99,6 +100,10 @@ public class Blueshift {
 
     public void displayInAppMessages() {
         InAppManager.invokeTriggers();
+    }
+
+    public void setInAppActionCallback(InAppActionCallback callback) {
+        InAppManager.setActionCallback(callback);
     }
 
     /**
