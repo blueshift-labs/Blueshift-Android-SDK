@@ -6,13 +6,14 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 
-import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.request_queue.RequestQueueJobService;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.SdkLog;
 
@@ -26,51 +27,52 @@ public class RequestQueue {
 
     private static final String LOG_TAG = RequestQueue.class.getSimpleName();
     private static final Boolean lock = true;
-    private static final long RETRY_INTERVAL = 5 * 60 * 1000;
 
     private Status mStatus;
     private static RequestQueue mInstance = null;
 
     public static void scheduleQueueSyncJob(Context context) {
-        if (context != null) {
-            Configuration config = Blueshift.getInstance(context).getConfiguration();
-            if (config != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    JobScheduler jobScheduler
-                            = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        try {
+            if (context != null) {
+                Configuration config = BlueshiftUtils.getConfiguration(context);
+                if (config != null) {
+                    int jobId = config.getNetworkChangeListenerJobId();
+                    boolean isJobPending = CommonUtils.isJobPending(context, jobId);
+                    if (isJobPending) return; // the job is already scheduled, skip the below code.
 
-                    if (jobScheduler != null) {
-                        @SuppressLint("JobSchedulerService")
-                        ComponentName componentName
-                                = new ComponentName(context, RequestQueueJobService.class);
-                        int jobId = config.getNetworkChangeListenerJobId();
-                        Log.d(LOG_TAG, "Job Id: " + jobId);
-                        JobInfo.Builder builder = new JobInfo.Builder(jobId, componentName);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        JobScheduler jobScheduler
+                                = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
-                        builder
-                                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                                .setPeriodic(30 * 60 * 1000);
+                        if (jobScheduler != null) {
+                            @SuppressLint("JobSchedulerService")
+                            ComponentName componentName = new ComponentName(context, RequestQueueJobService.class);
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            builder.setRequiresBatteryNotLow(true);
-                        }
+                            JobInfo.Builder builder = new JobInfo.Builder(jobId, componentName);
 
-                        JobInfo jobInfo = builder.build();
+                            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+                            builder.setPeriodic(config.getBatchInterval()); // 30 min batch interval by default
 
-                        if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
-                            SdkLog.i(LOG_TAG, "Successfully scheduled request queue " +
-                                    "sync job on network change");
-                        } else {
-                            // for some reason job scheduling failed. log this.
-                            SdkLog.w(LOG_TAG, "Could not schedule request queue sync " +
-                                    "job on network change");
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                builder.setRequiresBatteryNotLow(true);
+                            }
+
+                            JobInfo jobInfo = builder.build();
+
+                            if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
+                                SdkLog.i(LOG_TAG, "Successfully scheduled request queue " +
+                                        "sync job on network change");
+                            } else {
+                                // for some reason job scheduling failed. log this.
+                                SdkLog.w(LOG_TAG, "Could not schedule request queue sync " +
+                                        "job on network change");
+                            }
                         }
                     }
                 }
-            } else {
-                Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with " +
-                        "a valid configuration object.");
             }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 

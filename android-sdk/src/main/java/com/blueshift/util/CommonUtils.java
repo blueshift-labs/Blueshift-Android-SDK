@@ -1,12 +1,18 @@
 package com.blueshift.util;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.util.Base64;
+import android.util.Log;
 import android.util.TypedValue;
 
+import com.blueshift.BlueshiftLogger;
+
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -17,6 +23,8 @@ import java.util.Locale;
 
 
 public class CommonUtils {
+
+    private static final String TAG = "CommonUtils";
 
     public static CharSequence getAppName(Context context) {
         CharSequence appName = "Not Available";
@@ -60,5 +68,28 @@ public class CommonUtils {
         }
 
         return output;
+    }
+
+    public static boolean isJobPending(Context context, int jobId) {
+        try {
+            if (context != null) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+                    if (jobScheduler != null) {
+                        List<JobInfo> jobs = jobScheduler.getAllPendingJobs();
+                        for (JobInfo jobInfo : jobs) {
+                            if (jobInfo.getId() == jobId) {
+                                Log.d(TAG, "Pending job found. JobId: " + jobId);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return false;
     }
 }
