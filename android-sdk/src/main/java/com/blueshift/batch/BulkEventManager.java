@@ -12,13 +12,14 @@ import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.model.Configuration;
 import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
@@ -44,29 +45,38 @@ public class BulkEventManager {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private static void scheduleBulkEventDispatchWithJobScheduler(Context context) {
-        if (context != null) {
-            long fiveMinutes = 1000 * 60 * 5;
+        try {
+            if (context != null) {
+                long fiveMinutes = 1000 * 60 * 5;
 
-            Configuration config = Blueshift.getInstance(context).getConfiguration();
-            ComponentName componentName = new ComponentName(context, BulkEventJobService.class);
-            JobInfo.Builder builder =
-                    new JobInfo.Builder(config.getBulkEventsJobId(), componentName);
+                Configuration config = BlueshiftUtils.getConfiguration(context);
+                if (config != null) {
+                    int jobId = config.getBulkEventsJobId();
+                    boolean isJobPending = CommonUtils.isJobPending(context, jobId);
+                    if (isJobPending) return; // the job is already scheduled, skip the below code.
 
-            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-            builder.setBackoffCriteria(fiveMinutes, JobInfo.BACKOFF_POLICY_EXPONENTIAL);
-            builder.setPeriodic(config.getBatchInterval()); // 30 min batch interval by default
+                    ComponentName componentName = new ComponentName(context, BulkEventJobService.class);
+                    JobInfo.Builder builder = new JobInfo.Builder(jobId, componentName);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                builder.setRequiresBatteryNotLow(true);
+                    builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+                    builder.setBackoffCriteria(fiveMinutes, JobInfo.BACKOFF_POLICY_EXPONENTIAL);
+                    builder.setPeriodic(config.getBatchInterval()); // 30 min batch interval by default
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        builder.setRequiresBatteryNotLow(true);
+                    }
+
+                    JobScheduler jobScheduler =
+                            (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+                    if (jobScheduler != null
+                            && jobScheduler.schedule(builder.build()) == JobScheduler.RESULT_SUCCESS) {
+                        Log.d(LOG_TAG, "Bulk event job scheduled.");
+                    }
+                }
             }
-
-            JobScheduler jobScheduler =
-                    (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-
-            if (jobScheduler != null
-                    && jobScheduler.schedule(builder.build()) == JobScheduler.RESULT_SUCCESS) {
-                Log.d(LOG_TAG, "Bulk event job scheduled.");
-            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 

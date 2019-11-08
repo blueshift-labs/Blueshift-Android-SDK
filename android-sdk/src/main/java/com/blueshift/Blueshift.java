@@ -35,6 +35,7 @@ import com.blueshift.model.UserInfo;
 import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
+import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.PermissionUtils;
 import com.blueshift.util.SdkLog;
@@ -303,7 +304,7 @@ public class Blueshift {
         // schedule the bulk events dispatch
         BulkEventManager.scheduleBulkEventEnqueue(mContext);
         // fire an app open automatically if enabled
-        if (mConfiguration != null && mConfiguration.isAutoAppOpenFiringEnabled()) {
+        if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)) {
             trackAppOpen(true);
         }
         // pull latest font from server

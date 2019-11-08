@@ -68,4 +68,18 @@ public class BlueshiftUtils {
 
         return isEnabled;
     }
+
+    public static boolean isAutomaticAppOpenFiringEnabled(Context context) {
+        boolean isEnabled = false;
+
+        Configuration config = getConfiguration(context);
+        if (config != null) {
+            isEnabled = config.isAutoAppOpenFiringEnabled();
+            if (!isEnabled) {
+                Log.w(LOG_TAG, "Automatic app_open firing is not enabled. You will have to fire this event explicitly.");
+            }
+        }
+
+        return isEnabled;
+    }
 }
