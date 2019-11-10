@@ -41,6 +41,7 @@ public class Configuration {
     private boolean inAppEnableJavascript = false;
     private boolean inAppEnabled = false;
     private boolean inAppManualTriggerEnabled = false;
+    private boolean inAppBackgroundFetchEnabled = false;
 
     private boolean enableAutoAppOpen = false;
 
@@ -242,5 +243,13 @@ public class Configuration {
 
     public void setInAppManualTriggerEnabled(boolean inAppManualTriggerEnabled) {
         this.inAppManualTriggerEnabled = inAppManualTriggerEnabled;
+    }
+
+    public boolean isInAppBackgroundFetchEnabled() {
+        return inAppBackgroundFetchEnabled;
+    }
+
+    public void setInAppBackgroundFetchEnabled(boolean inAppBackgroundFetchEnabled) {
+        this.inAppBackgroundFetchEnabled = inAppBackgroundFetchEnabled;
     }
 }
