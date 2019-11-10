@@ -127,4 +127,11 @@ public class BlueshiftConstants {
      * Bulk Event
      */
     public static final int BULK_EVENT_PAGE_SIZE = 100;
+
+    /*
+     * Silent push
+     */
+    public static final String SILENT_PUSH = "silent_push";
+    public static final String SILENT_PUSH_ACTION = "action";
+    public static final String ACTION_IN_APP_BACKGROUND_FETCH = "in_app_background_fetch";
 }
