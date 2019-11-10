@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -49,11 +50,17 @@ public class DeviceUtils {
     public static String getAdvertisingID(Context context) {
         String advertisingId = null;
 
-        if (!isLimitAdTrackingEnabled(context)) {
+        try {
             AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
             if (info != null) {
                 advertisingId = info.getId();
             }
+
+            if (isLimitAdTrackingEnabled(context)) {
+                Log.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
 
         return advertisingId;
