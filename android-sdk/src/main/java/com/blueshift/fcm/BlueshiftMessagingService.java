@@ -272,14 +272,18 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     }
 
     protected void triggerInAppBackgroundFetch() {
-        final Configuration config = BlueshiftUtils.getConfiguration(this);
-        if (config != null && config.isInAppBackgroundFetchEnabled()) {
-            InAppManager.fetchInAppFromServer(this, new InAppApiCallback() {
-                @Override
-                public void onApiCallComplete() {
-                    InAppManager.invokeTriggerWithinSdk();
-                }
-            });
+        try {
+            final Configuration config = BlueshiftUtils.getConfiguration(this);
+            if (config != null && config.isInAppBackgroundFetchEnabled()) {
+                InAppManager.fetchInAppFromServer(this, new InAppApiCallback() {
+                    @Override
+                    public void onApiCallComplete() {
+                        InAppManager.invokeTriggerWithinSdk();
+                    }
+                });
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
