@@ -174,14 +174,16 @@ public abstract class InAppMessageView extends RelativeLayout {
     protected OnClickListener getActionClickListener(JSONObject actionJson) {
         OnClickListener listener = null;
 
-        if (InAppManager.getActionCallback() != null) {
-            // user has overridden the clicks by setting an action callback.
-            return getActionCallbackListener(actionJson);
-        }
+        try {
+            if (actionJson != null) {
+                String actionName = actionJson.optString(InAppConstants.ACTION_TYPE);
 
-        if (actionJson != null) {
-            String actionName = actionJson.optString(InAppConstants.ACTION_TYPE);
-            if (actionName != null) {
+                if (InAppManager.getActionCallback() != null) {
+                    // user has overridden the clicks by setting an action callback.
+                    JSONObject actionArgs = getCallbackActionJson(actionJson);
+                    return getActionCallbackListener(actionName, actionArgs);
+                }
+
                 switch (actionName) {
                     case InAppConstants.ACTION_DISMISS:
                         listener = getDismissDialogClickListener(actionName, actionJson);
@@ -200,6 +202,8 @@ public abstract class InAppMessageView extends RelativeLayout {
                         break;
                 }
             }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
         }
 
         if (listener == null) {
@@ -209,16 +213,53 @@ public abstract class InAppMessageView extends RelativeLayout {
         return listener;
     }
 
+    /**
+     * Filter out unnecessary values from the action json
+     *
+     * @param actionJson the actual action json
+     * @return filtered action args, null if args are empty
+     */
+    private JSONObject getCallbackActionJson(JSONObject actionJson) {
+        try {
+            if (actionJson != null) {
+                String actionName = actionJson.optString(InAppConstants.ACTION_TYPE);
+                JSONObject actionArgs = new JSONObject();
+
+                switch (actionName) {
+                    case InAppConstants.ACTION_OPEN:
+                        String link = actionJson.optString(InAppConstants.ANDROID_LINK);
+                        actionArgs.put(InAppConstants.ANDROID_LINK, link);
+                        break;
+
+                    case InAppConstants.ACTION_SHARE:
+                        String shareContent = actionJson.optString(InAppConstants.SHAREABLE_TEXT);
+                        actionArgs.put(InAppConstants.SHAREABLE_TEXT, shareContent);
+                        break;
+                }
+
+                JSONObject extras = actionJson.optJSONObject(InAppConstants.EXTRAS);
+                actionArgs.put(InAppConstants.EXTRAS, extras);
+
+                return actionArgs;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return null;
+    }
+
     // action click listeners
 
-    protected OnClickListener getActionCallbackListener(final JSONObject actionJson) {
+    protected OnClickListener getActionCallbackListener(final String actionName, final JSONObject actionObject) {
         return new OnClickListener() {
             @Override
             public void onClick(View view) {
                 InAppActionCallback callback = InAppManager.getActionCallback();
-                if (callback != null) {
-                    callback.onAction(actionJson);
-                }
+                if (callback != null) callback.onAction(actionName, actionObject);
+
+                // dismiss dialog
+                onDismiss(getInAppMessage(), actionName);
             }
         };
     }
