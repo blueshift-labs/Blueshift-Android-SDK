@@ -115,7 +115,6 @@ public class BlueshiftConstants {
     // in-app message
     public static final String KEY_ENABLE_INAPP = "enable_inapp";
     public static final String KEY_LAST_TIMESTAMP = "last_timestamp";
-    public static final String KEY_CREATED_AT = "created_at";
 
     /**
      * Subscription status values
