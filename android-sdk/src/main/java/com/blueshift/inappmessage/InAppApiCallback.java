@@ -1,5 +1,7 @@
 package com.blueshift.inappmessage;
 
 public interface InAppApiCallback {
-    void onApiCallComplete();
+    void onSuccess();
+
+    void onFailure(int code, String message);
 }

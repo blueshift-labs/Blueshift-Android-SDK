@@ -158,8 +158,10 @@ public class InAppManager {
                                 BlueshiftLogger.d(LOG_TAG, "In-App API Req Params: " + json);
 
                                 Response response = httpManager.post(json);
-                                if (response.getStatusCode() == 200) {
-                                    String responseBody = response.getResponseBody();
+                                int statusCode = response.getStatusCode();
+                                String responseBody = response.getResponseBody();
+
+                                if (statusCode == 200) {
                                     if (!TextUtils.isEmpty(responseBody)) {
                                         BlueshiftLogger.d(LOG_TAG, "In-App API Response: " + responseBody);
                                         try {
@@ -169,22 +171,42 @@ public class InAppManager {
                                             BlueshiftLogger.e(LOG_TAG, e);
                                         }
                                     }
-                                }
 
-                                if (callbackHandler != null && callback != null) {
-                                    callbackHandler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            callback.onApiCallComplete();
-                                        }
-                                    });
+                                    invokeApiSuccessCallback(callbackHandler, callback);
+                                } else {
+                                    invokeApiFailureCallback(callbackHandler, callback, statusCode, responseBody);
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
+
+                                invokeApiFailureCallback(callbackHandler, callback, 0, e.getMessage());
                             }
                         }
                     }
             );
+        }
+    }
+
+    private static void invokeApiSuccessCallback(Handler handler, final InAppApiCallback callback) {
+        if (handler != null && callback != null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onSuccess();
+                }
+            });
+        }
+    }
+
+    private static void invokeApiFailureCallback(Handler handler, final InAppApiCallback callback,
+                                                 final int errorCode, final String errorMessage) {
+        if (handler != null && callback != null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onFailure(errorCode, errorMessage);
+                }
+            });
         }
     }
 
