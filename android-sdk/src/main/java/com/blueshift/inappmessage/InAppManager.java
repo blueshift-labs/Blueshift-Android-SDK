@@ -57,7 +57,7 @@ public class InAppManager {
 
         mActivity = activity;
 
-        invokeTriggers();
+        invokeTriggerWithinSdk();
     }
 
     /**
@@ -92,9 +92,28 @@ public class InAppManager {
         return mActionCallback;
     }
 
-    public static void fetchInAppFromServer(final Context context) {
+    /**
+     * Creates a Handler with current looper.
+     *
+     * @param callback callback to invoke after API call
+     * @return Handler object to run the callback
+     */
+    private static Handler getCallbackHandler(InAppApiCallback callback) {
+        Handler handler = null;
+        if (callback != null) {
+            Looper looper = Looper.myLooper();
+            if (looper != null) {
+                handler = new Handler(looper);
+            }
+        }
+
+        return handler;
+    }
+
+    public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
         boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
         if (isEnabled) {
+            final Handler callbackHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
                     new Runnable() {
                         @Override
@@ -139,8 +158,10 @@ public class InAppManager {
                                 BlueshiftLogger.d(LOG_TAG, "In-App API Req Params: " + json);
 
                                 Response response = httpManager.post(json);
-                                if (response.getStatusCode() == 200) {
-                                    String responseBody = response.getResponseBody();
+                                int statusCode = response.getStatusCode();
+                                String responseBody = response.getResponseBody();
+
+                                if (statusCode == 200) {
                                     if (!TextUtils.isEmpty(responseBody)) {
                                         BlueshiftLogger.d(LOG_TAG, "In-App API Response: " + responseBody);
                                         try {
@@ -150,13 +171,42 @@ public class InAppManager {
                                             BlueshiftLogger.e(LOG_TAG, e);
                                         }
                                     }
+
+                                    invokeApiSuccessCallback(callbackHandler, callback);
+                                } else {
+                                    invokeApiFailureCallback(callbackHandler, callback, statusCode, responseBody);
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
+
+                                invokeApiFailureCallback(callbackHandler, callback, 0, e.getMessage());
                             }
                         }
                     }
             );
+        }
+    }
+
+    private static void invokeApiSuccessCallback(Handler handler, final InAppApiCallback callback) {
+        if (handler != null && callback != null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onSuccess();
+                }
+            });
+        }
+    }
+
+    private static void invokeApiFailureCallback(Handler handler, final InAppApiCallback callback,
+                                                 final int errorCode, final String errorMessage) {
+        if (handler != null && callback != null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onFailure(errorCode, errorMessage);
+                }
+            });
         }
     }
 
@@ -191,7 +241,7 @@ public class InAppManager {
                         }
                     }
 
-                    InAppManager.invokeTriggers();
+                    InAppManager.invokeTriggerWithinSdk();
                 } else {
                     Log.d(LOG_TAG, "No items found inside 'content'.");
                 }
@@ -221,6 +271,19 @@ public class InAppManager {
                 } else {
                     Log.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
                 }
+            }
+        }
+    }
+
+    /**
+     * This method checks if the dev has enabled the manual triggering of in-app
+     * and then decides if we should call the invokeTrigger or not based on that
+     */
+    public static void invokeTriggerWithinSdk() {
+        if (mActivity != null) {
+            Configuration config = BlueshiftUtils.getConfiguration(mActivity);
+            if (config != null && !config.isInAppManualTriggerEnabled()) {
+                invokeTriggers();
             }
         }
     }
@@ -268,7 +331,7 @@ public class InAppManager {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        InAppManager.invokeTriggers();
+                        InAppManager.invokeTriggerWithinSdk();
                     }
                 }, delay);
             }
@@ -448,11 +511,13 @@ public class InAppManager {
     }
 
     private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
-        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp);
+        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(inAppMessage, 0.5);
+        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp, dimAmount);
     }
 
     private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
-        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft);
+        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(inAppMessage, 0.0);
+        return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft, dimAmount);
     }
 
     private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
@@ -478,7 +543,7 @@ public class InAppManager {
     }
 
     private static boolean buildAndShowAlertDialog(
-            final Context context, final InAppMessage inAppMessage, final View content, final int theme) {
+            final Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
         if (mActivity != null && !mActivity.isFinishing()) {
             if (mDialog == null || !mDialog.isShowing()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
@@ -503,6 +568,7 @@ public class InAppManager {
                 Window window = mDialog.getWindow();
                 if (window != null) {
                     window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
+                    window.setDimAmount(dimAmount);
 
                     int width = LinearLayout.LayoutParams.WRAP_CONTENT;
                     int height = LinearLayout.LayoutParams.WRAP_CONTENT;

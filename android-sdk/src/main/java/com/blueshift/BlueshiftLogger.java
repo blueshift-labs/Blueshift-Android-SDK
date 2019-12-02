@@ -13,7 +13,9 @@ public class BlueshiftLogger {
     }
 
     public static void d(String tag, String message) {
-        Log.d(checkTag(tag), message);
+        if (BuildConfig.DEBUG) {
+            Log.d(checkTag(tag), message);
+        }
     }
 
     public static void e(String tag, String message) {

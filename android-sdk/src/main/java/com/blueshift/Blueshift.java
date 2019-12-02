@@ -24,6 +24,8 @@ import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
+import com.blueshift.inappmessage.InAppActionCallback;
+import com.blueshift.inappmessage.InAppApiCallback;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -90,6 +92,18 @@ public class Blueshift {
 
     public void unregisterForInAppMessages(Activity activity) {
         InAppManager.unregisterForInAppMessages(activity);
+    }
+
+    public void fetchInAppMessages(InAppApiCallback callback) {
+        InAppManager.fetchInAppFromServer(mContext, callback);
+    }
+
+    public void displayInAppMessages() {
+        InAppManager.invokeTriggers();
+    }
+
+    public void setInAppActionCallback(InAppActionCallback callback) {
+        InAppManager.setActionCallback(callback);
     }
 
     /**
@@ -254,7 +268,16 @@ public class Blueshift {
                         }
 
                         if (pkgInfo != null && pkgInfo.versionName != null) {
-                            String version = pkgInfo.versionName + " (" + pkgInfo.versionCode + ")";
+                            String versionName = pkgInfo.versionName;
+                            String versionCode;
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                versionCode = String.valueOf(pkgInfo.getLongVersionCode());
+                            } else {
+                                versionCode = String.valueOf(pkgInfo.versionCode);
+                            }
+
+                            String version = versionName + " (" + versionCode + ")";
                             sAppParams.put(BlueshiftConstants.KEY_APP_VERSION, version);
                         }
 
@@ -311,7 +334,9 @@ public class Blueshift {
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
 
         // fetch from API
-        InAppManager.fetchInAppFromServer(mContext);
+        if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
+            InAppManager.fetchInAppFromServer(mContext, null);
+        }
     }
 
     /**
@@ -467,6 +492,11 @@ public class Blueshift {
 
                         // adding timestamp
                         requestParams.put(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
+
+                        // get status of fresh device id & ad opt out
+                        // calling this synchronously as this method is called from a bg thread
+                        requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getAdvertisingID(mContext));
+                        requestParams.put(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, DeviceUtils.isLimitAdTrackingEnabled(mContext));
 
                         String reqParamsJSON = new Gson().toJson(requestParams);
 
@@ -1104,8 +1134,10 @@ public class Blueshift {
 
     public void trackInAppMessageView(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
+            HashMap<String, Object> extra = new HashMap<>();
+            extra.put(BlueshiftConstants.KEY_TIMESTAMP, inAppMessage.getTimestamp());
             new TrackCampaignEventTask(
-                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), null
+                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extra
             ).execute(mContext);
         }
     }

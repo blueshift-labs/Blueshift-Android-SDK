@@ -40,6 +40,8 @@ public class Configuration {
     private long inAppInterval;
     private boolean inAppEnableJavascript = false;
     private boolean inAppEnabled = false;
+    private boolean inAppManualTriggerEnabled = false;
+    private boolean inAppBackgroundFetchEnabled = false;
 
     private boolean enableAutoAppOpen = false;
 
@@ -233,5 +235,21 @@ public class Configuration {
 
     public void setInAppEnabled(boolean inAppEnabled) {
         this.inAppEnabled = inAppEnabled;
+    }
+
+    public boolean isInAppManualTriggerEnabled() {
+        return inAppManualTriggerEnabled;
+    }
+
+    public void setInAppManualTriggerEnabled(boolean inAppManualTriggerEnabled) {
+        this.inAppManualTriggerEnabled = inAppManualTriggerEnabled;
+    }
+
+    public boolean isInAppBackgroundFetchEnabled() {
+        return inAppBackgroundFetchEnabled;
+    }
+
+    public void setInAppBackgroundFetchEnabled(boolean inAppBackgroundFetchEnabled) {
+        this.inAppBackgroundFetchEnabled = inAppBackgroundFetchEnabled;
     }
 }
