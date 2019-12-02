@@ -277,8 +277,13 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             if (config != null && config.isInAppBackgroundFetchEnabled()) {
                 InAppManager.fetchInAppFromServer(this, new InAppApiCallback() {
                     @Override
-                    public void onApiCallComplete() {
+                    public void onSuccess() {
                         InAppManager.invokeTriggerWithinSdk();
+                    }
+
+                    @Override
+                    public void onFailure(int code, String message) {
+                        BlueshiftLogger.e(LOG_TAG, "InApp API, error code: " + code + ", message:" + message);
                     }
                 });
             }
