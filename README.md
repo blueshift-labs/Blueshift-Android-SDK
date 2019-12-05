@@ -1,11 +1,11 @@
 ## Blueshift Android SDK
 
-> Note: This branch (gcm_master) deprecated.
+> Note: This branch (gcm_master) is deprecated.
 
 [ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=1.1.7) ](https://bintray.com/nipun/maven/android-sdk/1.1.7/link)
 
 ### Looking for stable version?
-[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=3.0.1) ](https://bintray.com/nipun/maven/android-sdk/3.0.1/link)
+[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=3.0.2) ](https://bintray.com/nipun/maven/android-sdk/3.0.2/link)
 
 Get started [here](https://help.blueshift.com/hc/en-us/articles/115002731534-Android-SDK)
 
