@@ -1,6 +1,6 @@
 package com.blueshift.httpmanager;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 
 import com.blueshift.util.SdkLog;
