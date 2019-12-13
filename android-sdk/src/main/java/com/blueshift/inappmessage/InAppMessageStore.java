@@ -270,7 +270,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
 
             SQLiteDatabase db = getReadableDatabase();
             if (db != null) {
-                Cursor cursor = db.query(getTableName(), null, null, null, null, null, _ID + " DESC", ONE);
+                // sort the items based on timestamp string.
+                // the greater value will be the recent timestamp.
+                Cursor cursor = db.query(getTableName(), null, null, null, null, null, FIELD_TIMESTAMP + " DESC", ONE);
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
                         inAppMessage = getObject(cursor);
