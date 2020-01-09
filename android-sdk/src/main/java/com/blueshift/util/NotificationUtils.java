@@ -18,6 +18,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.rich_push.CarouselElement;
@@ -82,17 +83,18 @@ public class NotificationUtils {
                                 if (bitmap != null) {
                                     fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
                                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                                    fileOutputStream.close();
                                 }
                             }
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        BlueshiftLogger.e(LOG_TAG, e);
                     } finally {
                         if (fileOutputStream != null) {
                             try {
                                 fileOutputStream.close();
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                BlueshiftLogger.e(LOG_TAG, e);
                             }
                         }
                     }
@@ -142,11 +144,23 @@ public class NotificationUtils {
 
         File imageFile = context.getFileStreamPath(fileName);
         if (imageFile.exists()) {
+            InputStream inputStream = null;
             try {
-                InputStream inputStream = context.openFileInput(fileName);
+                inputStream = context.openFileInput(fileName);
                 bitmap = BitmapFactory.decodeStream(inputStream);
+                inputStream.close();
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                BlueshiftLogger.e(LOG_TAG, e);
+            } catch (IOException e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            } finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
+                }
             }
         }
 
