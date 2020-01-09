@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -69,8 +70,11 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
                     // add complete bundle to the intent.
                     intent.putExtras(extraBundle);
 
-                    // start the activity
-                    startActivity(intent);
+                    // Note: This will create a new task and launch the app with the corresponding
+                    // activity. As per the docs, the dev should add parent activity to all the
+                    // activities registered in the manifest in order to get the back stack working
+                    // doc: https://developer.android.com/training/notify-user/navigation#DirectEntry
+                    TaskStackBuilder.create(this).addNextIntentWithParentStack(intent).startActivities();
 
                     // mark 'app_open'
                     Blueshift.getInstance(this).trackNotificationPageOpen(message, false);
