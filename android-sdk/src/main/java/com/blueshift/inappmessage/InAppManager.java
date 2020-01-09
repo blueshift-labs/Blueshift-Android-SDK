@@ -84,12 +84,12 @@ public class InAppManager {
         mActivity = null;
     }
 
-    public static void setActionCallback(InAppActionCallback callback) {
-        mActionCallback = callback;
-    }
-
     public static InAppActionCallback getActionCallback() {
         return mActionCallback;
+    }
+
+    public static void setActionCallback(InAppActionCallback callback) {
+        mActionCallback = callback;
     }
 
     /**
@@ -341,19 +341,31 @@ public class InAppManager {
     }
 
     private static void displayInAppMessage(final InAppMessage input) {
-        BlueshiftExecutor.getInstance().runOnMainThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
-                        if (isSuccess) {
-                            markAsDisplayed(input);
-                        }
+        if (input != null) {
+            BlueshiftExecutor.getInstance().runOnMainThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mActivity != null) {
+                                boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
+                                if (isSuccess) {
+                                    markAsDisplayed(input);
+                                }
 
-                        BlueshiftLogger.e(LOG_TAG, "InAppMessage display " + (isSuccess ? "success!" : "failed!"));
+                                if (isSuccess) {
+                                    BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
+                                } else {
+                                    BlueshiftLogger.e(LOG_TAG, "InApp message display failed!");
+                                }
+                            } else {
+                                BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
+                            }
+                        }
                     }
-                }
-        );
+            );
+        } else {
+            BlueshiftLogger.e(LOG_TAG, "InApp message is null!");
+        }
     }
 
     private static void markAsDisplayed(final InAppMessage input) {
@@ -454,7 +466,7 @@ public class InAppManager {
     }
 
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
+        if (context != null && inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
                     invokeDismissButtonClick(inAppMessage, elementName);
@@ -468,7 +480,7 @@ public class InAppManager {
     }
 
     private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
+        if (context != null && inAppMessage != null) {
             InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
                     invokeDismissButtonClick(inAppMessage, elementName);
@@ -482,7 +494,7 @@ public class InAppManager {
     }
 
     private static boolean buildAndShowHtmlInAppMessage(final Context context, final InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
+        if (context != null && inAppMessage != null) {
             InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                 @Override
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
@@ -497,7 +509,7 @@ public class InAppManager {
     }
 
     private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
+        if (context != null && inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
                 public void onDismiss(InAppMessage inAppMessage, String elementName) {
                     invokeDismissButtonClick(inAppMessage, elementName);
@@ -585,7 +597,7 @@ public class InAppManager {
                         new Runnable() {
                             @Override
                             public void run() {
-                               InAppManager.invokeOnInAppViewed(inAppMessage);
+                                InAppManager.invokeOnInAppViewed(inAppMessage);
                             }
                         }
                 );

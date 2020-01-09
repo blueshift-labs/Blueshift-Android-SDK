@@ -14,6 +14,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -393,12 +394,11 @@ public class NotificationFactory {
 
         // get the activity to handle clicks (user defined or sdk defined
         Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
-        return PendingIntent.getActivity(
-                context,
-                NotificationFactory.getRandomPIRequestCode(),
-                intent,
-                PendingIntent.FLAG_ONE_SHOT
-        );
+        TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
+        taskStackBuilder.addNextIntent(intent);
+
+        int reqCode = NotificationFactory.getRandomPIRequestCode();
+        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
     }
 
     // [END] PendingIntent builder methods.
