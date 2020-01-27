@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
 
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BaseSqliteTable;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
@@ -50,15 +51,19 @@ public class EventsTable extends BaseSqliteTable<Event> {
     protected Event loadObject(Cursor cursor) {
         Event event = new Event();
 
-        if (cursor != null && !cursor.isAfterLast()) {
-            event.setId(cursor.getLong(cursor.getColumnIndex(FIELD_ID)));
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                event.setId(cursor.getLong(cursor.getColumnIndex(FIELD_ID)));
 
-            String json = cursor.getString(cursor.getColumnIndex(FIELD_EVENT_PARAMS_JSON));
-            HashMap<String, Object> paramsMap = new HashMap<>();
-            if (!TextUtils.isEmpty(json)) {
-                paramsMap = new Gson().fromJson(json, paramsMap.getClass());
+                String json = cursor.getString(cursor.getColumnIndex(FIELD_EVENT_PARAMS_JSON));
+                HashMap<String, Object> paramsMap = new HashMap<>();
+                if (!TextUtils.isEmpty(json)) {
+                    paramsMap = new Gson().fromJson(json, paramsMap.getClass());
+                }
+                event.setEventParams(paramsMap);
             }
-            event.setEventParams(paramsMap);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
 
         return event;
