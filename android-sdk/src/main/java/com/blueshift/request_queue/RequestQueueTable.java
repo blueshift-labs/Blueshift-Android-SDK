@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BaseSqliteTable;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
@@ -58,16 +59,21 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
     protected Request loadObject(Cursor cursor) {
         Request request = new Request();
 
-        if (cursor != null && !cursor.isAfterLast()) {
-            request.setId(cursor.getLong(cursor.getColumnIndex(FIELD_REQUEST_ID)));
-            request.setUrl(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_URL)));
-            request.setMethod(Method.valueOf(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_METHOD))));
-            request.setFilePath(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_FILE_PATH)));
-            request.setParamJson(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_PARAMS_JSON)));
-            request.setRequestType(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_TYPE)));
-            request.setUrlParams(cursor.getString(cursor.getColumnIndex(FIELD_URL_PARAMS)));
-            request.setPendingRetryCount(cursor.getInt(cursor.getColumnIndex(FIELD_PENDING_RETRY_COUNT)));
-            request.setNextRetryTime(cursor.getLong(cursor.getColumnIndex(FIELD_NEXT_RETRY_TIME)));
+        try {
+            if (isValidCursor(cursor)) {
+                request.setId(cursor.getLong(cursor.getColumnIndex(FIELD_REQUEST_ID)));
+                request.setUrl(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_URL)));
+                request.setMethod(Method.valueOf(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_METHOD))));
+                request.setFilePath(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_FILE_PATH)));
+                request.setParamJson(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_PARAMS_JSON)));
+                request.setRequestType(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_TYPE)));
+                request.setUrlParams(cursor.getString(cursor.getColumnIndex(FIELD_URL_PARAMS)));
+                request.setPendingRetryCount(cursor.getInt(cursor.getColumnIndex(FIELD_PENDING_RETRY_COUNT)));
+                request.setNextRetryTime(cursor.getLong(cursor.getColumnIndex(FIELD_NEXT_RETRY_TIME)));
+            }
+        } catch (Exception e) {
+            request = null;
+            BlueshiftLogger.e(LOG_TAG, e);
         }
 
         return request;

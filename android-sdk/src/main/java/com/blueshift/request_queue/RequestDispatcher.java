@@ -322,7 +322,7 @@ class RequestDispatcher {
 
             if (BlueshiftConstants.EVENT_API_URL.equals(api)) {
                 // this is a case where request sent to non-bulk events api fails.
-                String paramsJson = mRequest.getUrlParamsAsJSON();
+                String paramsJson = mRequest.getParamJson();
 
                 if (!TextUtils.isEmpty(paramsJson)) {
                     Type type = new TypeToken<HashMap<String, Object>>() {
