@@ -60,7 +60,7 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
         Request request = new Request();
 
         try {
-            if (cursor != null && cursor.moveToFirst()) {
+            if (isValidCursor(cursor)) {
                 request.setId(cursor.getLong(cursor.getColumnIndex(FIELD_REQUEST_ID)));
                 request.setUrl(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_URL)));
                 request.setMethod(Method.valueOf(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_METHOD))));
@@ -72,6 +72,7 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
                 request.setNextRetryTime(cursor.getLong(cursor.getColumnIndex(FIELD_NEXT_RETRY_TIME)));
             }
         } catch (Exception e) {
+            request = null;
             BlueshiftLogger.e(LOG_TAG, e);
         }
 

@@ -52,7 +52,7 @@ public class EventsTable extends BaseSqliteTable<Event> {
         Event event = new Event();
 
         try {
-            if (cursor != null && cursor.moveToFirst()) {
+            if (isValidCursor(cursor)) {
                 event.setId(cursor.getLong(cursor.getColumnIndex(FIELD_ID)));
 
                 String json = cursor.getString(cursor.getColumnIndex(FIELD_EVENT_PARAMS_JSON));
@@ -63,6 +63,7 @@ public class EventsTable extends BaseSqliteTable<Event> {
                 event.setEventParams(paramsMap);
             }
         } catch (Exception e) {
+            event = null;
             BlueshiftLogger.e(LOG_TAG, e);
         }
 
