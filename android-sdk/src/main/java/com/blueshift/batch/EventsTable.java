@@ -9,7 +9,9 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BaseSqliteTable;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -58,7 +60,9 @@ public class EventsTable extends BaseSqliteTable<Event> {
                 String json = cursor.getString(cursor.getColumnIndex(FIELD_EVENT_PARAMS_JSON));
                 HashMap<String, Object> paramsMap = new HashMap<>();
                 if (!TextUtils.isEmpty(json)) {
-                    paramsMap = new Gson().fromJson(json, paramsMap.getClass());
+                    Type type = new TypeToken<HashMap<String, Object>>() {
+                    }.getType();
+                    paramsMap = new Gson().fromJson(json, type);
                 }
                 event.setEventParams(paramsMap);
             }
