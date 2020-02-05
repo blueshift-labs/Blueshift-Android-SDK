@@ -216,13 +216,12 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
             if (db != null) {
-                Cursor cursor = db.rawQuery("SELECT * FROM " + getTableName() + " LIMIT " + limit, null);
+                Cursor cursor = db.query(getTableName(), null, null, null, null, null, null, String.valueOf(limit));
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
-                        while (!cursor.isAfterLast()) {
+                        do {
                             result.add(loadObject(cursor));
-                            cursor.moveToNext();
-                        }
+                        } while (cursor.moveToNext());
                     }
 
                     cursor.close();
@@ -430,6 +429,10 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         }
 
         return null;
+    }
+
+    protected boolean isValidCursor(Cursor cursor) {
+        return cursor != null && !cursor.isAfterLast() && !cursor.isBeforeFirst() && !cursor.isClosed();
     }
 
     abstract protected String getTableName();
