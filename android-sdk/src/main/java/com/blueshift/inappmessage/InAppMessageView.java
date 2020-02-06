@@ -446,7 +446,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 actionsRootView.setGravity(Gravity.CENTER);
             }
 
-            Drawable drawable = InAppUtils.getContentBackgroundDrawable(inAppMessage, InAppConstants.ACTIONS);
+            Drawable drawable = InAppUtils.getContentBackgroundDrawable(getContext(), inAppMessage, InAppConstants.ACTIONS);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 actionsRootView.setBackground(drawable);
             } else {

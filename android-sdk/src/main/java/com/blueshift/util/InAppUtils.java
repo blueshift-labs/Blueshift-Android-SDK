@@ -1,6 +1,7 @@
 package com.blueshift.util;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -62,13 +63,13 @@ public class InAppUtils {
 
                 result = stringBuilder.toString();
             } catch (IOException e) {
-                Log.e(LOG_TAG, e.getMessage());
+                BlueshiftLogger.e(LOG_TAG, e);
             } finally {
                 if (reader != null) {
                     try {
                         reader.close();
                     } catch (IOException e) {
-                        Log.e(LOG_TAG, e.getMessage());
+                        BlueshiftLogger.e(LOG_TAG, e);
                     }
                 }
             }
@@ -138,10 +139,33 @@ public class InAppUtils {
         return false;
     }
 
-    public static String getContentString(InAppMessage inAppMessage, String contentName) {
+    private static JSONObject getContentStyle(Context context, InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            try {
+                if (context != null) {
+                    int flag = context.getResources().getConfiguration().uiMode
+                            & Configuration.UI_MODE_NIGHT_MASK;
+
+                    if (Configuration.UI_MODE_NIGHT_YES == flag
+                            && inAppMessage.getContentStyleDark() != null) {
+                        return inAppMessage.getContentStyleDark();
+                    }
+                }
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            return inAppMessage.getContentStyle();
+        }
+
+        return null;
+    }
+
+    public static String getContentString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null) {
-                String stringValue = getStringFromJSONObject(inAppMessage.getContentStyle(), contentName);
+                JSONObject contentStyle = getContentStyle(context, inAppMessage);
+                String stringValue = getStringFromJSONObject(contentStyle, contentName);
                 return TextUtils.isEmpty(stringValue) ? null : stringValue;
             }
         } catch (Exception e) {
@@ -229,10 +253,10 @@ public class InAppUtils {
         return LinearLayout.HORIZONTAL;
     }
 
-    public static String getContentColor(InAppMessage inAppMessage, String contentName) {
+    public static String getContentColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getContentString(inAppMessage, InAppConstants.COLOR(contentName));
+                return getContentString(context, inAppMessage, InAppConstants.COLOR(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -241,10 +265,10 @@ public class InAppUtils {
         return null;
     }
 
-    public static String getContentBackgroundColor(InAppMessage inAppMessage, String contentName) {
+    public static String getContentBackgroundColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getContentString(inAppMessage, InAppConstants.BACKGROUND_COLOR(contentName));
+                return getContentString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -265,10 +289,10 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static GradientDrawable getContentBackgroundDrawable(InAppMessage inAppMessage, String contentName) {
+    public static GradientDrawable getContentBackgroundDrawable(Context context, InAppMessage inAppMessage, String contentName) {
         GradientDrawable shape = new GradientDrawable();
         try {
-            String colorVal = getContentBackgroundColor(inAppMessage, contentName);
+            String colorVal = getContentBackgroundColor(context, inAppMessage, contentName);
             if (validateColorString(colorVal)) {
                 int color = Color.parseColor(colorVal);
                 shape.setColor(color);
@@ -327,10 +351,10 @@ public class InAppUtils {
         return gravity;
     }
 
-    public static int getContentGravity(InAppMessage inAppMessage, String contentName) {
+    public static int getContentGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                String gravity = getContentString(inAppMessage, InAppConstants.GRAVITY(contentName));
+                String gravity = getContentString(context, inAppMessage, InAppConstants.GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
         } catch (Exception e) {
@@ -340,10 +364,10 @@ public class InAppUtils {
         return Gravity.START;
     }
 
-    public static int getContentLayoutGravity(InAppMessage inAppMessage, String contentName) {
+    public static int getContentLayoutGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                String gravity = getContentString(inAppMessage, InAppConstants.LAYOUT_GRAVITY(contentName));
+                String gravity = getContentString(context, inAppMessage, InAppConstants.LAYOUT_GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
         } catch (Exception e) {
@@ -702,11 +726,13 @@ public class InAppUtils {
 
     public static void setContentTextView(TextView textView, InAppMessage inAppMessage, String contentName) {
         if (textView != null && inAppMessage != null && !TextUtils.isEmpty(contentName)) {
+            Context context = textView.getContext();
+
             // TEXT
             textView.setText(inAppMessage.getContentString(contentName));
 
             // TEXT COLOR
-            String colorHashCode = InAppUtils.getContentColor(inAppMessage, contentName);
+            String colorHashCode = InAppUtils.getContentColor(context, inAppMessage, contentName);
             if (InAppUtils.validateColorString(colorHashCode)) {
                 try {
                     textView.setTextColor(Color.parseColor(colorHashCode));
@@ -720,11 +746,11 @@ public class InAppUtils {
             textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
 
             // TEXT GRAVITY (DEF: CENTER)
-            int contentGravity = InAppUtils.getContentGravity(inAppMessage, contentName);
+            int contentGravity = InAppUtils.getContentGravity(context, inAppMessage, contentName);
             textView.setGravity(contentGravity);
 
             // BACKGROUND
-            Drawable background = InAppUtils.getContentBackgroundDrawable(inAppMessage, contentName);
+            Drawable background = InAppUtils.getContentBackgroundDrawable(context, inAppMessage, contentName);
             if (background != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     textView.setBackground(background);
@@ -736,7 +762,6 @@ public class InAppUtils {
             // PADDING (DEF: 4dp)
             Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
             if (padding != null) {
-                Context context = textView.getContext();
                 textView.setPadding(
                         CommonUtils.dpToPx(padding.left, context),
                         CommonUtils.dpToPx(padding.top, context),

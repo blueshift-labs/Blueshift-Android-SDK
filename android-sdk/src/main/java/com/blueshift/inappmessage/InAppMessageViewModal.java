@@ -57,7 +57,7 @@ public class InAppMessageViewModal extends InAppMessageView {
         if (titleTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.TITLE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.TITLE);
             rootView.addView(titleTextView, lp);
         }
 
@@ -73,7 +73,7 @@ public class InAppMessageViewModal extends InAppMessageView {
                 lp.weight = 1;
             }
 
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.MESSAGE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
             rootView.addView(messageTextView, lp);
         }
 
