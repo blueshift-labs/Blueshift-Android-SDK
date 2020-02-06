@@ -453,7 +453,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 actionsRootView.setBackgroundDrawable(drawable);
             }
 
-            Rect padding = InAppUtils.getContentPadding(inAppMessage, InAppConstants.ACTIONS);
+            Rect padding = InAppUtils.getContentPadding(getContext(), inAppMessage, InAppConstants.ACTIONS);
             if (padding != null) {
                 actionsRootView.setPadding(
                         dp2px(padding.left),

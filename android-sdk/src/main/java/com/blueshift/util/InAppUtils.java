@@ -188,10 +188,11 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static Rect getContentRect(InAppMessage inAppMessage, String contentName) {
+    public static Rect getContentRect(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getRectFromJSONObject(inAppMessage.getContentStyle(), contentName);
+            if (inAppMessage != null && contentName != null) {
+                JSONObject contentStyle = getContentStyle(context, inAppMessage);
+                return getRectFromJSONObject(contentStyle, contentName);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -378,10 +379,10 @@ public class InAppUtils {
         return Gravity.START;
     }
 
-    public static Rect getContentPadding(InAppMessage inAppMessage, String contentName) {
+    public static Rect getContentPadding(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getContentRect(inAppMessage, InAppConstants.PADDING(contentName));
+            if (inAppMessage != null && contentName != null) {
+                return getContentRect(context, inAppMessage, InAppConstants.PADDING(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -390,10 +391,10 @@ public class InAppUtils {
         return null;
     }
 
-    public static Rect getContentMargin(InAppMessage inAppMessage, String contentName) {
+    public static Rect getContentMargin(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getContentRect(inAppMessage, InAppConstants.MARGIN(contentName));
+            if (inAppMessage != null && contentName != null) {
+                return getContentRect(context, inAppMessage, InAppConstants.MARGIN(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -761,7 +762,7 @@ public class InAppUtils {
             }
 
             // PADDING (DEF: 4dp)
-            Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
+            Rect padding = InAppUtils.getContentPadding(context, inAppMessage, contentName);
             if (padding != null) {
                 textView.setPadding(
                         CommonUtils.dpToPx(padding.left, context),

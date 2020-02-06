@@ -82,7 +82,7 @@ public class InAppMessageViewModal extends InAppMessageView {
         if (actionsLayout != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            Rect margins = InAppUtils.getContentMargin(inAppMessage, InAppConstants.ACTIONS);
+            Rect margins = InAppUtils.getContentMargin(getContext(), inAppMessage, InAppConstants.ACTIONS);
             if (margins != null) {
                 lp.setMargins(
                         dp2px(margins.left),
