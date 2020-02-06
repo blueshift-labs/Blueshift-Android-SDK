@@ -257,7 +257,7 @@ public class InAppUtils {
 
     public static String getContentColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+            if (inAppMessage != null && contentName != null) {
                 return getContentString(context, inAppMessage, InAppConstants.COLOR(contentName));
             }
         } catch (Exception e) {
@@ -269,7 +269,7 @@ public class InAppUtils {
 
     public static String getContentBackgroundColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+            if (inAppMessage != null && contentName != null) {
                 return getContentString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR(contentName));
             }
         } catch (Exception e) {
@@ -355,7 +355,7 @@ public class InAppUtils {
 
     public static int getContentGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+            if (inAppMessage != null && contentName != null) {
                 String gravity = getContentString(context, inAppMessage, InAppConstants.GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
@@ -368,7 +368,7 @@ public class InAppUtils {
 
     public static int getContentLayoutGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
+            if (inAppMessage != null && contentName != null) {
                 String gravity = getContentString(context, inAppMessage, InAppConstants.LAYOUT_GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
