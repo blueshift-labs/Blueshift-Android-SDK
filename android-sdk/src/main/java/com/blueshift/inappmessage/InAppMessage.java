@@ -28,7 +28,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private String trigger; // timestamp/event-name/now
     private String display_on; // activity on which it should be displayed
     private JSONObject template_style;
+    private JSONObject template_style_dark;
     private JSONObject content_style;
+    private JSONObject content_style_dark;
     private JSONObject content;
     private JSONObject extras;
 
@@ -52,7 +54,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.trigger = inAppPayload.optString(InAppConstants.TRIGGER);
             inAppMessage.display_on = inAppPayload.optString(InAppConstants.DISPLAY_ON);
             inAppMessage.template_style = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE);
+            inAppMessage.template_style_dark = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE_DARK);
             inAppMessage.content_style = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE);
+            inAppMessage.content_style_dark = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE_DARK);
             inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
             inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
 
@@ -73,25 +77,29 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public static InAppMessage getInstance(Map<String, String> pushPayload) {
         try {
             String json = pushPayload.get(InAppMessage.EXTRA_IN_APP);
-            JSONObject inAppPayload = new JSONObject(json);
+            if (json != null) {
+                JSONObject inAppPayload = new JSONObject(json);
 
-            InAppMessage inAppMessage = new InAppMessage();
-            inAppMessage.type = inAppPayload.optString(InAppConstants.TYPE);
-            inAppMessage.expires_at = inAppPayload.optLong(InAppConstants.EXPIRES_AT);
-            inAppMessage.trigger = inAppPayload.optString(InAppConstants.TRIGGER);
-            inAppMessage.display_on = inAppPayload.optString(InAppConstants.DISPLAY_ON);
-            inAppMessage.template_style = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE);
-            inAppMessage.content_style = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE);
-            inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
-            inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
+                InAppMessage inAppMessage = new InAppMessage();
+                inAppMessage.type = inAppPayload.optString(InAppConstants.TYPE);
+                inAppMessage.expires_at = inAppPayload.optLong(InAppConstants.EXPIRES_AT);
+                inAppMessage.trigger = inAppPayload.optString(InAppConstants.TRIGGER);
+                inAppMessage.display_on = inAppPayload.optString(InAppConstants.DISPLAY_ON);
+                inAppMessage.template_style = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE);
+                inAppMessage.template_style_dark = inAppPayload.optJSONObject(InAppConstants.TEMPLATE_STYLE_DARK);
+                inAppMessage.content_style = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE);
+                inAppMessage.content_style_dark = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE_DARK);
+                inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
+                inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
 
-            inAppMessage.message_uuid = pushPayload.get(Message.EXTRA_BSFT_MESSAGE_UUID);
-            inAppMessage.experiment_uuid = pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
-            inAppMessage.user_uuid = pushPayload.get(Message.EXTRA_BSFT_USER_UUID);
-            inAppMessage.transaction_uuid = pushPayload.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
-            inAppMessage.timestamp = pushPayload.get(BlueshiftConstants.KEY_TIMESTAMP);
+                inAppMessage.message_uuid = pushPayload.get(Message.EXTRA_BSFT_MESSAGE_UUID);
+                inAppMessage.experiment_uuid = pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
+                inAppMessage.user_uuid = pushPayload.get(Message.EXTRA_BSFT_USER_UUID);
+                inAppMessage.transaction_uuid = pushPayload.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+                inAppMessage.timestamp = pushPayload.get(BlueshiftConstants.KEY_TIMESTAMP);
 
-            return inAppMessage;
+                return inAppMessage;
+            }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -342,5 +350,29 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public void setTemplateStyleDark(JSONObject templateStyleDark) {
+        this.template_style_dark = templateStyleDark;
+    }
+
+    public void setContentStyleDark(JSONObject contentStyleDark) {
+        this.content_style_dark = contentStyleDark;
+    }
+
+    public JSONObject getTemplateStyleDark() {
+        return template_style_dark;
+    }
+
+    public JSONObject getContentStyleDark() {
+        return content_style_dark;
+    }
+
+    public String getTemplateStyleDarkJson() {
+        return template_style_dark != null ? template_style_dark.toString() : null;
+    }
+
+    public String getContentStyleDarkJson() {
+        return content_style_dark != null ? content_style_dark.toString() : null;
     }
 }

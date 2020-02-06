@@ -113,8 +113,14 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             String tsJson = getString(cursor, FIELD_TEMPLATE_STYLE);
             if (!TextUtils.isEmpty(tsJson)) inAppMessage.setTemplateStyle(new JSONObject(tsJson));
 
+            String tsdJson = getString(cursor, FIELD_TEMPLATE_STYLE_DARK);
+            if (!TextUtils.isEmpty(tsdJson)) inAppMessage.setTemplateStyleDark(new JSONObject(tsdJson));
+
             String csJson = getString(cursor, FIELD_CONTENT_STYLE);
             if (!TextUtils.isEmpty(csJson)) inAppMessage.setContentStyle(new JSONObject(csJson));
+
+            String csdJson = getString(cursor, FIELD_CONTENT_STYLE_DARK);
+            if (!TextUtils.isEmpty(csdJson)) inAppMessage.setContentStyleDark(new JSONObject(csdJson));
 
             String cJson = getString(cursor, FIELD_CONTENT);
             if (!TextUtils.isEmpty(cJson)) inAppMessage.setContent(new JSONObject(cJson));
@@ -140,7 +146,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             values.put(FIELD_TRIGGER, inAppMessage.getTrigger());
             values.put(FIELD_DISPLAY_ON, inAppMessage.getDisplayOn());
             values.put(FIELD_TEMPLATE_STYLE, inAppMessage.getTemplateStyleJson());
+            values.put(FIELD_TEMPLATE_STYLE_DARK, inAppMessage.getTemplateStyleDarkJson());
             values.put(FIELD_CONTENT_STYLE, inAppMessage.getContentStyleJson());
+            values.put(FIELD_CONTENT_STYLE_DARK, inAppMessage.getContentStyleDarkJson());
             values.put(FIELD_CONTENT, inAppMessage.getContentJson());
             values.put(FIELD_MESSAGE_UUID, inAppMessage.getMessageUuid());
             values.put(FIELD_EXPERIMENT_UUID, inAppMessage.getExperimentUuid());
@@ -164,7 +172,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_TRIGGER, FieldType.Text);
         fieldTypeHashMap.put(FIELD_DISPLAY_ON, FieldType.Text);
         fieldTypeHashMap.put(FIELD_TEMPLATE_STYLE, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_TEMPLATE_STYLE_DARK, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT_STYLE, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_CONTENT_STYLE_DARK, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT, FieldType.Text);
         fieldTypeHashMap.put(FIELD_MESSAGE_UUID, FieldType.UniqueText);
         fieldTypeHashMap.put(FIELD_EXPERIMENT_UUID, FieldType.Text);
