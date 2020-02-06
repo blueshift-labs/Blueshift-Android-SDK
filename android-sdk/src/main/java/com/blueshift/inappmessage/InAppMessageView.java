@@ -440,7 +440,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         if (inAppMessage != null && inAppMessage.getActionsJSONArray() != null) {
             JSONArray actions = inAppMessage.getActionsJSONArray();
             LinearLayout actionsRootView = new LinearLayout(getContext());
-            int orientation = InAppUtils.getActionOrientation(inAppMessage);
+            int orientation = InAppUtils.getActionOrientation(getContext(), inAppMessage);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
                 actionsRootView.setOrientation(orientation);
                 actionsRootView.setGravity(Gravity.CENTER);

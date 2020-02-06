@@ -175,10 +175,11 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getContentInt(InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getContentInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getIntFromJSONObject(inAppMessage.getContentStyle(), contentName, fallback);
+            if (inAppMessage != null && contentName != null) {
+                JSONObject contentStyle = getContentStyle(context, inAppMessage);
+                return getIntFromJSONObject(contentStyle, contentName, fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -240,9 +241,9 @@ public class InAppUtils {
         return getTemplateDouble(inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
     }
 
-    public static int getContentOrientation(InAppMessage inAppMessage, String contentName) {
+    public static int getContentOrientation(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            int orientation = getContentInt(inAppMessage, InAppConstants.ORIENTATION(contentName), LinearLayout.HORIZONTAL);
+            int orientation = getContentInt(context, inAppMessage, InAppConstants.ORIENTATION(contentName), LinearLayout.HORIZONTAL);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
                 return orientation;
             }
@@ -277,10 +278,10 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getContentBackgroundRadius(InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getContentBackgroundRadius(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getContentInt(inAppMessage, InAppConstants.BACKGROUND_RADIUS(contentName), fallback);
+            if (inAppMessage != null && contentName != null) {
+                return getContentInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS(contentName), fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -298,7 +299,7 @@ public class InAppUtils {
                 shape.setColor(color);
             }
 
-            int radius = getContentBackgroundRadius(inAppMessage, contentName, 0);
+            int radius = getContentBackgroundRadius(context, inAppMessage, contentName, 0);
             if (radius != 0) {
                 shape.setCornerRadius(radius);
             }
@@ -309,10 +310,10 @@ public class InAppUtils {
         return shape;
     }
 
-    public static int getContentSize(InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getContentSize(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
-            if (inAppMessage != null && inAppMessage.getContentStyle() != null && contentName != null) {
-                return getContentInt(inAppMessage, InAppConstants.SIZE(contentName), fallback);
+            if (inAppMessage != null && contentName != null) {
+                return getContentInt(context, inAppMessage, InAppConstants.SIZE(contentName), fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -691,8 +692,8 @@ public class InAppUtils {
         return padding != null ? padding : new Rect(0, 0, 0, 0);
     }
 
-    public static int getActionOrientation(InAppMessage inAppMessage) {
-        return getContentOrientation(inAppMessage, InAppConstants.ACTIONS);
+    public static int getActionOrientation(Context context, InAppMessage inAppMessage) {
+        return getContentOrientation(context, inAppMessage, InAppConstants.ACTIONS);
     }
 
     public static void setContentImageView(ImageView imageView, InAppMessage inAppMessage, String contentName) {
@@ -742,7 +743,7 @@ public class InAppUtils {
             }
 
             // TEXT SIZE
-            int val = InAppUtils.getContentSize(inAppMessage, contentName, 14);
+            int val = InAppUtils.getContentSize(context, inAppMessage, contentName, 14);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, val);
 
             // TEXT GRAVITY (DEF: CENTER)

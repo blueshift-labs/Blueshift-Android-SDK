@@ -100,7 +100,7 @@ public class InAppMessageViewRating extends InAppMessageView {
 
         // Action buttons layout
         LinearLayout buttonLayout = new LinearLayout(getContext());
-        int orientation = InAppUtils.getActionOrientation(inAppMessage);
+        int orientation = InAppUtils.getActionOrientation(getContext(), inAppMessage);
         if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
             buttonLayout.setOrientation(orientation);
         }
