@@ -31,7 +31,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final String FIELD_TRIGGER = "trigger";
     private static final String FIELD_DISPLAY_ON = "display_on";
     private static final String FIELD_TEMPLATE_STYLE = "template_style";
+    private static final String FIELD_TEMPLATE_STYLE_DARK = "template_style_dark";
     private static final String FIELD_CONTENT_STYLE = "content_style";
+    private static final String FIELD_CONTENT_STYLE_DARK = "content_style_dark";
     private static final String FIELD_CONTENT = "content";
     private static final String FIELD_EXTRAS = "extras";
 
@@ -60,8 +62,31 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        BlueshiftLogger.d(TAG, getTableName() + " -> oldVersion: " + oldVersion + ", newVersion: " + newVersion);
 
+        // we are adding support for dark theme from v2 of this table
+        if (oldVersion < 2 && newVersion >= 2) {
+            migrateToV2AndAbove(db);
+        }
+    }
+
+    private void migrateToV2AndAbove(SQLiteDatabase db) {
+        // add two columns to the db. template_style_dark and content_style_dark to hold
+        // dark theme styles for in-app
+        try {
+            // template_style_dark
+            String queryTSD = "ALTER TABLE " + getTableName() + " ADD COLUMN " + FIELD_TEMPLATE_STYLE_DARK + " " + FieldType.Text;
+            db.execSQL(queryTSD);
+            BlueshiftLogger.d(TAG, "New column " + FIELD_TEMPLATE_STYLE_DARK + " added in " + getTableName());
+
+            // content_style_dark
+            String queryCSD = "ALTER TABLE " + getTableName() + " ADD COLUMN " + FIELD_CONTENT_STYLE_DARK + " " + FieldType.Text;
+            db.execSQL(queryCSD);
+            BlueshiftLogger.d(TAG, "New column " + FIELD_CONTENT_STYLE_DARK + " added in " + getTableName());
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
     }
 
     @Override
