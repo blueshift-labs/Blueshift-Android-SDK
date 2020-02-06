@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessage> {
     private static final String TAG = InAppMessageStore.class.getSimpleName();
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private static final String DB_NAME = "bsft_inappmessage_db";
     private static final String TABLE_NAME = "bsft_inappmessage";
 
