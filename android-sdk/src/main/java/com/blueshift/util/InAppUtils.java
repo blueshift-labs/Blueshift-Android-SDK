@@ -139,17 +139,28 @@ public class InAppUtils {
         return false;
     }
 
+    private static boolean isDarkModeEnabled(Context context) {
+        boolean isDarkModeEnabled = false;
+
+        if (context != null) {
+            try {
+                int flag = context.getResources().getConfiguration().uiMode
+                        & Configuration.UI_MODE_NIGHT_MASK;
+
+                isDarkModeEnabled = Configuration.UI_MODE_NIGHT_YES == flag;
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+        }
+
+        return isDarkModeEnabled;
+    }
+
     private static JSONObject getContentStyle(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             try {
-                if (context != null) {
-                    int flag = context.getResources().getConfiguration().uiMode
-                            & Configuration.UI_MODE_NIGHT_MASK;
-
-                    if (Configuration.UI_MODE_NIGHT_YES == flag
-                            && inAppMessage.getContentStyleDark() != null) {
-                        return inAppMessage.getContentStyleDark();
-                    }
+                if (isDarkModeEnabled(context) && inAppMessage.getContentStyleDark() != null) {
+                    return inAppMessage.getContentStyleDark();
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);
