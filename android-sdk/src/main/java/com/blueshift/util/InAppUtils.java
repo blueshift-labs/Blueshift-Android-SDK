@@ -156,11 +156,18 @@ public class InAppUtils {
         return isDarkModeEnabled;
     }
 
-    private static JSONObject getContentStyle(Context context, InAppMessage inAppMessage) {
+    private static JSONObject getContentStyle(Context context, InAppMessage inAppMessage, String contentName) {
         if (inAppMessage != null) {
             try {
-                if (isDarkModeEnabled(context) && inAppMessage.getContentStyleDark() != null) {
-                    return inAppMessage.getContentStyleDark();
+                if (isDarkModeEnabled(context) && contentName != null) {
+                    /*
+                    * This check is to safely fallback to the default config if the key
+                    * is absent in dark theme config.
+                    */
+                    JSONObject darkThemeConfig = inAppMessage.getContentStyleDark();
+                    if (darkThemeConfig != null && darkThemeConfig.has(contentName)) {
+                        return darkThemeConfig;
+                    }
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);
@@ -175,7 +182,7 @@ public class InAppUtils {
     public static String getContentString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null) {
-                JSONObject contentStyle = getContentStyle(context, inAppMessage);
+                JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
                 String stringValue = getStringFromJSONObject(contentStyle, contentName);
                 return TextUtils.isEmpty(stringValue) ? null : stringValue;
             }
@@ -189,7 +196,7 @@ public class InAppUtils {
     public static int getContentInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
-                JSONObject contentStyle = getContentStyle(context, inAppMessage);
+                JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
                 return getIntFromJSONObject(contentStyle, contentName, fallback);
             }
         } catch (Exception e) {
@@ -202,7 +209,7 @@ public class InAppUtils {
     public static Rect getContentRect(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                JSONObject contentStyle = getContentStyle(context, inAppMessage);
+                JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
                 return getRectFromJSONObject(contentStyle, contentName);
             }
         } catch (Exception e) {
