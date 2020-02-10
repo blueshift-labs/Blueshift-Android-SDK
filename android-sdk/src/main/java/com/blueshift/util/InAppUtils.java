@@ -179,6 +179,29 @@ public class InAppUtils {
         return null;
     }
 
+    private static JSONObject getTemplateStyle(Context context, InAppMessage inAppMessage, String contentName) {
+        if (inAppMessage != null) {
+            try {
+                if (isDarkModeEnabled(context) && contentName != null) {
+                    /*
+                     * This check is to safely fallback to the default config if the key
+                     * is absent in dark theme config.
+                     */
+                    JSONObject darkThemeConfig = inAppMessage.getTemplateStyleDark();
+                    if (darkThemeConfig != null && darkThemeConfig.has(contentName)) {
+                        return darkThemeConfig;
+                    }
+                }
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            return inAppMessage.getTemplateStyle();
+        }
+
+        return null;
+    }
+
     public static String getContentString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null) {
@@ -219,10 +242,11 @@ public class InAppUtils {
         return null;
     }
 
-    public static String getTemplateString(InAppMessage inAppMessage, String contentName) {
+    public static String getTemplateString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            if (inAppMessage != null) {
-                String stringValue = getStringFromJSONObject(inAppMessage.getTemplateStyle(), contentName);
+            if (inAppMessage != null && contentName != null) {
+                JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
+                String stringValue = getStringFromJSONObject(templateStyle, contentName);
                 return TextUtils.isEmpty(stringValue) ? null : stringValue;
             }
         } catch (Exception e) {
@@ -232,10 +256,11 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getTemplateInt(InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getTemplateInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
-            if (inAppMessage != null) {
-                return getIntFromJSONObject(inAppMessage.getTemplateStyle(), contentName, fallback);
+            if (inAppMessage != null && contentName != null) {
+                JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
+                return getIntFromJSONObject(templateStyle, contentName, fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -244,10 +269,11 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static double getTemplateDouble(InAppMessage inAppMessage, String contentName, double fallback) {
+    public static double getTemplateDouble(Context context, InAppMessage inAppMessage, String contentName, double fallback) {
         try {
             if (inAppMessage != null) {
-                return getDoubleFromJSONObject(inAppMessage.getTemplateStyle(), contentName, fallback);
+                JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
+                return getDoubleFromJSONObject(templateStyle, contentName, fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -256,8 +282,8 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static double getTemplateBackgroundDimAmount(InAppMessage inAppMessage, double fallback) {
-        return getTemplateDouble(inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
+    public static double getTemplateBackgroundDimAmount(Context context, InAppMessage inAppMessage, double fallback) {
+        return getTemplateDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
     }
 
     public static int getContentOrientation(Context context, InAppMessage inAppMessage, String contentName) {
@@ -421,11 +447,11 @@ public class InAppUtils {
         return null;
     }
 
-    public static boolean isHeightSet(InAppMessage inAppMessage) {
+    public static boolean isHeightSet(Context context, InAppMessage inAppMessage) {
         boolean isSet = false;
 
         try {
-            int height = getTemplateInt(inAppMessage, InAppConstants.HEIGHT, -1);
+            int height = getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
             isSet = height > 0;
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -434,12 +460,12 @@ public class InAppUtils {
         return isSet;
     }
 
-    public static boolean isTemplateFullScreen(InAppMessage inAppMessage) {
+    public static boolean isTemplateFullScreen(Context context, InAppMessage inAppMessage) {
         boolean isFullscreen = false;
 
         try {
-            int width = getTemplateInt(inAppMessage, InAppConstants.WIDTH, -1);
-            int height = getTemplateInt(inAppMessage, InAppConstants.HEIGHT, -1);
+            int width = getTemplateInt(context, inAppMessage, InAppConstants.WIDTH, -1);
+            int height = getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
             isFullscreen = (width == 100) && (height == 100);
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -448,8 +474,8 @@ public class InAppUtils {
         return isFullscreen;
     }
 
-    public static int getTemplateGravity(InAppMessage inAppMessage) {
-        String position = getTemplateString(inAppMessage, InAppConstants.POSITION);
+    public static int getTemplateGravity(Context context, InAppMessage inAppMessage) {
+        String position = getTemplateString(context, inAppMessage, InAppConstants.POSITION);
         return parseGravityString(position);
     }
 

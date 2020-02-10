@@ -34,7 +34,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         LinearLayout.LayoutParams lpRoot = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+        if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)) {
             lpRoot.height = ViewGroup.LayoutParams.MATCH_PARENT;
         }
 
@@ -76,7 +76,7 @@ public class InAppMessageViewRating extends InAppMessageView {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
             // message window will take the full screen
-            if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+            if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)) {
                 lp.height = 0;
                 lp.weight = 1;
             }

@@ -1,5 +1,6 @@
 package com.blueshift.inappmessage;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.text.TextUtils;
@@ -199,9 +200,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return null;
     }
 
-    public Rect getTemplateMargin() {
+    public Rect getTemplateMargin(Context context) {
         try {
-            String json = InAppUtils.getTemplateString(this, InAppConstants.MARGIN);
+            String json = InAppUtils.getTemplateString(context, this, InAppConstants.MARGIN);
             return new Gson().fromJson(json, Rect.class);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -210,9 +211,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return new Rect();
     }
 
-    public int getTemplateHeight() {
+    public int getTemplateHeight(Context context) {
         try {
-            return InAppUtils.getTemplateInt(this, InAppConstants.HEIGHT, -1);
+            return InAppUtils.getTemplateInt(context, this, InAppConstants.HEIGHT, -1);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -220,9 +221,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return ViewGroup.LayoutParams.MATCH_PARENT;
     }
 
-    public int getTemplateWidth() {
+    public int getTemplateWidth(Context context) {
         try {
-            return InAppUtils.getTemplateInt(this, InAppConstants.WIDTH, -1);
+            return InAppUtils.getTemplateInt(context, this, InAppConstants.WIDTH, -1);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -230,9 +231,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         return ViewGroup.LayoutParams.MATCH_PARENT;
     }
 
-    public int getTemplateBackgroundColor() {
+    public int getTemplateBackgroundColor(Context context) {
         try {
-            String color = InAppUtils.getTemplateString(this, InAppConstants.BACKGROUND_COLOR);
+            String color = InAppUtils.getTemplateString(context, this, InAppConstants.BACKGROUND_COLOR);
             if (InAppUtils.validateColorString(color)) {
                 return Color.parseColor(color);
             }
