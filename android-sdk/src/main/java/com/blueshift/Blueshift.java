@@ -51,6 +51,7 @@ import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Rahul Raveendran V P
@@ -1153,6 +1154,45 @@ public class Blueshift {
             new TrackCampaignEventTask(
                     InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras
             ).execute(mContext);
+        }
+    }
+
+    void trackUniversalLinks(Uri uri) {
+        try {
+            if (uri != null) {
+                Set<String> paramNames = uri.getQueryParameterNames();
+                if (paramNames != null) {
+                    StringBuilder builder = new StringBuilder();
+                    boolean firstIteration = true;
+                    for (String name : paramNames) {
+                        // this check is needed as remove() on the Set was giving error
+                        if (!BlueshiftConstants.KEY_REDIR.equals(name)) {
+                            if (firstIteration) {
+                                firstIteration = false;
+                            } else {
+                                builder.append("&");
+                            }
+
+                            builder.append(name).append("=").append(uri.getQueryParameter(name));
+                        }
+                    }
+
+                    String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + builder.toString();
+
+                    Request request = new Request();
+                    request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
+                    request.setUrl(reqUrl);
+                    request.setMethod(Method.GET);
+
+                    BlueshiftLogger.d(LOG_TAG, reqUrl);
+                    BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
+
+                    // Adding the request to the queue.
+                    RequestQueue.getInstance().add(mContext, request);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 

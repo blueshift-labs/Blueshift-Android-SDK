@@ -5,6 +5,7 @@ package com.blueshift;
  *         Created on 4/3/15 @ 3:02 PM
  *         https://github.com/rahulrvp
  */
+@SuppressWarnings("WeakerAccess")
 public class BlueshiftConstants {
 
     /**
@@ -134,4 +135,7 @@ public class BlueshiftConstants {
     public static final String SILENT_PUSH = "silent_push";
     public static final String SILENT_PUSH_ACTION = "action";
     public static final String ACTION_IN_APP_BACKGROUND_FETCH = "in_app_background_fetch";
+
+    // Universal links
+    public static final String KEY_REDIR = "redir";
 }
