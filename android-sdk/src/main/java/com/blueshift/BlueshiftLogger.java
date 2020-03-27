@@ -33,4 +33,8 @@ public class BlueshiftLogger {
             Log.e(checkTag(tag), "Unknown error!");
         }
     }
+
+    public static void i(String tag, String message) {
+        Log.d(checkTag(tag), message);
+    }
 }
