@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
@@ -88,6 +89,15 @@ public class BlueshiftLinksActivity extends AppCompatActivity {
     protected void redirect(@Nullable Uri uri) {
         if (uri != null) {
             openLink(uri, getIntent().getExtras());
+        } else {
+            Intent openAppIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+            if (openAppIntent != null) {
+                // Note: This will create a new task and launch the app with the corresponding
+                // activity. As per the docs, the dev should add parent activity to all the
+                // activities registered in the manifest in order to get the back stack working
+                // doc: https://developer.android.com/training/notify-user/navigation#DirectEntry
+                TaskStackBuilder.create(this).addNextIntentWithParentStack(openAppIntent).startActivities();
+            }
         }
     }
 }
