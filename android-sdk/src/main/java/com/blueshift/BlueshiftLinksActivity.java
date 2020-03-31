@@ -35,7 +35,7 @@ public class BlueshiftLinksActivity extends AppCompatActivity {
 
     private void track(Uri uri) {
         try {
-            Blueshift.getInstance(this).trackUniversalLinks(uri);
+            Blueshift.getInstance(getApplicationContext()).trackUniversalLinks(uri);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
