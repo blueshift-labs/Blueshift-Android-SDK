@@ -9,6 +9,7 @@ import android.util.Log;
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.HTTPManager;
@@ -162,12 +163,34 @@ class RequestDispatcher {
     private void addDeviceTokenToParams(String token) {
         if (mRequest != null) {
             try {
-                String paramsJson = mRequest.getParamJson();
-                if (!TextUtils.isEmpty(paramsJson)) {
-                    JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
-                    jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
+                String url = mRequest.getUrl();
+                if (BlueshiftConstants.BULK_EVENT_API_URL.equals(url)) {
+                    // when bulk event is being updated, we need to add token in all child events
+                    String payload = mRequest.getParamJson();
+                    if (!TextUtils.isEmpty(payload)) {
+                        try {
+                            JSONObject payloadJson = new JSONObject(payload);
+                            if (payloadJson.has("events")) {
+                                JSONArray eventArray = payloadJson.getJSONArray("events");
+                                for (int index = 0; index < eventArray.length(); index++) {
+                                    JSONObject event = eventArray.getJSONObject(index);
+                                    event.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
+                                    eventArray.put(index, event);
+                                }
+                                mRequest.setParamJson(eventArray.toString());
+                            }
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
+                        }
+                    }
+                } else {
+                    String paramsJson = mRequest.getParamJson();
+                    if (!TextUtils.isEmpty(paramsJson)) {
+                        JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
+                        jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
 
-                    mRequest.setParamJson(jsonObject.toString());
+                        mRequest.setParamJson(jsonObject.toString());
+                    }
                 }
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
