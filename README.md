@@ -5,9 +5,9 @@
 [ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=1.1.7) ](https://bintray.com/nipun/maven/android-sdk/1.1.7/link)
 
 ### Looking for stable version?
-[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=3.0.2) ](https://bintray.com/nipun/maven/android-sdk/3.0.2/link)
+[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=3.0.6) ](https://bintray.com/nipun/maven/android-sdk/3.0.6/link)
 
-Get started [here](https://help.blueshift.com/hc/en-us/articles/115002731534-Android-SDK)
+Get started [here](https://developer.blueshift.com/docs/about-blueshifts-android-sdk)
 
 ## How do I report an issue?
 The primary -- and the correct -- way to report an issue to us is via the customer support channel. Send us an email on support@blueshift.com from your work email with all the necessary details that contain step by step instructions on how to reproduce the issue.
