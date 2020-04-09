@@ -63,12 +63,14 @@ public class Blueshift {
     private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
     private static final HashMap<String, Object> sAppParams = new HashMap<>();
 
-    private static Context mContext;
+    private Context mContext;
     private static Configuration mConfiguration;
     private static Blueshift instance = null;
 
-    private Blueshift() {
-        // private constructor for singleton behavior
+    private Blueshift(Context context) {
+        if (context != null) {
+            mContext = context.getApplicationContext();
+        }
     }
 
     /**
@@ -78,10 +80,8 @@ public class Blueshift {
      * @return instance of Blueshift
      */
     public synchronized static Blueshift getInstance(Context context) {
-        mContext = context;
-
         if (instance == null) {
-            instance = new Blueshift();
+            instance = new Blueshift(context);
         }
 
         return instance;
@@ -111,7 +111,7 @@ public class Blueshift {
      * This method will read latest device token from firebase and will
      * update inside mDeviceParams.
      */
-    private static void updateFCMToken() {
+    private void updateFCMToken() {
         try {
             updateFCMTokenAsync();
         } catch (Exception e) {
