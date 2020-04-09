@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,6 +37,7 @@ import com.google.gson.JsonSyntaxException;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -162,7 +164,29 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         }
     }
 
-    public void handleDataMessage(Context context, Map<String, String> data) {
+    public static void handlePushMessage(Context context, Intent intent) {
+        try {
+            if (context != null && intent != null) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    Map<String, String> map = new HashMap<>();
+                    for (String key : bundle.keySet()) {
+                        String val = bundle.getString(key);
+                        if (val != null) map.put(key, val);
+                    }
+
+                    BlueshiftMessagingService service = new BlueshiftMessagingService();
+                    service.handleDataMessage(context, map);
+                }
+            } else {
+                BlueshiftLogger.e(LOG_TAG, "Could not handle push. Context is " + context + " and Intent is" + intent);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+    }
+
+    private void handleDataMessage(Context context, Map<String, String> data) {
         if (data != null) {
             if (BuildConfig.DEBUG) {
                 logPayload(data);
