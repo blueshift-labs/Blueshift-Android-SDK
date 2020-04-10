@@ -164,6 +164,19 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         }
     }
 
+    public static boolean isBlueshiftPush(Intent intent) {
+        try {
+            if (intent != null) {
+                Bundle bundle = intent.getExtras();
+                return  (bundle != null && bundle.keySet() != null && bundle.keySet().contains("message"));
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return false;
+    }
+
     public static void handlePushMessage(Context context, Intent intent) {
         try {
             if (context != null && intent != null) {
