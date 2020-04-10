@@ -416,23 +416,31 @@ public class InAppUtils {
                     new Runnable() {
                         @Override
                         public void run() {
-                            Bitmap bitmap = loadFromDisk(context, path);
-                            if (bitmap == null) {
-                                bitmap = loadFromNetwork(path);
-                            }
+                            try {
+                                Bitmap bitmap = loadFromDisk(context, path);
+                                if (bitmap == null) {
+                                    bitmap = loadFromNetwork(path);
+                                }
 
-                            if (bitmap != null) {
-                                final Bitmap finalBitmap = bitmap;
-                                BlueshiftExecutor.getInstance().runOnMainThread(
-                                        new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                imageView.setImageBitmap(finalBitmap);
+                                if (bitmap != null) {
+                                    final Bitmap finalBitmap = bitmap;
+                                    BlueshiftExecutor.getInstance().runOnMainThread(
+                                            new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    try {
+                                                        imageView.setImageBitmap(finalBitmap);
+                                                    } catch (Exception e) {
+                                                        BlueshiftLogger.e(LOG_TAG, e);
+                                                    }
+                                                }
                                             }
-                                        }
-                                );
-                            } else {
-                                BlueshiftLogger.e(LOG_TAG, "Could not load the image from " + path);
+                                    );
+                                } else {
+                                    BlueshiftLogger.e(LOG_TAG, "Could not load the image from " + path);
+                                }
+                            } catch (Exception e) {
+                                BlueshiftLogger.e(LOG_TAG, e);
                             }
                         }
                     }
@@ -661,6 +669,35 @@ public class InAppUtils {
 
     public static int getActionOrientation(InAppMessage inAppMessage) {
         return getContentOrientation(inAppMessage, InAppConstants.ACTIONS);
+    }
+
+    public static void setContentImageView(ImageView imageView, InAppMessage inAppMessage, String contentName) {
+        if (imageView != null && inAppMessage != null && !TextUtils.isEmpty(contentName)) {
+            // IMAGE
+            InAppUtils.loadImageAsync(imageView, inAppMessage.getContentString(contentName));
+
+            // BACKGROUND
+            Drawable background = InAppUtils.getContentBackgroundDrawable(inAppMessage, contentName);
+            if (background != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    imageView.setBackground(background);
+                } else {
+                    imageView.setBackgroundDrawable(background);
+                }
+            }
+
+            // PADDING (DEF: 4dp)
+            Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
+            if (padding != null) {
+                Context context = imageView.getContext();
+                imageView.setPadding(
+                        CommonUtils.dpToPx(padding.left, context),
+                        CommonUtils.dpToPx(padding.top, context),
+                        CommonUtils.dpToPx(padding.right, context),
+                        CommonUtils.dpToPx(padding.bottom, context)
+                );
+            }
+        }
     }
 
     public static void setContentTextView(TextView textView, InAppMessage inAppMessage, String contentName) {

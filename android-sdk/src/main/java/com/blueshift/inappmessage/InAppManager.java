@@ -624,6 +624,11 @@ public class InAppManager {
                 if (!TextUtils.isEmpty(bannerImage)) {
                     deleteCachedImage(context, bannerImage);
                 }
+                // icon image of slide-in
+                String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
+                if (!TextUtils.isEmpty(iconImage)) {
+                    deleteCachedImage(context, iconImage);
+                }
             }
         }
     }
@@ -657,6 +662,11 @@ public class InAppManager {
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
                     cacheImage(context, bannerImage);
+                }
+                // icon image of slide-in
+                String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
+                if (!TextUtils.isEmpty(iconImage)) {
+                    cacheImage(context, iconImage);
                 }
             }
         }
