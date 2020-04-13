@@ -2,6 +2,7 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -32,6 +33,11 @@ public class InAppMessageViewBanner extends InAppMessageView {
         TextView iconTextView = getContentIconTextView(inAppMessage, InAppConstants.ICON);
         if (iconTextView != null) {
             linearLayout.addView(iconTextView, lpIcon);
+        }
+
+        ImageView iconImageView = getContentIconImageView(inAppMessage, InAppConstants.ICON_IMAGE);
+        if (iconImageView != null) {
+            linearLayout.addView(iconImageView, lpIcon);
         }
 
         TextView messageTextView = getContentTextView(inAppMessage, InAppConstants.MESSAGE);

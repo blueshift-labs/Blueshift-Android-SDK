@@ -63,12 +63,14 @@ public class Blueshift {
     private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
     private static final HashMap<String, Object> sAppParams = new HashMap<>();
 
-    private static Context mContext;
+    private Context mContext;
     private static Configuration mConfiguration;
     private static Blueshift instance = null;
 
-    private Blueshift() {
-        // private constructor for singleton behavior
+    private Blueshift(Context context) {
+        if (context != null) {
+            mContext = context.getApplicationContext();
+        }
     }
 
     /**
@@ -78,10 +80,8 @@ public class Blueshift {
      * @return instance of Blueshift
      */
     public synchronized static Blueshift getInstance(Context context) {
-        mContext = context;
-
         if (instance == null) {
-            instance = new Blueshift();
+            instance = new Blueshift(context);
         }
 
         return instance;
@@ -111,7 +111,7 @@ public class Blueshift {
      * This method will read latest device token from firebase and will
      * update inside mDeviceParams.
      */
-    private static void updateFCMToken() {
+    private void updateFCMToken() {
         try {
             updateFCMTokenAsync();
         } catch (Exception e) {
@@ -315,8 +315,10 @@ public class Blueshift {
      *
      * @param configuration this object contains all the mandatory parameters like api key, deep-link pages etc.
      */
-    public void initialize(Configuration configuration) {
+    public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
+        // set app icon as notification icon if not set
+        initAppIcon(mContext);
         // Collecting device specific params.
         initializeDeviceParams();
         // Collect app details
@@ -337,6 +339,25 @@ public class Blueshift {
         // fetch from API
         if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
             InAppManager.fetchInAppFromServer(mContext, null);
+        }
+    }
+
+    /**
+     * Check if a notification icon is provided, else use app icon
+     * as notification icon.
+     *
+     * @param context valid context object
+     */
+    private void initAppIcon(Context context) {
+        try {
+            if (mConfiguration != null && mConfiguration.getAppIcon() == 0) {
+                if (context != null) {
+                    ApplicationInfo applicationInfo = context.getApplicationInfo();
+                    mConfiguration.setAppIcon(applicationInfo.icon);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
