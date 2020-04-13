@@ -315,8 +315,10 @@ public class Blueshift {
      *
      * @param configuration this object contains all the mandatory parameters like api key, deep-link pages etc.
      */
-    public void initialize(Configuration configuration) {
+    public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
+        // set app icon as notification icon if not set
+        initAppIcon(mContext);
         // Collecting device specific params.
         initializeDeviceParams();
         // Collect app details
@@ -337,6 +339,25 @@ public class Blueshift {
         // fetch from API
         if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
             InAppManager.fetchInAppFromServer(mContext, null);
+        }
+    }
+
+    /**
+     * Check if a notification icon is provided, else use app icon
+     * as notification icon.
+     *
+     * @param context valid context object
+     */
+    private void initAppIcon(Context context) {
+        try {
+            if (mConfiguration != null && mConfiguration.getAppIcon() == 0) {
+                if (context != null) {
+                    ApplicationInfo applicationInfo = context.getApplicationInfo();
+                    mConfiguration.setAppIcon(applicationInfo.icon);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
