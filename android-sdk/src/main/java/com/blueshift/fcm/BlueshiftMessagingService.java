@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,6 +37,7 @@ import com.google.gson.JsonSyntaxException;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,7 +71,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
              */
             Map<String, String> data = remoteMessage.getData();
             if (data != null) {
-                handleDataMessage(data);
+                handleDataMessage(this, data);
             } else {
                 /*
                  * Neither data nor notification payload is present
@@ -162,18 +164,53 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void handleDataMessage(Map<String, String> data) {
+    public static boolean isBlueshiftPush(Intent intent) {
+        try {
+            if (intent != null) {
+                Bundle bundle = intent.getExtras();
+                return  (bundle != null && bundle.keySet() != null && bundle.keySet().contains("message"));
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return false;
+    }
+
+    public static void handlePushMessage(Context context, Intent intent) {
+        try {
+            if (context != null && intent != null) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    Map<String, String> map = new HashMap<>();
+                    for (String key : bundle.keySet()) {
+                        String val = bundle.getString(key);
+                        if (val != null) map.put(key, val);
+                    }
+
+                    BlueshiftMessagingService service = new BlueshiftMessagingService();
+                    service.handleDataMessage(context, map);
+                }
+            } else {
+                BlueshiftLogger.e(LOG_TAG, "Could not handle push. Context is " + context + " and Intent is" + intent);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+    }
+
+    private void handleDataMessage(Context context, Map<String, String> data) {
         if (data != null) {
             if (BuildConfig.DEBUG) {
                 logPayload(data);
             }
 
             if (isBlueshiftPushNotification(data)) {
-                processPushNotification(data);
+                processPushNotification(context, data);
             } else if (isBlueshiftInAppMessage(data)) {
-                processInAppMessage(data);
+                processInAppMessage(context, data);
             } else if (isSilentPush(data)) {
-                processSilentPush(data);
+                processSilentPush(context, data);
             } else {
                 SdkLog.d(LOG_TAG, "Passing the push payload to host app via callback.");
 
@@ -197,7 +234,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         return data != null && data.containsKey(BlueshiftConstants.SILENT_PUSH);
     }
 
-    private void processPushNotification(Map<String, String> data) {
+    private void processPushNotification(Context context, Map<String, String> data) {
         try {
             String msgJson = data.get(Message.EXTRA_MESSAGE);
             if (!TextUtils.isEmpty(msgJson)) {
@@ -229,7 +266,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                          */
                         SdkLog.i(LOG_TAG, "A silent push received.");
                     } else {
-                        NotificationFactory.handleMessage(this, message);
+                        NotificationFactory.handleMessage(context, message);
                     }
                 } else {
                     Log.e(LOG_TAG, "Null message found in push message.");
@@ -240,12 +277,12 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void processInAppMessage(Map<String, String> data) {
+    private void processInAppMessage(Context context, Map<String, String> data) {
         try {
             InAppMessage inAppMessage = InAppMessage.getInstance(data);
             if (inAppMessage != null) {
-                InAppManager.onInAppMessageReceived(this, inAppMessage);
-                InAppMessageStore.getInstance(this).clean();
+                InAppManager.onInAppMessageReceived(context, inAppMessage);
+                InAppMessageStore.getInstance(context).clean();
                 InAppManager.invokeTriggerWithinSdk();
             }
         } catch (Exception e) {
@@ -253,7 +290,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void processSilentPush(Map<String, String> data) {
+    private void processSilentPush(Context context, Map<String, String> data) {
         try {
             if (data != null) {
                 String silentPushStr = data.get(BlueshiftConstants.SILENT_PUSH);
@@ -262,7 +299,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                     String action = silentPushJson.optString(BlueshiftConstants.SILENT_PUSH_ACTION);
                     BlueshiftLogger.d(LOG_TAG, "Silent push with action '" + action + "' received.");
                     if (BlueshiftConstants.ACTION_IN_APP_BACKGROUND_FETCH.equals(action)) {
-                        triggerInAppBackgroundFetch();
+                        triggerInAppBackgroundFetch(context);
                     }
                 }
             }
@@ -271,11 +308,11 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         }
     }
 
-    protected void triggerInAppBackgroundFetch() {
+    protected void triggerInAppBackgroundFetch(Context context) {
         try {
-            final Configuration config = BlueshiftUtils.getConfiguration(this);
+            final Configuration config = BlueshiftUtils.getConfiguration(context);
             if (config != null && config.isInAppBackgroundFetchEnabled()) {
-                InAppManager.fetchInAppFromServer(this, new InAppApiCallback() {
+                InAppManager.fetchInAppFromServer(context, new InAppApiCallback() {
                     @Override
                     public void onSuccess() {
                         InAppManager.invokeTriggerWithinSdk();
