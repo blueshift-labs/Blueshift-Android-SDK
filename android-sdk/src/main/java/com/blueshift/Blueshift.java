@@ -282,22 +282,8 @@ public class Blueshift {
                             sAppParams.put(BlueshiftConstants.KEY_APP_VERSION, version);
                         }
 
-                        // ============== Read App Name ==============
-                        ApplicationInfo appInfo = null;
-
-                        try {
-                            appInfo = pkgManager.getApplicationInfo(pkgName, 0);
-                        } catch (PackageManager.NameNotFoundException e) {
-                            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
-                        }
-
-                        CharSequence appName = "Not Available";
-
-                        if (appInfo != null) {
-                            appName = pkgManager.getApplicationLabel(appInfo);
-                        }
-
-                        sAppParams.put(BlueshiftConstants.KEY_APP_NAME, appName);
+                        // ============== Package Name ==============
+                        sAppParams.put(BlueshiftConstants.KEY_APP_NAME, pkgName);
                     }
                 }
             }
