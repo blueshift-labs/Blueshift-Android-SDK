@@ -78,7 +78,9 @@ class RequestDispatcher {
                 FirebaseApp.initializeApp(mContext);
                 getLatestFCMTokenAndDispatch();
             } catch (Exception ex) {
-                SdkLog.e(LOG_TAG, ex.getMessage());
+                // Possible error on Firebase initialization. Send event without token.
+                dispatchWithoutPushToken();
+                BlueshiftLogger.e(LOG_TAG, ex);
             }
         }
     }
@@ -100,7 +102,9 @@ class RequestDispatcher {
                     String latestToken = instanceIdResult.getToken();
                     new RequestDispatchTask(latestToken, RequestDispatcher.this).execute();
                 } catch (Exception e) {
-                    SdkLog.e(LOG_TAG, e.getMessage());
+                    // Possible error on Firebase initialization. Send event without token.
+                    dispatchWithoutPushToken();
+                    BlueshiftLogger.e(LOG_TAG, e.getMessage());
                 }
             }
         });
