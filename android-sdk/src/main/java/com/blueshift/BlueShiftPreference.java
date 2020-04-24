@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import java.util.UUID;
+
 /**
  * This class is responsible for tracking the preferences of sdk.
  *
@@ -17,6 +19,23 @@ import android.text.TextUtils;
 public class BlueShiftPreference {
 
     private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
+
+    public static String getDeviceID(Context context) {
+        String deviceIdKey = "blueshift_device_id";
+        String deviceId = null;
+
+        SharedPreferences preferences = getBlueshiftPreferences(context);
+        if (preferences != null) {
+            deviceId = preferences.getString(deviceIdKey, null);
+
+            if (deviceId == null) {
+                deviceId = UUID.randomUUID().toString();
+                preferences.edit().putString(deviceIdKey,deviceId).apply();
+            }
+        }
+
+        return deviceId;
+    }
 
     public static boolean isEmailAlreadyIdentified(Context context, String email) {
         boolean result = false;
@@ -42,6 +61,19 @@ public class BlueShiftPreference {
                         .commit();
             }
         }
+    }
+
+    private static SharedPreferences getBlueshiftPreferences(Context context) {
+        SharedPreferences preferences = null;
+
+        if (context != null) {
+            preferences = context.getSharedPreferences(
+                    getPreferenceFileName(context, "blueshift_sdk_preferences"),
+                    Context.MODE_PRIVATE
+            );
+        }
+
+        return preferences;
     }
 
     private static SharedPreferences getEmailPreference(Context context) {

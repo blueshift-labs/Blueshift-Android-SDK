@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
@@ -47,23 +48,24 @@ public class DeviceUtils {
         }
     }
 
-    public static String getAdvertisingID(Context context) {
-        String advertisingId = null;
-
-        try {
-            AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
-            if (info != null) {
-                advertisingId = info.getId();
-            }
-
-            if (isLimitAdTrackingEnabled(context)) {
-                Log.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        return advertisingId;
+    public static String getDeviceId(Context context) {
+        return BlueShiftPreference.getDeviceID(context);
+//        String advertisingId = null;
+//
+//        try {
+//            AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
+//            if (info != null) {
+//                advertisingId = info.getId();
+//            }
+//
+//            if (isLimitAdTrackingEnabled(context)) {
+//                Log.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
+//            }
+//        } catch (Exception e) {
+//            BlueshiftLogger.e(LOG_TAG, e);
+//        }
+//
+//        return advertisingId;
     }
 
     public static boolean isLimitAdTrackingEnabled(Context context) {
