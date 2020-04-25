@@ -19,19 +19,36 @@ import java.util.UUID;
 public class BlueShiftPreference {
 
     private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
+    private static final String PREF_FILE_COMMON = "blueshift_sdk_preferences";
+    private static final String PREF_KEY_DEVICE_ID = "blueshift_device_id";
+
+    static void resetDeviceID(Context context) {
+        try {
+            SharedPreferences preferences = getBlueshiftPreferences(context);
+            if (preferences != null) {
+                String deviceId = UUID.randomUUID().toString();
+                preferences.edit().putString(PREF_KEY_DEVICE_ID, deviceId).apply();
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(null, e);
+        }
+    }
 
     public static String getDeviceID(Context context) {
-        String deviceIdKey = "blueshift_device_id";
         String deviceId = null;
 
-        SharedPreferences preferences = getBlueshiftPreferences(context);
-        if (preferences != null) {
-            deviceId = preferences.getString(deviceIdKey, null);
+        try {
+            SharedPreferences preferences = getBlueshiftPreferences(context);
+            if (preferences != null) {
+                deviceId = preferences.getString(PREF_KEY_DEVICE_ID, null);
 
-            if (deviceId == null) {
-                deviceId = UUID.randomUUID().toString();
-                preferences.edit().putString(deviceIdKey,deviceId).apply();
+                if (deviceId == null) {
+                    deviceId = UUID.randomUUID().toString();
+                    preferences.edit().putString(PREF_KEY_DEVICE_ID, deviceId).apply();
+                }
             }
+        } catch (Exception e) {
+            BlueshiftLogger.e(null, e);
         }
 
         return deviceId;
@@ -68,7 +85,7 @@ public class BlueShiftPreference {
 
         if (context != null) {
             preferences = context.getSharedPreferences(
-                    getPreferenceFileName(context, "blueshift_sdk_preferences"),
+                    getPreferenceFileName(context, PREF_FILE_COMMON),
                     Context.MODE_PRIVATE
             );
         }

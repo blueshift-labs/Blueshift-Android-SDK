@@ -108,6 +108,13 @@ public class Blueshift {
     }
 
     /**
+     * Reset uuid which is being sent as device_id for this app
+     */
+    public void resetDeviceId() {
+        BlueShiftPreference.resetDeviceID(mContext);
+    }
+
+    /**
      * This method will read latest device token from firebase and will
      * update inside mDeviceParams.
      */
