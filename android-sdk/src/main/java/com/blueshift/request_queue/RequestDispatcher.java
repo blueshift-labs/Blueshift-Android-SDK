@@ -104,7 +104,7 @@ class RequestDispatcher {
                 } catch (Exception e) {
                     // Possible error on Firebase initialization. Send event without token.
                     dispatchWithoutPushToken();
-                    BlueshiftLogger.e(LOG_TAG, e.getMessage());
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
             }
         });
