@@ -18,9 +18,11 @@ import java.util.UUID;
 
 public class BlueShiftPreference {
 
-    private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
-    private static final String PREF_FILE_COMMON = "blueshift_sdk_preferences";
+    private static final String PREF_FILE = "com.blueshift.sdk_preferences";
     private static final String PREF_KEY_DEVICE_ID = "blueshift_device_id";
+    private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
+
+    private static final String TAG = "BlueShiftPreference";
 
     static void resetDeviceID(Context context) {
         try {
@@ -30,7 +32,7 @@ public class BlueShiftPreference {
                 preferences.edit().putString(PREF_KEY_DEVICE_ID, deviceId).apply();
             }
         } catch (Exception e) {
-            BlueshiftLogger.e(null, e);
+            BlueshiftLogger.e(TAG, e);
         }
     }
 
@@ -48,7 +50,7 @@ public class BlueShiftPreference {
                 }
             }
         } catch (Exception e) {
-            BlueshiftLogger.e(null, e);
+            BlueshiftLogger.e(TAG, e);
         }
 
         return deviceId;
@@ -85,7 +87,7 @@ public class BlueShiftPreference {
 
         if (context != null) {
             preferences = context.getSharedPreferences(
-                    getPreferenceFileName(context, PREF_FILE_COMMON),
+                    getPreferenceFileName(context, PREF_FILE),
                     Context.MODE_PRIVATE
             );
         }
