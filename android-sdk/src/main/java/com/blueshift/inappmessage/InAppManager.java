@@ -126,7 +126,7 @@ public class InAppManager {
                                 params.put(BlueshiftConstants.KEY_API_KEY, apiKey != null ? apiKey : "");
 
                                 // device id
-                                String deviceId = DeviceUtils.getAdvertisingID(context);
+                                String deviceId = DeviceUtils.getDeviceId(context);
                                 params.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId != null ? deviceId : "");
 
                                 // email

@@ -78,7 +78,9 @@ class RequestDispatcher {
                 FirebaseApp.initializeApp(mContext);
                 getLatestFCMTokenAndDispatch();
             } catch (Exception ex) {
-                SdkLog.e(LOG_TAG, ex.getMessage());
+                // Possible error on Firebase initialization. Send event without token.
+                dispatchWithoutPushToken();
+                BlueshiftLogger.e(LOG_TAG, ex);
             }
         }
     }
@@ -100,7 +102,9 @@ class RequestDispatcher {
                     String latestToken = instanceIdResult.getToken();
                     new RequestDispatchTask(latestToken, RequestDispatcher.this).execute();
                 } catch (Exception e) {
-                    SdkLog.e(LOG_TAG, e.getMessage());
+                    // Possible error on Firebase initialization. Send event without token.
+                    dispatchWithoutPushToken();
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
             }
         });
@@ -113,8 +117,7 @@ class RequestDispatcher {
     private synchronized void processRequest(String fcmRegistrationToken) {
         String url = mRequest.getUrl();
         if (!TextUtils.isEmpty(url)) {
-            HTTPManager httpManager = new HTTPManager(url);
-            httpManager = appendAuthentication(httpManager);
+            HTTPManager httpManager = getHttpManagerWithAuthentication(url);
 
             addDeviceTokenToParams(fcmRegistrationToken);
             doAutoIdentifyCheck();
@@ -138,16 +141,16 @@ class RequestDispatcher {
     }
 
     /**
-     * Append basic authentication to the request header of httpManager
+     * Create and return a valid HTTPManager object with URL and basic authentication.
      *
-     * @param httpManager Valid {@link HTTPManager} object
-     * @return {@link HTTPManager} object with basic auth enabled
+     * @param url valid api URL.
+     * @return valid {@link HTTPManager} object with URL & basic authentication.
      */
-    private HTTPManager appendAuthentication(HTTPManager httpManager) {
+    private HTTPManager getHttpManagerWithAuthentication(@NonNull String url) {
+        HTTPManager httpManager = new HTTPManager(url);
+
         String apiKey = BlueshiftUtils.getApiKey(mContext);
-        if (apiKey != null) {
-            httpManager.addBasicAuthentication(apiKey, "");
-        }
+        if (apiKey != null) httpManager.addBasicAuthentication(apiKey, "");
 
         return httpManager;
     }
@@ -216,7 +219,7 @@ class RequestDispatcher {
                 Blueshift
                         .getInstance(mContext)
                         .identifyUserByDeviceId(
-                                DeviceUtils.getAdvertisingID(mContext), null, false);
+                                DeviceUtils.getDeviceId(mContext), null, false);
 
                 BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
             }

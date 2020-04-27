@@ -375,9 +375,9 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
      * device token is notified to the blueshift servers.
      */
     private void callIdentify() {
-        String adId = DeviceUtils.getAdvertisingID(this);
+        String deviceId = DeviceUtils.getDeviceId(this);
         Blueshift
                 .getInstance(this)
-                .identifyUserByDeviceId(adId, null, false);
+                .identifyUserByDeviceId(deviceId, null, false);
     }
 }
