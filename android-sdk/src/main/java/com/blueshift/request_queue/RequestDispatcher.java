@@ -220,7 +220,7 @@ class RequestDispatcher {
                 Blueshift
                         .getInstance(mContext)
                         .identifyUserByDeviceId(
-                                DeviceUtils.getAdvertisingID(mContext), null, false);
+                                DeviceUtils.getDeviceId(mContext), null, false);
 
                 BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
             }

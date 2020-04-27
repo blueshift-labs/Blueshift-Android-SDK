@@ -108,6 +108,13 @@ public class Blueshift {
     }
 
     /**
+     * Reset uuid which is being sent as device_id for this app
+     */
+    public void resetDeviceId() {
+        BlueShiftPreference.resetDeviceID(mContext);
+    }
+
+    /**
      * This method will read latest device token from firebase and will
      * update inside mDeviceParams.
      */
@@ -231,7 +238,6 @@ public class Blueshift {
     private void initializeDeviceParams() {
         synchronized (sDeviceParams) {
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-            // sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, FirebaseInstanceId.getInstance().getToken());
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
@@ -241,9 +247,13 @@ public class Blueshift {
             if (simOperatorName != null) {
                 sDeviceParams.put(BlueshiftConstants.KEY_NETWORK_CARRIER, simOperatorName);
             }
-        }
 
-        new FetchAndUpdateAdIdTask().execute();
+            String deviceId = DeviceUtils.getDeviceId(mContext);
+            if (TextUtils.isEmpty(deviceId)) {
+                BlueshiftLogger.e(LOG_TAG, "device_id is null/empty");
+            }
+            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+        }
 
         if (mConfiguration != null && mConfiguration.isPushEnabled()) {
             updateFCMToken();
@@ -450,7 +460,7 @@ public class Blueshift {
                         // if not found, try to get it now and fill it in.
                         Object deviceId = requestParams.get(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
                         if (deviceId == null) {
-                            String adId = DeviceUtils.getAdvertisingID(mContext);
+                            String adId = DeviceUtils.getDeviceId(mContext);
                             requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
                         }
 
@@ -503,7 +513,7 @@ public class Blueshift {
 
                         // get status of fresh device id & ad opt out
                         // calling this synchronously as this method is called from a bg thread
-                        requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getAdvertisingID(mContext));
+                        requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getDeviceId(mContext));
                         requestParams.put(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, DeviceUtils.isLimitAdTrackingEnabled(mContext));
 
                         String reqParamsJSON = new Gson().toJson(requestParams);
@@ -1298,7 +1308,7 @@ public class Blueshift {
 
         @Override
         protected String doInBackground(Void... params) {
-            return DeviceUtils.getAdvertisingID(mContext);
+            return DeviceUtils.getDeviceId(mContext);
         }
 
         @Override
@@ -1367,15 +1377,15 @@ public class Blueshift {
                         if (!TextUtils.isEmpty(email)) {
                             userHash.put(BlueshiftConstants.KEY_EMAIL, email);
                         } else {
-                            Log.e(LOG_TAG, "Live Content Api: No advertisingID provided in UserInfo.");
+                            Log.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
                         }
 
                         break;
 
                     case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
-                        String advertisingID = DeviceUtils.getAdvertisingID(mContext);
-                        if (!TextUtils.isEmpty(advertisingID)) {
-                            userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, advertisingID);
+                        String deviceId = DeviceUtils.getDeviceId(mContext);
+                        if (!TextUtils.isEmpty(deviceId)) {
+                            userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
                         } else {
                             Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
                         }
