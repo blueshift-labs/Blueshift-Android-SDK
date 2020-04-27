@@ -50,22 +50,25 @@ public class DeviceUtils {
 
     public static String getDeviceId(Context context) {
         return BlueShiftPreference.getDeviceID(context);
-//        String advertisingId = null;
-//
-//        try {
-//            AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
-//            if (info != null) {
-//                advertisingId = info.getId();
-//            }
-//
-//            if (isLimitAdTrackingEnabled(context)) {
-//                Log.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
-//            }
-//        } catch (Exception e) {
-//            BlueshiftLogger.e(LOG_TAG, e);
-//        }
-//
-//        return advertisingId;
+    }
+
+    public static String getAdvertisingId(Context context) {
+        String advertisingId = null;
+
+        try {
+            AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
+            if (info != null) {
+                advertisingId = info.getId();
+            }
+
+            if (isLimitAdTrackingEnabled(context)) {
+                Log.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return advertisingId;
     }
 
     public static boolean isLimitAdTrackingEnabled(Context context) {
