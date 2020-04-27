@@ -86,10 +86,7 @@ public class BlueShiftPreference {
         SharedPreferences preferences = null;
 
         if (context != null) {
-            preferences = context.getSharedPreferences(
-                    getPreferenceFileName(context, PREF_FILE),
-                    Context.MODE_PRIVATE
-            );
+            preferences = context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
         }
 
         return preferences;
