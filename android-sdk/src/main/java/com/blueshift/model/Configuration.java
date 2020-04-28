@@ -44,6 +44,7 @@ public class Configuration {
     private boolean inAppBackgroundFetchEnabled = false;
 
     private boolean enableAutoAppOpen = false;
+    private boolean shouldUseAdvertisingIdAsDeviceId = true;
 
     public Configuration() {
         inAppInterval = InAppConstants.IN_APP_INTERVAL;
@@ -251,5 +252,13 @@ public class Configuration {
 
     public void setInAppBackgroundFetchEnabled(boolean inAppBackgroundFetchEnabled) {
         this.inAppBackgroundFetchEnabled = inAppBackgroundFetchEnabled;
+    }
+
+    public boolean shouldUseAdvertisingIdAsDeviceId() {
+        return shouldUseAdvertisingIdAsDeviceId;
+    }
+
+    public void setShouldUseAdvertisingIdAsDeviceId(boolean useAdvertisingIdAsDeviceId) {
+        this.shouldUseAdvertisingIdAsDeviceId = useAdvertisingIdAsDeviceId;
     }
 }
