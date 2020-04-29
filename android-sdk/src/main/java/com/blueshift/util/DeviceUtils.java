@@ -15,6 +15,7 @@ import com.blueshift.model.Configuration;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -67,10 +68,20 @@ public class DeviceUtils {
         String deviceId;
 
         Configuration configuration = BlueshiftUtils.getConfiguration(context);
-        if (configuration != null && configuration.shouldUseAdvertisingIdAsDeviceId()) {
-            deviceId = getAdvertisingId(context);
+        if (configuration != null && configuration.getDeviceIdSource() != null) {
+            switch (configuration.getDeviceIdSource()) {
+                case INSTANCE_ID:
+                    deviceId = FirebaseInstanceId.getInstance().getId();
+                    break;
+                case GUID:
+                    deviceId = BlueShiftPreference.getDeviceID(context);
+                    break;
+                default:
+                    // ADVERTISING_ID & Others
+                    deviceId = getAdvertisingId(context);
+            }
         } else {
-            deviceId = BlueShiftPreference.getDeviceID(context);
+            deviceId = getAdvertisingId(context);
         }
 
         return deviceId;

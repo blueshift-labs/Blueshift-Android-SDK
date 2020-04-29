@@ -2,6 +2,7 @@ package com.blueshift.model;
 
 import android.app.AlarmManager;
 
+import com.blueshift.Blueshift;
 import com.blueshift.inappmessage.InAppConstants;
 
 /**
@@ -44,9 +45,11 @@ public class Configuration {
     private boolean inAppBackgroundFetchEnabled = false;
 
     private boolean enableAutoAppOpen = false;
-    private boolean shouldUseAdvertisingIdAsDeviceId = true;
+
+    private Blueshift.DeviceIdSource deviceIdSource;
 
     public Configuration() {
+        deviceIdSource = Blueshift.DeviceIdSource.ADVERTISING_ID;
         inAppInterval = InAppConstants.IN_APP_INTERVAL;
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
         networkChangeListenerJobId = 901;
@@ -254,11 +257,11 @@ public class Configuration {
         this.inAppBackgroundFetchEnabled = inAppBackgroundFetchEnabled;
     }
 
-    public boolean shouldUseAdvertisingIdAsDeviceId() {
-        return shouldUseAdvertisingIdAsDeviceId;
+    public Blueshift.DeviceIdSource getDeviceIdSource() {
+        return deviceIdSource;
     }
 
-    public void setShouldUseAdvertisingIdAsDeviceId(boolean useAdvertisingIdAsDeviceId) {
-        this.shouldUseAdvertisingIdAsDeviceId = useAdvertisingIdAsDeviceId;
+    public void setDeviceIdSource(Blueshift.DeviceIdSource deviceIdSource) {
+        this.deviceIdSource = deviceIdSource;
     }
 }

@@ -67,6 +67,10 @@ public class Blueshift {
     private static Configuration mConfiguration;
     private static Blueshift instance = null;
 
+    public enum DeviceIdSource {
+        ADVERTISING_ID, INSTANCE_ID, GUID
+    }
+
     private Blueshift(Context context) {
         if (context != null) {
             mContext = context.getApplicationContext();
