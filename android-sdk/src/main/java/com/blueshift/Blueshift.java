@@ -67,6 +67,10 @@ public class Blueshift {
     private static Configuration mConfiguration;
     private static Blueshift instance = null;
 
+    public enum DeviceIdSource {
+        ADVERTISING_ID, INSTANCE_ID, GUID
+    }
+
     private Blueshift(Context context) {
         if (context != null) {
             mContext = context.getApplicationContext();
@@ -164,14 +168,14 @@ public class Blueshift {
     }
 
     /**
-     * Updates the sDeviceParams with android ad id
+     * Updates the sDeviceParams with device id
      *
-     * @param androidAdId android advertising id String
+     * @param deviceId device id as String
      */
-    private static void updateAndroidAdId(String androidAdId) {
+    private static void updateDeviceId(String deviceId) {
         synchronized (sDeviceParams) {
-            if (!TextUtils.isEmpty(androidAdId)) {
-                sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId);
+            if (!TextUtils.isEmpty(deviceId)) {
+                sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
             }
         }
     }
@@ -247,13 +251,9 @@ public class Blueshift {
             if (simOperatorName != null) {
                 sDeviceParams.put(BlueshiftConstants.KEY_NETWORK_CARRIER, simOperatorName);
             }
-
-            String deviceId = DeviceUtils.getDeviceId(mContext);
-            if (TextUtils.isEmpty(deviceId)) {
-                BlueshiftLogger.e(LOG_TAG, "device_id is null/empty");
-            }
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
         }
+
+        new UpdateDeviceIdTask().execute(mContext);
 
         if (mConfiguration != null && mConfiguration.isPushEnabled()) {
             updateFCMToken();
@@ -1297,26 +1297,21 @@ public class Blueshift {
     }
 
     /**
-     * Updates the sDeviceParams with advertising ID
+     * Updates the sDeviceParams with device_id
      */
-    private class FetchAndUpdateAdIdTask extends AsyncTask<Void, Void, String> {
+    private static class UpdateDeviceIdTask extends AsyncTask<Context, Void, String> {
 
         @Override
-        protected void onPreExecute() {
-            SdkLog.i(LOG_TAG, "Trying to fetch AdvertisingId");
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            return DeviceUtils.getDeviceId(mContext);
+        protected String doInBackground(Context... contexts) {
+            return contexts != null && contexts.length > 0 ? DeviceUtils.getDeviceId(contexts[0]) : null;
         }
 
         @Override
         protected void onPostExecute(String adId) {
-            if (!TextUtils.isEmpty(adId)) {
-                updateAndroidAdId(adId);
+            if (TextUtils.isEmpty(adId)) {
+                BlueshiftLogger.e(LOG_TAG, "Could not get a valid device_id");
             } else {
-                SdkLog.w(LOG_TAG, "Could not fetch AdvertisingId");
+                updateDeviceId(adId);
             }
         }
     }

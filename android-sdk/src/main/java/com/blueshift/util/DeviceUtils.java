@@ -4,15 +4,18 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.WorkerThread;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
+import com.blueshift.model.Configuration;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -48,11 +51,43 @@ public class DeviceUtils {
         }
     }
 
+    /**
+     * This method is responsible for returning a valid device_id string.
+     *
+     * Depending upon if the developer has enabled collection of Advertising Id
+     * as device_id, it will return advertising id or GUID.
+     *
+     * As the Advertising Id should be collected from worker thread, this method
+     * should be called from worker thread only.
+     *
+     * @param context Valid {@link Context} object
+     * @return Valid device_id string
+     */
+    @WorkerThread
     public static String getDeviceId(Context context) {
-        return BlueShiftPreference.getDeviceID(context);
+        String deviceId;
+
+        Configuration configuration = BlueshiftUtils.getConfiguration(context);
+        if (configuration != null && configuration.getDeviceIdSource() != null) {
+            switch (configuration.getDeviceIdSource()) {
+                case INSTANCE_ID:
+                    deviceId = FirebaseInstanceId.getInstance().getId();
+                    break;
+                case GUID:
+                    deviceId = BlueShiftPreference.getDeviceID(context);
+                    break;
+                default:
+                    // ADVERTISING_ID & Others
+                    deviceId = getAdvertisingId(context);
+            }
+        } else {
+            deviceId = getAdvertisingId(context);
+        }
+
+        return deviceId;
     }
 
-    public static String getAdvertisingId(Context context) {
+    private static String getAdvertisingId(Context context) {
         String advertisingId = null;
 
         try {

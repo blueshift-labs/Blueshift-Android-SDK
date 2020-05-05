@@ -25,7 +25,9 @@ public class InAppConstants {
     public static final String EXPIRES_AT = "expires_at";
     public static final String CONTENT = "content";
     public static final String CONTENT_STYLE = "content_style";
+    public static final String CONTENT_STYLE_DARK = "content_style_dark";
     public static final String TEMPLATE_STYLE = "template_style";
+    public static final String TEMPLATE_STYLE_DARK = "template_style_dark";
 
     // payload: level-2 keys
     public static final String WIDTH = "width";

@@ -34,7 +34,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         LinearLayout.LayoutParams lpRoot = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+        if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)) {
             lpRoot.height = ViewGroup.LayoutParams.MATCH_PARENT;
         }
 
@@ -65,7 +65,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         if (titleTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.TITLE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.TITLE);
             rootView.addView(titleTextView, lp);
         }
 
@@ -76,12 +76,12 @@ public class InAppMessageViewRating extends InAppMessageView {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
             // message window will take the full screen
-            if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+            if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)) {
                 lp.height = 0;
                 lp.weight = 1;
             }
 
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.MESSAGE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
             rootView.addView(messageTextView, lp);
         }
 
@@ -100,7 +100,7 @@ public class InAppMessageViewRating extends InAppMessageView {
 
         // Action buttons layout
         LinearLayout buttonLayout = new LinearLayout(getContext());
-        int orientation = InAppUtils.getActionOrientation(inAppMessage);
+        int orientation = InAppUtils.getActionOrientation(getContext(), inAppMessage);
         if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
             buttonLayout.setOrientation(orientation);
         }

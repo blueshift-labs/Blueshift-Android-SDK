@@ -26,7 +26,7 @@ public class InAppMessageViewModal extends InAppMessageView {
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+        if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)) {
             lp2.height = ViewGroup.LayoutParams.MATCH_PARENT;
         }
 
@@ -57,7 +57,7 @@ public class InAppMessageViewModal extends InAppMessageView {
         if (titleTextView != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.TITLE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.TITLE);
             rootView.addView(titleTextView, lp);
         }
 
@@ -68,12 +68,12 @@ public class InAppMessageViewModal extends InAppMessageView {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
             // message window will take the full screen
-            if (InAppUtils.isTemplateFullScreen(inAppMessage) || InAppUtils.isHeightSet(inAppMessage)) {
+            if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage) || InAppUtils.isHeightSet(getContext(), inAppMessage)) {
                 lp.height = 0;
                 lp.weight = 1;
             }
 
-            lp.gravity = InAppUtils.getContentLayoutGravity(inAppMessage, InAppConstants.MESSAGE);
+            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
             rootView.addView(messageTextView, lp);
         }
 
@@ -82,7 +82,7 @@ public class InAppMessageViewModal extends InAppMessageView {
         if (actionsLayout != null) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            Rect margins = InAppUtils.getContentMargin(inAppMessage, InAppConstants.ACTIONS);
+            Rect margins = InAppUtils.getContentMargin(getContext(), inAppMessage, InAppConstants.ACTIONS);
             if (margins != null) {
                 lp.setMargins(
                         dp2px(margins.left),

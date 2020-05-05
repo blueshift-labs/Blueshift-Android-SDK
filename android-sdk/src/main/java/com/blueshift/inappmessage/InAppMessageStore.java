@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessage> {
     private static final String TAG = InAppMessageStore.class.getSimpleName();
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private static final String DB_NAME = "bsft_inappmessage_db";
     private static final String TABLE_NAME = "bsft_inappmessage";
 
@@ -31,7 +31,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     private static final String FIELD_TRIGGER = "trigger";
     private static final String FIELD_DISPLAY_ON = "display_on";
     private static final String FIELD_TEMPLATE_STYLE = "template_style";
+    private static final String FIELD_TEMPLATE_STYLE_DARK = "template_style_dark";
     private static final String FIELD_CONTENT_STYLE = "content_style";
+    private static final String FIELD_CONTENT_STYLE_DARK = "content_style_dark";
     private static final String FIELD_CONTENT = "content";
     private static final String FIELD_EXTRAS = "extras";
 
@@ -60,8 +62,31 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        BlueshiftLogger.d(TAG, getTableName() + " -> oldVersion: " + oldVersion + ", newVersion: " + newVersion);
 
+        // we are adding support for dark theme from v2 of this table
+        if (oldVersion < 2 && newVersion >= 2) {
+            migrateToV2AndAbove(db);
+        }
+    }
+
+    private void migrateToV2AndAbove(SQLiteDatabase db) {
+        // add two columns to the db. template_style_dark and content_style_dark to hold
+        // dark theme styles for in-app
+        try {
+            // template_style_dark
+            String queryTSD = "ALTER TABLE " + getTableName() + " ADD COLUMN " + FIELD_TEMPLATE_STYLE_DARK + " " + FieldType.Text;
+            db.execSQL(queryTSD);
+            BlueshiftLogger.d(TAG, "New column " + FIELD_TEMPLATE_STYLE_DARK + " added in " + getTableName());
+
+            // content_style_dark
+            String queryCSD = "ALTER TABLE " + getTableName() + " ADD COLUMN " + FIELD_CONTENT_STYLE_DARK + " " + FieldType.Text;
+            db.execSQL(queryCSD);
+            BlueshiftLogger.d(TAG, "New column " + FIELD_CONTENT_STYLE_DARK + " added in " + getTableName());
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
     }
 
     @Override
@@ -88,8 +113,14 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             String tsJson = getString(cursor, FIELD_TEMPLATE_STYLE);
             if (!TextUtils.isEmpty(tsJson)) inAppMessage.setTemplateStyle(new JSONObject(tsJson));
 
+            String tsdJson = getString(cursor, FIELD_TEMPLATE_STYLE_DARK);
+            if (!TextUtils.isEmpty(tsdJson)) inAppMessage.setTemplateStyleDark(new JSONObject(tsdJson));
+
             String csJson = getString(cursor, FIELD_CONTENT_STYLE);
             if (!TextUtils.isEmpty(csJson)) inAppMessage.setContentStyle(new JSONObject(csJson));
+
+            String csdJson = getString(cursor, FIELD_CONTENT_STYLE_DARK);
+            if (!TextUtils.isEmpty(csdJson)) inAppMessage.setContentStyleDark(new JSONObject(csdJson));
 
             String cJson = getString(cursor, FIELD_CONTENT);
             if (!TextUtils.isEmpty(cJson)) inAppMessage.setContent(new JSONObject(cJson));
@@ -115,7 +146,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             values.put(FIELD_TRIGGER, inAppMessage.getTrigger());
             values.put(FIELD_DISPLAY_ON, inAppMessage.getDisplayOn());
             values.put(FIELD_TEMPLATE_STYLE, inAppMessage.getTemplateStyleJson());
+            values.put(FIELD_TEMPLATE_STYLE_DARK, inAppMessage.getTemplateStyleDarkJson());
             values.put(FIELD_CONTENT_STYLE, inAppMessage.getContentStyleJson());
+            values.put(FIELD_CONTENT_STYLE_DARK, inAppMessage.getContentStyleDarkJson());
             values.put(FIELD_CONTENT, inAppMessage.getContentJson());
             values.put(FIELD_MESSAGE_UUID, inAppMessage.getMessageUuid());
             values.put(FIELD_EXPERIMENT_UUID, inAppMessage.getExperimentUuid());
@@ -139,7 +172,9 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         fieldTypeHashMap.put(FIELD_TRIGGER, FieldType.Text);
         fieldTypeHashMap.put(FIELD_DISPLAY_ON, FieldType.Text);
         fieldTypeHashMap.put(FIELD_TEMPLATE_STYLE, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_TEMPLATE_STYLE_DARK, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT_STYLE, FieldType.Text);
+        fieldTypeHashMap.put(FIELD_CONTENT_STYLE_DARK, FieldType.Text);
         fieldTypeHashMap.put(FIELD_CONTENT, FieldType.Text);
         fieldTypeHashMap.put(FIELD_MESSAGE_UUID, FieldType.UniqueText);
         fieldTypeHashMap.put(FIELD_EXPERIMENT_UUID, FieldType.Text);
