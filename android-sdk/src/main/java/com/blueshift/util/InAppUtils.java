@@ -743,23 +743,22 @@ public class InAppUtils {
 
     public static void setContentImageView(ImageView imageView, InAppMessage inAppMessage, String contentName) {
         if (imageView != null && inAppMessage != null && !TextUtils.isEmpty(contentName)) {
+            Context context = imageView.getContext();
+
             // IMAGE
             InAppUtils.loadImageAsync(imageView, inAppMessage.getContentString(contentName));
 
             // BACKGROUND
-            Drawable background = InAppUtils.getContentBackgroundDrawable(inAppMessage, contentName);
-            if (background != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    imageView.setBackground(background);
-                } else {
-                    imageView.setBackgroundDrawable(background);
-                }
+            Drawable background = InAppUtils.getContentBackgroundDrawable(context, inAppMessage, contentName);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                imageView.setBackground(background);
+            } else {
+                imageView.setBackgroundDrawable(background);
             }
 
             // PADDING (DEF: 4dp)
-            Rect padding = InAppUtils.getContentPadding(inAppMessage, contentName);
+            Rect padding = InAppUtils.getContentPadding(context, inAppMessage, contentName);
             if (padding != null) {
-                Context context = imageView.getContext();
                 imageView.setPadding(
                         CommonUtils.dpToPx(padding.left, context),
                         CommonUtils.dpToPx(padding.top, context),
