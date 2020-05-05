@@ -48,7 +48,7 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         applyTemplateDimensions(inAppMessage);
 
-        int bgColor = inAppMessage.getTemplateBackgroundColor();
+        int bgColor = inAppMessage.getTemplateBackgroundColor(getContext());
         if (bgColor != 0) {
             setBackgroundColor(bgColor);
         } else {
@@ -96,7 +96,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 public void run() {
                     FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) getLayoutParams();
                     if (lp != null) {
-                        Rect margins = inAppMessage.getTemplateMargin();
+                        Rect margins = inAppMessage.getTemplateMargin(getContext());
                         if (margins != null) {
                             lp.leftMargin = CommonUtils.dpToPx(margins.left, getContext());
                             lp.topMargin = CommonUtils.dpToPx(margins.top, getContext());
@@ -106,13 +106,13 @@ public abstract class InAppMessageView extends RelativeLayout {
 
                         DisplayMetrics metrics = getResources().getDisplayMetrics();
 
-                        float wPercentage = inAppMessage.getTemplateWidth();
+                        float wPercentage = inAppMessage.getTemplateWidth(getContext());
                         if (wPercentage > 0) {
                             int horizontalMargn = (lp.leftMargin + lp.rightMargin);
                             lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargn);
                         }
 
-                        float hPercentage = inAppMessage.getTemplateHeight();
+                        float hPercentage = inAppMessage.getTemplateHeight(getContext());
                         if (hPercentage > 0) {
                             int verticalMargin = lp.topMargin + lp.bottomMargin;
                             lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
@@ -440,20 +440,20 @@ public abstract class InAppMessageView extends RelativeLayout {
         if (inAppMessage != null && inAppMessage.getActionsJSONArray() != null) {
             JSONArray actions = inAppMessage.getActionsJSONArray();
             LinearLayout actionsRootView = new LinearLayout(getContext());
-            int orientation = InAppUtils.getActionOrientation(inAppMessage);
+            int orientation = InAppUtils.getActionOrientation(getContext(), inAppMessage);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
                 actionsRootView.setOrientation(orientation);
                 actionsRootView.setGravity(Gravity.CENTER);
             }
 
-            Drawable drawable = InAppUtils.getContentBackgroundDrawable(inAppMessage, InAppConstants.ACTIONS);
+            Drawable drawable = InAppUtils.getContentBackgroundDrawable(getContext(), inAppMessage, InAppConstants.ACTIONS);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 actionsRootView.setBackground(drawable);
             } else {
                 actionsRootView.setBackgroundDrawable(drawable);
             }
 
-            Rect padding = InAppUtils.getContentPadding(inAppMessage, InAppConstants.ACTIONS);
+            Rect padding = InAppUtils.getContentPadding(getContext(), inAppMessage, InAppConstants.ACTIONS);
             if (padding != null) {
                 actionsRootView.setPadding(
                         dp2px(padding.left),

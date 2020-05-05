@@ -523,12 +523,12 @@ public class InAppManager {
     }
 
     private static boolean displayInAppDialogModal(final Context context, final View customView, final InAppMessage inAppMessage) {
-        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(inAppMessage, 0.5);
+        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(context, inAppMessage, 0.5);
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.dialogStyleInApp, dimAmount);
     }
 
     private static boolean displayInAppDialogAnimated(final Context context, final View customView, final InAppMessage inAppMessage) {
-        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(inAppMessage, 0.0);
+        float dimAmount = (float) InAppUtils.getTemplateBackgroundDimAmount(context, inAppMessage, 0.0);
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft, dimAmount);
     }
 
@@ -579,13 +579,13 @@ public class InAppManager {
 
                 Window window = mDialog.getWindow();
                 if (window != null) {
-                    window.setGravity(InAppUtils.getTemplateGravity(inAppMessage));
+                    window.setGravity(InAppUtils.getTemplateGravity(context, inAppMessage));
                     window.setDimAmount(dimAmount);
 
                     int width = LinearLayout.LayoutParams.WRAP_CONTENT;
                     int height = LinearLayout.LayoutParams.WRAP_CONTENT;
 
-                    if (InAppUtils.isTemplateFullScreen(inAppMessage)) {
+                    if (InAppUtils.isTemplateFullScreen(context, inAppMessage)) {
                         height = LinearLayout.LayoutParams.MATCH_PARENT;
                         width = LinearLayout.LayoutParams.MATCH_PARENT;
                     }
