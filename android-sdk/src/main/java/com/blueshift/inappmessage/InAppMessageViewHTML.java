@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebResourceRequest;
@@ -17,6 +16,8 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
+
+import org.json.JSONObject;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
@@ -52,15 +53,32 @@ public class InAppMessageViewHTML extends InAppMessageView {
     }
 
     private void launchUri(Uri uri) {
+        InAppActionCallback actionCallback = InAppManager.getActionCallback();
+        if (actionCallback != null) {
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put(InAppConstants.ANDROID_LINK, uri.toString());
+                actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
+                onDismiss(getInAppMessage(), uri.toString());
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
+            }
+        } else {
+            openUri(uri);
+        }
+    }
+
+    private void openUri(Uri uri) {
         try {
             if (uri != null) {
-                Log.d(TAG, "URL: " + uri.toString());
+                BlueshiftLogger.d(TAG, "URL: " + uri.toString());
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(uri);
                 getContext().startActivity(intent);
-
-                // dismiss dialog.
                 onDismiss(getInAppMessage(), uri.toString());
+            } else {
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
