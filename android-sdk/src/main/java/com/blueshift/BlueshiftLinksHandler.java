@@ -28,27 +28,55 @@ public class BlueshiftLinksHandler {
         this.context = context;
     }
 
-    public void handleBlueshiftUniversalLinks(Intent intent, BlueshiftLinksListener listener) {
+    public boolean handleBlueshiftUniversalLinks(Intent intent, BlueshiftLinksListener listener) {
         if (intent != null) {
-            handleBlueshiftUniversalLinks(intent.getData(), intent.getExtras(), listener);
+            return handleBlueshiftUniversalLinks(intent.getData(), intent.getExtras(), listener);
         }
+
+        return false;
     }
 
-    public void handleBlueshiftUniversalLinks(Uri data, Bundle extras, BlueshiftLinksListener listener) {
-        if (data == null) return;
-
+    public boolean handleBlueshiftUniversalLinks(Uri data, Bundle extras, BlueshiftLinksListener listener) {
         this.extras = extras;
         this.listener = listener;
 
-        if (isShortUrlWithZ(data)) {
-            handleShortURL(data);
-        } else if (isTrackUrl(data)) {
-            invokeTrackAPICall(data);
-            handleTrackURL(data);
-        } else {
-            BlueshiftLogger.d(TAG, "Non-Blueshift URL detected: " + data);
-            invokeOnLinkProcessingComplete(data);
+        if (data != null) {
+            if (isShortUrlWithZ(data)) {
+                handleShortURL(data);
+            } else if (isTrackUrl(data)) {
+                invokeTrackAPICall(data);
+                handleTrackURL(data);
+            } else {
+                invokeOnLinkProcessingStart();
+                BlueshiftLogger.d(TAG, "Non-Blueshift URL detected: " + data);
+                if (hasBlueshiftParamsInURL(data)) {
+                    BlueshiftLogger.d(TAG, "Blueshift ids found in non-Blueshift URL. Tracking..");
+                    invokeTrackAPICall(data);
+                }
+                invokeOnLinkProcessingComplete(data);
+            }
         }
+
+        return isBlueshiftLink(data);
+    }
+
+    private boolean isBlueshiftLink(Uri uri) {
+        return isQueryParameterPresent(uri, "uid") && isQueryParameterPresent(uri, "mid");
+    }
+
+    private boolean hasBlueshiftParamsInURL(Uri uri) {
+        return isQueryParameterPresent(uri, "uid")
+                || isQueryParameterPresent(uri, "mid")
+                || isQueryParameterPresent(uri, "eid");
+    }
+
+    private boolean isQueryParameterPresent(Uri uri, String key) {
+        if (uri != null && !TextUtils.isEmpty(key)) {
+            String val = uri.getQueryParameter(key);
+            return !TextUtils.isEmpty(val);
+        }
+
+        return false;
     }
 
     private boolean isShortUrlWithZ(Uri uri) {
@@ -70,7 +98,6 @@ public class BlueshiftLinksHandler {
 
             @Override
             public void onLinkProcessingComplete(Uri redirectionURL) {
-                invokeTrackAPICall(redirectionURL);
                 invokeOnLinkProcessingComplete(redirectionURL);
             }
 
@@ -108,6 +135,8 @@ public class BlueshiftLinksHandler {
     }
 
     private void invokeTrackAPICall(Uri uri) {
+        BlueshiftLogger.d(TAG, "Fire /track api call for " + (uri != null ? uri : ""));
+
         Blueshift.getInstance(context).trackUniversalLinks(uri);
     }
 
@@ -198,11 +227,14 @@ public class BlueshiftLinksHandler {
             Uri redirUri = null;
 
             try {
-                BlueshiftLogger.d(TAG, "Requesting for redirection URL");
+                BlueshiftLogger.d(TAG, "(http) Requesting for redirection URL");
                 long start = System.currentTimeMillis();
 
                 URL url = new URL(source.toString());
                 httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setUseCaches(true);
+                httpURLConnection.setDefaultUseCaches(true);
+                httpURLConnection.addRequestProperty("Cache-Control", "public");
                 httpURLConnection.setInstanceFollowRedirects(false);
                 String location = httpURLConnection.getHeaderField("Location");
                 if (TextUtils.isEmpty(location)) {
@@ -230,11 +262,14 @@ public class BlueshiftLinksHandler {
             Uri redirUri = null;
 
             try {
-                BlueshiftLogger.d(TAG, "Requesting for redirection URL");
+                BlueshiftLogger.d(TAG, "(https) Requesting for redirection URL");
                 long start = System.currentTimeMillis();
 
                 URL url = new URL(source.toString());
                 httpsURLConnection = (HttpsURLConnection) url.openConnection();
+                httpsURLConnection.setUseCaches(true);
+                httpsURLConnection.setDefaultUseCaches(true);
+                httpsURLConnection.addRequestProperty("Cache-Control", "public");
                 httpsURLConnection.setInstanceFollowRedirects(false);
                 String location = httpsURLConnection.getHeaderField("Location");
                 if (TextUtils.isEmpty(location)) {
