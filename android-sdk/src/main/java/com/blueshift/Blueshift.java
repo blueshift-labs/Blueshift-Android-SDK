@@ -414,7 +414,7 @@ public class Blueshift {
 
                 if (userInfo.isUnsubscribed()) {
                     // we don't need to send this key if it set to false
-                    params.put(BlueshiftConstants.KEY_UNSUBSCRIBED, true);
+                    params.put(BlueshiftConstants.KEY_UNSUBSCRIBED_PUSH, true);
                 }
 
                 if (userInfo.getDetails() != null) {

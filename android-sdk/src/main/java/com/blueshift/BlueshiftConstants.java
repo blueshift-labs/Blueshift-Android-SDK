@@ -73,7 +73,7 @@ public class BlueshiftConstants {
     public static final String KEY_JOINED_AT = "joined_at";
     public static final String KEY_FACEBOOK_ID = "facebook_id";
     public static final String KEY_EDUCATION = "education";
-    public static final String KEY_UNSUBSCRIBED = "unsubscribed";
+    public static final String KEY_UNSUBSCRIBED_PUSH = "unsubscribed_push";
     public static final String KEY_DATE_OF_BIRTH = "date_of_birth";
 
     // Events
