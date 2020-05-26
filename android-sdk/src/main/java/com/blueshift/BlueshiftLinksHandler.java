@@ -10,8 +10,8 @@ import android.text.TextUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -223,73 +223,92 @@ public class BlueshiftLinksHandler {
         }
 
         private Uri replayHttpUrl(Uri source) {
-            HttpURLConnection httpURLConnection = null;
+            HttpURLConnection urlConnection = null;
             Uri redirUri = null;
 
             try {
                 BlueshiftLogger.d(TAG, "(http) Requesting for redirection URL");
                 long start = System.currentTimeMillis();
 
-                URL url = new URL(source.toString());
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setUseCaches(true);
-                httpURLConnection.setDefaultUseCaches(true);
-                httpURLConnection.addRequestProperty("Cache-Control", "public");
-                httpURLConnection.setInstanceFollowRedirects(false);
-                String location = httpURLConnection.getHeaderField("Location");
-                if (TextUtils.isEmpty(location)) {
-                    BlueshiftLogger.d(TAG, "No \'Location\' in response header");
-                } else {
-                    redirUri = Uri.parse(location);
-                    BlueshiftLogger.d(TAG, "Location: " + redirUri);
-                }
+                urlConnection = (HttpURLConnection) openConnection(source.toString());
+                redirUri = replayUrl(urlConnection);
 
                 long diff = System.currentTimeMillis() - start;
                 BlueshiftLogger.d(TAG, "Redirection URL request complete in " + diff + " ms");
-            } catch (MalformedURLException e) {
-                BlueshiftLogger.e(TAG, e);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             } finally {
-                if (httpURLConnection != null) httpURLConnection.disconnect();
+                if (urlConnection != null) urlConnection.disconnect();
             }
 
             return redirUri;
         }
 
         private Uri replayHttpsUrl(Uri source) {
-            HttpsURLConnection httpsURLConnection = null;
+            HttpsURLConnection urlConnection = null;
             Uri redirUri = null;
 
             try {
                 BlueshiftLogger.d(TAG, "(https) Requesting for redirection URL");
                 long start = System.currentTimeMillis();
 
-                URL url = new URL(source.toString());
-                httpsURLConnection = (HttpsURLConnection) url.openConnection();
-                httpsURLConnection.setUseCaches(true);
-                httpsURLConnection.setDefaultUseCaches(true);
-                httpsURLConnection.addRequestProperty("Cache-Control", "public");
-                httpsURLConnection.setInstanceFollowRedirects(false);
-                String location = httpsURLConnection.getHeaderField("Location");
-                if (TextUtils.isEmpty(location)) {
-                    BlueshiftLogger.d(TAG, "No \'Location\' in response header");
-                } else {
-                    redirUri = Uri.parse(location);
-                    BlueshiftLogger.d(TAG, "Location: " + redirUri);
-                }
+                urlConnection = (HttpsURLConnection) openConnection(source.toString());
+                redirUri = replayUrl(urlConnection);
 
                 long diff = System.currentTimeMillis() - start;
                 BlueshiftLogger.d(TAG, "Redirection URL request complete in " + diff + " ms");
-            } catch (MalformedURLException e) {
-                BlueshiftLogger.e(TAG, e);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             } finally {
-                if (httpsURLConnection != null) httpsURLConnection.disconnect();
+                if (urlConnection != null) urlConnection.disconnect();
             }
 
             return redirUri;
+        }
+
+        private URLConnection openConnection(String reqURL) throws IOException {
+            URL url = new URL(reqURL);
+            return url.openConnection();
+        }
+
+        private Uri replayUrl(HttpURLConnection urlConnection) {
+            addRequestProperties(urlConnection);
+            logResponseStatusCode(urlConnection);
+            return getRedirectionUrl(urlConnection);
+        }
+
+        private void addRequestProperties(HttpURLConnection urlConnection) {
+            if (urlConnection != null) {
+                urlConnection.setUseCaches(true);
+                urlConnection.setDefaultUseCaches(true);
+                urlConnection.addRequestProperty("Cache-Control", "public");
+            }
+        }
+
+        private void logResponseStatusCode(HttpURLConnection urlConnection) {
+            if (urlConnection != null) {
+                try {
+                    BlueshiftLogger.d(TAG, "Response code: " + urlConnection.getResponseCode());
+                } catch (IOException e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            }
+        }
+
+        private Uri getRedirectionUrl(HttpURLConnection urlConnection) {
+            Uri uri = null;
+
+            if (urlConnection != null) {
+                String location = urlConnection.getHeaderField("Location");
+                if (TextUtils.isEmpty(location)) {
+                    BlueshiftLogger.d(TAG, "No \'Location\' in response header");
+                } else {
+                    uri = Uri.parse(location);
+                    BlueshiftLogger.d(TAG, "Location: " + location);
+                }
+            }
+
+            return uri;
         }
 
         @Override
