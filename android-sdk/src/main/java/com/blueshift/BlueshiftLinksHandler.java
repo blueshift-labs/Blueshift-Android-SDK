@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
@@ -87,25 +89,117 @@ public class BlueshiftLinksHandler {
         return uri != null && uri.getPath() != null && uri.getPath().startsWith("/track");
     }
 
-    private void handleShortURL(Uri uri) {
+    private void handleShortURL(final Uri uri) {
         BlueshiftLogger.d(TAG, "Short URL detected: " + uri);
 
-        new ReplayBlueshiftShortLinkTask(new BlueshiftLinksListener() {
+        final Handler myHandler = getMyHandler();
+        if (myHandler != null) {
+            myHandler.post(invokeOnLinkProcessingStartRunnable());
+            BlueshiftExecutor.getInstance().runOnNetworkThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Uri redir = replayUrl(uri);
+                                if (redir != null) {
+                                    myHandler.post(invokeOnLinkProcessingCompleteRunnable(redir));
+                                } else {
+                                    Exception e = new Exception("Unable to get redirection URL");
+                                    myHandler.post(invokeOnLinkProcessingErrorRunnable(e));
+                                }
+                            } catch (Exception e) {
+                                BlueshiftLogger.e(TAG, e);
+                                myHandler.post(invokeOnLinkProcessingErrorRunnable(e));
+                            }
+                        }
+                    }
+            );
+        }
+    }
+
+    private Uri replayUrl(Uri uri) throws Exception {
+        Uri redir = null;
+        if (uri != null) {
+            String uriString = uri.toString();
+            boolean isHttps = uriString.startsWith("https");
+            if (isHttps) {
+                HttpsURLConnection urlConnection = (HttpsURLConnection) new URL(uriString).openConnection();
+                // cache
+                urlConnection.setUseCaches(true);
+                urlConnection.setDefaultUseCaches(true);
+                urlConnection.addRequestProperty("Cache-Control", "public");
+
+                // replay
+                urlConnection.setInstanceFollowRedirects(false);
+                String location = urlConnection.getHeaderField("Location");
+                if (TextUtils.isEmpty(location)) {
+                    BlueshiftLogger.d(TAG, "No \'Location\' in response header");
+                } else {
+                    redir = Uri.parse(location);
+                }
+
+                // log response
+                int responseCode = urlConnection.getResponseCode();
+                BlueshiftLogger.d(TAG, "Response code: " + responseCode);
+            } else {
+                HttpURLConnection urlConnection = (HttpURLConnection) new URL(uriString).openConnection();
+                // cache
+                urlConnection.setUseCaches(true);
+                urlConnection.setDefaultUseCaches(true);
+                urlConnection.addRequestProperty("Cache-Control", "public");
+
+                // replay
+                urlConnection.setInstanceFollowRedirects(false);
+                String location = urlConnection.getHeaderField("Location");
+                if (TextUtils.isEmpty(location)) {
+                    BlueshiftLogger.d(TAG, "No \'Location\' in response header");
+                } else {
+                    redir = Uri.parse(location);
+                }
+
+                // log response
+                int responseCode = urlConnection.getResponseCode();
+                BlueshiftLogger.d(TAG, "Response code: " + responseCode);
+            }
+        }
+
+        return redir;
+    }
+
+    private Handler getMyHandler() {
+        Handler handler = null;
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            handler = new Handler(looper);
+        }
+        return handler;
+    }
+
+    private Runnable invokeOnLinkProcessingStartRunnable() {
+        return new Runnable() {
             @Override
-            public void onLinkProcessingStart() {
+            public void run() {
                 invokeOnLinkProcessingStart();
             }
+        };
+    }
 
+    private Runnable invokeOnLinkProcessingCompleteRunnable(final Uri redirectionURL) {
+        return new Runnable() {
             @Override
-            public void onLinkProcessingComplete(Uri redirectionURL) {
+            public void run() {
                 invokeOnLinkProcessingComplete(redirectionURL);
             }
+        };
+    }
 
+    private Runnable invokeOnLinkProcessingErrorRunnable(final Exception e) {
+        return new Runnable() {
             @Override
-            public void onLinkProcessingError(Exception e) {
+            public void run() {
                 invokeOnLinkProcessingError(e);
             }
-        }).execute(uri);
+        };
     }
 
     private void handleTrackURL(Uri uri) {
