@@ -627,6 +627,11 @@ public class InAppManager {
             if (InAppConstants.HTML.equals(inAppMessage.getType())) {
                 // do nothing. cache is managed by WebView
             } else {
+                // modal with background
+                String bgImage = inAppMessage.getContentString(InAppConstants.BACKGROUND_IMAGE);
+                if (!TextUtils.isEmpty(bgImage)) {
+                    deleteCachedImage(context, bgImage);
+                }
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
@@ -666,6 +671,11 @@ public class InAppManager {
             } else {
                 // cache for modals and other templates
 
+                // modal with background
+                String bgImage = inAppMessage.getContentString(InAppConstants.BACKGROUND_IMAGE);
+                if (!TextUtils.isEmpty(bgImage)) {
+                    cacheImage(context, bgImage);
+                }
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
