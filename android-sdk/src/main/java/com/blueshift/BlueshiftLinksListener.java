@@ -5,7 +5,7 @@ import android.net.Uri;
 public interface BlueshiftLinksListener {
     void onLinkProcessingStart();
 
-    void onLinkProcessingComplete(Uri redirectionURL);
+    void onLinkProcessingComplete(Uri link);
 
-    void onLinkProcessingError(Exception e);
+    void onLinkProcessingError(Exception e, Uri link);
 }

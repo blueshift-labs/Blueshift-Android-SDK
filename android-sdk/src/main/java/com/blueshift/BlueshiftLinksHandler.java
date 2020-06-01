@@ -3,17 +3,14 @@ package com.blueshift;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -62,23 +59,21 @@ public class BlueshiftLinksHandler {
         return isBlueshiftLink(data);
     }
 
-    private boolean isBlueshiftLink(Uri uri) {
+    public static boolean isBlueshiftLink(Uri uri) {
         return isQueryParameterPresent(uri, "uid") && isQueryParameterPresent(uri, "mid");
     }
 
-    private boolean hasBlueshiftParamsInURL(Uri uri) {
-        return isQueryParameterPresent(uri, "uid")
-                || isQueryParameterPresent(uri, "mid")
-                || isQueryParameterPresent(uri, "eid");
-    }
-
-    private boolean isQueryParameterPresent(Uri uri, String key) {
+    private static boolean isQueryParameterPresent(Uri uri, String key) {
         if (uri != null && !TextUtils.isEmpty(key)) {
             String val = uri.getQueryParameter(key);
             return !TextUtils.isEmpty(val);
         }
 
         return false;
+    }
+
+    private boolean hasBlueshiftParamsInURL(Uri uri) {
+        return isBlueshiftLink(uri) || isQueryParameterPresent(uri, "eid");
     }
 
     private boolean isShortUrlWithZ(Uri uri) {
@@ -105,11 +100,11 @@ public class BlueshiftLinksHandler {
                                     myHandler.post(invokeOnLinkProcessingCompleteRunnable(redir));
                                 } else {
                                     Exception e = new Exception("Unable to get redirection URL");
-                                    myHandler.post(invokeOnLinkProcessingErrorRunnable(e));
+                                    myHandler.post(invokeOnLinkProcessingErrorRunnable(e, uri));
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(TAG, e);
-                                myHandler.post(invokeOnLinkProcessingErrorRunnable(e));
+                                myHandler.post(invokeOnLinkProcessingErrorRunnable(e, uri));
                             }
                         }
                     }
@@ -184,20 +179,20 @@ public class BlueshiftLinksHandler {
         };
     }
 
-    private Runnable invokeOnLinkProcessingCompleteRunnable(final Uri redirectionURL) {
+    private Runnable invokeOnLinkProcessingCompleteRunnable(final Uri link) {
         return new Runnable() {
             @Override
             public void run() {
-                invokeOnLinkProcessingComplete(redirectionURL);
+                invokeOnLinkProcessingComplete(link);
             }
         };
     }
 
-    private Runnable invokeOnLinkProcessingErrorRunnable(final Exception e) {
+    private Runnable invokeOnLinkProcessingErrorRunnable(final Exception e, final Uri link) {
         return new Runnable() {
             @Override
             public void run() {
-                invokeOnLinkProcessingError(e);
+                invokeOnLinkProcessingError(e, link);
             }
         };
     }
@@ -207,25 +202,24 @@ public class BlueshiftLinksHandler {
 
         invokeOnLinkProcessingStart();
 
-        Uri redirectUri = null;
-
         if (uri != null) {
-            String redirectUrl = uri.getQueryParameter(BlueshiftConstants.KEY_REDIR);
+            String redirUrl = uri.getQueryParameter(BlueshiftConstants.KEY_REDIR);
             try {
-                if (TextUtils.isEmpty(redirectUrl)) {
-                    BlueshiftLogger.d(TAG, "No redirect URL (redir) found in the given URL. " + uri);
+                if (TextUtils.isEmpty(redirUrl)) {
+                    Exception e = new Exception("No redirect URL (redir) found in the given URL." + uri);
+                    BlueshiftLogger.e(TAG, e);
+
+                    invokeOnLinkProcessingError(e, uri);
                 } else {
-                    redirectUri = Uri.parse(redirectUrl);
+                    Uri redir = Uri.parse(redirUrl);
+                    invokeOnLinkProcessingComplete(redir);
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
 
-                invokeOnLinkProcessingError(e);
-                return;
+                invokeOnLinkProcessingError(e, uri);
             }
         }
-
-        invokeOnLinkProcessingComplete(redirectUri);
     }
 
     private void invokeTrackAPICall(Uri uri) {
@@ -289,8 +283,8 @@ public class BlueshiftLinksHandler {
         }
     }
 
-    private void invokeOnLinkProcessingError(Exception e) {
+    private void invokeOnLinkProcessingError(Exception e, Uri link) {
         BlueshiftLogger.d(TAG, "invokeOnLinkProcessingError()");
-        if (listener != null) listener.onLinkProcessingError(e);
+        if (listener != null) listener.onLinkProcessingError(e, link);
     }
 }
