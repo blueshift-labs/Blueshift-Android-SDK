@@ -44,14 +44,14 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         this.inAppMessage = inAppMessage;
 
-        applyTemplateDimensions(inAppMessage);
-
         int bgColor = inAppMessage.getTemplateBackgroundColor(getContext());
         if (bgColor != 0) {
             setBackgroundColor(bgColor);
         } else {
             setBackgroundColor(Color.WHITE);
         }
+
+        addBackgroundImageView();
 
         View childView = getView(inAppMessage);
         if (childView != null) {
@@ -64,6 +64,20 @@ public abstract class InAppMessageView extends RelativeLayout {
         boolean showCloseButton = InAppUtils.shouldShowCloseButton(getContext(), inAppMessage, enableClose);
         if (showCloseButton) {
             addCloseButton(inAppMessage);
+        }
+
+        applyTemplateDimensions(inAppMessage);
+    }
+
+    private void addBackgroundImageView() {
+        String url = InAppUtils.getTemplateString(
+                getContext(), inAppMessage, InAppConstants.BACKGROUND_IMAGE);
+        if (!TextUtils.isEmpty(url)) {
+            ImageView imageView = new ImageView(getContext());
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            addView(imageView);
+
+            InAppUtils.loadImageAsync(imageView, url);
         }
     }
 
@@ -132,10 +146,28 @@ public abstract class InAppMessageView extends RelativeLayout {
 
                         lp.gravity = Gravity.CENTER;
 
+                        try {
+                            setViewDimensionsToMatchParent(getChildAt(0), lp.width, lp.height);
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(TAG, e);
+                        }
+                        try {
+                            setViewDimensionsToMatchParent(getChildAt(1), lp.width, lp.height);
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(TAG, e);
+                        }
+
                         setLayoutParams(lp);
                     }
                 }
             });
+        }
+    }
+
+    private void setViewDimensionsToMatchParent(View view, int width, int height) {
+        if (view != null && view.getLayoutParams() != null) {
+            view.getLayoutParams().width = width;
+            view.getLayoutParams().height = height;
         }
     }
 

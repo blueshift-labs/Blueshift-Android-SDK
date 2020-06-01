@@ -57,6 +57,7 @@ public class InAppConstants {
     public static final String SIZE = "size";
     public static final String COLOR = "color";
     public static final String BACKGROUND_COLOR = "background_color";
+    public static final String BACKGROUND_IMAGE = "background_image";
     public static final String BACKGROUND_RADIUS = "background_radius";
     public static final String MARGIN = "margin";
     public static final String PADDING = "padding";
