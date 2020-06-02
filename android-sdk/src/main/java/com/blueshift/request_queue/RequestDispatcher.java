@@ -19,7 +19,6 @@ import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
-import com.blueshift.util.SdkLog;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;

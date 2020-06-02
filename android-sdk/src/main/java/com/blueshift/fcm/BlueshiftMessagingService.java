@@ -29,7 +29,6 @@ import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
-import com.blueshift.util.SdkLog;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
