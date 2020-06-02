@@ -7,7 +7,6 @@ import android.text.TextUtils;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BaseSqliteTable;
-import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -128,7 +127,7 @@ public class FailedEventsTable extends BaseSqliteTable<Event> {
 
             int count = delete(FIELD_ID, idList);
 
-            SdkLog.i(LOG_TAG, "Deleted " + count + " events.");
+            BlueshiftLogger.i(LOG_TAG, "Deleted " + count + " events.");
         }
 
         return result;

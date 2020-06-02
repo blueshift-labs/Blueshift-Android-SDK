@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,14 +19,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.R;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 
@@ -60,18 +59,32 @@ public abstract class InAppMessageView extends RelativeLayout {
             addView(childView);
         }
 
-        if (inAppMessage.showCloseButton()) {
+        // We will show close button by default for the html templates and the modal template
+        // that has no action button in it.
+        boolean enableClose = InAppUtils.isModalWithNoActionButtons(inAppMessage) || InAppUtils.isHTML(inAppMessage);
+        boolean showCloseButton = InAppUtils.shouldShowCloseButton(getContext(), inAppMessage, enableClose);
+        if (showCloseButton) {
             addCloseButton(inAppMessage);
         }
     }
 
     private void addCloseButton(final InAppMessage inAppMessage) {
-        ImageButton closeButton = new ImageButton(getContext());
-        closeButton.setImageResource(R.drawable.ic_close);
-        closeButton.setBackgroundResource(R.drawable.ic_close_backgroud);
+        TextView closeButtonView = new TextView(getContext());
+        InAppMessageIconFont.getInstance(getContext()).apply(closeButtonView);
+        closeButtonView.setText("\uF00D");
+        closeButtonView.setTextColor(Color.parseColor("#ffffff"));
+        closeButtonView.setGravity(Gravity.CENTER);
 
-        int dp32 = CommonUtils.dpToPx(32, getContext());
-        LayoutParams lp = new LayoutParams(dp32, dp32);
+        int dp24 = CommonUtils.dpToPx(24, getContext());
+
+        GradientDrawable background = InAppUtils.getCloseButtonBackground(getContext(), inAppMessage, dp24);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            closeButtonView.setBackground(background);
+        } else {
+            closeButtonView.setBackgroundDrawable(background);
+        }
+
+        LayoutParams lp = new LayoutParams(dp24, dp24);
 
         int dp8 = CommonUtils.dpToPx(8, getContext());
         lp.setMargins(0, dp8, dp8, 0);
@@ -79,14 +92,14 @@ public abstract class InAppMessageView extends RelativeLayout {
         lp.addRule(ALIGN_PARENT_TOP);
         lp.addRule(ALIGN_PARENT_RIGHT);
 
-        closeButton.setOnClickListener(new OnClickListener() {
+        closeButtonView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 onDismiss(inAppMessage, InAppConstants.ACTION_CLOSE);
             }
         });
 
-        addView(closeButton, lp);
+        addView(closeButtonView, lp);
     }
 
     private void applyTemplateDimensions(final InAppMessage inAppMessage) {

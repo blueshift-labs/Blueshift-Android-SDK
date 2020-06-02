@@ -19,7 +19,6 @@ import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
-import com.blueshift.util.SdkLog;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -89,7 +88,7 @@ class RequestDispatcher {
         try {
             new RequestDispatchTask(null, RequestDispatcher.this).execute();
         } catch (Exception e) {
-            SdkLog.e(LOG_TAG, e.getMessage());
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
@@ -240,7 +239,7 @@ class RequestDispatcher {
             switch (mRequest.getMethod()) {
                 case POST:
                     String json = mRequest.getParamJson();
-                    SdkLog.d(LOG_TAG, "POST: Request params: " + json);
+                    BlueshiftLogger.d(LOG_TAG, "POST: Request params: " + json);
 
                     response = httpManager.post(json);
                     String eventName = getEventName(json);
@@ -260,7 +259,7 @@ class RequestDispatcher {
                     break;
 
                 default:
-                    SdkLog.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
+                    BlueshiftLogger.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
             }
         }
 
@@ -358,7 +357,7 @@ class RequestDispatcher {
                     Event event = new Event();
                     event.setEventParams(paramsMap);
 
-                    SdkLog.d(LOG_TAG, "Adding failed request to failed events table");
+                    BlueshiftLogger.d(LOG_TAG, "Adding failed request to failed events table");
 
                     FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
                     failedEventsTable.insert(event);

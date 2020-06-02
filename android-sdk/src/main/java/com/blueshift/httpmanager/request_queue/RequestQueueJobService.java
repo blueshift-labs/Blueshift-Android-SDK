@@ -5,7 +5,7 @@ import android.app.job.JobService;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
-import com.blueshift.util.SdkLog;
+import com.blueshift.BlueshiftLogger;
 
 
 /**
@@ -27,12 +27,12 @@ public class RequestQueueJobService extends JobService {
                 new RequestQueueSyncTask.Callback() {
                     @Override
                     public void onTaskStart() {
-                        SdkLog.i(LOG_TAG, "Request queue db sync task started.");
+                        BlueshiftLogger.i(LOG_TAG, "Request queue db sync task started.");
                     }
 
                     @Override
                     public void onTaskComplete() {
-                        SdkLog.i(LOG_TAG, "Request queue db sync task complete.");
+                        BlueshiftLogger.i(LOG_TAG, "Request queue db sync task complete.");
 
                         // this method needs to be called to release the wakelock
                         jobFinished(jobParameters, false);

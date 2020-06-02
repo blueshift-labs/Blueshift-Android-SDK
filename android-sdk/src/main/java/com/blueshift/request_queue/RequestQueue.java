@@ -15,7 +15,6 @@ import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NetworkUtils;
-import com.blueshift.util.SdkLog;
 
 /**
  * @author Rahul Raveendran V P
@@ -60,11 +59,11 @@ public class RequestQueue {
                             JobInfo jobInfo = builder.build();
 
                             if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
-                                SdkLog.i(LOG_TAG, "Successfully scheduled request queue " +
+                                BlueshiftLogger.i(LOG_TAG, "Successfully scheduled request queue " +
                                         "sync job on network change");
                             } else {
                                 // for some reason job scheduling failed. log this.
-                                SdkLog.w(LOG_TAG, "Could not schedule request queue sync " +
+                                BlueshiftLogger.w(LOG_TAG, "Could not schedule request queue sync " +
                                         "job on network change");
                             }
                         }
@@ -90,7 +89,7 @@ public class RequestQueue {
 
     public void add(Context context, Request request) {
         if (request != null) {
-            SdkLog.d(LOG_TAG, "Adding new request to the Queue.");
+            BlueshiftLogger.d(LOG_TAG, "Adding new request to the Queue.");
 
             RequestQueueTable db = RequestQueueTable.getInstance(context);
             db.insert(request);
@@ -101,7 +100,7 @@ public class RequestQueue {
 
     void remove(Context context, Request request) {
         if (request != null) {
-            SdkLog.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
+            BlueshiftLogger.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
 
             RequestQueueTable db = RequestQueueTable.getInstance(context);
             db.delete(request);
@@ -177,7 +176,7 @@ public class RequestQueue {
                         markQueueAvailable();
                     }
                 } else {
-                    SdkLog.d(LOG_TAG, "Request queue is empty.");
+                    BlueshiftLogger.d(LOG_TAG, "Request queue is empty.");
 
                     markQueueAvailable();
                 }
