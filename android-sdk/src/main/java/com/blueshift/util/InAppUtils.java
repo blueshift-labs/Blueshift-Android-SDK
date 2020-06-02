@@ -27,6 +27,7 @@ import com.blueshift.inappmessage.InAppTemplate;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -285,6 +286,50 @@ public class InAppUtils {
 
     public static double getTemplateBackgroundDimAmount(Context context, InAppMessage inAppMessage, double fallback) {
         return getTemplateDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
+    }
+
+    private static JSONObject getCloseButtonJSONObject(Context context, InAppMessage inAppMessage) {
+        try {
+            String closeButton = getTemplateString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
+            if (!TextUtils.isEmpty(closeButton)) {
+                return new JSONObject(closeButton);
+            }
+        } catch (JSONException e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
+    }
+
+    public static GradientDrawable getCloseButtonBackground(Context context, InAppMessage inAppMessage, int size) {
+        GradientDrawable background = new GradientDrawable();
+
+        try {
+            int side = CommonUtils.dpToPx(size, context);
+            int radius = side / 2;
+
+            background.setSize(side, side);
+
+            String bgColor = null;
+            float bgRadius = radius;
+
+            JSONObject closeButtonJSON = getCloseButtonJSONObject(context, inAppMessage);
+            if (closeButtonJSON != null) {
+                bgColor = getStringFromJSONObject(closeButtonJSON, InAppConstants.BACKGROUND_COLOR);
+                bgRadius = (float) getDoubleFromJSONObject(closeButtonJSON, InAppConstants.BACKGROUND_RADIUS, radius);
+            }
+
+            if (!validateColorString(bgColor)) {
+                bgColor = "#3f3f44";
+            }
+
+            background.setColor(Color.parseColor(bgColor));
+            background.setCornerRadius(bgRadius);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return background;
     }
 
     public static boolean shouldShowCloseButton(Context context, InAppMessage inAppMessage, boolean fallback) {
