@@ -23,9 +23,11 @@ import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppMessage;
+import com.blueshift.inappmessage.InAppTemplate;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -284,6 +286,100 @@ public class InAppUtils {
 
     public static double getTemplateBackgroundDimAmount(Context context, InAppMessage inAppMessage, double fallback) {
         return getTemplateDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
+    }
+
+    private static JSONObject getCloseButtonJSONObject(Context context, InAppMessage inAppMessage) {
+        try {
+            String closeButton = getTemplateString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
+            if (!TextUtils.isEmpty(closeButton)) {
+                return new JSONObject(closeButton);
+            }
+        } catch (JSONException e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
+    }
+
+    public static GradientDrawable getCloseButtonBackground(Context context, InAppMessage inAppMessage, int size) {
+        GradientDrawable background = new GradientDrawable();
+
+        try {
+            int side = CommonUtils.dpToPx(size, context);
+            int radius = side / 2;
+
+            background.setSize(side, side);
+
+            String bgColor = null;
+            float bgRadius = radius;
+
+            JSONObject closeButtonJSON = getCloseButtonJSONObject(context, inAppMessage);
+            if (closeButtonJSON != null) {
+                bgColor = getStringFromJSONObject(closeButtonJSON, InAppConstants.BACKGROUND_COLOR);
+                double dpVal = getDoubleFromJSONObject(closeButtonJSON, InAppConstants.BACKGROUND_RADIUS, 0);
+                if (dpVal > 0) {
+                    bgRadius = CommonUtils.dpToPx((int) dpVal, context);
+                }
+            }
+
+            if (!validateColorString(bgColor)) {
+                bgColor = "#3f3f44";
+            }
+
+            background.setColor(Color.parseColor(bgColor));
+            background.setCornerRadius(bgRadius);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return background;
+    }
+
+    public static boolean shouldShowCloseButton(Context context, InAppMessage inAppMessage, boolean fallback) {
+        boolean shouldShow = fallback;
+
+        try {
+            String closeButton = getTemplateString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
+            if (!TextUtils.isEmpty(closeButton)) {
+                JSONObject closeButtonStyle = new JSONObject(closeButton);
+                if (closeButtonStyle.has(InAppConstants.CLOSE_BUTTON_SHOW)) {
+                    shouldShow = closeButtonStyle.optBoolean(InAppConstants.CLOSE_BUTTON_SHOW);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return shouldShow;
+    }
+
+    public static boolean isSlideIn(InAppMessage inAppMessage) {
+        return InAppTemplate.fromString(inAppMessage.getType()) == InAppTemplate.SLIDE_IN_BANNER;
+    }
+
+    public static boolean isHTML(InAppMessage inAppMessage) {
+        return InAppTemplate.fromString(inAppMessage.getType()) == InAppTemplate.HTML;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static boolean isModal(InAppMessage inAppMessage) {
+        return InAppTemplate.fromString(inAppMessage.getType()) == InAppTemplate.MODAL;
+    }
+
+    public static boolean isModalWithNoActionButtons(InAppMessage inAppMessage) {
+        boolean result = false;
+
+        try {
+            if (inAppMessage != null) {
+                JSONArray actions = inAppMessage.getActionsJSONArray();
+                boolean hasNoActions = actions == null || actions.length() == 0;
+                result = isModal(inAppMessage) && hasNoActions;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return result;
     }
 
     public static int getContentOrientation(Context context, InAppMessage inAppMessage, String contentName) {
