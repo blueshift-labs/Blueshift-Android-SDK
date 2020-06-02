@@ -247,7 +247,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         message.setBsftUserUuid(data.get(Message.EXTRA_BSFT_USER_UUID));
                         message.setBsftTransactionUuid(data.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
                     } catch (Exception e) {
-                        SdkLog.e(LOG_TAG, "Error parsing campaign data. " + e.getMessage());
+                        BlueshiftLogger.e(LOG_TAG, "Error parsing campaign data. " + e.getMessage());
                     }
 
                     try {
@@ -255,7 +255,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         String seedListSendValue = data.get(Message.EXTRA_BSFT_SEED_LIST_SEND);
                         message.setBsftSeedListSend(isSeedListSend(seedListSendValue));
                     } catch (Exception e) {
-                        SdkLog.e(LOG_TAG, "Error parsing seed list flag. " + e.getMessage());
+                        BlueshiftLogger.e(LOG_TAG, "Error parsing seed list flag. " + e.getMessage());
                     }
 
                     if (message.isSilentPush()) {
@@ -334,7 +334,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             try {
                 return Boolean.parseBoolean(seedListSendValue);
             } catch (Exception e) {
-                SdkLog.e(LOG_TAG, String.valueOf(e.getMessage()));
+                BlueshiftLogger.e(LOG_TAG, e);
             }
         }
 

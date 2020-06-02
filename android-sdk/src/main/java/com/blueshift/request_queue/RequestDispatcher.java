@@ -89,7 +89,7 @@ class RequestDispatcher {
         try {
             new RequestDispatchTask(null, RequestDispatcher.this).execute();
         } catch (Exception e) {
-            SdkLog.e(LOG_TAG, e.getMessage());
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
@@ -260,7 +260,7 @@ class RequestDispatcher {
                     break;
 
                 default:
-                    SdkLog.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
+                    BlueshiftLogger.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
             }
         }
 

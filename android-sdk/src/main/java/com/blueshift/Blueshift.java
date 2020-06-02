@@ -148,7 +148,7 @@ public class Blueshift {
                     String token = instanceIdResult.getToken();
                     updateDeviceToken(token);
                 } catch (Exception e) {
-                    SdkLog.e(LOG_TAG, e.getMessage());
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
             }
         });
@@ -541,11 +541,11 @@ public class Blueshift {
 
                         return true;
                     } else {
-                        SdkLog.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
+                        BlueshiftLogger.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
                         return false;
                     }
                 } else {
-                    SdkLog.e(LOG_TAG, "params can't be null");
+                    BlueshiftLogger.e(LOG_TAG, "params can't be null");
                     return false;
                 }
             }
@@ -726,7 +726,7 @@ public class Blueshift {
             trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams, canBatchThisEvent);
 
         } else {
-            SdkLog.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
+            BlueshiftLogger.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
         }
     }
 
@@ -1040,7 +1040,7 @@ public class Blueshift {
                 trackNotificationView(message.getId(), message.getCampaignAttr());
             }
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 
@@ -1069,7 +1069,7 @@ public class Blueshift {
                 trackNotificationClick(message.getId(), message.getCampaignAttr());
             }
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 
@@ -1098,7 +1098,7 @@ public class Blueshift {
                 trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
             }
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 
@@ -1122,7 +1122,7 @@ public class Blueshift {
         if (message != null) {
             trackAlertDismiss(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 

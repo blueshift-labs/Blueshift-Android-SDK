@@ -7,7 +7,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -52,7 +51,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                                 seedListSend = Boolean.valueOf(seedListSendValue);
                             } catch (Exception e) {
                                 seedListSend = false;
-                                SdkLog.e(LOG_TAG, String.valueOf(e.getMessage()));
+                                BlueshiftLogger.e(LOG_TAG, e);
                             }
                         }
                         message.setBsftSeedListSend(seedListSend);
