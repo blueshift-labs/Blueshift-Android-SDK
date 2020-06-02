@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -24,7 +25,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
         if (intent != null) {
-            SdkLog.d(LOG_TAG, "onReceive: " + intent.getAction());
+            BlueshiftLogger.d(LOG_TAG, "onReceive: " + intent.getAction());
 
             String messageJSON = intent.getStringExtra(Message.EXTRA_MESSAGE);
             if (messageJSON != null) {
@@ -74,7 +75,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                     Log.e(LOG_TAG, "Invalid JSON in push message: " + logMessage);
                 }
             } else {
-                SdkLog.d(LOG_TAG, "Message not found. Passing the push message to host app via broadcast.");
+                BlueshiftLogger.d(LOG_TAG, "Message not found. Passing the push message to host app via broadcast.");
                 /*
                  * Handing over the push message to host app if message is not found.
                  */

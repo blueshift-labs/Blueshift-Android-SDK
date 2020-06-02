@@ -212,7 +212,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             } else if (isSilentPush(data)) {
                 processSilentPush(context, data);
             } else {
-                SdkLog.d(LOG_TAG, "Passing the push payload to host app via callback.");
+                BlueshiftLogger.d(LOG_TAG, "Passing the push payload to host app via callback.");
 
                 /*
                  * Handing over the push message to host app if message is not found.

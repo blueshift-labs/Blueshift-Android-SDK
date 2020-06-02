@@ -1260,7 +1260,7 @@ public class Blueshift {
                 request.setUrl(reqUrl);
                 request.setMethod(Method.GET);
 
-                SdkLog.d(LOG_TAG, reqUrl);
+                BlueshiftLogger.d(LOG_TAG, reqUrl);
                 SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
 
                 // Adding the request to the queue.

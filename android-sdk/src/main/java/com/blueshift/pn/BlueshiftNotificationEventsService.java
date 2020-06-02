@@ -11,12 +11,12 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.NotificationUtils;
-import com.blueshift.util.SdkLog;
 
 
 /**
@@ -59,7 +59,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
                         openApp(this, bundle);
                     }
                 } else {
-                    SdkLog.d(LOG_TAG, "No bundle data available with the broadcast.");
+                    BlueshiftLogger.d(LOG_TAG, "No bundle data available with the broadcast.");
                 }
 
                 Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
@@ -78,7 +78,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
 
                 this.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
             } else {
-                SdkLog.d(LOG_TAG, "No action found with the broadcast.");
+                BlueshiftLogger.d(LOG_TAG, "No action found with the broadcast.");
             }
         }
     }

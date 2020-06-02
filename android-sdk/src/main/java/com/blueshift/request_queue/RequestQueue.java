@@ -90,7 +90,7 @@ public class RequestQueue {
 
     public void add(Context context, Request request) {
         if (request != null) {
-            SdkLog.d(LOG_TAG, "Adding new request to the Queue.");
+            BlueshiftLogger.d(LOG_TAG, "Adding new request to the Queue.");
 
             RequestQueueTable db = RequestQueueTable.getInstance(context);
             db.insert(request);
@@ -101,7 +101,7 @@ public class RequestQueue {
 
     void remove(Context context, Request request) {
         if (request != null) {
-            SdkLog.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
+            BlueshiftLogger.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
 
             RequestQueueTable db = RequestQueueTable.getInstance(context);
             db.delete(request);
@@ -177,7 +177,7 @@ public class RequestQueue {
                         markQueueAvailable();
                     }
                 } else {
-                    SdkLog.d(LOG_TAG, "Request queue is empty.");
+                    BlueshiftLogger.d(LOG_TAG, "Request queue is empty.");
 
                     markQueueAvailable();
                 }

@@ -240,7 +240,7 @@ class RequestDispatcher {
             switch (mRequest.getMethod()) {
                 case POST:
                     String json = mRequest.getParamJson();
-                    SdkLog.d(LOG_TAG, "POST: Request params: " + json);
+                    BlueshiftLogger.d(LOG_TAG, "POST: Request params: " + json);
 
                     response = httpManager.post(json);
                     String eventName = getEventName(json);
@@ -358,7 +358,7 @@ class RequestDispatcher {
                     Event event = new Event();
                     event.setEventParams(paramsMap);
 
-                    SdkLog.d(LOG_TAG, "Adding failed request to failed events table");
+                    BlueshiftLogger.d(LOG_TAG, "Adding failed request to failed events table");
 
                     FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
                     failedEventsTable.insert(event);

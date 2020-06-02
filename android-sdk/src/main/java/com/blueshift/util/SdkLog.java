@@ -14,14 +14,6 @@ import com.blueshift.BuildConfig;
 public class SdkLog {
     private static boolean isDebug = BuildConfig.DEBUG;
 
-    public static void v(String tag, String message) {
-        if (isDebug) Log.v(tag, message);
-    }
-
-    public static void d(String tag, String message) {
-        if (isDebug) Log.d(tag, message);
-    }
-
     public static void i(String tag, String message) {
         if (isDebug) Log.i(tag, message);
     }

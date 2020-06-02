@@ -139,7 +139,7 @@ public class BulkEventManager {
 
             failedEventsCount = failedBulkEventsApiParams.size();
 
-            SdkLog.d(LOG_TAG, "Found " + failedEventsCount + " items inside failed events table.");
+            BlueshiftLogger.d(LOG_TAG, "Found " + failedEventsCount + " items inside failed events table.");
 
             if (failedEventsCount == BlueshiftConstants.BULK_EVENT_PAGE_SIZE) {
                 /*
@@ -176,7 +176,7 @@ public class BulkEventManager {
             EventsTable eventsTable = EventsTable.getInstance(context);
             ArrayList<HashMap<String, Object>> bulkEventsApiParams = eventsTable.getBulkEventParameters(spaceAvailableInBatch);
 
-            SdkLog.d(LOG_TAG, "Adding " + bulkEventsApiParams.size() + " items from batch events table to fill the batch.");
+            BlueshiftLogger.d(LOG_TAG, "Adding " + bulkEventsApiParams.size() + " items from batch events table to fill the batch.");
 
             tempBulkEventsApiParams.addAll(bulkEventsApiParams);
 
@@ -195,7 +195,7 @@ public class BulkEventManager {
 
             bulkEventsCount = eventParams.size();
 
-            SdkLog.d(LOG_TAG, "Found " + eventParams.size() + " items inside batch events table.");
+            BlueshiftLogger.d(LOG_TAG, "Found " + eventParams.size() + " items inside batch events table.");
 
             if (bulkEventsCount > 0) {
                 addToBulkEventsRequestQueue(context, eventParams);

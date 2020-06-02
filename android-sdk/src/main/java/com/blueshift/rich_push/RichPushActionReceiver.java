@@ -10,9 +10,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.NotificationUtils;
-import com.blueshift.util.SdkLog;
 
 /**
  * @author Rahul Raveendran V P
@@ -28,7 +28,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        SdkLog.d(LOG_TAG, "onReceive - " + intent.getAction());
+        BlueshiftLogger.d(LOG_TAG, "onReceive - " + intent.getAction());
 
         String action = intent.getAction();
         if (!TextUtils.isEmpty(action)) {
@@ -46,7 +46,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
                     openApp(context, bundle);
                 }
             } else {
-                SdkLog.d(LOG_TAG, "No bundle data available with the broadcast.");
+                BlueshiftLogger.d(LOG_TAG, "No bundle data available with the broadcast.");
             }
 
             Message message = null;
@@ -71,7 +71,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
 
             context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
         } else {
-            SdkLog.d(LOG_TAG, "No action found with the broadcast.");
+            BlueshiftLogger.d(LOG_TAG, "No action found with the broadcast.");
         }
     }
 
