@@ -40,7 +40,6 @@ import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.PermissionUtils;
-import com.blueshift.util.SdkLog;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -134,7 +133,7 @@ public class Blueshift {
             try {
                 updateFCMTokenAsync();
             } catch (Exception ex) {
-                SdkLog.w(LOG_TAG, ex.getMessage());
+                BlueshiftLogger.e(LOG_TAG, ex);
             }
         }
     }
@@ -148,7 +147,7 @@ public class Blueshift {
                     String token = instanceIdResult.getToken();
                     updateDeviceToken(token);
                 } catch (Exception e) {
-                    SdkLog.e(LOG_TAG, e.getMessage());
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
             }
         });
@@ -522,7 +521,7 @@ public class Blueshift {
                             Event event = new Event();
                             event.setEventParams(requestParams);
 
-                            SdkLog.i(LOG_TAG, "Adding event to events table for batching.");
+                            BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
 
                             EventsTable.getInstance(mContext).insert(event);
                         } else {
@@ -533,7 +532,7 @@ public class Blueshift {
                             request.setMethod(Method.POST);
                             request.setParamJson(reqParamsJSON);
 
-                            SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
+                            BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
                             // Adding the request to the queue.
                             RequestQueue.getInstance().add(mContext, request);
@@ -541,11 +540,11 @@ public class Blueshift {
 
                         return true;
                     } else {
-                        SdkLog.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
+                        BlueshiftLogger.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
                         return false;
                     }
                 } else {
-                    SdkLog.e(LOG_TAG, "params can't be null");
+                    BlueshiftLogger.e(LOG_TAG, "params can't be null");
                     return false;
                 }
             }
@@ -726,7 +725,7 @@ public class Blueshift {
             trackEvent(BlueshiftConstants.EVENT_IDENTIFY, userParams, canBatchThisEvent);
 
         } else {
-            SdkLog.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
+            BlueshiftLogger.e(LOG_TAG, "Error (identifyUser) : Basic credentials validation failed.");
         }
     }
 
@@ -1040,7 +1039,7 @@ public class Blueshift {
                 trackNotificationView(message.getId(), message.getCampaignAttr());
             }
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 
@@ -1069,7 +1068,7 @@ public class Blueshift {
                 trackNotificationClick(message.getId(), message.getCampaignAttr());
             }
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 
@@ -1098,7 +1097,7 @@ public class Blueshift {
                 trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
             }
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 
@@ -1122,7 +1121,7 @@ public class Blueshift {
         if (message != null) {
             trackAlertDismiss(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
         } else {
-            SdkLog.e(LOG_TAG, "No message available");
+            BlueshiftLogger.e(LOG_TAG, "No message available");
         }
     }
 
@@ -1260,8 +1259,8 @@ public class Blueshift {
                 request.setUrl(reqUrl);
                 request.setMethod(Method.GET);
 
-                SdkLog.d(LOG_TAG, reqUrl);
-                SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
+                BlueshiftLogger.d(LOG_TAG, reqUrl);
+                BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
                 // Adding the request to the queue.
                 RequestQueue.getInstance().add(mContext, request);

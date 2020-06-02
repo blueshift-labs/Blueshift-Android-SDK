@@ -21,11 +21,11 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
-import com.blueshift.util.SdkLog;
 
 import java.io.IOException;
 import java.net.URL;
@@ -189,7 +189,7 @@ class CustomNotificationFactory {
 
                         bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
                         if (bitmap == null) {
-                            SdkLog.e(LOG_TAG, "Could not load image for carousel.");
+                            BlueshiftLogger.e(LOG_TAG, "Could not load image for carousel.");
                         }
                     }
 
@@ -644,8 +644,7 @@ class CustomNotificationFactory {
                             // Add the image into ViewFlipper.
                             viewFlipper.addView(R.id.view_flipper, viewFlipperEntry);
                         } catch (IOException e) {
-                            String logMessage = e.getMessage() != null ? e.getMessage() : "";
-                            SdkLog.e(LOG_TAG, "Could not download image. " + logMessage);
+                            BlueshiftLogger.e(LOG_TAG, e);
                         }
                     }
                 }

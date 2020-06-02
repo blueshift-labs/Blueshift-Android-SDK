@@ -19,9 +19,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.NotificationUtils;
-import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class NotificationFactory {
                     break;
 
                 default:
-                    SdkLog.e(LOG_TAG, "Unknown notification type");
+                    BlueshiftLogger.e(LOG_TAG, "Unknown notification type");
             }
         }
     }
@@ -222,8 +222,7 @@ public class NotificationFactory {
                         builder.setStyle(bigPictureStyle);
                     }
                 } catch (IOException e) {
-                    String logMessage = e.getMessage() != null ? e.getMessage() : "";
-                    SdkLog.e(LOG_TAG, "Could not load image. " + logMessage);
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
             } else {
                 // enable big text style

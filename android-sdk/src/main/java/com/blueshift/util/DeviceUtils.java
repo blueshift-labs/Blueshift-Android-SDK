@@ -127,12 +127,12 @@ public class DeviceUtils {
                 info = AdvertisingIdClient.getAdvertisingIdInfo(context);
             } catch (IOException e) {
                 String logMessage = e.getMessage() != null ? e.getMessage() : "";
-                SdkLog.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
+                BlueshiftLogger.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
             } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
                 Log.e(LOG_TAG, libNotFoundMessage);
                 installNewGooglePlayServicesApp(context);
             } catch (GooglePlayServicesRepairableException e) {
-                SdkLog.e(LOG_TAG, e.getMessage());
+                BlueshiftLogger.e(LOG_TAG, e);
             }
         }
 
@@ -153,7 +153,7 @@ public class DeviceUtils {
                 }
             }
         } catch (SocketException e) {
-            SdkLog.e(LOG_TAG, e.getMessage());
+            BlueshiftLogger.e(LOG_TAG, e);
         }
 
         return null;

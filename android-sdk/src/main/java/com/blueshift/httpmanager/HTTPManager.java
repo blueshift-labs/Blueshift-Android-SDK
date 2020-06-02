@@ -3,7 +3,7 @@ package com.blueshift.httpmanager;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 
-import com.blueshift.util.SdkLog;
+import com.blueshift.BlueshiftLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -165,7 +165,7 @@ public class HTTPManager {
 
     private Response getResponse() {
         Response response = new Response();
-        SdkLog.d(LOG_TAG, mUrlConnection.getRequestMethod() + " " + mUrl);
+        BlueshiftLogger.d(LOG_TAG, mUrlConnection.getRequestMethod() + " " + mUrl);
 
         try {
             response.setStatusCode(mUrlConnection.getResponseCode());

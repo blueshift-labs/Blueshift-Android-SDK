@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.blueshift.util.SdkLog;
+import com.blueshift.BlueshiftLogger;
 
 
 /**
@@ -26,7 +26,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        SdkLog.d(LOG_TAG, "Received alarm for batch creation.");
+        BlueshiftLogger.d(LOG_TAG, "Received alarm for batch creation.");
 
         new BulkEventEnqueueTask(new BulkEventEnqueueTask.Callback() {
             @Override

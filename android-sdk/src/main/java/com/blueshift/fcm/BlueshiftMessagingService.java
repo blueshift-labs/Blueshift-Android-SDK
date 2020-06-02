@@ -29,7 +29,6 @@ import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
-import com.blueshift.util.SdkLog;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
@@ -212,7 +211,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             } else if (isSilentPush(data)) {
                 processSilentPush(context, data);
             } else {
-                SdkLog.d(LOG_TAG, "Passing the push payload to host app via callback.");
+                BlueshiftLogger.d(LOG_TAG, "Passing the push payload to host app via callback.");
 
                 /*
                  * Handing over the push message to host app if message is not found.
@@ -247,7 +246,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         message.setBsftUserUuid(data.get(Message.EXTRA_BSFT_USER_UUID));
                         message.setBsftTransactionUuid(data.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
                     } catch (Exception e) {
-                        SdkLog.e(LOG_TAG, "Error parsing campaign data. " + e.getMessage());
+                        BlueshiftLogger.e(LOG_TAG, "Error parsing campaign data. " + e.getMessage());
                     }
 
                     try {
@@ -255,7 +254,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         String seedListSendValue = data.get(Message.EXTRA_BSFT_SEED_LIST_SEND);
                         message.setBsftSeedListSend(isSeedListSend(seedListSendValue));
                     } catch (Exception e) {
-                        SdkLog.e(LOG_TAG, "Error parsing seed list flag. " + e.getMessage());
+                        BlueshiftLogger.e(LOG_TAG, "Error parsing seed list flag. " + e.getMessage());
                     }
 
                     if (message.isSilentPush()) {
@@ -264,7 +263,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                          * SDK has nothing to do with this. If this push was not delivered,
                          * server will track GCM registrations fails and will decide if the app is uninstalled or not.
                          */
-                        SdkLog.i(LOG_TAG, "A silent push received.");
+                        BlueshiftLogger.i(LOG_TAG, "A silent push received.");
                     } else {
                         NotificationFactory.handleMessage(context, message);
                     }
@@ -334,7 +333,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             try {
                 return Boolean.parseBoolean(seedListSendValue);
             } catch (Exception e) {
-                SdkLog.e(LOG_TAG, String.valueOf(e.getMessage()));
+                BlueshiftLogger.e(LOG_TAG, e);
             }
         }
 
