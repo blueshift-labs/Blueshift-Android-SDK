@@ -1196,7 +1196,7 @@ public class Blueshift {
 
                     String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + builder.toString();
 
-                    Request request = new Request();
+                    final Request request = new Request();
                     request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
                     request.setUrl(reqUrl);
                     request.setMethod(Method.GET);
@@ -1204,8 +1204,15 @@ public class Blueshift {
                     BlueshiftLogger.d(LOG_TAG, reqUrl);
                     BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
-                    // Adding the request to the queue.
-                    RequestQueue.getInstance().add(mContext, request);
+                    BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Adding the request to the queue.
+                                    RequestQueue.getInstance().add(mContext, request);
+                                }
+                            }
+                    );
                 }
             }
         } catch (Exception e) {
