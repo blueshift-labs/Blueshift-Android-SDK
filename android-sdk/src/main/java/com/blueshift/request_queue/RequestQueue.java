@@ -60,7 +60,7 @@ public class RequestQueue {
                             JobInfo jobInfo = builder.build();
 
                             if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
-                                SdkLog.i(LOG_TAG, "Successfully scheduled request queue " +
+                                BlueshiftLogger.i(LOG_TAG, "Successfully scheduled request queue " +
                                         "sync job on network change");
                             } else {
                                 // for some reason job scheduling failed. log this.

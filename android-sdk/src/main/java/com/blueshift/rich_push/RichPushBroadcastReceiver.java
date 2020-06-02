@@ -63,7 +63,7 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                              * SDK has nothing to do with this. If this push was not delivered,
                              * server will track GCM registrations fails and will decide if the app is uninstalled or not.
                              */
-                            SdkLog.i(LOG_TAG, "A silent push received.");
+                            BlueshiftLogger.i(LOG_TAG, "A silent push received.");
                         } else {
                             NotificationFactory.handleMessage(context, message);
                         }

@@ -9,7 +9,6 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BaseSqliteTable;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
-import com.blueshift.util.SdkLog;
 
 import java.util.HashMap;
 
@@ -150,6 +149,6 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
 
     public void clearAll() {
         deleteAll();
-        SdkLog.i(LOG_TAG, "Request queue cleared" );
+        BlueshiftLogger.i(LOG_TAG, "Request queue cleared");
     }
 }

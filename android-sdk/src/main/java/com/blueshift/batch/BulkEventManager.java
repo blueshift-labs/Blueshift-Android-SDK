@@ -20,7 +20,6 @@ import com.blueshift.model.Configuration;
 import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
-import com.blueshift.util.SdkLog;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -86,7 +85,7 @@ public class BulkEventManager {
     }
 
     private static void startAlarmManager(Context context) {
-        SdkLog.i(LOG_TAG, "Starting alarm service");
+        BlueshiftLogger.i(LOG_TAG, "Starting alarm service");
 
         // stop alarm manager if it is already running
         stopAlarmManager(context);
@@ -96,7 +95,7 @@ public class BulkEventManager {
             long interval = configuration.getBatchInterval();
             long startAtMillis = SystemClock.elapsedRealtime() + interval;
 
-            SdkLog.i(LOG_TAG, "Bulk event time interval: " + (interval / 1000f) / 60f + " min.");
+            BlueshiftLogger.i(LOG_TAG, "Bulk event time interval: " + (interval / 1000f) / 60f + " min.");
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null) {
@@ -115,7 +114,7 @@ public class BulkEventManager {
         // then simply return null instead of creating it.
         PendingIntent alarmIntent = getAlarmPendingIntent(context, PendingIntent.FLAG_NO_CREATE);
         if (alarmIntent != null) {
-            SdkLog.i(LOG_TAG, "Found an existing alarm. Cancelling it.");
+            BlueshiftLogger.i(LOG_TAG, "Found an existing alarm. Cancelling it.");
 
             // we have an intent in alarm manager.
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

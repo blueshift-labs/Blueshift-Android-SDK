@@ -522,7 +522,7 @@ public class Blueshift {
                             Event event = new Event();
                             event.setEventParams(requestParams);
 
-                            SdkLog.i(LOG_TAG, "Adding event to events table for batching.");
+                            BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
 
                             EventsTable.getInstance(mContext).insert(event);
                         } else {
@@ -533,7 +533,7 @@ public class Blueshift {
                             request.setMethod(Method.POST);
                             request.setParamJson(reqParamsJSON);
 
-                            SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
+                            BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
                             // Adding the request to the queue.
                             RequestQueue.getInstance().add(mContext, request);
@@ -1261,7 +1261,7 @@ public class Blueshift {
                 request.setMethod(Method.GET);
 
                 BlueshiftLogger.d(LOG_TAG, reqUrl);
-                SdkLog.i(LOG_TAG, "Adding real-time event to request queue.");
+                BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
                 // Adding the request to the queue.
                 RequestQueue.getInstance().add(mContext, request);
