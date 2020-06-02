@@ -60,7 +60,11 @@ public abstract class InAppMessageView extends RelativeLayout {
             addView(childView);
         }
 
-        if (inAppMessage.showCloseButton()) {
+        // We will show close button by default for the html templates and the modal template
+        // that has no action button in it.
+        boolean enableClose = InAppUtils.isModalWithNoActionButtons(inAppMessage) || InAppUtils.isHTML(inAppMessage);
+        boolean showCloseButton = InAppUtils.shouldShowCloseButton(getContext(), inAppMessage, enableClose);
+        if (showCloseButton) {
             addCloseButton(inAppMessage);
         }
     }

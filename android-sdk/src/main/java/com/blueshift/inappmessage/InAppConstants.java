@@ -60,6 +60,7 @@ public class InAppConstants {
     public static final String MARGIN = "margin";
     public static final String PADDING = "padding";
     public static final String CLOSE_BUTTON = "close_button";
+    public static final String CLOSE_BUTTON_SHOW = "show";
 
     private static String append(String prefix, String suffix) {
         return prefix != null && suffix != null ? prefix + "_" + suffix : null;
