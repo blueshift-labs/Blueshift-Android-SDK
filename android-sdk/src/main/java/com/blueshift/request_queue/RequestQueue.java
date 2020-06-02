@@ -15,7 +15,6 @@ import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NetworkUtils;
-import com.blueshift.util.SdkLog;
 
 /**
  * @author Rahul Raveendran V P
@@ -64,7 +63,7 @@ public class RequestQueue {
                                         "sync job on network change");
                             } else {
                                 // for some reason job scheduling failed. log this.
-                                SdkLog.w(LOG_TAG, "Could not schedule request queue sync " +
+                                BlueshiftLogger.w(LOG_TAG, "Could not schedule request queue sync " +
                                         "job on network change");
                             }
                         }

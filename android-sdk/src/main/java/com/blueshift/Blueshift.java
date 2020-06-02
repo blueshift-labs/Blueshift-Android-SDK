@@ -134,7 +134,7 @@ public class Blueshift {
             try {
                 updateFCMTokenAsync();
             } catch (Exception ex) {
-                SdkLog.w(LOG_TAG, ex.getMessage());
+                BlueshiftLogger.e(LOG_TAG, ex);
             }
         }
     }
