@@ -316,7 +316,10 @@ public class InAppUtils {
             JSONObject closeButtonJSON = getCloseButtonJSONObject(context, inAppMessage);
             if (closeButtonJSON != null) {
                 bgColor = getStringFromJSONObject(closeButtonJSON, InAppConstants.BACKGROUND_COLOR);
-                bgRadius = (float) getDoubleFromJSONObject(closeButtonJSON, InAppConstants.BACKGROUND_RADIUS, radius);
+                double dpVal = getDoubleFromJSONObject(closeButtonJSON, InAppConstants.BACKGROUND_RADIUS, 0);
+                if (dpVal > 0) {
+                    bgRadius = CommonUtils.dpToPx((int) dpVal, context);
+                }
             }
 
             if (!validateColorString(bgColor)) {
