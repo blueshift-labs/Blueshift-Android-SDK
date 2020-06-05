@@ -147,13 +147,18 @@ public abstract class InAppMessageView extends RelativeLayout {
                         lp.gravity = Gravity.CENTER;
 
                         try {
-                            setViewDimensionsToMatchParent(getChildAt(0), lp.width, lp.height);
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(TAG, e);
-                        }
-                        try {
-                            setViewDimensionsToMatchParent(getChildAt(1), lp.width, lp.height);
-                        } catch (Exception e) {
+                            // image background will be at position 0 if available
+                            View view = getChildAt(0);
+                            if (view instanceof ImageView) {
+                                // background image added, now we need to match it with the size
+                                setViewDimensionsToMatchParent(view, lp.width, lp.height);
+
+                                if (getChildCount() > 1) {
+                                    View contentView = getChildAt(1);
+                                    setViewDimensionsToMatchParent(contentView, lp.width, lp.height);
+                                }
+                            }
+                        } catch (Exception e){
                             BlueshiftLogger.e(TAG, e);
                         }
 
