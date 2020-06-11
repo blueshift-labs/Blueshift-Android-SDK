@@ -310,7 +310,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     protected void triggerInAppBackgroundFetch(Context context) {
         try {
             final Configuration config = BlueshiftUtils.getConfiguration(context);
-            if (config != null && config.isInAppBackgroundFetchEnabled()) {
+            if (config != null && config.isInAppEnabled() && config.isInAppBackgroundFetchEnabled()) {
                 InAppManager.fetchInAppFromServer(context, new InAppApiCallback() {
                     @Override
                     public void onSuccess() {
