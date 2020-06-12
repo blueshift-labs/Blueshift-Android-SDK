@@ -252,7 +252,7 @@ public class Blueshift {
             }
         }
 
-        new UpdateDeviceIdTask().execute(mContext);
+        updateDeviceIdAsync(mContext);
 
         if (mConfiguration != null && mConfiguration.isPushEnabled()) {
             updateFCMToken();
@@ -1246,7 +1246,7 @@ public class Blueshift {
     }
 
     private void trackCampaignEventAsync(final String eventName,
-                                         final HashMap<String,Object> campaignAttr,
+                                         final HashMap<String, Object> campaignAttr,
                                          final HashMap<String, Object> extraAttr) {
         BlueshiftExecutor.getInstance().runOnNetworkThread(
                 new Runnable() {
@@ -1254,6 +1254,27 @@ public class Blueshift {
                     public void run() {
                         boolean tracked = sendNotificationEvent(eventName, campaignAttr, extraAttr);
                         BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                    }
+                }
+        );
+    }
+
+    private void updateDeviceIdAsync(final Context context) {
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String deviceId = DeviceUtils.getDeviceId(context);
+                            if (TextUtils.isEmpty(deviceId)) {
+                                BlueshiftLogger.e(LOG_TAG, "device_id: not available.");
+                            } else {
+                                BlueshiftLogger.d(LOG_TAG, "device_id: " + deviceId);
+                                updateDeviceId(deviceId);
+                            }
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
+                        }
                     }
                 }
         );
