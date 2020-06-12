@@ -1281,26 +1281,6 @@ public class Blueshift {
     }
 
     /**
-     * Updates the sDeviceParams with device_id
-     */
-    private static class UpdateDeviceIdTask extends AsyncTask<Context, Void, String> {
-
-        @Override
-        protected String doInBackground(Context... contexts) {
-            return contexts != null && contexts.length > 0 ? DeviceUtils.getDeviceId(contexts[0]) : null;
-        }
-
-        @Override
-        protected void onPostExecute(String adId) {
-            if (TextUtils.isEmpty(adId)) {
-                BlueshiftLogger.e(LOG_TAG, "Could not get a valid device_id");
-            } else {
-                updateDeviceId(adId);
-            }
-        }
-    }
-
-    /**
      * Async task that fetched live content from Bsft server
      */
     private class FetchLiveContentTask extends AsyncTask<Void, Void, String> {
