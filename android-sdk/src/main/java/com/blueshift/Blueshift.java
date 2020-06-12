@@ -1034,8 +1034,7 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        new TrackCampaignEventTask(
-                BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, null).execute(mContext);
+        trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, null);
     }
 
     public void trackNotificationClick(Message message) {
@@ -1063,8 +1062,7 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        new TrackCampaignEventTask(
-                BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, null).execute(mContext);
+        trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, null);
     }
 
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
@@ -1121,9 +1119,7 @@ public class Blueshift {
 
     public void trackInAppMessageDelivered(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            new TrackCampaignEventTask(
-                    InAppConstants.EVENT_DELIVERED, inAppMessage.getCampaignParamsMap(), null
-            ).execute(mContext);
+            trackCampaignEventAsync(InAppConstants.EVENT_DELIVERED, inAppMessage.getCampaignParamsMap(), null);
         }
     }
 
@@ -1131,9 +1127,8 @@ public class Blueshift {
         if (inAppMessage != null) {
             HashMap<String, Object> extra = new HashMap<>();
             extra.put(BlueshiftConstants.KEY_TIMESTAMP, inAppMessage.getTimestamp());
-            new TrackCampaignEventTask(
-                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extra
-            ).execute(mContext);
+
+            trackCampaignEventAsync(InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extra);
         }
     }
 
@@ -1145,9 +1140,7 @@ public class Blueshift {
                 extras.put(InAppConstants.EVENT_EXTRA_ELEMENT, elementName);
             }
 
-            new TrackCampaignEventTask(
-                    InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras
-            ).execute(mContext);
+            trackCampaignEventAsync(InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras);
         }
     }
 
@@ -1252,32 +1245,18 @@ public class Blueshift {
         }
     }
 
-    private static class TrackCampaignEventTask extends AsyncTask<Context, Void, Void> {
-
-        private String mEventName;
-        private HashMap<String, Object> mCampaignParams;
-        private HashMap<String, Object> mExtraParams;
-
-        TrackCampaignEventTask(String eventName, HashMap<String, Object> campaignParams, HashMap<String, Object> extraParams) {
-            mEventName = eventName;
-            mCampaignParams = campaignParams;
-            mExtraParams = extraParams;
-        }
-
-        @Override
-        protected Void doInBackground(Context... contexts) {
-            if (mEventName != null && mCampaignParams != null) {
-                Context context = contexts != null && contexts.length > 0 ? contexts[0] : null;
-                if (context != null) {
-                    Blueshift blueshift = Blueshift.getInstance(context);
-                    boolean isSuccess = blueshift.sendNotificationEvent(mEventName, mCampaignParams, mExtraParams);
-                    Log.d(LOG_TAG, "Event: " + mEventName + "," +
-                            " Tracking status: " + (isSuccess ? "success" : "failed"));
+    private void trackCampaignEventAsync(final String eventName,
+                                         final HashMap<String,Object> campaignAttr,
+                                         final HashMap<String, Object> extraAttr) {
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean tracked = sendNotificationEvent(eventName, campaignAttr, extraAttr);
+                        BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                    }
                 }
-            }
-
-            return null;
-        }
+        );
     }
 
     /**
