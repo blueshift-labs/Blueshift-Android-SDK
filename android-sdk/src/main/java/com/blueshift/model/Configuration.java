@@ -28,7 +28,7 @@ public class Configuration {
     private int smallIconResId;
     private int largeIconResId;
     private int notificationColor;
-    private boolean pushEnabled = true;
+    private boolean pushEnabled;
     private String defaultNotificationChannelId;
     private String defaultNotificationChannelName;
     private String defaultNotificationChannelDescription;
@@ -39,19 +39,36 @@ public class Configuration {
 
     // in app message
     private long inAppInterval;
-    private boolean inAppEnableJavascript = false;
-    private boolean inAppEnabled = false;
-    private boolean inAppManualTriggerEnabled = false;
-    private boolean inAppBackgroundFetchEnabled = false;
+    private boolean inAppEnableJavascript;
+    private boolean inAppEnabled;
+    private boolean inAppManualTriggerEnabled;
+    private boolean inAppBackgroundFetchEnabled;
 
-    private boolean enableAutoAppOpen = false;
+    private boolean enableAutoAppOpen;
 
     private Blueshift.DeviceIdSource deviceIdSource;
 
     public Configuration() {
-        deviceIdSource = Blueshift.DeviceIdSource.ADVERTISING_ID;
+        // In-App Messaging
+        inAppEnabled = false;
+        inAppEnableJavascript = false;
+        inAppManualTriggerEnabled = false;
+        inAppBackgroundFetchEnabled = true;
         inAppInterval = InAppConstants.IN_APP_INTERVAL;
+
+        // Push Messaging
+        pushEnabled = true;
+
+        // Default device_id: Android Ad Id
+        deviceIdSource = Blueshift.DeviceIdSource.ADVERTISING_ID;
+
+        // Default bulk event interval: 30min
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
+
+        // Default app_open: will not be fired
+        enableAutoAppOpen = false;
+
+        // Job ids used in the SDK
         networkChangeListenerJobId = 901;
         bulkEventsJobId = 902;
     }
