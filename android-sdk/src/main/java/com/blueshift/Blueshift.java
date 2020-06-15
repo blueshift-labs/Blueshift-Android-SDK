@@ -1243,7 +1243,7 @@ public class Blueshift {
     private void trackCampaignEventAsync(final String eventName,
                                          final HashMap<String, Object> campaignAttr,
                                          final HashMap<String, Object> extraAttr) {
-        BlueshiftExecutor.getInstance().runOnNetworkThread(
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
                 new Runnable() {
                     @Override
                     public void run() {
