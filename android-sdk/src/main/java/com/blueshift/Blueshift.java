@@ -10,8 +10,9 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -205,23 +206,17 @@ public class Blueshift {
 
     @SuppressWarnings("WeakerAccess")
     public void getLiveContentByEmail(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
-                .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
-                .execute();
+        fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_EMAIL, liveContentContext, callback);
     }
 
     @SuppressWarnings("WeakerAccess")
     public void getLiveContentByDeviceId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
-                .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
-                .execute();
+        fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_DEVICE_IDENTIFIER, liveContentContext, callback);
     }
 
     @SuppressWarnings("WeakerAccess")
     public void getLiveContentByCustomerId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
-                .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
-                .execute();
+        fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
     }
 
     /**
@@ -1280,113 +1275,128 @@ public class Blueshift {
         );
     }
 
-    /**
-     * Async task that fetched live content from Bsft server
-     */
-    private class FetchLiveContentTask extends AsyncTask<Void, Void, String> {
-        private final Context mContext;
-        private final String mSlot;
-        private final HashMap<String, Object> mLiveContentContext;
-        private final LiveContentCallback mCallback;
-        private String mUniqueKey;
+    private String fetchLiveContentFromAPI(
+            Context context,
+            String slot,
+            String idKey,
+            HashMap<String, Object> liveContentContext
+    ) {
+        String responseJson = null;
 
-        FetchLiveContentTask(Context context, String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-            mContext = context;
-            mSlot = slot;
-            mLiveContentContext = liveContentContext;
-            mCallback = callback;
+        HashMap<String, Object> reqParams = new HashMap<>();
+        if (!TextUtils.isEmpty(slot)) {
+            reqParams.put(BlueshiftConstants.KEY_SLOT, slot);
+        } else {
+            Log.e(LOG_TAG, "Live Content Api: No slot provided.");
         }
 
-        FetchLiveContentTask setUniqueKey(String uniqueKey) {
-            mUniqueKey = uniqueKey;
-
-            return this;
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            String responseJson = null;
-
-            HashMap<String, Object> reqParams = new HashMap<>();
-            if (!TextUtils.isEmpty(mSlot)) {
-                reqParams.put(BlueshiftConstants.KEY_SLOT, mSlot);
+        Configuration config = getConfiguration();
+        if (config != null) {
+            String apiKey = config.getApiKey();
+            if (!TextUtils.isEmpty(apiKey)) {
+                reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
             } else {
-                Log.e(LOG_TAG, "Live Content Api: No slot provided.");
+                Log.e(LOG_TAG, "Live Content Api: No Api Key provided.");
             }
-
-            Configuration config = getConfiguration();
-            if (config != null) {
-                String apiKey = config.getApiKey();
-                if (!TextUtils.isEmpty(apiKey)) {
-                    reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
-                } else {
-                    Log.e(LOG_TAG, "Live Content Api: No Api Key provided.");
-                }
-            } else {
-                Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
-            }
-
-            HashMap<String, Object> userHash = new HashMap<>();
-
-            if (mUniqueKey != null) {
-                switch (mUniqueKey) {
-                    case BlueshiftConstants.KEY_EMAIL:
-                        UserInfo userInfo = UserInfo.getInstance(mContext);
-                        String email = userInfo.getEmail();
-                        if (!TextUtils.isEmpty(email)) {
-                            userHash.put(BlueshiftConstants.KEY_EMAIL, email);
-                        } else {
-                            Log.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
-                        }
-
-                        break;
-
-                    case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
-                        String deviceId = DeviceUtils.getDeviceId(mContext);
-                        if (!TextUtils.isEmpty(deviceId)) {
-                            userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
-                        } else {
-                            Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
-                        }
-
-                        break;
-
-                    case BlueshiftConstants.KEY_CUSTOMER_ID:
-                        String customerId = UserInfo.getInstance(mContext).getRetailerCustomerId();
-                        if (!TextUtils.isEmpty(customerId)) {
-                            userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
-                        } else {
-                            Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
-                        }
-
-                        break;
-                }
-            }
-
-            // add user params
-            reqParams.put(BlueshiftConstants.KEY_USER, userHash);
-
-            // add extra params if available
-            if (mLiveContentContext != null && mLiveContentContext.size() > 0) {
-                reqParams.put(BlueshiftConstants.KEY_CONTEXT, mLiveContentContext);
-            }
-
-            String paramsJson = new Gson().toJson(reqParams);
-            HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
-            Response response = httpManager.post(paramsJson);
-
-            if (response.getStatusCode() == 200) {
-                responseJson = response.getResponseBody();
-            }
-
-            return responseJson;
+        } else {
+            Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
         }
 
-        @Override
-        protected void onPostExecute(String json) {
-            if (mCallback != null) {
-                mCallback.onReceive(json);
+        HashMap<String, Object> userHash = new HashMap<>();
+
+        if (idKey != null) {
+            switch (idKey) {
+                case BlueshiftConstants.KEY_EMAIL:
+                    UserInfo userInfo = UserInfo.getInstance(context);
+                    String email = userInfo.getEmail();
+                    if (!TextUtils.isEmpty(email)) {
+                        userHash.put(BlueshiftConstants.KEY_EMAIL, email);
+                    } else {
+                        Log.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
+                    }
+
+                    break;
+
+                case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
+                    String deviceId = DeviceUtils.getDeviceId(context);
+                    if (!TextUtils.isEmpty(deviceId)) {
+                        userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+                    } else {
+                        Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
+                    }
+
+                    break;
+
+                case BlueshiftConstants.KEY_CUSTOMER_ID:
+                    String customerId = UserInfo.getInstance(context).getRetailerCustomerId();
+                    if (!TextUtils.isEmpty(customerId)) {
+                        userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                    } else {
+                        Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
+                    }
+
+                    break;
             }
         }
+
+        // add user params
+        reqParams.put(BlueshiftConstants.KEY_USER, userHash);
+
+        // add extra params if available
+        if (liveContentContext != null && liveContentContext.size() > 0) {
+            reqParams.put(BlueshiftConstants.KEY_CONTEXT, liveContentContext);
+        }
+
+        String paramsJson = new Gson().toJson(reqParams);
+        HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
+        Response response = httpManager.post(paramsJson);
+
+        if (response.getStatusCode() == 200) {
+            responseJson = response.getResponseBody();
+        }
+
+        return responseJson;
+    }
+
+    private void fetchLiveContentAsync(
+            final Context context,
+            final String slot,
+            final String idKey,
+            final HashMap<String, Object> liveContentContext,
+            final LiveContentCallback callback
+    ) {
+
+        Handler handler = null;
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            handler = new Handler(looper);
+        }
+
+        final Handler finalHandler = handler;
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final String liveContent = fetchLiveContentFromAPI(
+                                context,
+                                slot,
+                                idKey,
+                                liveContentContext
+                        );
+
+                        // invoke callback from caller's handler
+                        if (finalHandler != null) {
+                            finalHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (callback != null) {
+                                        callback.onReceive(liveContent);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+        );
     }
 }
