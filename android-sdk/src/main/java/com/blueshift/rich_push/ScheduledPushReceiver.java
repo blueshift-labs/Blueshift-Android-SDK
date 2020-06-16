@@ -3,10 +3,11 @@ package com.blueshift.rich_push;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
@@ -38,7 +39,7 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
                 }
 
                 if (message != null) {
-                    processPayload(context, message);
+                    processPayload(context.getApplicationContext(), message);
                 } else {
                     Log.e(LOG_TAG, "NULL message payload received. " + messageJSON);
                 }
@@ -51,17 +52,20 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
     }
 
     private void processPayload(final Context context, final Message message) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    NotificationFactory
-                            .handleMessage(context.getApplicationContext(), message);
-                } catch (Exception e) {
-                    Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
+        BlueshiftExecutor.getInstance().runOnWorkerThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            NotificationFactory.handleMessage(
+                                    context,
+                                    message
+                            );
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
+                        }
+                    }
                 }
-                return null;
-            }
-        }.execute();
+        );
     }
 }
