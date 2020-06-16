@@ -1,7 +1,7 @@
 package com.blueshift.request_queue;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,6 +9,7 @@ import android.util.Log;
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.FailedEventsTable;
@@ -86,7 +87,7 @@ class RequestDispatcher {
 
     private void dispatchWithoutPushToken() {
         try {
-            new RequestDispatchTask(null, RequestDispatcher.this).execute();
+            dispatchWithToken(null);
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
@@ -99,7 +100,7 @@ class RequestDispatcher {
             public void onSuccess(InstanceIdResult instanceIdResult) {
                 try {
                     String latestToken = instanceIdResult.getToken();
-                    new RequestDispatchTask(latestToken, RequestDispatcher.this).execute();
+                    dispatchWithToken(latestToken);
                 } catch (Exception e) {
                     // Possible error on Firebase initialization. Send event without token.
                     dispatchWithoutPushToken();
@@ -378,6 +379,30 @@ class RequestDispatcher {
         requestQueue.markQueueAvailable();
     }
 
+    private void dispatchWithToken(final String deviceToken) {
+        final Handler handler = BlueshiftExecutor.getInstance().getMyHandler();
+        invokeDispatchBegin();
+        if (handler != null) {
+            BlueshiftExecutor.getInstance().runOnNetworkThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            processRequest(deviceToken);
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    invokeDispatchComplete();
+                                }
+                            });
+                        }
+                    }
+            );
+        } else {
+            BlueshiftLogger.e(LOG_TAG, "Could not create Handler to process request.");
+            invokeDispatchComplete();
+        }
+    }
+
     public interface Callback {
         void onDispatchBegin();
 
@@ -406,39 +431,6 @@ class RequestDispatcher {
 
         public synchronized RequestDispatcher build() {
             return new RequestDispatcher(mContext, mRequest, mCallback);
-        }
-    }
-
-    private static class RequestDispatchTask extends AsyncTask<Void, Void, Void> {
-        String mFcmToken;
-        RequestDispatcher mDispatcher;
-
-        RequestDispatchTask(String fcmToken, RequestDispatcher dispatcher) {
-            mFcmToken = fcmToken;
-            mDispatcher = dispatcher;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            if (mDispatcher != null) {
-                mDispatcher.invokeDispatchBegin();
-            }
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            if (mDispatcher != null) {
-                mDispatcher.processRequest(mFcmToken);
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            if (mDispatcher != null) {
-                mDispatcher.invokeDispatchComplete();
-            }
         }
     }
 }
