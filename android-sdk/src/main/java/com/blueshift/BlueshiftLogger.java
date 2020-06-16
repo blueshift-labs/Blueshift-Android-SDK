@@ -20,7 +20,7 @@ public class BlueshiftLogger {
     }
 
     private static String prepareMessage(String tag, String message) {
-        String prefix = tag != null ? tag : "";
+        String prefix = tag != null && !TAG.equals(tag) ? tag : "";
         String suffix = message != null ? message : "";
         return "".equals(prefix) ? suffix : (prefix + ": " + suffix);
     }
