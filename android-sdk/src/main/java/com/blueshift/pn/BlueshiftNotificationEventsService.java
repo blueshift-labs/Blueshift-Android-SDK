@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
@@ -40,7 +39,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Log.d(LOG_TAG, "Service started.");
+        BlueshiftLogger.d(LOG_TAG, "Service started.");
 
         if (intent != null) {
             String action = intent.getAction();
@@ -102,7 +101,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
 
                 trackAppOpen(context, message);
             } else {
-                Log.i(LOG_TAG, "Could not find product activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find product activity class inside configuration. Opening MAIN activity.");
 
                 // default action is to open app
                 openApp(context, bundle);
@@ -129,7 +128,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
 
                 trackAppOpen(context, message);
             } else {
-                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
 
                 // default action is to open app
                 openApp(context, bundle);
@@ -151,7 +150,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
 
                 trackAppOpen(context, message);
             } else {
-                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
 
                 // default action is to open app
                 openApp(context, bundle);
@@ -173,7 +172,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
 
                 trackAppOpen(context, message);
             } else {
-                Log.i(LOG_TAG, "Could not find offer's page activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find offer's page activity class inside configuration. Opening MAIN activity.");
 
                 // default action is to open app
                 openApp(context, bundle);
