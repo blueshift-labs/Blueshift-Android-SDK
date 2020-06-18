@@ -70,7 +70,7 @@ public class BulkEventManager {
 
                     if (jobScheduler != null
                             && jobScheduler.schedule(builder.build()) == JobScheduler.RESULT_SUCCESS) {
-                        Log.d(LOG_TAG, "Bulk event job scheduled.");
+                        BlueshiftLogger.d(LOG_TAG, "Bulk event job scheduled.");
                     }
                 }
             }
