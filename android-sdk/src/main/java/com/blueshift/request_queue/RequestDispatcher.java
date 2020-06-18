@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
@@ -51,12 +50,12 @@ class RequestDispatcher {
 
     synchronized void dispatch() {
         if (mRequest == null) {
-            Log.e(LOG_TAG, "No request object available.");
+            BlueshiftLogger.e(LOG_TAG, "No request object available.");
             return;
         }
 
         if (mContext == null) {
-            Log.e(LOG_TAG, "No context object available.");
+            BlueshiftLogger.e(LOG_TAG, "No context object available.");
             return;
         }
 
@@ -196,7 +195,7 @@ class RequestDispatcher {
                     }
                 }
             } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
+                BlueshiftLogger.e(LOG_TAG, e);
             }
         }
     }
@@ -246,14 +245,14 @@ class RequestDispatcher {
                     String eventName = getEventName(json);
                     String apiStatus = getStatusFromResponse(response);
 
-                    Log.d(LOG_TAG, "Event name: " + eventName + ", API Status: " + apiStatus);
+                    BlueshiftLogger.d(LOG_TAG, "Event name: " + eventName + ", API Status: " + apiStatus);
 
                     break;
 
                 case GET:
                     response = httpManager.get();
 
-                    Log.d(LOG_TAG, "Method: GET, " +
+                    BlueshiftLogger.d(LOG_TAG, "Method: GET, " +
                             "URL: " + mRequest.getUrl() + ", " +
                             "Status: " + getStatusFromResponse(response));
 

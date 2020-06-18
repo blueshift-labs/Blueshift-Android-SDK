@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.webkit.WebView;
@@ -50,7 +49,7 @@ public class InAppManager {
      */
     public static void registerForInAppMessages(Activity activity) {
         if (mActivity != null) {
-            // Log.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
+            // BlueshiftLogger.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
             // do the clean up for old activity to avoid mem leak
             unregisterForInAppMessages(mActivity);
         }
@@ -243,10 +242,10 @@ public class InAppManager {
 
                     InAppManager.invokeTriggerWithinSdk();
                 } else {
-                    Log.d(LOG_TAG, "No items found inside 'content'.");
+                    BlueshiftLogger.d(LOG_TAG, "No items found inside 'content'.");
                 }
             } else {
-                Log.d(LOG_TAG, "'content' is NULL.");
+                BlueshiftLogger.d(LOG_TAG, "'content' is NULL.");
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -256,7 +255,7 @@ public class InAppManager {
     public static void onInAppMessageReceived(Context context, InAppMessage inAppMessage) {
         boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
         if (isEnabled) {
-            Log.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
+            BlueshiftLogger.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
 
             if (inAppMessage != null) {
                 Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
@@ -266,10 +265,10 @@ public class InAppManager {
                     if (inserted) {
                         InAppManager.cacheAssets(inAppMessage, context);
                     } else {
-                        Log.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                        BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
                     }
                 } else {
-                    Log.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
+                    BlueshiftLogger.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
                 }
             }
         }
@@ -290,7 +289,7 @@ public class InAppManager {
 
     public static void invokeTriggers() {
         if (mActivity == null) {
-            Log.d(LOG_TAG, "App isn't running with an eligible Activity to display InAppMessage.");
+            BlueshiftLogger.d(LOG_TAG, "App isn't running with an eligible Activity to display InAppMessage.");
             return;
         }
 
@@ -303,12 +302,12 @@ public class InAppManager {
                         InAppMessage input = InAppMessageStore.getInstance(mActivity).getInAppMessage(mActivity);
 
                         if (input == null) {
-                            Log.d(LOG_TAG, "No pending in-app messages found.");
+                            BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
                             return;
                         }
 
                         if (!validate(input)) {
-                            Log.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
+                            BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
                             return;
                         }
 
@@ -326,7 +325,7 @@ public class InAppManager {
             Configuration config = BlueshiftUtils.getConfiguration(context);
             if (config != null) {
                 long delay = config.getInAppInterval();
-                Log.d(LOG_TAG, "Scheduling next in-app in " + delay + "ms");
+                BlueshiftLogger.d(LOG_TAG, "Scheduling next in-app in " + delay + "ms");
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.postDelayed(new Runnable() {
                     @Override
@@ -604,10 +603,10 @@ public class InAppManager {
 
                 return true;
             } else {
-                Log.d(LOG_TAG, "Already an in-app is in display.");
+                BlueshiftLogger.d(LOG_TAG, "Already an in-app is in display.");
             }
         } else {
-            Log.d(LOG_TAG, "App is not running in foreground.");
+            BlueshiftLogger.d(LOG_TAG, "App is not running in foreground.");
         }
 
         return false;
@@ -676,7 +675,7 @@ public class InAppManager {
         if (context != null && url != null) {
             File imgFile = InAppUtils.getCachedImageFile(context, url);
             if (imgFile != null && imgFile.exists()) {
-                Log.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
+                BlueshiftLogger.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
                         + imgFile.getAbsolutePath());
             }
         }
@@ -691,7 +690,7 @@ public class InAppManager {
                 public void run() {
                     try {
                         boolean success = NetworkUtils.downloadFile(url, file.getAbsolutePath());
-                        Log.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
+                        BlueshiftLogger.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
                     } catch (Exception e) {
                         BlueshiftLogger.e(LOG_TAG, e);
                     }

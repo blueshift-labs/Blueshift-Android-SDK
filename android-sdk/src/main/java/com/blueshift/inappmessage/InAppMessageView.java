@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -145,7 +144,7 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public void onDismiss(InAppMessage inAppMessage, String trigger) {
-        Log.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
+        BlueshiftLogger.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
     private Button getActionButtonBasic(JSONObject actionJson) {

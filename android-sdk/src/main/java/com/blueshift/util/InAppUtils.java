@@ -11,7 +11,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.widget.Button;
@@ -627,7 +626,7 @@ public class InAppUtils {
                 }
 
                 if (bitmap != null) {
-                    Log.d(LOG_TAG, "Using cached image. " + imgFile.getAbsolutePath());
+                    BlueshiftLogger.d(LOG_TAG, "Using cached image. " + imgFile.getAbsolutePath());
                 }
             }
         } catch (Exception e) {
@@ -647,7 +646,7 @@ public class InAppUtils {
                 inputStream.close();
 
                 if (bitmap != null) {
-                    Log.d(LOG_TAG, "Using remote image. " + url);
+                    BlueshiftLogger.d(LOG_TAG, "Using remote image. " + url);
                 }
             }
         } catch (Exception e) {
@@ -965,7 +964,7 @@ public class InAppUtils {
         if (imageCacheDir != null && imageCacheDir.exists()) {
             String fileName = getCachedImageFileName(url);
             File imgFile = new File(imageCacheDir, fileName);
-            Log.d(LOG_TAG, "Image file name. Remote: " + url + ", Local: " + imgFile.getAbsolutePath());
+            BlueshiftLogger.d(LOG_TAG, "Image file name. Remote: " + url + ", Local: " + imgFile.getAbsolutePath());
             return imgFile;
         } else {
             return null;
@@ -981,9 +980,9 @@ public class InAppUtils {
             if (!imagesDir.exists()) {
                 boolean val = imagesDir.mkdirs();
                 if (val) {
-                    Log.d(LOG_TAG, "Directory created! " + imagesDir.getAbsolutePath());
+                    BlueshiftLogger.d(LOG_TAG, "Directory created! " + imagesDir.getAbsolutePath());
                 } else {
-                    Log.d(LOG_TAG, "Could not create dir.");
+                    BlueshiftLogger.d(LOG_TAG, "Could not create dir.");
                 }
             }
         }
@@ -1008,7 +1007,7 @@ public class InAppUtils {
                 md5Hash = sb.toString();
 
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                BlueshiftLogger.e(LOG_TAG, e);
             }
         }
 

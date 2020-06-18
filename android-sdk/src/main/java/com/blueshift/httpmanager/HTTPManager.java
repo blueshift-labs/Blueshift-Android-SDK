@@ -89,9 +89,9 @@ public class HTTPManager {
             urlObject = new URL(mUrl);
             mUrlConnection = (HttpURLConnection) urlObject.openConnection();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(LOG_TAG, e);
         } catch (IOException e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(LOG_TAG, e);
         }
 
         //try { mUrlConnection.setDoOutput(true); } catch (Exception e) {}
@@ -115,7 +115,7 @@ public class HTTPManager {
         try {
             mUrlConnection.setRequestMethod(method);
         } catch (ProtocolException e1) {
-            e1.printStackTrace();
+            BlueshiftLogger.e(LOG_TAG, e1);
         }
     }
 
@@ -159,7 +159,7 @@ public class HTTPManager {
             outputStream.write(jsonData.getBytes());
             outputStream.close();
         } catch (IOException e1) {
-            e1.printStackTrace();
+            BlueshiftLogger.e(LOG_TAG, e1);
         }
     }
 
@@ -174,7 +174,7 @@ public class HTTPManager {
                 try {
                     response.setStatusCode(mUrlConnection.getResponseCode());
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    BlueshiftLogger.e(LOG_TAG, e1);
                 }
             }
         }
@@ -338,7 +338,7 @@ public class HTTPManager {
             HttpsURLConnection
                     .setDefaultSSLSocketFactory(sc.getSocketFactory());
         } catch (Exception e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 }

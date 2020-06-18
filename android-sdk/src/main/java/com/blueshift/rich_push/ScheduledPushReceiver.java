@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
@@ -26,7 +25,7 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
-        Log.i(LOG_TAG, "Scheduled local push received at " + sdf.format(System.currentTimeMillis()));
+        BlueshiftLogger.i(LOG_TAG, "Scheduled local push received at " + sdf.format(System.currentTimeMillis()));
 
         if (intent != null) {
             String messageJSON = intent.getStringExtra(Message.EXTRA_MESSAGE);
@@ -35,19 +34,19 @@ public class ScheduledPushReceiver extends BroadcastReceiver {
                 try {
                     message = new Gson().fromJson(messageJSON, Message.class);
                 } catch (Exception e) {
-                    Log.e(LOG_TAG, "Invalid message payload received. " + messageJSON);
+                    BlueshiftLogger.e(LOG_TAG, "Invalid message payload received. " + messageJSON);
                 }
 
                 if (message != null) {
                     processPayload(context.getApplicationContext(), message);
                 } else {
-                    Log.e(LOG_TAG, "NULL message payload received. " + messageJSON);
+                    BlueshiftLogger.e(LOG_TAG, "NULL message payload received. " + messageJSON);
                 }
             } else {
-                Log.e(LOG_TAG, "No message payload received. ");
+                BlueshiftLogger.e(LOG_TAG, "No message payload received. ");
             }
         } else {
-            Log.e(LOG_TAG, "No intent received. ");
+            BlueshiftLogger.e(LOG_TAG, "No intent received. ");
         }
     }
 

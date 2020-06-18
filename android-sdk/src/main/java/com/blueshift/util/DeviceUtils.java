@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.WorkerThread;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftLogger;
@@ -47,7 +46,7 @@ public class DeviceUtils {
             gpsInstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(gpsInstallIntent);
         } catch (ActivityNotFoundException e) {
-            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
@@ -97,7 +96,7 @@ public class DeviceUtils {
             }
 
             if (isLimitAdTrackingEnabled(context)) {
-                Log.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
+                BlueshiftLogger.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -129,7 +128,7 @@ public class DeviceUtils {
                 String logMessage = e.getMessage() != null ? e.getMessage() : "";
                 BlueshiftLogger.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
             } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
-                Log.e(LOG_TAG, libNotFoundMessage);
+                BlueshiftLogger.e(LOG_TAG, libNotFoundMessage);
                 installNewGooglePlayServicesApp(context);
             } catch (GooglePlayServicesRepairableException e) {
                 BlueshiftLogger.e(LOG_TAG, e);

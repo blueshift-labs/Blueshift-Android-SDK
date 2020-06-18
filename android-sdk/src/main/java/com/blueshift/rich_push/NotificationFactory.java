@@ -16,7 +16,6 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftExecutor;
@@ -345,13 +344,13 @@ public class NotificationFactory {
                                             PendingIntent.FLAG_ONE_SHOT);
 
                                     alarmManager.set(AlarmManager.RTC_WAKEUP, timeToDisplay, pendingIntent);
-                                    Log.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
+                                    BlueshiftLogger.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
                                 } else {
-                                    Log.i(LOG_TAG, "Display time (" + sdf.format(timeToDisplay) + ") elapsed! Showing the notification now.");
+                                    BlueshiftLogger.i(LOG_TAG, "Display time (" + sdf.format(timeToDisplay) + ") elapsed! Showing the notification now.");
                                     context.sendBroadcast(bcIntent);
                                 }
                             } else {
-                                Log.i(LOG_TAG, "Expired notification found! Exp time: " + sdf.format(timeToExpire));
+                                BlueshiftLogger.i(LOG_TAG, "Expired notification found! Exp time: " + sdf.format(timeToExpire));
                             }
                         }
                     }

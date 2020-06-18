@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
@@ -25,7 +24,7 @@ public class AppInstallReceiver extends BroadcastReceiver {
             if (referrer != null) {
                 Blueshift.getInstance(context).trackAppInstall(referrer, false);
             } else {
-                Log.w(LOG_TAG, "The referrer url parameters are not found in the INSTALL_REFERRER broadcast message.");
+                BlueshiftLogger.w(LOG_TAG, "The referrer url parameters are not found in the INSTALL_REFERRER broadcast message.");
             }
         } else {
             BlueshiftLogger.w(LOG_TAG, "The broadcast message does not contain any extras.");

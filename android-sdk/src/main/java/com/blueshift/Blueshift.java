@@ -16,7 +16,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
@@ -186,7 +185,7 @@ public class Blueshift {
         try {
             status = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
         } catch (Throwable t) {
-            Log.e(LOG_TAG, String.format("Failure checking permission %s", permission));
+            BlueshiftLogger.e(LOG_TAG, String.format("Failure checking permission %s", permission));
         }
 
         return status;
@@ -269,7 +268,7 @@ public class Blueshift {
                         try {
                             pkgInfo = pkgManager.getPackageInfo(pkgName, 0);
                         } catch (PackageManager.NameNotFoundException e) {
-                            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
+                            BlueshiftLogger.e(LOG_TAG, e);
                         }
 
                         if (pkgInfo != null && pkgInfo.versionName != null) {
@@ -372,11 +371,11 @@ public class Blueshift {
     private boolean hasValidCredentials() {
         Configuration configuration = getConfiguration();
         if (configuration == null) {
-            Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+            BlueshiftLogger.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
             return false;
         } else {
             if (configuration.getApiKey() == null || configuration.getApiKey().isEmpty()) {
-                Log.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
+                BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
                 return false;
             }
         }
@@ -431,11 +430,11 @@ public class Blueshift {
         // Check for presence of API key
         Configuration configuration = getConfiguration();
         if (configuration == null) {
-            Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+            BlueshiftLogger.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
             return false;
         } else {
             if (TextUtils.isEmpty(configuration.getApiKey())) {
-                Log.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
+                BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
                 return false;
             } else {
                 if (params != null) {
@@ -469,7 +468,7 @@ public class Blueshift {
                             if (userInfo.getRetailerCustomerId() != null) {
                                 requestParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, userInfo.getRetailerCustomerId());
                             } else {
-                                Log.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
+                                BlueshiftLogger.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
                             }
                         }
 
@@ -496,7 +495,7 @@ public class Blueshift {
                                 }
                             } else {
                                 // Location permission is not available. The client app needs to grand permission.
-                                Log.w(LOG_TAG, "Location access permission unavailable. Require " +
+                                BlueshiftLogger.w(LOG_TAG, "Location access permission unavailable. Require " +
                                         Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
                                         Manifest.permission.ACCESS_COARSE_LOCATION);
                             }
@@ -612,7 +611,7 @@ public class Blueshift {
      */
     public void trackAppInstall(String referrer, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(referrer)) {
-            Log.e(LOG_TAG, "No valid referrer url was found for the app installation.");
+            BlueshiftLogger.e(LOG_TAG, "No valid referrer url was found for the app installation.");
         } else {
             HashMap<String, Object> utmParamsHash = new HashMap<>();
 
@@ -638,7 +637,7 @@ public class Blueshift {
      */
     public void identifyUserByCustomerId(String customerId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(customerId)) {
-            Log.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
+            BlueshiftLogger.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
         }
 
         identifyUser(BlueshiftConstants.KEY_CUSTOMER_ID, customerId, details, canBatchThisEvent);
@@ -653,7 +652,7 @@ public class Blueshift {
      */
     public void identifyUserByDeviceId(String androidAdId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(androidAdId)) {
-            Log.w(LOG_TAG, "identifyUserByAdId() - The Android Ad ID provided is empty.");
+            BlueshiftLogger.w(LOG_TAG, "identifyUserByAdId() - The Android Ad ID provided is empty.");
         }
 
         identifyUser(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId, details, canBatchThisEvent);
@@ -668,7 +667,7 @@ public class Blueshift {
      */
     public void identifyUserByEmail(String email, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (email == null || email.isEmpty() || !(android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())) {
-            Log.w(LOG_TAG, "identifyUserByEmail() - The email address provided is invalid.");
+            BlueshiftLogger.w(LOG_TAG, "identifyUserByEmail() - The email address provided is invalid.");
         }
 
         identifyUser(BlueshiftConstants.KEY_EMAIL, email, details, canBatchThisEvent);
@@ -953,7 +952,7 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_DOWNGRADE, eventParams, canBatchThisEvent);
         } else {
-            Log.w(LOG_TAG, "No valid subscription was found to pause.");
+            BlueshiftLogger.w(LOG_TAG, "No valid subscription was found to pause.");
         }
     }
 
@@ -978,7 +977,7 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_UPGRADE, eventParams, canBatchThisEvent);
         } else {
-            Log.w(LOG_TAG, "No valid subscription was found to unpause.");
+            BlueshiftLogger.w(LOG_TAG, "No valid subscription was found to unpause.");
         }
     }
 
@@ -1000,14 +999,14 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_CANCEL, eventParams, canBatchThisEvent);
         } else {
-            Log.w(LOG_TAG, "No valid subscription was found to cancel.");
+            BlueshiftLogger.w(LOG_TAG, "No valid subscription was found to cancel.");
         }
     }
 
     public void trackNotificationView(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_DELIVERED);
+                BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_DELIVERED);
             } else {
                 trackNotificationView(message.getId(), message.getCampaignAttr());
             }
@@ -1035,7 +1034,7 @@ public class Blueshift {
     public void trackNotificationClick(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
+                BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
             } else {
                 trackNotificationClick(message.getId(), message.getCampaignAttr());
             }
@@ -1063,7 +1062,7 @@ public class Blueshift {
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_APP_OPEN);
+                BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_APP_OPEN);
             } else {
                 trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
             }
@@ -1287,7 +1286,7 @@ public class Blueshift {
         if (!TextUtils.isEmpty(slot)) {
             reqParams.put(BlueshiftConstants.KEY_SLOT, slot);
         } else {
-            Log.e(LOG_TAG, "Live Content Api: No slot provided.");
+            BlueshiftLogger.e(LOG_TAG, "Live Content Api: No slot provided.");
         }
 
         Configuration config = getConfiguration();
@@ -1296,10 +1295,10 @@ public class Blueshift {
             if (!TextUtils.isEmpty(apiKey)) {
                 reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
             } else {
-                Log.e(LOG_TAG, "Live Content Api: No Api Key provided.");
+                BlueshiftLogger.e(LOG_TAG, "Live Content Api: No Api Key provided.");
             }
         } else {
-            Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
+            BlueshiftLogger.e(LOG_TAG, "Live Content Api: No valid config provided.");
         }
 
         HashMap<String, Object> userHash = new HashMap<>();
@@ -1312,7 +1311,7 @@ public class Blueshift {
                     if (!TextUtils.isEmpty(email)) {
                         userHash.put(BlueshiftConstants.KEY_EMAIL, email);
                     } else {
-                        Log.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
+                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
                     }
 
                     break;
@@ -1322,7 +1321,7 @@ public class Blueshift {
                     if (!TextUtils.isEmpty(deviceId)) {
                         userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
                     } else {
-                        Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
+                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No advertisingID available.");
                     }
 
                     break;
@@ -1332,7 +1331,7 @@ public class Blueshift {
                     if (!TextUtils.isEmpty(customerId)) {
                         userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
                     } else {
-                        Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
+                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
                     }
 
                     break;

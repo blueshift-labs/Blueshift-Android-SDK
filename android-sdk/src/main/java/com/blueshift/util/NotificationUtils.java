@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
@@ -306,17 +305,17 @@ public class NotificationUtils {
 
         // create channel id
         String channelId = getNotificationChannelId(context, message);
-        Log.d(LOG_TAG, "Notification Channel Id: " + channelId);
+        BlueshiftLogger.d(LOG_TAG, "Notification Channel Id: " + channelId);
 
         // create channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.d(LOG_TAG, "Notification Channel Name: " + channelName);
+            BlueshiftLogger.d(LOG_TAG, "Notification Channel Name: " + channelName);
 
             channel = new NotificationChannel(
                     channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
 
             if (!TextUtils.isEmpty(channelDescription)) {
-                Log.d(LOG_TAG, "Notification Channel Description: " + channelDescription);
+                BlueshiftLogger.d(LOG_TAG, "Notification Channel Description: " + channelDescription);
 
                 channel.setDescription(channelDescription);
             }
@@ -325,7 +324,7 @@ public class NotificationUtils {
             // keeping everything as default for now.
         }
 
-        Log.d(LOG_TAG, "Notification Channel Creation - " + (channel != null ? "Done!" : "Failed!"));
+        BlueshiftLogger.d(LOG_TAG, "Notification Channel Creation - " + (channel != null ? "Done!" : "Failed!"));
 
         return channel;
     }
@@ -384,7 +383,7 @@ public class NotificationUtils {
                 if (resInfo.size() == 1) {
                     activityInfo = resInfo.get(0).activityInfo;
                 } else {
-                    Log.d(LOG_TAG, "Declared more than one activity to receive this action.");
+                    BlueshiftLogger.d(LOG_TAG, "Declared more than one activity to receive this action.");
 
                     // consider adding backup activity info here if needed.
                     activityInfo = null;
@@ -423,7 +422,7 @@ public class NotificationUtils {
                 pageLauncherIntent.putExtra("price", message.getPrice());
                 pageLauncherIntent.putExtra("data", message.getData());
             } else {
-                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
             }
         }
 
@@ -445,7 +444,7 @@ public class NotificationUtils {
             if (configuration != null && configuration.getCartPage() != null) {
                 pageLauncherIntent = new Intent(context, configuration.getCartPage());
             } else {
-                Log.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find cart activity class inside configuration. Opening MAIN activity.");
             }
         }
 
@@ -472,7 +471,7 @@ public class NotificationUtils {
                 pageLauncherIntent.putExtra("price", message.getPrice());
                 pageLauncherIntent.putExtra("data", message.getData());
             } else {
-                Log.i(LOG_TAG, "Could not find product activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find product activity class inside configuration. Opening MAIN activity.");
             }
         }
 
@@ -494,7 +493,7 @@ public class NotificationUtils {
             if (configuration != null && configuration.getOfferDisplayPage() != null) {
                 pageLauncherIntent = new Intent(context, configuration.getOfferDisplayPage());
             } else {
-                Log.i(LOG_TAG, "Could not find offer's page activity class inside configuration. Opening MAIN activity.");
+                BlueshiftLogger.i(LOG_TAG, "Could not find offer's page activity class inside configuration. Opening MAIN activity.");
             }
         }
 
