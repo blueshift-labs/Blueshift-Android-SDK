@@ -49,7 +49,7 @@ public class InAppManager {
      */
     public static void registerForInAppMessages(Activity activity) {
         if (mActivity != null) {
-             BlueshiftLogger.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
+            // BlueshiftLogger.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
             // do the clean up for old activity to avoid mem leak
             unregisterForInAppMessages(mActivity);
         }
