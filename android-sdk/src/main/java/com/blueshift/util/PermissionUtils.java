@@ -4,7 +4,8 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
-import android.util.Log;
+
+import com.blueshift.BlueshiftLogger;
 
 public class PermissionUtils {
     private static final String LOG_TAG = "Blueshift";
@@ -63,7 +64,7 @@ public class PermissionUtils {
                                 == PackageManager.PERMISSION_GRANTED;
             }
         } catch (Exception e) {
-            Log.e(LOG_TAG, e.getMessage());
+            BlueshiftLogger.e(LOG_TAG, e);
         }
 
         return hasPermission;
