@@ -6,6 +6,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
 
 import org.json.JSONArray;
@@ -16,6 +17,7 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class InAppMessageViewBanner extends InAppMessageView {
+    private static final String TAG = InAppMessageViewBanner.class.getSimpleName();
 
     public InAppMessageViewBanner(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
@@ -58,7 +60,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
                 JSONObject actionJson = actions.getJSONObject(0);
                 linearLayout.setOnClickListener(getActionClickListener(actionJson));
             } catch (JSONException e) {
-                e.printStackTrace();
+                BlueshiftLogger.e(TAG, e);
             }
         }
 

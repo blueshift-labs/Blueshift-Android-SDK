@@ -1007,7 +1007,7 @@ public class InAppUtils {
                 md5Hash = sb.toString();
 
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                BlueshiftLogger.e(LOG_TAG, e);
             }
         }
 
