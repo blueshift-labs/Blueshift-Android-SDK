@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
@@ -67,11 +66,11 @@ public class RichPushBroadcastReceiver extends BroadcastReceiver {
                             NotificationFactory.handleMessage(context, message);
                         }
                     } else {
-                        Log.e(LOG_TAG, "Null message found in push message.");
+                        BlueshiftLogger.e(LOG_TAG, "Null message found in push message.");
                     }
                 } catch (JsonSyntaxException e) {
                     String logMessage = e.getMessage() != null ? e.getMessage() : "";
-                    Log.e(LOG_TAG, "Invalid JSON in push message: " + logMessage);
+                    BlueshiftLogger.e(LOG_TAG, "Invalid JSON in push message: " + logMessage);
                 }
             } else {
                 BlueshiftLogger.d(LOG_TAG, "Message not found. Passing the push message to host app via broadcast.");
