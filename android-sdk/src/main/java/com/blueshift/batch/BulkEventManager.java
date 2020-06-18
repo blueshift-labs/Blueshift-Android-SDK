@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
