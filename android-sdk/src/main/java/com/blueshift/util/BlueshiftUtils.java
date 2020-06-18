@@ -2,9 +2,9 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 
 public class BlueshiftUtils {
@@ -24,7 +24,7 @@ public class BlueshiftUtils {
             if (!TextUtils.isEmpty(apiKey)) {
                 return apiKey;
             } else {
-                Log.e(LOG_TAG, "No API key provided. Call Configuration.setApiKey() to set " +
+                BlueshiftLogger.e(LOG_TAG, "No API key provided. Call Configuration.setApiKey() to set " +
                         "a valid API key before initializing SDK.");
             }
         }
@@ -44,7 +44,7 @@ public class BlueshiftUtils {
         if (config != null) {
             return config;
         } else {
-            Log.e(LOG_TAG, "Blueshift Android SDK is not initialized! " +
+            BlueshiftLogger.e(LOG_TAG, "Blueshift Android SDK is not initialized! " +
                     "Please call the initialize() method of Blueshift class from your app\\'s " +
                     "Application file\\'s onCreate() method with a valid Configuration object. " +
                     "Ex: Blueshift.getInstance(Context).initialize(Configuration); " +
@@ -61,7 +61,7 @@ public class BlueshiftUtils {
         if (config != null) {
             isEnabled = config.isInAppEnabled();
             if (!isEnabled) {
-                Log.e(LOG_TAG, "In-App is not enabled. Please call setInAppEnabled(true) " +
+                BlueshiftLogger.e(LOG_TAG, "In-App is not enabled. Please call setInAppEnabled(true) " +
                         "to enable it during SDK initialization.");
             }
         }
@@ -76,7 +76,7 @@ public class BlueshiftUtils {
         if (config != null) {
             isEnabled = config.isAutoAppOpenFiringEnabled();
             if (!isEnabled) {
-                Log.w(LOG_TAG, "Automatic app_open firing is not enabled. You will have to fire this event explicitly.");
+                BlueshiftLogger.w(LOG_TAG, "Automatic app_open firing is not enabled. You will have to fire this event explicitly.");
             }
         }
 
