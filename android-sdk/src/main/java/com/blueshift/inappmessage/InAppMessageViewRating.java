@@ -112,7 +112,7 @@ public class InAppMessageViewRating extends InAppMessageView {
 
         // Submit button
         JSONObject submitAction = InAppUtils.getActionFromName(inAppMessage, InAppConstants.ACTION_RATE_APP);
-        Button submit = getActionButton(submitAction);
+        Button submit = getActionButton(submitAction, 0);
         if (submit == null) {
             submit = InAppUtils.getActionButtonDefault(getContext());
             submit.setText(R.string.bsft_rating_submit);
@@ -142,7 +142,7 @@ public class InAppMessageViewRating extends InAppMessageView {
 
         // Not now button
         JSONObject action = InAppUtils.getActionFromName(inAppMessage, InAppConstants.ACTION_DISMISS);
-        Button notNow = getActionButton(action);
+        Button notNow = getActionButton(action, 1);
         if (notNow != null) {
             LinearLayout.LayoutParams lpNotNow;
             if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {

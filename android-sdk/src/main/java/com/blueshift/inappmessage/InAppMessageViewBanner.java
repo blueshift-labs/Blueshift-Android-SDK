@@ -58,7 +58,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
         if (actions != null && actions.length() > 0) {
             try {
                 JSONObject actionJson = actions.getJSONObject(0);
-                linearLayout.setOnClickListener(getActionClickListener(actionJson));
+                linearLayout.setOnClickListener(getActionClickListener(actionJson, 0));
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
