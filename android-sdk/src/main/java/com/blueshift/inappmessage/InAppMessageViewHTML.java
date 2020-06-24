@@ -19,6 +19,8 @@ import com.blueshift.util.CommonUtils;
 
 import org.json.JSONObject;
 
+import java.net.URLEncoder;
+
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 public class InAppMessageViewHTML extends InAppMessageView {
@@ -56,10 +58,13 @@ public class InAppMessageViewHTML extends InAppMessageView {
         InAppActionCallback actionCallback = InAppManager.getActionCallback();
         if (actionCallback != null) {
             try {
+                String androidLink = uri.toString();
+
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put(InAppConstants.ANDROID_LINK, uri.toString());
+                jsonObject.put(InAppConstants.ANDROID_LINK, androidLink);
                 actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
-                onDismiss(getInAppMessage(), uri.toString());
+
+                onDismiss(getInAppMessage(), URLEncoder.encode(androidLink));
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
                 onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
@@ -72,11 +77,14 @@ public class InAppMessageViewHTML extends InAppMessageView {
     private void openUri(Uri uri) {
         try {
             if (uri != null) {
-                BlueshiftLogger.d(TAG, "URL: " + uri.toString());
+                String androidLink = uri.toString();
+
+                BlueshiftLogger.d(TAG, "URL: " + androidLink);
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(uri);
                 getContext().startActivity(intent);
-                onDismiss(getInAppMessage(), uri.toString());
+
+                onDismiss(getInAppMessage(), URLEncoder.encode(androidLink));
             } else {
                 onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
