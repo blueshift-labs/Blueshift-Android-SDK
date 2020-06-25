@@ -33,7 +33,7 @@ import javax.net.ssl.X509TrustManager;
  */
 
 public class HTTPManager {
-    private static final String LOG_TAG = "BfHttpManager";
+    private static final String LOG_TAG = "HttpManager";
 
     private String mUrl;
     private HttpURLConnection mUrlConnection;
