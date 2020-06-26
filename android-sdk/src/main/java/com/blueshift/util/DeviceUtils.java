@@ -64,7 +64,7 @@ public class DeviceUtils {
      */
     @WorkerThread
     public static String getDeviceId(Context context) {
-        String deviceId;
+        String deviceId = null;
 
         Configuration configuration = BlueshiftUtils.getConfiguration(context);
         if (configuration != null && configuration.getDeviceIdSource() != null) {
@@ -76,12 +76,22 @@ public class DeviceUtils {
                     deviceId = BlueShiftPreference.getDeviceID(context);
                     break;
                 case ADVERTISING_ID_PKG_NAME:
-                    deviceId = getAdvertisingId(context);
-                    deviceId += (":" + context.getPackageName());
+                    try {
+                        deviceId = getAdvertisingId(context);
+                        deviceId += (":" + context.getPackageName());
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, "Could not build \"advertising id - pkg name\" combo.");
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
                     break;
                 case INSTANCE_ID_PKG_NAME:
-                    deviceId = FirebaseInstanceId.getInstance().getId();
-                    deviceId += (":" + context.getPackageName());
+                    try {
+                        deviceId = FirebaseInstanceId.getInstance().getId();
+                        deviceId += (":" + context.getPackageName());
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, "Could not build \"instance id - pkg name\" combo.");
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
                     break;
                 default:
                     // ADVERTISING_ID & Others
@@ -90,8 +100,6 @@ public class DeviceUtils {
         } else {
             deviceId = getAdvertisingId(context);
         }
-
-        BlueshiftLogger.d(LOG_TAG, "{ \"device_id\" : \"" + deviceId + "\" }");
 
         return deviceId;
     }
