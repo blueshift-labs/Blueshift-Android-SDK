@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.blueshift.httpmanager.request_queue.RequestQueueSyncTask;
+import com.blueshift.request_queue.RequestQueue;
 
 
 /**
@@ -24,7 +24,7 @@ public class NetworkChangeListener extends BroadcastReceiver {
         if (context != null && intent != null
                 && "android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction())) {
             // call the db sync task to send events to server
-            new RequestQueueSyncTask(null).execute(context);
+            RequestQueue.getInstance().syncInBackground(context);
         }
     }
 }

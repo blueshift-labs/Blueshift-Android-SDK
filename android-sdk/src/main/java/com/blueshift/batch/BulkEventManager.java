@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
@@ -70,7 +69,7 @@ public class BulkEventManager {
 
                     if (jobScheduler != null
                             && jobScheduler.schedule(builder.build()) == JobScheduler.RESULT_SUCCESS) {
-                        Log.d(LOG_TAG, "Bulk event job scheduled.");
+                        BlueshiftLogger.d(LOG_TAG, "Bulk event job scheduled.");
                     }
                 }
             }

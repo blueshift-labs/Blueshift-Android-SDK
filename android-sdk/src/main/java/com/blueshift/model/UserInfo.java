@@ -2,6 +2,7 @@ package com.blueshift.model;
 
 import android.content.Context;
 
+import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -17,6 +18,7 @@ import java.util.Locale;
  *         https://github.com/rahulrvp
  */
 public class UserInfo {
+    private static final String TAG = "UserInfo";
     private static final String PREF_FILE = "user_info_file";
     private static final String PREF_KEY = "user_info_key";
 
@@ -70,7 +72,9 @@ public class UserInfo {
         if (json != null) {
             try {
                 userInfo = new Gson().fromJson(json, UserInfo.class);
-            } catch (JsonSyntaxException e) { e.printStackTrace(); }
+            } catch (JsonSyntaxException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
         }
 
         return userInfo;
@@ -200,7 +204,7 @@ public class UserInfo {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             dateOfBirth = simpleDateFormat.parse(birth_day + "/" + birth_month + "/" + birth_year);
         } catch (ParseException e) {
-            e.printStackTrace();
+            BlueshiftLogger.e(TAG, e);
         }
     }
 

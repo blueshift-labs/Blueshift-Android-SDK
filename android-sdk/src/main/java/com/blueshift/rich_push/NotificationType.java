@@ -1,7 +1,5 @@
 package com.blueshift.rich_push;
 
-import android.util.Log;
-
 import com.blueshift.BlueshiftLogger;
 
 /**
@@ -39,7 +37,7 @@ public enum NotificationType {
                     return Unknown;
             }
         } else {
-            Log.w(LOG_TAG, "'notification_type' is not available inside 'message'.");
+            BlueshiftLogger.w(LOG_TAG, "'notification_type' is not available inside 'message'.");
 
             return Unknown;
         }

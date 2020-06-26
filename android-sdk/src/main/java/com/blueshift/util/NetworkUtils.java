@@ -6,6 +6,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import com.blueshift.BlueshiftLogger;
+
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -56,7 +58,7 @@ public class NetworkUtils {
                     inputStream.close();
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                BlueshiftLogger.e(null, e);
             }
 
             if (httpURLConnection != null) {

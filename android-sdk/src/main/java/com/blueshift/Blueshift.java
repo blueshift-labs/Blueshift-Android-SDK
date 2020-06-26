@@ -10,12 +10,12 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
@@ -67,7 +67,7 @@ public class Blueshift {
     private static Blueshift instance = null;
 
     public enum DeviceIdSource {
-        ADVERTISING_ID, INSTANCE_ID, GUID
+        ADVERTISING_ID, INSTANCE_ID, GUID, ADVERTISING_ID_PKG_NAME, INSTANCE_ID_PKG_NAME
     }
 
     private Blueshift(Context context) {
@@ -185,7 +185,7 @@ public class Blueshift {
         try {
             status = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
         } catch (Throwable t) {
-            Log.e(LOG_TAG, String.format("Failure checking permission %s", permission));
+            BlueshiftLogger.e(LOG_TAG, String.format("Failure checking permission %s", permission));
         }
 
         return status;
@@ -205,23 +205,17 @@ public class Blueshift {
 
     @SuppressWarnings("WeakerAccess")
     public void getLiveContentByEmail(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
-                .setUniqueKey(BlueshiftConstants.KEY_EMAIL)
-                .execute();
+        fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_EMAIL, liveContentContext, callback);
     }
 
     @SuppressWarnings("WeakerAccess")
     public void getLiveContentByDeviceId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
-                .setUniqueKey(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
-                .execute();
+        fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_DEVICE_IDENTIFIER, liveContentContext, callback);
     }
 
     @SuppressWarnings("WeakerAccess")
     public void getLiveContentByCustomerId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-        new FetchLiveContentTask(mContext, slot, liveContentContext, callback)
-                .setUniqueKey(BlueshiftConstants.KEY_CUSTOMER_ID)
-                .execute();
+        fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
     }
 
     /**
@@ -252,7 +246,7 @@ public class Blueshift {
             }
         }
 
-        new UpdateDeviceIdTask().execute(mContext);
+        updateDeviceIdAsync(mContext);
 
         if (mConfiguration != null && mConfiguration.isPushEnabled()) {
             updateFCMToken();
@@ -274,7 +268,7 @@ public class Blueshift {
                         try {
                             pkgInfo = pkgManager.getPackageInfo(pkgName, 0);
                         } catch (PackageManager.NameNotFoundException e) {
-                            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
+                            BlueshiftLogger.e(LOG_TAG, e);
                         }
 
                         if (pkgInfo != null && pkgInfo.versionName != null) {
@@ -377,11 +371,11 @@ public class Blueshift {
     private boolean hasValidCredentials() {
         Configuration configuration = getConfiguration();
         if (configuration == null) {
-            Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+            BlueshiftLogger.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
             return false;
         } else {
             if (configuration.getApiKey() == null || configuration.getApiKey().isEmpty()) {
-                Log.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
+                BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
                 return false;
             }
         }
@@ -436,11 +430,11 @@ public class Blueshift {
         // Check for presence of API key
         Configuration configuration = getConfiguration();
         if (configuration == null) {
-            Log.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+            BlueshiftLogger.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
             return false;
         } else {
             if (TextUtils.isEmpty(configuration.getApiKey())) {
-                Log.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
+                BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
                 return false;
             } else {
                 if (params != null) {
@@ -474,7 +468,7 @@ public class Blueshift {
                             if (userInfo.getRetailerCustomerId() != null) {
                                 requestParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, userInfo.getRetailerCustomerId());
                             } else {
-                                Log.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
+                                BlueshiftLogger.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
                             }
                         }
 
@@ -501,7 +495,7 @@ public class Blueshift {
                                 }
                             } else {
                                 // Location permission is not available. The client app needs to grand permission.
-                                Log.w(LOG_TAG, "Location access permission unavailable. Require " +
+                                BlueshiftLogger.w(LOG_TAG, "Location access permission unavailable. Require " +
                                         Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
                                         Manifest.permission.ACCESS_COARSE_LOCATION);
                             }
@@ -590,45 +584,23 @@ public class Blueshift {
         }
 
         // running on a non-UI thread to avoid possible ANR.
-        new SendEventTask(eventName, eventParams, canBatchThisEvent).execute(mContext);
+        sendEventAsync(eventName, eventParams, canBatchThisEvent);
     }
 
-    private static class SendEventTask extends AsyncTask<Context, Void, Boolean> {
-
-        private String mEventName;
-        private HashMap<String, Object> mParams;
-        private boolean mCanBatch;
-
-        SendEventTask(String eventName, HashMap<String, Object> eventParams, boolean canBatch) {
-            mEventName = eventName;
-            mParams = eventParams;
-            mCanBatch = canBatch;
-        }
-
-        @Override
-        protected Boolean doInBackground(Context... contexts) {
-            boolean isSuccess = false;
-
-            Context context = contexts != null && contexts.length > 0 ? contexts[0] : null;
-            if (context != null) {
-                Blueshift blueshift = Blueshift.getInstance(context);
-                try {
-                    // call send event and return its result.
-                    isSuccess = blueshift.sendEvent(mParams, mCanBatch);
-                } catch (Exception e) {
-                    String errMsg = e.getMessage() != null ? e.getMessage() : "";
-                    Log.e(LOG_TAG, "sendEvent() failed.\n" + errMsg);
+    private void sendEventAsync(final String eventName, final HashMap<String, Object> params, final boolean canBatch) {
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            boolean tracked = sendEvent(params, canBatch);
+                            BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
+                        }
+                    }
                 }
-            }
-
-            return isSuccess;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean isSuccess) {
-            Log.d(LOG_TAG, "Event: " + mEventName + "," +
-                    " Tracking status: " + (isSuccess ? "success" : "failed"));
-        }
+        );
     }
 
     /**
@@ -639,7 +611,7 @@ public class Blueshift {
      */
     public void trackAppInstall(String referrer, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(referrer)) {
-            Log.e(LOG_TAG, "No valid referrer url was found for the app installation.");
+            BlueshiftLogger.e(LOG_TAG, "No valid referrer url was found for the app installation.");
         } else {
             HashMap<String, Object> utmParamsHash = new HashMap<>();
 
@@ -665,7 +637,7 @@ public class Blueshift {
      */
     public void identifyUserByCustomerId(String customerId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(customerId)) {
-            Log.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
+            BlueshiftLogger.w(LOG_TAG, "identifyUserByCustomerId() - The retailer customer ID provided is empty.");
         }
 
         identifyUser(BlueshiftConstants.KEY_CUSTOMER_ID, customerId, details, canBatchThisEvent);
@@ -680,7 +652,7 @@ public class Blueshift {
      */
     public void identifyUserByDeviceId(String androidAdId, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (TextUtils.isEmpty(androidAdId)) {
-            Log.w(LOG_TAG, "identifyUserByAdId() - The Android Ad ID provided is empty.");
+            BlueshiftLogger.w(LOG_TAG, "identifyUserByAdId() - The Android Ad ID provided is empty.");
         }
 
         identifyUser(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, androidAdId, details, canBatchThisEvent);
@@ -695,7 +667,7 @@ public class Blueshift {
      */
     public void identifyUserByEmail(String email, HashMap<String, Object> details, boolean canBatchThisEvent) {
         if (email == null || email.isEmpty() || !(android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())) {
-            Log.w(LOG_TAG, "identifyUserByEmail() - The email address provided is invalid.");
+            BlueshiftLogger.w(LOG_TAG, "identifyUserByEmail() - The email address provided is invalid.");
         }
 
         identifyUser(BlueshiftConstants.KEY_EMAIL, email, details, canBatchThisEvent);
@@ -980,7 +952,7 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_DOWNGRADE, eventParams, canBatchThisEvent);
         } else {
-            Log.w(LOG_TAG, "No valid subscription was found to pause.");
+            BlueshiftLogger.w(LOG_TAG, "No valid subscription was found to pause.");
         }
     }
 
@@ -1005,7 +977,7 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_UPGRADE, eventParams, canBatchThisEvent);
         } else {
-            Log.w(LOG_TAG, "No valid subscription was found to unpause.");
+            BlueshiftLogger.w(LOG_TAG, "No valid subscription was found to unpause.");
         }
     }
 
@@ -1027,14 +999,14 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_SUBSCRIPTION_CANCEL, eventParams, canBatchThisEvent);
         } else {
-            Log.w(LOG_TAG, "No valid subscription was found to cancel.");
+            BlueshiftLogger.w(LOG_TAG, "No valid subscription was found to cancel.");
         }
     }
 
     public void trackNotificationView(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_DELIVERED);
+                BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_DELIVERED);
             } else {
                 trackNotificationView(message.getId(), message.getCampaignAttr());
             }
@@ -1056,14 +1028,13 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        new TrackCampaignEventTask(
-                BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, null).execute(mContext);
+        trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, null);
     }
 
     public void trackNotificationClick(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
+                BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
             } else {
                 trackNotificationClick(message.getId(), message.getCampaignAttr());
             }
@@ -1085,14 +1056,13 @@ public class Blueshift {
             eventParams.putAll(params);
         }
 
-        new TrackCampaignEventTask(
-                BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, null).execute(mContext);
+        trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, null);
     }
 
     public void trackNotificationPageOpen(Message message, boolean canBatchThisEvent) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
-                Log.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_APP_OPEN);
+                BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_APP_OPEN);
             } else {
                 trackNotificationPageOpen(message.getId(), message.getCampaignAttr(), canBatchThisEvent);
             }
@@ -1143,9 +1113,7 @@ public class Blueshift {
 
     public void trackInAppMessageDelivered(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            new TrackCampaignEventTask(
-                    InAppConstants.EVENT_DELIVERED, inAppMessage.getCampaignParamsMap(), null
-            ).execute(mContext);
+            trackCampaignEventAsync(InAppConstants.EVENT_DELIVERED, inAppMessage.getCampaignParamsMap(), null);
         }
     }
 
@@ -1153,9 +1121,8 @@ public class Blueshift {
         if (inAppMessage != null) {
             HashMap<String, Object> extra = new HashMap<>();
             extra.put(BlueshiftConstants.KEY_TIMESTAMP, inAppMessage.getTimestamp());
-            new TrackCampaignEventTask(
-                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extra
-            ).execute(mContext);
+
+            trackCampaignEventAsync(InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extra);
         }
     }
 
@@ -1167,9 +1134,7 @@ public class Blueshift {
                 extras.put(InAppConstants.EVENT_EXTRA_ELEMENT, elementName);
             }
 
-            new TrackCampaignEventTask(
-                    InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras
-            ).execute(mContext);
+            trackCampaignEventAsync(InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras);
         }
     }
 
@@ -1274,161 +1239,163 @@ public class Blueshift {
         }
     }
 
-    private static class TrackCampaignEventTask extends AsyncTask<Context, Void, Void> {
-
-        private String mEventName;
-        private HashMap<String, Object> mCampaignParams;
-        private HashMap<String, Object> mExtraParams;
-
-        TrackCampaignEventTask(String eventName, HashMap<String, Object> campaignParams, HashMap<String, Object> extraParams) {
-            mEventName = eventName;
-            mCampaignParams = campaignParams;
-            mExtraParams = extraParams;
-        }
-
-        @Override
-        protected Void doInBackground(Context... contexts) {
-            if (mEventName != null && mCampaignParams != null) {
-                Context context = contexts != null && contexts.length > 0 ? contexts[0] : null;
-                if (context != null) {
-                    Blueshift blueshift = Blueshift.getInstance(context);
-                    boolean isSuccess = blueshift.sendNotificationEvent(mEventName, mCampaignParams, mExtraParams);
-                    Log.d(LOG_TAG, "Event: " + mEventName + "," +
-                            " Tracking status: " + (isSuccess ? "success" : "failed"));
+    private void trackCampaignEventAsync(final String eventName,
+                                         final HashMap<String, Object> campaignAttr,
+                                         final HashMap<String, Object> extraAttr) {
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean tracked = sendNotificationEvent(eventName, campaignAttr, extraAttr);
+                        BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                    }
                 }
-            }
-
-            return null;
-        }
+        );
     }
 
-    /**
-     * Updates the sDeviceParams with device_id
-     */
-    private static class UpdateDeviceIdTask extends AsyncTask<Context, Void, String> {
-
-        @Override
-        protected String doInBackground(Context... contexts) {
-            return contexts != null && contexts.length > 0 ? DeviceUtils.getDeviceId(contexts[0]) : null;
-        }
-
-        @Override
-        protected void onPostExecute(String adId) {
-            if (TextUtils.isEmpty(adId)) {
-                BlueshiftLogger.e(LOG_TAG, "Could not get a valid device_id");
-            } else {
-                updateDeviceId(adId);
-            }
-        }
+    private void updateDeviceIdAsync(final Context context) {
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String deviceId = DeviceUtils.getDeviceId(context);
+                            if (TextUtils.isEmpty(deviceId)) {
+                                BlueshiftLogger.e(LOG_TAG, "device_id: not available.");
+                            } else {
+                                BlueshiftLogger.d(LOG_TAG, "device_id: " + deviceId);
+                                updateDeviceId(deviceId);
+                            }
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
+                        }
+                    }
+                }
+        );
     }
 
-    /**
-     * Async task that fetched live content from Bsft server
-     */
-    private class FetchLiveContentTask extends AsyncTask<Void, Void, String> {
-        private final Context mContext;
-        private final String mSlot;
-        private final HashMap<String, Object> mLiveContentContext;
-        private final LiveContentCallback mCallback;
-        private String mUniqueKey;
+    private String fetchLiveContentFromAPI(
+            Context context,
+            String slot,
+            String idKey,
+            HashMap<String, Object> liveContentContext
+    ) {
+        String responseJson = null;
 
-        FetchLiveContentTask(Context context, String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
-            mContext = context;
-            mSlot = slot;
-            mLiveContentContext = liveContentContext;
-            mCallback = callback;
+        HashMap<String, Object> reqParams = new HashMap<>();
+        if (!TextUtils.isEmpty(slot)) {
+            reqParams.put(BlueshiftConstants.KEY_SLOT, slot);
+        } else {
+            BlueshiftLogger.e(LOG_TAG, "Live Content Api: No slot provided.");
         }
 
-        FetchLiveContentTask setUniqueKey(String uniqueKey) {
-            mUniqueKey = uniqueKey;
-
-            return this;
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            String responseJson = null;
-
-            HashMap<String, Object> reqParams = new HashMap<>();
-            if (!TextUtils.isEmpty(mSlot)) {
-                reqParams.put(BlueshiftConstants.KEY_SLOT, mSlot);
+        Configuration config = getConfiguration();
+        if (config != null) {
+            String apiKey = config.getApiKey();
+            if (!TextUtils.isEmpty(apiKey)) {
+                reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
             } else {
-                Log.e(LOG_TAG, "Live Content Api: No slot provided.");
+                BlueshiftLogger.e(LOG_TAG, "Live Content Api: No Api Key provided.");
             }
-
-            Configuration config = getConfiguration();
-            if (config != null) {
-                String apiKey = config.getApiKey();
-                if (!TextUtils.isEmpty(apiKey)) {
-                    reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
-                } else {
-                    Log.e(LOG_TAG, "Live Content Api: No Api Key provided.");
-                }
-            } else {
-                Log.e(LOG_TAG, "Live Content Api: No valid config provided.");
-            }
-
-            HashMap<String, Object> userHash = new HashMap<>();
-
-            if (mUniqueKey != null) {
-                switch (mUniqueKey) {
-                    case BlueshiftConstants.KEY_EMAIL:
-                        UserInfo userInfo = UserInfo.getInstance(mContext);
-                        String email = userInfo.getEmail();
-                        if (!TextUtils.isEmpty(email)) {
-                            userHash.put(BlueshiftConstants.KEY_EMAIL, email);
-                        } else {
-                            Log.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
-                        }
-
-                        break;
-
-                    case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
-                        String deviceId = DeviceUtils.getDeviceId(mContext);
-                        if (!TextUtils.isEmpty(deviceId)) {
-                            userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
-                        } else {
-                            Log.e(LOG_TAG, "Live Content Api: No advertisingID available.");
-                        }
-
-                        break;
-
-                    case BlueshiftConstants.KEY_CUSTOMER_ID:
-                        String customerId = UserInfo.getInstance(mContext).getRetailerCustomerId();
-                        if (!TextUtils.isEmpty(customerId)) {
-                            userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
-                        } else {
-                            Log.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
-                        }
-
-                        break;
-                }
-            }
-
-            // add user params
-            reqParams.put(BlueshiftConstants.KEY_USER, userHash);
-
-            // add extra params if available
-            if (mLiveContentContext != null && mLiveContentContext.size() > 0) {
-                reqParams.put(BlueshiftConstants.KEY_CONTEXT, mLiveContentContext);
-            }
-
-            String paramsJson = new Gson().toJson(reqParams);
-            HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
-            Response response = httpManager.post(paramsJson);
-
-            if (response.getStatusCode() == 200) {
-                responseJson = response.getResponseBody();
-            }
-
-            return responseJson;
+        } else {
+            BlueshiftLogger.e(LOG_TAG, "Live Content Api: No valid config provided.");
         }
 
-        @Override
-        protected void onPostExecute(String json) {
-            if (mCallback != null) {
-                mCallback.onReceive(json);
+        HashMap<String, Object> userHash = new HashMap<>();
+
+        if (idKey != null) {
+            switch (idKey) {
+                case BlueshiftConstants.KEY_EMAIL:
+                    UserInfo userInfo = UserInfo.getInstance(context);
+                    String email = userInfo.getEmail();
+                    if (!TextUtils.isEmpty(email)) {
+                        userHash.put(BlueshiftConstants.KEY_EMAIL, email);
+                    } else {
+                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
+                    }
+
+                    break;
+
+                case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
+                    String deviceId = DeviceUtils.getDeviceId(context);
+                    if (!TextUtils.isEmpty(deviceId)) {
+                        userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+                    } else {
+                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No advertisingID available.");
+                    }
+
+                    break;
+
+                case BlueshiftConstants.KEY_CUSTOMER_ID:
+                    String customerId = UserInfo.getInstance(context).getRetailerCustomerId();
+                    if (!TextUtils.isEmpty(customerId)) {
+                        userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                    } else {
+                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
+                    }
+
+                    break;
             }
         }
+
+        // add user params
+        reqParams.put(BlueshiftConstants.KEY_USER, userHash);
+
+        // add extra params if available
+        if (liveContentContext != null && liveContentContext.size() > 0) {
+            reqParams.put(BlueshiftConstants.KEY_CONTEXT, liveContentContext);
+        }
+
+        String paramsJson = new Gson().toJson(reqParams);
+        HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
+        Response response = httpManager.post(paramsJson);
+
+        if (response.getStatusCode() == 200) {
+            responseJson = response.getResponseBody();
+        }
+
+        return responseJson;
+    }
+
+    private void fetchLiveContentAsync(
+            final Context context,
+            final String slot,
+            final String idKey,
+            final HashMap<String, Object> liveContentContext,
+            final LiveContentCallback callback
+    ) {
+
+        Handler handler = null;
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            handler = new Handler(looper);
+        }
+
+        final Handler finalHandler = handler;
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final String liveContent = fetchLiveContentFromAPI(
+                                context,
+                                slot,
+                                idKey,
+                                liveContentContext
+                        );
+
+                        // invoke callback from caller's handler
+                        if (finalHandler != null) {
+                            finalHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (callback != null) {
+                                        callback.onReceive(liveContent);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+        );
     }
 }

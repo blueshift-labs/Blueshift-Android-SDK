@@ -1,7 +1,5 @@
 package com.blueshift.rich_push;
 
-import android.util.Log;
-
 import com.blueshift.BlueshiftLogger;
 
 /**
@@ -63,7 +61,7 @@ public enum NotificationCategory {
                     return Unknown;
             }
         } else {
-            Log.w(LOG_TAG, "'category' is not available inside 'message'.");
+            BlueshiftLogger.w(LOG_TAG, "'category' is not available inside 'message'.");
 
             return Unknown;
         }

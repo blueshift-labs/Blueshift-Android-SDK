@@ -2,7 +2,6 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftExecutor;
@@ -62,7 +61,7 @@ public class InAppMessageIconFont {
                         File fontFile = getFontFile(context);
 
                         if (!fontFile.exists()) {
-                            Log.d(TAG, "Downloading font to " + fontFile.getAbsolutePath());
+                            BlueshiftLogger.d(TAG, "Downloading font to " + fontFile.getAbsolutePath());
                             NetworkUtils.downloadFile(source, fontFile.getAbsolutePath());
                         }
 

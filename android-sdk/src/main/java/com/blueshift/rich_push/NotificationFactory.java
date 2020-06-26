@@ -10,15 +10,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.NotificationUtils;
@@ -76,28 +76,42 @@ public class NotificationFactory {
 
     private static void buildAndShowAlertDialog(final Context context, final Message message) {
         if (context != null && message != null) {
-            new AsyncTask<Void, Void, Boolean>() {
-                @Override
-                protected Boolean doInBackground(Void... params) {
-                    return isAppInForeground(context);
-                }
+            final Handler handler = BlueshiftExecutor.getInstance().getMyHandler();
+            if (handler != null) {
+                BlueshiftExecutor.getInstance().runOnWorkerThread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                final boolean appInForeground = isAppInForeground(context);
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        launchNotificationActivity(context, message, appInForeground);
+                                    }
+                                });
+                            }
+                        }
+                );
+            } else {
+                BlueshiftLogger.e(LOG_TAG, "No handler found.");
+            }
+        }
+    }
 
-                @Override
-                protected void onPostExecute(Boolean appIsInForeground) {
-                    Intent notificationIntent = new Intent(context, NotificationActivity.class);
-                    notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-                    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    private static void launchNotificationActivity(Context context, Message message, boolean appIsInForeground) {
+        if (context != null && message != null) {
+            Intent notificationIntent = new Intent(context, NotificationActivity.class);
+            notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+            notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                    /*
-                     * Clear the stack only if the app is in background / killed.
-                     */
-                    if (!appIsInForeground) {
-                        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    }
+            /*
+             * Clear the stack only if the app is in background / killed.
+             */
+            if (!appIsInForeground) {
+                notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            }
 
-                    context.startActivity(notificationIntent);
-                }
-            }.execute();
+            context.startActivity(notificationIntent);
         }
     }
 
@@ -330,13 +344,13 @@ public class NotificationFactory {
                                             PendingIntent.FLAG_ONE_SHOT);
 
                                     alarmManager.set(AlarmManager.RTC_WAKEUP, timeToDisplay, pendingIntent);
-                                    Log.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
+                                    BlueshiftLogger.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
                                 } else {
-                                    Log.i(LOG_TAG, "Display time (" + sdf.format(timeToDisplay) + ") elapsed! Showing the notification now.");
+                                    BlueshiftLogger.i(LOG_TAG, "Display time (" + sdf.format(timeToDisplay) + ") elapsed! Showing the notification now.");
                                     context.sendBroadcast(bcIntent);
                                 }
                             } else {
-                                Log.i(LOG_TAG, "Expired notification found! Exp time: " + sdf.format(timeToExpire));
+                                BlueshiftLogger.i(LOG_TAG, "Expired notification found! Exp time: " + sdf.format(timeToExpire));
                             }
                         }
                     }

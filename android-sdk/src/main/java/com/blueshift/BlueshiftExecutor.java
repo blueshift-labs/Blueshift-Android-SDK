@@ -13,11 +13,13 @@ public class BlueshiftExecutor {
     private final Executor uiExecutor;
     private final Executor diskExecutor;
     private final Executor networkExecutor;
+    private final Executor workerExecutor;
 
-    private BlueshiftExecutor(Executor uiExecutor, Executor diskExecutor, Executor networkExecutor) {
+    private BlueshiftExecutor(Executor uiExecutor, Executor diskExecutor, Executor networkExecutor, Executor workerExecutor) {
         this.uiExecutor = uiExecutor;
         this.diskExecutor = diskExecutor;
         this.networkExecutor = networkExecutor;
+        this.workerExecutor = workerExecutor;
     }
 
     public static BlueshiftExecutor getInstance() {
@@ -25,8 +27,8 @@ public class BlueshiftExecutor {
             sInstance = new BlueshiftExecutor(
                     new UIExecutor(),
                     Executors.newSingleThreadExecutor(),
-                    Executors.newFixedThreadPool(3)
-            );
+                    Executors.newFixedThreadPool(3),
+                    Executors.newFixedThreadPool(2));
         }
 
         return sInstance;
@@ -50,6 +52,12 @@ public class BlueshiftExecutor {
         }
     }
 
+    public void runOnWorkerThread(Runnable runnable) {
+        if (workerExecutor != null) {
+            workerExecutor.execute(runnable);
+        }
+    }
+
     private static class UIExecutor implements Executor {
         private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
@@ -57,5 +65,16 @@ public class BlueshiftExecutor {
         public void execute(@NonNull Runnable runnable) {
             uiHandler.post(runnable);
         }
+    }
+
+    public Handler getMyHandler() {
+        Handler handler = null;
+        Looper looper = Looper.myLooper();
+
+        if (looper != null) {
+            handler = new Handler(looper);
+        }
+
+        return handler;
     }
 }

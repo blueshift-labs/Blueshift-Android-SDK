@@ -8,9 +8,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
 import com.blueshift.util.NotificationUtils;
@@ -49,21 +49,24 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
                     // mark 'click'
                     Blueshift.getInstance(this).trackNotificationClick(message);
 
-                    Intent intent;
+                    Intent intent = null;
 
-                    if (TextUtils.isEmpty(action)) {
-                        // open app if no action is provided.
-                        intent = NotificationUtils.getOpenAppIntent(this, message);
-                    } else if (action.equals(RichPushConstants.ACTION_VIEW(this))) {
-                        intent = NotificationUtils.getViewProductActivityIntent(this, message);
-                    } else if (action.equals(RichPushConstants.ACTION_BUY(this))) {
-                        intent = NotificationUtils.getAddToCartActivityIntent(this, message);
-                    } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(this))) {
-                        intent = NotificationUtils.getViewCartActivityIntent(this, message);
-                    } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(this))) {
-                        intent = NotificationUtils.getViewOffersActivityIntent(this, message);
-                    } else {
-                        // for ACTION OPEN and other unknown actions, open the app.
+                    if (!TextUtils.isEmpty(action)) {
+                        if (action.equals(RichPushConstants.ACTION_OPEN_APP(this))) {
+                            intent = NotificationUtils.getOpenAppIntent(this, message);
+                        } else if (action.equals(RichPushConstants.ACTION_VIEW(this))) {
+                            intent = NotificationUtils.getViewProductActivityIntent(this, message);
+                        } else if (action.equals(RichPushConstants.ACTION_BUY(this))) {
+                            intent = NotificationUtils.getAddToCartActivityIntent(this, message);
+                        } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(this))) {
+                            intent = NotificationUtils.getViewCartActivityIntent(this, message);
+                        } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(this))) {
+                            intent = NotificationUtils.getViewOffersActivityIntent(this, message);
+                        }
+                    }
+
+                    if (intent == null) {
+                        // make sure the app is opened even if no category deep-links are available
                         intent = NotificationUtils.getOpenAppIntent(this, message);
                     }
 
@@ -92,13 +95,13 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
 
                     sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
             } else {
-                Log.d(LOG_TAG, "No message found inside bundle.");
+                BlueshiftLogger.d(LOG_TAG, "No message found inside bundle.");
             }
         } else {
-            Log.d(LOG_TAG, "No bundle found from the notification click event.");
+            BlueshiftLogger.d(LOG_TAG, "No bundle found from the notification click event.");
         }
     }
 }

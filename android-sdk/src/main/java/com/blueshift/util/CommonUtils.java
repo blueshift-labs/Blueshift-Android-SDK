@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.util.Base64;
-import android.util.Log;
 import android.util.TypedValue;
 
 import com.blueshift.BlueshiftLogger;
@@ -79,7 +78,7 @@ public class CommonUtils {
                         List<JobInfo> jobs = jobScheduler.getAllPendingJobs();
                         for (JobInfo jobInfo : jobs) {
                             if (jobInfo.getId() == jobId) {
-                                Log.d(TAG, "Pending job found. JobId: " + jobId);
+                                BlueshiftLogger.d(TAG, "Pending job found. JobId: " + jobId);
                                 return true;
                             }
                         }

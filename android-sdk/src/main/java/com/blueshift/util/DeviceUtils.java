@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.WorkerThread;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftLogger;
@@ -47,7 +46,7 @@ public class DeviceUtils {
             gpsInstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(gpsInstallIntent);
         } catch (ActivityNotFoundException e) {
-            Log.e(LOG_TAG, e.getMessage() != null ? e.getMessage() : "Unknown error!");
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
@@ -65,7 +64,7 @@ public class DeviceUtils {
      */
     @WorkerThread
     public static String getDeviceId(Context context) {
-        String deviceId;
+        String deviceId = null;
 
         Configuration configuration = BlueshiftUtils.getConfiguration(context);
         if (configuration != null && configuration.getDeviceIdSource() != null) {
@@ -75,6 +74,24 @@ public class DeviceUtils {
                     break;
                 case GUID:
                     deviceId = BlueShiftPreference.getDeviceID(context);
+                    break;
+                case ADVERTISING_ID_PKG_NAME:
+                    try {
+                        deviceId = getAdvertisingId(context);
+                        deviceId += (":" + context.getPackageName());
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, "Could not build \"advertising id - pkg name\" combo.");
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
+                    break;
+                case INSTANCE_ID_PKG_NAME:
+                    try {
+                        deviceId = FirebaseInstanceId.getInstance().getId();
+                        deviceId += (":" + context.getPackageName());
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, "Could not build \"instance id - pkg name\" combo.");
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
                     break;
                 default:
                     // ADVERTISING_ID & Others
@@ -97,7 +114,7 @@ public class DeviceUtils {
             }
 
             if (isLimitAdTrackingEnabled(context)) {
-                Log.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
+                BlueshiftLogger.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -129,7 +146,7 @@ public class DeviceUtils {
                 String logMessage = e.getMessage() != null ? e.getMessage() : "";
                 BlueshiftLogger.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
             } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
-                Log.e(LOG_TAG, libNotFoundMessage);
+                BlueshiftLogger.e(LOG_TAG, libNotFoundMessage);
                 installNewGooglePlayServicesApp(context);
             } catch (GooglePlayServicesRepairableException e) {
                 BlueshiftLogger.e(LOG_TAG, e);

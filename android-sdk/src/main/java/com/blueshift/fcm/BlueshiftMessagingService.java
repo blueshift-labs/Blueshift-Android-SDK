@@ -13,7 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
@@ -117,7 +116,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                     ApplicationInfo info = packageManager.getApplicationInfo(getPackageName(), 0);
                     titleText = packageManager.getApplicationLabel(info).toString();
                 } catch (PackageManager.NameNotFoundException e) {
-                    Log.e(LOG_TAG, String.valueOf(e.getMessage()));
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
             }
 
@@ -268,11 +267,11 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         NotificationFactory.handleMessage(context, message);
                     }
                 } else {
-                    Log.e(LOG_TAG, "Null message found in push message.");
+                    BlueshiftLogger.e(LOG_TAG, "Null message found in push message.");
                 }
             }
         } catch (JsonSyntaxException e) {
-            Log.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
+            BlueshiftLogger.e(LOG_TAG, "Invalid JSON in push message: " + e.getMessage());
         }
     }
 
@@ -310,7 +309,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     protected void triggerInAppBackgroundFetch(Context context) {
         try {
             final Configuration config = BlueshiftUtils.getConfiguration(context);
-            if (config != null && config.isInAppBackgroundFetchEnabled()) {
+            if (config != null && config.isInAppEnabled() && config.isInAppBackgroundFetchEnabled()) {
                 InAppManager.fetchInAppFromServer(context, new InAppApiCallback() {
                     @Override
                     public void onSuccess() {
@@ -363,7 +362,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onNewToken(String newToken) {
-        Log.d("Blueshift", "FCM token: " + newToken);
+        BlueshiftLogger.d(LOG_TAG, "FCM token: " + newToken);
 
         Blueshift.updateDeviceToken(newToken);
         callIdentify();
