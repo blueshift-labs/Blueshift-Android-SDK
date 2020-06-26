@@ -75,6 +75,14 @@ public class DeviceUtils {
                 case GUID:
                     deviceId = BlueShiftPreference.getDeviceID(context);
                     break;
+                case ADVERTISING_ID_PKG_NAME:
+                    deviceId = getAdvertisingId(context);
+                    deviceId += (":" + context.getPackageName());
+                    break;
+                case INSTANCE_ID_PKG_NAME:
+                    deviceId = FirebaseInstanceId.getInstance().getId();
+                    deviceId += (":" + context.getPackageName());
+                    break;
                 default:
                     // ADVERTISING_ID & Others
                     deviceId = getAdvertisingId(context);
@@ -82,6 +90,8 @@ public class DeviceUtils {
         } else {
             deviceId = getAdvertisingId(context);
         }
+
+        BlueshiftLogger.d(LOG_TAG, "{ \"device_id\" : \"" + deviceId + "\" }");
 
         return deviceId;
     }
