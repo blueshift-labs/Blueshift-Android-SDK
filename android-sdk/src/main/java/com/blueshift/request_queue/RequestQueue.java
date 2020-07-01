@@ -88,31 +88,42 @@ public class RequestQueue {
     }
 
     public void add(Context context, Request request) {
-        if (request != null) {
-            BlueshiftLogger.d(LOG_TAG, "Adding new request to the Queue.");
-
-            RequestQueueTable db = RequestQueueTable.getInstance(context);
-            db.insert(request);
-
-            sync(context);
+        synchronized (lock) {
+            try {
+                if (request != null) {
+                    BlueshiftLogger.d(LOG_TAG, "Adding new request to the Queue.");
+                    RequestQueueTable.getInstance(context).insert(request);
+                }
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
         }
+
+        sync(context);
     }
 
     void remove(Context context, Request request) {
-        if (request != null) {
-            BlueshiftLogger.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
-
-            RequestQueueTable db = RequestQueueTable.getInstance(context);
-            db.delete(request);
+        synchronized (lock) {
+            try {
+                if (request != null) {
+                    BlueshiftLogger.d(LOG_TAG, "Removing request with id:" + request.getId() + " from the Queue");
+                    RequestQueueTable.getInstance(context).delete(request);
+                }
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
         }
     }
 
     private Request fetch(Context context) {
         synchronized (lock) {
-            markQueueBusy();
-
-            RequestQueueTable db = RequestQueueTable.getInstance(context);
-            return db.getNextRequest();
+            try {
+                markQueueBusy();
+                return RequestQueueTable.getInstance(context).getNextRequest();
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+                return null;
+            }
         }
     }
 
