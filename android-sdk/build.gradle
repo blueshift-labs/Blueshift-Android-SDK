@@ -5,9 +5,9 @@ ext {
     sdkGroup = 'com.blueshift'
     sdkArtifactName = 'android-sdk-test'
 
-    sdkVersion = '3.1.2-alpha'
-    sdkVersionDesc = 'Blueshift Android SDK v3.1.2-alpha'
-    sdkVcsTag = '3.1.2-alpha'
+    sdkVersion = '3.1.2-alpha1'
+    sdkVersionDesc = 'Blueshift Android SDK '+ sdkVersion
+    sdkVcsTag = sdkVersion
 
     sdkName = 'Blueshift Android SDK'
     sdkDesc = 'Blueshift Android SDK to make it easier for marketers to integrate their mobile app with Blueshift’s near real-time event processing platform and send personalized rich push notifications to their customers.'
@@ -57,71 +57,11 @@ dependencies {
     testImplementation 'junit:junit:4.13'
 }
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    archiveClassifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    // todo: remove below line when fixes are applied for excluding external aars for javadoc.
-    // failOnError = false;
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-// Create the pom configuration:
-def pomConfig = {
-    licenses {
-        license {
-            name "The MIT License"
-            url "https://opensource.org/licenses/MIT"
-            distribution "repo"
-        }
-    }
-    developers {
-        developer {
-            id sdkDevId
-            name sdkDevName
-            email sdkDevEmail
-        }
-    }
-
-    scm {
-        url sdkVcsUrl
-    }
-}
-
-// Create the publication with the pom configuration:
-publishing.publications {
-    aar(MavenPublication) {
-        artifact sourcesJar
-        artifact javadocJar
-        groupId sdkGroup
-        artifactId sdkArtifactName
-        version sdkVersion
-        pom {
-            packaging 'aar'
-            withXml {
-                def root = asNode()
-                root.appendNode('description', sdkDesc)
-                root.appendNode('name', sdkName)
-                root.appendNode('url', sdkSite)
-                root.children().last() + pomConfig
-            }
-        }
-    }
-}
-
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
 
-    publications = ['aar']
+    publications = ['release']
 
     pkg {
         repo = 'maven'
@@ -139,6 +79,33 @@ bintray {
             gpg {
                 sign = true
                 passphrase = System.getenv('BINTRAY_GPG')
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                // You can then customize attributes of the publication as shown below.
+                groupId = sdkGroup
+                artifactId = sdkArtifactName
+                version = sdkVersion
+
+                pom {
+                    developers {
+                        developer {
+                            id = sdkDevId
+                            name = sdkDevName
+                            email = sdkDevEmail
+                        }
+                    }
+                }
             }
         }
     }
