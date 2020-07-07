@@ -5,7 +5,7 @@ ext {
     sdkGroup = 'com.blueshift'
     sdkArtifactName = 'android-sdk-test'
 
-    sdkVersion = '3.1.2-alpha1'
+    sdkVersion = '3.1.2-alpha2'
     sdkVersionDesc = 'Blueshift Android SDK '+ sdkVersion
     sdkVcsTag = sdkVersion
 
@@ -57,6 +57,29 @@ dependencies {
     testImplementation 'junit:junit:4.13'
 }
 
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
@@ -91,6 +114,9 @@ afterEvaluate {
             release(MavenPublication) {
                 // Applies the component for the release build variant.
                 from components.release
+
+                artifact sourcesJar
+                artifact javadocJar
 
                 // You can then customize attributes of the publication as shown below.
                 groupId = sdkGroup
