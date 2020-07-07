@@ -11,7 +11,7 @@ ext {
 
     sdkName = 'Blueshift Android SDK'
     sdkDesc = 'Blueshift Android SDK to make it easier for marketers to integrate their mobile app with Blueshift’s near real-time event processing platform and send personalized rich push notifications to their customers.'
-    sdkSite = 'https://blueshift.com'
+    sdkSite = 'https://github.com/blueshift-labs/Blueshift-Android-SDK'
     sdkVcsUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
 
     sdkDevId = 'rahulrvp'
