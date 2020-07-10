@@ -15,17 +15,18 @@ import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftDeviceAttributes;
 import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.BlueshiftUserAttributes;
 import com.blueshift.R;
 import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
-import com.blueshift.model.UserInfo;
 import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
-import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.InAppUtils;
 import com.blueshift.util.NetworkUtils;
 
@@ -118,19 +119,17 @@ public class InAppManager {
                         @Override
                         public void run() {
                             try {
-                                JSONObject params = new JSONObject();
+                                BlueshiftJSONObject params = new BlueshiftJSONObject();
+
+                                JSONObject deviceAttributes = BlueshiftDeviceAttributes.getInstance();
+                                params.putAll(deviceAttributes);
+
+                                JSONObject userAttributes = BlueshiftUserAttributes.getInstance().syncWithUserInfo(context);
+                                params.putAll(userAttributes);
 
                                 // api key
                                 String apiKey = BlueshiftUtils.getApiKey(context);
                                 params.put(BlueshiftConstants.KEY_API_KEY, apiKey != null ? apiKey : "");
-
-                                // device id
-                                String deviceId = DeviceUtils.getDeviceId(context);
-                                params.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId != null ? deviceId : "");
-
-                                // email
-                                String email = UserInfo.getInstance(context).getEmail();
-                                params.put(BlueshiftConstants.KEY_EMAIL, email != null ? email : "");
 
                                 String messageUuid = null;
                                 String lastTimestamp = null;
@@ -154,7 +153,7 @@ public class InAppManager {
                                 }
 
                                 String json = params.toString();
-                                BlueshiftLogger.d(LOG_TAG, "In-App API Req Params: " + json);
+                                BlueshiftLogger.d(LOG_TAG, "(Fetch in-app) Request params: " + json);
 
                                 Response response = httpManager.post(json);
                                 int statusCode = response.getStatusCode();
@@ -162,7 +161,7 @@ public class InAppManager {
 
                                 if (statusCode == 200) {
                                     if (!TextUtils.isEmpty(responseBody)) {
-                                        BlueshiftLogger.d(LOG_TAG, "In-App API Response: " + responseBody);
+                                        BlueshiftLogger.d(LOG_TAG, "(Fetch in-app) Response body: " + responseBody);
                                         try {
                                             JSONArray inAppJsonArray = decodeResponse(responseBody);
                                             InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
