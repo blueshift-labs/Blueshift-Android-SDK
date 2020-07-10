@@ -63,13 +63,13 @@ public class BlueshiftDeviceAttributes extends JSONObject {
             }
         }
 
-        refreshDeviceId(context);
-        refreshDeviceToken(context);
-        refreshDeviceLocation(context);
-        refreshAdTrackingStatus(context);
+        addDeviceId(context);
+        addDeviceToken(context);
+        addDeviceLocation(context);
+        addAdTrackingStatus(context);
     }
 
-    private void refreshAdTrackingStatus(Context context) {
+    private void addAdTrackingStatus(Context context) {
         synchronized (instance) {
             boolean isEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
             try {
@@ -80,7 +80,7 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         }
     }
 
-    private void refreshDeviceId(final Context context) {
+    private void addDeviceId(final Context context) {
         BlueshiftExecutor.getInstance().runOnNetworkThread(
                 new Runnable() {
                     @Override
@@ -102,25 +102,25 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         }
     }
 
-    private void refreshDeviceToken(Context context) {
+    private void addDeviceToken(Context context) {
         if (!BlueshiftUtils.isPushEnabled(context)) return;
 
         try {
-            refreshDeviceToken();
+            addDeviceToken();
         } catch (Exception e) {
             // tickets#8919 reported an issue with fcm token fetch. this is the
             // fix for the same. we are manually calling initializeApp and trying
             // to get token again.
             FirebaseApp.initializeApp(context);
             try {
-                refreshDeviceToken();
+                addDeviceToken();
             } catch (Exception e1) {
                 BlueshiftLogger.e(TAG, e1);
             }
         }
     }
 
-    private void refreshDeviceToken() {
+    private void addDeviceToken() {
         Task<InstanceIdResult> task = FirebaseInstanceId.getInstance().getInstanceId();
         task.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
             @Override
@@ -141,7 +141,7 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         }
     }
 
-    private void refreshDeviceLocation(Context context) {
+    private void addDeviceLocation(Context context) {
         if (context != null) {
             LocationManager locationMgr = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (locationMgr != null) {
