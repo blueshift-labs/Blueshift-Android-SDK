@@ -3,6 +3,7 @@ package com.blueshift;
 import android.content.Context;
 import android.os.Build;
 
+import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -84,6 +85,8 @@ public class BlueshiftDeviceAttributes extends JSONObject {
     }
 
     private void refreshDeviceToken(Context context) {
+        if (!BlueshiftUtils.isPushEnabled(context)) return;
+
         try {
             refreshDeviceToken();
         } catch (Exception e) {
