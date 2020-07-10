@@ -1,10 +1,15 @@
 package com.blueshift;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -60,6 +65,7 @@ public class BlueshiftDeviceAttributes extends JSONObject {
 
         refreshDeviceId(context);
         refreshDeviceToken(context);
+        refreshDeviceLocation(context);
     }
 
     private void refreshDeviceId(final Context context) {
@@ -119,6 +125,38 @@ public class BlueshiftDeviceAttributes extends JSONObject {
                 instance.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
+            }
+        }
+    }
+
+    private void refreshDeviceLocation(Context context) {
+        if (context != null) {
+            LocationManager locationMgr = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            if (locationMgr != null) {
+                String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+                if (PermissionUtils.hasAnyPermission(context, permissions)) {
+                    @SuppressLint("MissingPermission")
+                    Location location = locationMgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    setDeviceLocation(location);
+                } else {
+                    // Location permission is not available. The client app needs to grand permission.
+                    BlueshiftLogger.w(TAG, "Location access permission unavailable. Require " +
+                            Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
+                            Manifest.permission.ACCESS_COARSE_LOCATION);
+                }
+            }
+        }
+    }
+
+    private void setDeviceLocation(Location location) {
+        synchronized (instance) {
+            if (location != null) {
+                try {
+                    instance.putOpt(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
+                    instance.putOpt(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
             }
         }
     }
