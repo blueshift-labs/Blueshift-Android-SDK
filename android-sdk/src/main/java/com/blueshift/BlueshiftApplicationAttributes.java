@@ -5,6 +5,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import com.blueshift.util.BlueshiftUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,6 +34,18 @@ public class BlueshiftApplicationAttributes extends JSONObject {
 
         refreshAppName(context);
         refreshAppVersion(context);
+        refreshInAppStatus(context);
+    }
+
+    private void refreshInAppStatus(Context context) {
+        synchronized (instance) {
+            boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
+            try {
+                instance.putOpt(BlueshiftConstants.KEY_ENABLE_INAPP, isEnabled);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
     }
 
     private void refreshAppName(Context context) {

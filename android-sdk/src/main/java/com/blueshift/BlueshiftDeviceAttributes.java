@@ -66,6 +66,18 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         refreshDeviceId(context);
         refreshDeviceToken(context);
         refreshDeviceLocation(context);
+        refreshAdTrackingStatus(context);
+    }
+
+    private void refreshAdTrackingStatus(Context context) {
+        synchronized (instance) {
+            boolean isEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+            try {
+                instance.putOpt(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, isEnabled);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
     }
 
     private void refreshDeviceId(final Context context) {
