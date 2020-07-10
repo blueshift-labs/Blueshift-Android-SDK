@@ -32,12 +32,12 @@ public class BlueshiftApplicationAttributes extends JSONObject {
             }
         }
 
-        refreshAppName(context);
-        refreshAppVersion(context);
-        refreshInAppStatus(context);
+        addAppName(context);
+        addAppVersion(context);
+        addInAppEnabledStatus(context);
     }
 
-    private void refreshInAppStatus(Context context) {
+    private void addInAppEnabledStatus(Context context) {
         synchronized (instance) {
             boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
             try {
@@ -48,7 +48,7 @@ public class BlueshiftApplicationAttributes extends JSONObject {
         }
     }
 
-    private void refreshAppName(Context context) {
+    private void addAppName(Context context) {
         synchronized (instance) {
             if (context != null) {
                 try {
@@ -61,7 +61,7 @@ public class BlueshiftApplicationAttributes extends JSONObject {
         }
     }
 
-    private void refreshAppVersion(Context context) {
+    private void addAppVersion(Context context) {
         if (context != null) {
             try {
                 String pkgName = context.getPackageName();
