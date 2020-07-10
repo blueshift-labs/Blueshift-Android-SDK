@@ -14,6 +14,7 @@ import android.webkit.WebView;
 import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftApplicationAttributes;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftDeviceAttributes;
 import com.blueshift.BlueshiftExecutor;
@@ -126,6 +127,9 @@ public class InAppManager {
 
                                 JSONObject userAttributes = BlueshiftUserAttributes.getInstance().syncWithUserInfo(context);
                                 params.putAll(userAttributes);
+
+                                JSONObject appAttributes = BlueshiftApplicationAttributes.getInstance();
+                                params.putAll(appAttributes);
 
                                 // api key
                                 String apiKey = BlueshiftUtils.getApiKey(context);
