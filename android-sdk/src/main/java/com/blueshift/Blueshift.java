@@ -308,6 +308,7 @@ public class Blueshift {
         mConfiguration = configuration;
 
         BlueshiftDeviceAttributes.getInstance().init(mContext);
+        BlueshiftApplicationAttributes.getInstance().init(mContext);
 
         // set app icon as notification icon if not set
         initAppIcon(mContext);
