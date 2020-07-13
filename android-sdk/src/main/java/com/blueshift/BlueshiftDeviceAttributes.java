@@ -69,9 +69,20 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         addAdTrackingStatus(context);
     }
 
-    private void addAdTrackingStatus(Context context) {
+    private void addAdTrackingStatus(final Context context) {
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+                        setAdTrackingStatus(isEnabled);
+                    }
+                }
+        );
+    }
+
+    private void setAdTrackingStatus(boolean isEnabled) {
         synchronized (instance) {
-            boolean isEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
             try {
                 instance.putOpt(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, isEnabled);
             } catch (JSONException e) {
