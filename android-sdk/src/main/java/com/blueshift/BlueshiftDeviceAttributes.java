@@ -180,6 +180,8 @@ public class BlueshiftDeviceAttributes extends JSONObject {
                 } catch (JSONException e) {
                     BlueshiftLogger.e(TAG, e);
                 }
+            } else {
+                BlueshiftLogger.w(TAG,"No last-known location available!");
             }
         }
     }
