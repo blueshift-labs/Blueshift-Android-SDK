@@ -182,8 +182,8 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                 if (bundle != null) {
                     Map<String, String> map = new HashMap<>();
                     for (String key : bundle.keySet()) {
-                        String val = bundle.getString(key);
-                        if (val != null) map.put(key, val);
+                        Object val = bundle.get(key);
+                        if (val != null) map.put(key, String.valueOf(val));
                     }
 
                     BlueshiftMessagingService service = new BlueshiftMessagingService();
