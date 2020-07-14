@@ -138,17 +138,9 @@ public class DeviceUtils {
         AdvertisingIdClient.Info info = null;
 
         if (context != null) {
-            String libNotFoundMessage = context.getString(R.string.gps_not_found_msg);
-
             try {
                 info = AdvertisingIdClient.getAdvertisingIdInfo(context);
-            } catch (IOException e) {
-                String logMessage = e.getMessage() != null ? e.getMessage() : "";
-                BlueshiftLogger.e(LOG_TAG, libNotFoundMessage + "\n" + logMessage);
-            } catch (GooglePlayServicesNotAvailableException | IllegalStateException e) {
-                BlueshiftLogger.e(LOG_TAG, libNotFoundMessage);
-                installNewGooglePlayServicesApp(context);
-            } catch (GooglePlayServicesRepairableException e) {
+            } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
         }
