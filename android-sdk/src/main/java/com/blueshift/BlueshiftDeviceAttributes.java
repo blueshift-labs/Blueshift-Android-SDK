@@ -6,6 +6,7 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
+import android.support.annotation.WorkerThread;
 
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
@@ -181,9 +182,34 @@ public class BlueshiftDeviceAttributes extends JSONObject {
                     BlueshiftLogger.e(TAG, e);
                 }
             } else {
-                BlueshiftLogger.w(TAG,"No last-known location available!");
+                BlueshiftLogger.w(TAG, "No last-known location available!");
             }
         }
+    }
+
+    /**
+     * This will refresh the device id and ad tracking status.
+     * This method should not be called from UI thread.
+     *
+     * @param context valid {@link Context} object
+     */
+    @WorkerThread
+    public BlueshiftDeviceAttributes updateUserResettableDeviceAttributes(Context context) {
+        try {
+            String deviceId = DeviceUtils.getDeviceId(context);
+            setDeviceId(deviceId);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+            setAdTrackingStatus(isAdEnabled);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return this;
     }
 
     public void log() {

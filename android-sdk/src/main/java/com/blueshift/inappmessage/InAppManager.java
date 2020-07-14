@@ -122,10 +122,12 @@ public class InAppManager {
                             try {
                                 BlueshiftJSONObject params = new BlueshiftJSONObject();
 
-                                JSONObject deviceAttributes = BlueshiftDeviceAttributes.getInstance();
+                                JSONObject deviceAttributes = BlueshiftDeviceAttributes.getInstance()
+                                        .updateUserResettableDeviceAttributes(context);
                                 params.putAll(deviceAttributes);
 
-                                JSONObject userAttributes = BlueshiftUserAttributes.getInstance().syncWithUserInfo(context);
+                                JSONObject userAttributes = BlueshiftUserAttributes.getInstance()
+                                        .updateUserAttributesFromUserInfo(context);
                                 params.putAll(userAttributes);
 
                                 JSONObject appAttributes = BlueshiftApplicationAttributes.getInstance();
