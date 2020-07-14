@@ -1311,11 +1311,13 @@ public class Blueshift {
             switch (idKey) {
                 case BlueshiftConstants.KEY_EMAIL:
                     UserInfo userInfo = UserInfo.getInstance(context);
-                    String email = userInfo.getEmail();
-                    if (!TextUtils.isEmpty(email)) {
-                        userHash.put(BlueshiftConstants.KEY_EMAIL, email);
-                    } else {
-                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
+                    if (userInfo != null) {
+                        String email = userInfo.getEmail();
+                        if (!TextUtils.isEmpty(email)) {
+                            userHash.put(BlueshiftConstants.KEY_EMAIL, email);
+                        } else {
+                            BlueshiftLogger.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
+                        }
                     }
 
                     break;
@@ -1331,11 +1333,14 @@ public class Blueshift {
                     break;
 
                 case BlueshiftConstants.KEY_CUSTOMER_ID:
-                    String customerId = UserInfo.getInstance(context).getRetailerCustomerId();
-                    if (!TextUtils.isEmpty(customerId)) {
-                        userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
-                    } else {
-                        BlueshiftLogger.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
+                    UserInfo bsftUserInfo = UserInfo.getInstance(context);
+                    if (bsftUserInfo != null) {
+                        String customerId = bsftUserInfo.getRetailerCustomerId();
+                        if (!TextUtils.isEmpty(customerId)) {
+                            userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                        } else {
+                            BlueshiftLogger.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
+                        }
                     }
 
                     break;
