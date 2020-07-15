@@ -165,7 +165,6 @@ public class HTTPManager {
 
     private Response getResponse() {
         Response response = new Response();
-        BlueshiftLogger.d(LOG_TAG, mUrlConnection.getRequestMethod() + " " + mUrl);
 
         try {
             response.setStatusCode(mUrlConnection.getResponseCode());

@@ -243,7 +243,6 @@ class RequestDispatcher {
             switch (mRequest.getMethod()) {
                 case POST:
                     String json = mRequest.getParamJson();
-                    BlueshiftLogger.d(LOG_TAG, "POST: Request params: " + json);
 
                     response = httpManager.post(json);
                     String eventName = getEventName(json);
@@ -256,14 +255,15 @@ class RequestDispatcher {
                 case GET:
                     response = httpManager.get();
 
-                    BlueshiftLogger.d(LOG_TAG, "Method: GET, " +
-                            "URL: " + mRequest.getUrl() + ", " +
-                            "Status: " + getStatusFromResponse(response));
 
                     break;
 
                 default:
                     BlueshiftLogger.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
+            }
+
+            if (response != null && mRequest != null) {
+                mRequest.log(LOG_TAG, response);
             }
         }
 
