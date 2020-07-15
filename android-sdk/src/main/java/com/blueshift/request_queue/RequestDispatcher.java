@@ -172,14 +172,16 @@ class RequestDispatcher {
                     if (!TextUtils.isEmpty(payload)) {
                         try {
                             JSONObject payloadJson = new JSONObject(payload);
-                            if (payloadJson.has("events")) {
-                                JSONArray eventArray = payloadJson.getJSONArray("events");
+                            String eventsKey = "events";
+                            if (payloadJson.has(eventsKey)) {
+                                JSONArray eventArray = payloadJson.getJSONArray(eventsKey);
                                 for (int index = 0; index < eventArray.length(); index++) {
                                     JSONObject event = eventArray.getJSONObject(index);
                                     event.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
                                     eventArray.put(index, event);
                                 }
-                                mRequest.setParamJson(eventArray.toString());
+                                payloadJson.putOpt(eventsKey, eventArray);
+                                mRequest.setParamJson(payloadJson.toString());
                             }
                         } catch (Exception e) {
                             BlueshiftLogger.e(LOG_TAG, e);
