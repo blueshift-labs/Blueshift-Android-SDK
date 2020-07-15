@@ -107,9 +107,16 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
 
-            if (db != null) {
-                db.insert(getTableName(), null, getContentValues(item));
-                db.close();
+            try {
+                if (db != null) {
+                    db.insert(getTableName(), null, getContentValues(item));
+                    db.close();
+                }
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - insert()");
+                }
             }
         }
     }
@@ -118,9 +125,16 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
 
-            if (db != null && getId(item) != null) {
-                db.update(getTableName(), getContentValues(item), "id=" + getId(item), null);
-                db.close();
+            try {
+                if (db != null && getId(item) != null) {
+                    db.update(getTableName(), getContentValues(item), "id=" + getId(item), null);
+                    db.close();
+                }
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - update()");
+                }
             }
         }
     }
@@ -129,9 +143,16 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
 
-            if (db != null) {
-                db.delete(getTableName(), key + "=?", new String[]{value});
-                db.close();
+            try {
+                if (db != null) {
+                    db.delete(getTableName(), key + "=?", new String[]{value});
+                    db.close();
+                }
+            } finally {
+                if (db != null && db.isOpen()) {
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - delete(key,val)");
+                    db.close();
+                }
             }
         }
     }
@@ -157,11 +178,18 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
             if (!TextUtils.isEmpty(valuesCSV)) {
                 synchronized (lock) {
                     SQLiteDatabase db = getWritableDatabase();
-                    if (db != null) {
-                        BlueshiftLogger.d(LOG_TAG, "Deleting records with '" + fieldName + "' IN (" + valuesCSV + ")");
+                    try {
+                        if (db != null) {
+                            BlueshiftLogger.d(LOG_TAG, "Deleting records with '" + fieldName + "' IN (" + valuesCSV + ")");
 
-                        count = db.delete(getTableName(), fieldName + " IN (" + valuesCSV + ")", null);
-                        db.close();
+                            count = db.delete(getTableName(), fieldName + " IN (" + valuesCSV + ")", null);
+                            db.close();
+                        }
+                    } finally {
+                        if (db != null && db.isOpen()) {
+                            db.close();
+                            BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - delete(key,value[])");
+                        }
                     }
                 }
             }
@@ -174,9 +202,16 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
 
-            if (db != null) {
-                db.delete(getTableName(), null, null);
-                db.close();
+            try {
+                if (db != null) {
+                    db.delete(getTableName(), null, null);
+                    db.close();
+                }
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - deleteAll()");
+                }
             }
         }
     }
@@ -190,20 +225,27 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
-            if (db != null) {
-                Cursor cursor = db.query(getTableName(), null, null, null, null, null, null);
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        while (!cursor.isAfterLast()) {
-                            result.add(loadObject(cursor));
-                            cursor.moveToNext();
+            try {
+                if (db != null) {
+                    Cursor cursor = db.query(getTableName(), null, null, null, null, null, null);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            while (!cursor.isAfterLast()) {
+                                result.add(loadObject(cursor));
+                                cursor.moveToNext();
+                            }
                         }
+
+                        cursor.close();
                     }
 
-                    cursor.close();
+                    db.close();
                 }
-
-                db.close();
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findAll()");
+                }
             }
         }
 
@@ -215,19 +257,26 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
-            if (db != null) {
-                Cursor cursor = db.query(getTableName(), null, null, null, null, null, null, String.valueOf(limit));
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        do {
-                            result.add(loadObject(cursor));
-                        } while (cursor.moveToNext());
+            try {
+                if (db != null) {
+                    Cursor cursor = db.query(getTableName(), null, null, null, null, null, null, String.valueOf(limit));
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            do {
+                                result.add(loadObject(cursor));
+                            } while (cursor.moveToNext());
+                        }
+
+                        cursor.close();
                     }
 
-                    cursor.close();
+                    db.close();
                 }
-
-                db.close();
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findWithLimit()");
+                }
             }
         }
 
@@ -240,17 +289,24 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
 
-            if (db != null) {
-                Cursor cursor = db.query(getTableName(), null, fieldName + "='" + value + "'", null, null, null, null);
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        object = loadObject(cursor);
+            try {
+                if (db != null) {
+                    Cursor cursor = db.query(getTableName(), null, fieldName + "='" + value + "'", null, null, null, null);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            object = loadObject(cursor);
+                        }
+
+                        cursor.close();
                     }
 
-                    cursor.close();
+                    db.close();
                 }
-
-                db.close();
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findByField()");
+                }
             }
         }
 
@@ -263,17 +319,24 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
 
-            if (db != null) {
-                Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, null);
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        object = loadObject(cursor);
+            try {
+                if (db != null) {
+                    Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, null);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            object = loadObject(cursor);
+                        }
+
+                        cursor.close();
                     }
 
-                    cursor.close();
+                    db.close();
                 }
-
-                db.close();
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findByField()");
+                }
             }
         }
 
@@ -286,17 +349,24 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
 
-            if (db != null) {
-                Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, "RANDOM()");
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        object = loadObject(cursor);
+            try {
+                if (db != null) {
+                    Cursor cursor = db.query(getTableName(), null, fieldName + "=" + value, null, null, null, "RANDOM()");
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            object = loadObject(cursor);
+                        }
+
+                        cursor.close();
                     }
 
-                    cursor.close();
+                    db.close();
                 }
-
-                db.close();
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findRandomByField()");
+                }
             }
         }
 
@@ -308,20 +378,27 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
-            if (db != null) {
-                Cursor cursor = db.query(getTableName(), null, fieldName + "='" + value + "'", null, null, null, null);
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        while (!cursor.isAfterLast()) {
-                            result.add(loadObject(cursor));
-                            cursor.moveToNext();
+            try {
+                if (db != null) {
+                    Cursor cursor = db.query(getTableName(), null, fieldName + "='" + value + "'", null, null, null, null);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            while (!cursor.isAfterLast()) {
+                                result.add(loadObject(cursor));
+                                cursor.moveToNext();
+                            }
                         }
+
+                        cursor.close();
                     }
 
-                    cursor.close();
+                    db.close();
                 }
-
-                db.close();
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findAllByField()");
+                }
             }
         }
 
@@ -333,25 +410,32 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
-            if (db != null) {
-                String selection = fieldNames[0] + "=?";
-                for (int i = 1; i < fieldNames.length; i++) {
-                    selection = selection + " AND " + fieldNames[i] + "=?";
-                }
-
-                Cursor cursor = db.query(getTableName(), null, selection, values, null, null, null);
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        while (!cursor.isAfterLast()) {
-                            result.add(loadObject(cursor));
-                            cursor.moveToNext();
-                        }
+            try {
+                if (db != null) {
+                    String selection = fieldNames[0] + "=?";
+                    for (int i = 1; i < fieldNames.length; i++) {
+                        selection = selection + " AND " + fieldNames[i] + "=?";
                     }
 
-                    cursor.close();
-                }
+                    Cursor cursor = db.query(getTableName(), null, selection, values, null, null, null);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            while (!cursor.isAfterLast()) {
+                                result.add(loadObject(cursor));
+                                cursor.moveToNext();
+                            }
+                        }
 
-                db.close();
+                        cursor.close();
+                    }
+
+                    db.close();
+                }
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findAllByField()");
+                }
             }
         }
 
@@ -364,25 +448,32 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
-            if (db != null) {
-                String selection = fieldNames[0] + "=?";
-                for (int i = 1; i < fieldNames.length; i++) {
-                    selection = selection + " AND " + fieldNames[i] + "=?";
-                }
-
-                Cursor cursor = db.query(getTableName(), null, selection, values, null, null, order, String.valueOf(100 * pageNo));
-                if (cursor != null) {
-                    if (cursor.moveToPosition(100 * (pageNo - 1))) {
-                        while (!cursor.isAfterLast()) {
-                            result.add(loadObject(cursor));
-                            cursor.moveToNext();
-                        }
+            try {
+                if (db != null) {
+                    String selection = fieldNames[0] + "=?";
+                    for (int i = 1; i < fieldNames.length; i++) {
+                        selection = selection + " AND " + fieldNames[i] + "=?";
                     }
 
-                    cursor.close();
-                }
+                    Cursor cursor = db.query(getTableName(), null, selection, values, null, null, order, String.valueOf(100 * pageNo));
+                    if (cursor != null) {
+                        if (cursor.moveToPosition(100 * (pageNo - 1))) {
+                            while (!cursor.isAfterLast()) {
+                                result.add(loadObject(cursor));
+                                cursor.moveToNext();
+                            }
+                        }
 
-                db.close();
+                        cursor.close();
+                    }
+
+                    db.close();
+                }
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findAllByField()");
+                }
             }
         }
 
@@ -394,26 +485,33 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
 
         synchronized (lock) {
             SQLiteDatabase db = getReadableDatabase();
-            if (db != null) {
-                String selection = fieldNames[0] + "=?";
-                for (int i = 1; i < fieldNames.length; i++) {
-                    selection = selection + " AND " + fieldNames[i] + "=?";
-                }
-                selection = selection + " AND " + order + " LIKE '%" + search + "%'";
+            try {
+                if (db != null) {
+                    String selection = fieldNames[0] + "=?";
+                    for (int i = 1; i < fieldNames.length; i++) {
+                        selection = selection + " AND " + fieldNames[i] + "=?";
+                    }
+                    selection = selection + " AND " + order + " LIKE '%" + search + "%'";
 
-                Cursor cursor = db.query(getTableName(), null, selection, values, null, null, order, String.valueOf(100 * pageNo));
-                if (cursor != null) {
-                    if (cursor.moveToPosition(100 * (pageNo - 1))) {
-                        while (!cursor.isAfterLast()) {
-                            result.add(loadObject(cursor));
-                            cursor.moveToNext();
+                    Cursor cursor = db.query(getTableName(), null, selection, values, null, null, order, String.valueOf(100 * pageNo));
+                    if (cursor != null) {
+                        if (cursor.moveToPosition(100 * (pageNo - 1))) {
+                            while (!cursor.isAfterLast()) {
+                                result.add(loadObject(cursor));
+                                cursor.moveToNext();
+                            }
                         }
+
+                        cursor.close();
                     }
 
-                    cursor.close();
+                    db.close();
                 }
-
-                db.close();
+            } finally {
+                if (db != null && db.isOpen()) {
+                    db.close();
+                    BlueshiftLogger.d(LOG_TAG, "db closed in finally block. - findAllByField()");
+                }
             }
         }
 
