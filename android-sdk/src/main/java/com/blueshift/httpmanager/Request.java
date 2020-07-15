@@ -1,5 +1,6 @@
 package com.blueshift.httpmanager;
 
+import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
 
 import java.io.Serializable;
@@ -27,6 +28,17 @@ public class Request implements Serializable {
     public Request() {
         pendingRetryCount = 1;
         nextRetryTime = 0;
+    }
+
+    public void log(String tag, Response response) {
+        String builder = "{" +
+                "\"url\":\"" + url + "\"," +
+                "\"method\":\"" + method + "\"," +
+                "\"params\":" + paramJson + "," +
+                "\"status\":" + (response != null ? response.getStatusCode() : "\"NA\"") + "," +
+                "\"response\":" + (response != null ? response.getResponseBody() : "\"NA\"") +
+                "}";
+        BlueshiftLogger.d(tag, builder);
     }
 
     public HashMap<String, String> getUrlParams() {
