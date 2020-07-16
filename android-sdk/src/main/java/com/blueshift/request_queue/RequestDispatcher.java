@@ -208,19 +208,21 @@ class RequestDispatcher {
      */
     private void doAutoIdentifyCheck() {
         UserInfo userInfo = UserInfo.getInstance(mContext);
-        String emailId = userInfo.getEmail();
-        if (!TextUtils.isEmpty(emailId)) {
-            /*
-             * If user is signed in and email is already not verified, then we
-             * need to call an identify with this new email id.
-             */
-            if (!BlueShiftPreference.isEmailAlreadyIdentified(mContext, emailId)) {
-                Blueshift
-                        .getInstance(mContext)
-                        .identifyUserByDeviceId(
-                                DeviceUtils.getDeviceId(mContext), null, false);
+        if (userInfo != null) {
+            String emailId = userInfo.getEmail();
+            if (!TextUtils.isEmpty(emailId)) {
+                /*
+                 * If user is signed in and email is already not verified, then we
+                 * need to call an identify with this new email id.
+                 */
+                if (!BlueShiftPreference.isEmailAlreadyIdentified(mContext, emailId)) {
+                    Blueshift
+                            .getInstance(mContext)
+                            .identifyUserByDeviceId(
+                                    DeviceUtils.getDeviceId(mContext), null, false);
 
-                BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
+                    BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
+                }
             }
         }
     }
