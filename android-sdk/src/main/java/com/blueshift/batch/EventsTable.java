@@ -3,6 +3,7 @@ package com.blueshift.batch;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 
 import com.blueshift.BlueshiftLogger;
@@ -107,26 +108,82 @@ public class EventsTable extends BaseSqliteTable<Event> {
      *
      * @return array of event request parameter JSONs
      */
-    public ArrayList<HashMap<String,Object>> getBulkEventParameters(int batchSize) {
-        ArrayList<HashMap<String,Object>> result = new ArrayList<>();
+    public ArrayList<HashMap<String, Object>> getBulkEventParameters(int batchSize) {
+        synchronized (lock) {
+            try {
+                ArrayList<HashMap<String, Object>> result = new ArrayList<>();
 
-        ArrayList<Event> events = findWithLimit(batchSize);
-        if (events.size() > 0) {
-            ArrayList<String> idList = new ArrayList<>();
+                ArrayList<Event> events = new ArrayList<>();
+                SQLiteDatabase readableDatabase = getReadableDatabase();
+                try {
+                    if (readableDatabase != null) {
+                        Cursor cursor = readableDatabase.query(
+                                getTableName(),
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                String.valueOf(batchSize));
+                        if (cursor != null) {
+                            if (cursor.moveToFirst()) {
+                                do {
+                                    events.add(loadObject(cursor));
+                                } while (cursor.moveToNext());
+                            }
 
-            for (Event event : events) {
-                // get the event parameter
-                result.add(event.getEventParams());
+                            cursor.close();
+                        }
 
-                // get id for deleting the item.
-                idList.add(String.valueOf(event.getId()));
+                        readableDatabase.close();
+                    }
+                } finally {
+                    if (readableDatabase != null && readableDatabase.isOpen()) {
+                        readableDatabase.close();
+                    }
+                }
+
+                if (events.size() > 0) {
+                    ArrayList<String> idList = new ArrayList<>();
+
+                    for (Event event : events) {
+                        // get the event parameter
+                        result.add(event.getEventParams());
+
+                        // get id for deleting the item.
+                        idList.add(String.valueOf(event.getId()));
+                    }
+
+                    if (idList.size() > 0) {
+                        int count = 0;
+
+                        String valuesCSV = TextUtils.join(",", idList);
+                        SQLiteDatabase writableDatabase = getWritableDatabase();
+                        try {
+                            if (writableDatabase != null) {
+                                BlueshiftLogger.d(LOG_TAG, "Deleting records from '" + getTableName() + "' with '" + FIELD_ID + "' IN (" + valuesCSV + ")");
+
+                                count = writableDatabase.delete(getTableName(), FIELD_ID + " IN (" + valuesCSV + ")", null);
+                                writableDatabase.close();
+                            }
+                        } finally {
+                            if (writableDatabase != null && writableDatabase.isOpen()) {
+                                writableDatabase.close();
+                            }
+                        }
+
+                        BlueshiftLogger.i(LOG_TAG, "Deleted " + count + " events.");
+                    }
+                }
+
+                return result;
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+                // return null to make sure no data is being sent to server and crash
+                // is not leading to any data leakage.
+                return null;
             }
-
-            int count = delete(FIELD_ID, idList);
-
-            BlueshiftLogger.i(LOG_TAG, "Deleted " + count + " events.");
         }
-
-        return result;
     }
 }

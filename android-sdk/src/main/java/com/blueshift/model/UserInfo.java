@@ -46,7 +46,7 @@ public class UserInfo {
         unsubscribed = false;
     }
 
-    public static UserInfo getInstance(Context context) {
+    public static synchronized UserInfo getInstance(Context context) {
         if (instance == null) {
             instance = load(context);
             if (instance == null) {
