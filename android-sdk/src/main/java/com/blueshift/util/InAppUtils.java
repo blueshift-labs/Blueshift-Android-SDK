@@ -116,6 +116,18 @@ public class InAppUtils {
         return fallback;
     }
 
+    public static boolean getBooleanFromJSONObject(JSONObject jsonObject, String key, boolean fallback) {
+        try {
+            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+                return jsonObject.optBoolean(key, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
     public static Rect getRectFromJSONObject(JSONObject jsonObject, String key) {
         try {
             if (jsonObject != null && !TextUtils.isEmpty(key)) {
@@ -283,6 +295,19 @@ public class InAppUtils {
         return fallback;
     }
 
+    public static boolean getTemplateBoolean(Context context, InAppMessage inAppMessage, String contentName, boolean fallback) {
+        try {
+            if (inAppMessage != null) {
+                JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
+                return getBooleanFromJSONObject(templateStyle, contentName, fallback);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return fallback;
+    }
+
     public static double getTemplateBackgroundDimAmount(Context context, InAppMessage inAppMessage, double fallback) {
         return getTemplateDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
     }
@@ -373,6 +398,21 @@ public class InAppUtils {
                 JSONArray actions = inAppMessage.getActionsJSONArray();
                 boolean hasNoActions = actions == null || actions.length() == 0;
                 result = isModal(inAppMessage) && hasNoActions;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return result;
+    }
+
+    public static boolean shouldCancelOnTouchOutside(Context context, InAppMessage inAppMessage) {
+        boolean result = false;
+
+        try {
+            if (inAppMessage != null) {
+                boolean shouldCancel = isSlideIn(inAppMessage); // slide in is by default cancellable on touch outside
+                result = getTemplateBoolean(context, inAppMessage, InAppConstants.CANCEL_ON_TOUCH_OUTSIDE, shouldCancel);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
