@@ -136,12 +136,16 @@ public abstract class InAppMessageView extends RelativeLayout {
                         if (wPercentage > 0) {
                             int horizontalMargn = (lp.leftMargin + lp.rightMargin);
                             lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargn);
+                        } else {
+                            lp.width = (int) wPercentage;
                         }
 
                         float hPercentage = inAppMessage.getTemplateHeight(getContext());
                         if (hPercentage > 0) {
                             int verticalMargin = lp.topMargin + lp.bottomMargin;
                             lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
+                        } else {
+                            lp.height = (int) hPercentage;
                         }
 
                         lp.gravity = Gravity.CENTER;
@@ -153,14 +157,14 @@ public abstract class InAppMessageView extends RelativeLayout {
                                 View view = getChildAt(0);
                                 if (view instanceof ImageView) {
                                     // background image added, now we need to match it with the size
-                                    setViewDimensionsToMatchParent(view, lp.width, lp.height);
+                                    setViewDimensionsToMatchParent(view, getMeasuredWidth(), getMeasuredHeight());
 
                                     if (getChildCount() > 1) {
                                         View contentView = getChildAt(1);
-                                        setViewDimensionsToMatchParent(contentView, lp.width, lp.height);
+                                        setViewDimensionsToMatchParent(contentView, getMeasuredWidth(), getMeasuredHeight());
                                     }
                                 } else if (view instanceof ViewGroup) {
-                                    setViewDimensionsToMatchParent(view, lp.width, lp.height);
+                                    setViewDimensionsToMatchParent(view, getMeasuredWidth(), getMeasuredHeight());
                                 }
                             }
                         } catch (Exception e) {
