@@ -565,6 +565,10 @@ public class InAppManager {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
                 builder.setView(content);
                 mDialog = builder.create();
+
+                boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
+                mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
+
                 mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialogInterface) {
