@@ -135,6 +135,8 @@ public class BlueshiftConstants {
     public static final String SILENT_PUSH = "silent_push";
     public static final String SILENT_PUSH_ACTION = "action";
     public static final String ACTION_IN_APP_BACKGROUND_FETCH = "in_app_background_fetch";
+    public static final String ACTION_IN_APP_MARK_AS_OPEN = "in_app_mark_as_open";
+    public static final String OPENED_IN_APP_MESSAGE_UUIDS = "opened_in_app_message_uuids";
 
     // Universal links
     public static final String KEY_REDIR = "redir";

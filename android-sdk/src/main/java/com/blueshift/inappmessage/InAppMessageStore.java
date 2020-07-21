@@ -14,7 +14,9 @@ import com.blueshift.framework.BlueshiftBaseSQLiteOpenHelper;
 
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessage> {
     private static final String TAG = InAppMessageStore.class.getSimpleName();
@@ -114,13 +116,15 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
             if (!TextUtils.isEmpty(tsJson)) inAppMessage.setTemplateStyle(new JSONObject(tsJson));
 
             String tsdJson = getString(cursor, FIELD_TEMPLATE_STYLE_DARK);
-            if (!TextUtils.isEmpty(tsdJson)) inAppMessage.setTemplateStyleDark(new JSONObject(tsdJson));
+            if (!TextUtils.isEmpty(tsdJson))
+                inAppMessage.setTemplateStyleDark(new JSONObject(tsdJson));
 
             String csJson = getString(cursor, FIELD_CONTENT_STYLE);
             if (!TextUtils.isEmpty(csJson)) inAppMessage.setContentStyle(new JSONObject(csJson));
 
             String csdJson = getString(cursor, FIELD_CONTENT_STYLE_DARK);
-            if (!TextUtils.isEmpty(csdJson)) inAppMessage.setContentStyleDark(new JSONObject(csdJson));
+            if (!TextUtils.isEmpty(csdJson))
+                inAppMessage.setContentStyleDark(new JSONObject(csdJson));
 
             String cJson = getString(cursor, FIELD_CONTENT);
             if (!TextUtils.isEmpty(cJson)) inAppMessage.setContent(new JSONObject(cJson));
@@ -332,6 +336,46 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
                 String[] selectionArgs = new String[]{timestamp, days30};
 
                 deleteAll(whereClause, selectionArgs);
+            }
+        }
+    }
+
+    public void markAsRead(List<String> messageUUIDs) {
+        synchronized (_LOCK) {
+            if (messageUUIDs != null && messageUUIDs.size() > 0) {
+                SQLiteDatabase db = getWritableDatabase();
+                try {
+                    if (db != null) {
+                        long timestamp = System.currentTimeMillis() / 1000;
+                        ContentValues values = new ContentValues();
+                        values.put(FIELD_DISPLAYED_AT, timestamp);
+
+                        boolean first = true;
+                        StringBuilder qnMarks = new StringBuilder();
+                        for (int i = 0; i < messageUUIDs.size(); i++) {
+                            if (first) {
+                                first = false;
+                            } else {
+                                qnMarks.append(",");
+                            }
+
+                            qnMarks.append("?");
+                        }
+
+                        String whereClause = FIELD_MESSAGE_UUID + " IN (" + qnMarks.toString() + ")";
+                        String[] messageUUIDArray = messageUUIDs.toArray(new String[]{});
+
+                        int count = db.update(getTableName(), values, whereClause, messageUUIDArray);
+
+                        BlueshiftLogger.d(TAG, count + " records marked as opened. " + Arrays.toString(messageUUIDArray));
+
+                        db.close();
+                    }
+                } finally {
+                    if (db != null && db.isOpen()) {
+                        db.close();
+                    }
+                }
             }
         }
     }
