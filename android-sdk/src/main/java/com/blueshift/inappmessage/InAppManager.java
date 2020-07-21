@@ -43,6 +43,8 @@ public class InAppManager {
     private static Activity mActivity = null;
     private static AlertDialog mDialog = null;
     private static InAppActionCallback mActionCallback = null;
+    private static InAppMessage mInApp = null;
+    private static String mInAppOngoingIn = null; // activity class name
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -58,7 +60,13 @@ public class InAppManager {
 
         mActivity = activity;
 
-        invokeTriggerWithinSdk();
+        // check if there is an ongoing in-app display (orientation change)
+        // if found, display the cached in-app message.
+        if (isOngoingInAppMessagePresent()) {
+            displayCachedOngoingInApp();
+        } else {
+            invokeTriggerWithinSdk();
+        }
     }
 
     /**
@@ -74,8 +82,19 @@ public class InAppManager {
             String oldName = mActivity.getLocalClassName();
             String newName = activity.getLocalClassName();
             if (!oldName.equals(newName)) {
+                // we don't need to re-display the in-app if we were moved to a new page
+                // so we should clean the cached in-app message
+                cleanUpOngoingInAppCache();
                 return;
             }
+        }
+
+        // unregistering when in-app is in display, I am assuming this will only happen if
+        // you are moving to a new page with the in-app in display. or you are changing the
+        // screen orientation and unregister got called automatically. for re-display, we
+        // need to cache the in-app message in display.
+        if (mDialog != null && mDialog.isShowing()) {
+            cacheOngoingInApp();
         }
 
         // clean up the dialog and activity
@@ -83,6 +102,27 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
+    }
+
+    private static void displayCachedOngoingInApp() {
+        displayInAppMessage(mInApp);
+    }
+
+    private static void cleanUpOngoingInAppCache() {
+        mInApp = null;
+        mInAppOngoingIn = null;
+    }
+
+    private static boolean isOngoingInAppMessagePresent() {
+        return mInAppOngoingIn != null
+                && mActivity != null
+                && mInAppOngoingIn.equals(mActivity.getClass().getName());
+    }
+
+    private static void cacheOngoingInApp() {
+        if (mActivity != null) {
+            mInAppOngoingIn = mActivity.getClass().getName();
+        }
     }
 
     public static InAppActionCallback getActionCallback() {
@@ -353,6 +393,7 @@ public class InAppManager {
                             if (mActivity != null) {
                                 boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
                                 if (isSuccess) {
+                                    mInApp = input;
                                     markAsDisplayed(input);
                                 }
 
@@ -537,31 +578,55 @@ public class InAppManager {
     }
 
     private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
+        // use app context to avoid leaks on this activity
+        Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
+        // reschedule next in-app here as the dialog callbacks are going to get removed in cleanup
+        InAppManager.scheduleNextInAppMessage(appContext);
+        // remove asset cache
+        InAppManager.clearCachedAssets(inAppMessage, appContext);
+        // clean up the ongoing in-app cache
+        cleanUpOngoingInAppCache();
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
         // log the click event
-        Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage, elementName);
+        Blueshift.getInstance(appContext).trackInAppMessageClick(inAppMessage, elementName);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
-        // send stats
-        Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
-        // update with displayed at timing
-        inAppMessage.setDisplayedAt(System.currentTimeMillis());
-        InAppMessageStore.getInstance(mActivity).update(inAppMessage);
+        if (isRedundantDisplay()) return;
+
+        // use app context to avoid leaks on this activity
+        Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
+        if (appContext != null) {
+            // send stats
+            Blueshift.getInstance(appContext).trackInAppMessageView(inAppMessage);
+            // update with displayed at timing
+            inAppMessage.setDisplayedAt(System.currentTimeMillis());
+            InAppMessageStore.getInstance(appContext).update(inAppMessage);
+        }
+    }
+
+    // checks if the display is already made and this display is duplicate.
+    // this happens usually for orientation change based displays
+    private static boolean isRedundantDisplay() {
+        return mInAppOngoingIn != null;
     }
 
     private static void dismissAndCleanupDialog() {
         if (mDialog != null && mDialog.isShowing()) {
+            mDialog.setOnCancelListener(null);
+            mDialog.setOnDismissListener(null);
             mDialog.dismiss();
             mDialog = null;
         }
     }
 
     private static boolean buildAndShowAlertDialog(
-            final Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
+            Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
         if (mActivity != null && !mActivity.isFinishing()) {
             if (mDialog == null || !mDialog.isShowing()) {
+                final Context appContext = mActivity.getApplicationContext();
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
                 builder.setView(content);
                 mDialog = builder.create();
@@ -569,6 +634,7 @@ public class InAppManager {
                 boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
                 mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
 
+                // dismiss happens when user interacts with the dialog
                 mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialogInterface) {
@@ -576,13 +642,25 @@ public class InAppManager {
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        InAppManager.clearCachedAssets(inAppMessage, context);
-                                        InAppManager.scheduleNextInAppMessage(context);
+                                        InAppManager.clearCachedAssets(inAppMessage, appContext);
+                                        InAppManager.scheduleNextInAppMessage(appContext);
+                                        InAppManager.cleanUpOngoingInAppCache();
                                     }
                                 }
                         );
                     }
                 });
+
+                // cancel happens when it gets cancelled by actions like tap on outside,
+                // back button press or programmatically cancelling
+                mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        InAppManager.scheduleNextInAppMessage(appContext);
+                        InAppManager.cleanUpOngoingInAppCache();
+                    }
+                });
+
                 mDialog.show();
 
                 Window window = mDialog.getWindow();
