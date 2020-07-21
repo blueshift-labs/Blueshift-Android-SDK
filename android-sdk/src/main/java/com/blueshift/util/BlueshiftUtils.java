@@ -82,4 +82,14 @@ public class BlueshiftUtils {
 
         return isEnabled;
     }
+
+    public static boolean isPushEnabled(Context context) {
+        Configuration config = getConfiguration(context);
+        boolean isEnabled = config != null && config.isPushEnabled();
+        if (!isEnabled) {
+            BlueshiftLogger.w(LOG_TAG, "Push Notification is not enabled.");
+        }
+
+        return isEnabled;
+    }
 }

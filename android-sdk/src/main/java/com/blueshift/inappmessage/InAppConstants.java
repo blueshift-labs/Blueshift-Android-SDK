@@ -30,6 +30,7 @@ public class InAppConstants {
     public static final String TEMPLATE_STYLE_DARK = "template_style_dark";
 
     // payload: level-2 keys
+    public static final String CANCEL_ON_TOUCH_OUTSIDE = "cancel_on_touch_outside";
     public static final String WIDTH = "width";
     public static final String BACKGROUND_DIM_AMOUNT = "background_dim_amount";
     public static final String HEIGHT = "height";
@@ -56,6 +57,7 @@ public class InAppConstants {
     public static final String SIZE = "size";
     public static final String COLOR = "color";
     public static final String BACKGROUND_COLOR = "background_color";
+    public static final String BACKGROUND_IMAGE = "background_image";
     public static final String BACKGROUND_RADIUS = "background_radius";
     public static final String MARGIN = "margin";
     public static final String PADDING = "padding";

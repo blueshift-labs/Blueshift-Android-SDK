@@ -16,6 +16,7 @@ import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.BuildConfig;
 import com.blueshift.inappmessage.InAppApiCallback;
@@ -33,9 +34,12 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -182,8 +186,8 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                 if (bundle != null) {
                     Map<String, String> map = new HashMap<>();
                     for (String key : bundle.keySet()) {
-                        String val = bundle.getString(key);
-                        if (val != null) map.put(key, val);
+                        Object val = bundle.get(key);
+                        if (val != null) map.put(key, String.valueOf(val));
                     }
 
                     BlueshiftMessagingService service = new BlueshiftMessagingService();
@@ -298,6 +302,8 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                     BlueshiftLogger.d(LOG_TAG, "Silent push with action '" + action + "' received.");
                     if (BlueshiftConstants.ACTION_IN_APP_BACKGROUND_FETCH.equals(action)) {
                         triggerInAppBackgroundFetch(context);
+                    } else if (BlueshiftConstants.ACTION_IN_APP_MARK_AS_OPEN.equals(action)) {
+                        triggerInAppMarkAsRead(context, silentPushJson);
                     }
                 }
             }
@@ -324,6 +330,33 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
+        }
+    }
+
+    protected void triggerInAppMarkAsRead(final Context context, JSONObject jsonObject) {
+        if (context != null && jsonObject != null) {
+            JSONArray uuidArray = jsonObject.optJSONArray(BlueshiftConstants.OPENED_IN_APP_MESSAGE_UUIDS);
+            if (uuidArray != null && uuidArray.length() > 0) {
+                final List<String> messageUUIDs = new ArrayList<>();
+                for (int i = 0; i < uuidArray.length(); i++) {
+                    String uuid = uuidArray.optString(i);
+                    if (!TextUtils.isEmpty(uuid)) {
+                        messageUUIDs.add(uuid);
+                    }
+                }
+
+                BlueshiftLogger.d(LOG_TAG, "Message UUIDs present inside '" + BlueshiftConstants.OPENED_IN_APP_MESSAGE_UUIDS + "': " + messageUUIDs.toString());
+                if (messageUUIDs.size() > 0) {
+                    BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            InAppMessageStore.getInstance(context).markAsRead(messageUUIDs);
+                        }
+                    });
+                }
+            } else {
+                BlueshiftLogger.d(LOG_TAG, "No message UUIDs present inside '" + BlueshiftConstants.OPENED_IN_APP_MESSAGE_UUIDS + "'.");
+            }
         }
     }
 
