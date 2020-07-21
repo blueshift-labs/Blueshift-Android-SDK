@@ -43,6 +43,8 @@ public class InAppManager {
     private static Activity mActivity = null;
     private static AlertDialog mDialog = null;
     private static InAppActionCallback mActionCallback = null;
+    private static InAppMessage mInApp = null;
+    private static String mInAppOngoingIn = ""; // activity class name
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -58,7 +60,12 @@ public class InAppManager {
 
         mActivity = activity;
 
-        invokeTriggerWithinSdk();
+        // check if there is an ongoing in-app display (orientation change)
+        if (isOngoingInAppMessagePresent()) {
+            displayInAppMessage(mInApp);
+        } else {
+            invokeTriggerWithinSdk();
+        }
     }
 
     /**
@@ -74,8 +81,15 @@ public class InAppManager {
             String oldName = mActivity.getLocalClassName();
             String newName = activity.getLocalClassName();
             if (!oldName.equals(newName)) {
+                cleanUpOngoingInAppCache();
                 return;
             }
+        }
+
+        // unregistering when in-app is in display, need to cache this for display again
+        // if orientation changes
+        if (mDialog != null && mDialog.isShowing()) {
+            cacheOngoingInApp();
         }
 
         // clean up the dialog and activity
@@ -83,6 +97,23 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
+    }
+
+    private static void cleanUpOngoingInAppCache() {
+        mInApp = null;
+        mInAppOngoingIn = null;
+    }
+
+    private static boolean isOngoingInAppMessagePresent() {
+        return mInAppOngoingIn != null
+                && mActivity != null
+                && mInAppOngoingIn.equals(mActivity.getClass().getName());
+    }
+
+    private static void cacheOngoingInApp() {
+        if (mActivity != null) {
+            mInAppOngoingIn = mActivity.getClass().getName();
+        }
     }
 
     public static InAppActionCallback getActionCallback() {
@@ -353,6 +384,7 @@ public class InAppManager {
                             if (mActivity != null) {
                                 boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
                                 if (isSuccess) {
+                                    mInApp = input;
                                     markAsDisplayed(input);
                                 }
 
@@ -537,6 +569,7 @@ public class InAppManager {
     }
 
     private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
+        cleanUpOngoingInAppCache();
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
         // log the click event
@@ -544,6 +577,7 @@ public class InAppManager {
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
+        if (isRedundantDisplay(inAppMessage)) return;
         // send stats
         Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
         // update with displayed at timing
@@ -551,8 +585,19 @@ public class InAppManager {
         InAppMessageStore.getInstance(mActivity).update(inAppMessage);
     }
 
+    // checks if the display is already made and this display is duplicate.
+    // this happens usually for orientation change based displays
+    private static boolean isRedundantDisplay(InAppMessage inAppMessage) {
+        return inAppMessage != null
+                && inAppMessage.getMessageUuid() != null
+                && mInApp != null
+                && inAppMessage.getMessageUuid().equals(mInApp.getMessageUuid());
+    }
+
     private static void dismissAndCleanupDialog() {
         if (mDialog != null && mDialog.isShowing()) {
+            mDialog.setOnCancelListener(null);
+            mDialog.setOnDismissListener(null);
             mDialog.dismiss();
             mDialog = null;
         }
@@ -576,11 +621,18 @@ public class InAppManager {
                                 new Runnable() {
                                     @Override
                                     public void run() {
+                                        InAppManager.cleanUpOngoingInAppCache();
                                         InAppManager.clearCachedAssets(inAppMessage, context);
                                         InAppManager.scheduleNextInAppMessage(context);
                                     }
                                 }
                         );
+                    }
+                });
+                mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        InAppManager.cleanUpOngoingInAppCache();
                     }
                 });
                 mDialog.show();
