@@ -44,14 +44,14 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         this.inAppMessage = inAppMessage;
 
-        applyTemplateDimensions(inAppMessage);
-
         int bgColor = inAppMessage.getTemplateBackgroundColor(getContext());
         if (bgColor != 0) {
             setBackgroundColor(bgColor);
         } else {
             setBackgroundColor(Color.WHITE);
         }
+
+        addBackgroundImageView();
 
         View childView = getView(inAppMessage);
         if (childView != null) {
@@ -64,6 +64,20 @@ public abstract class InAppMessageView extends RelativeLayout {
         boolean showCloseButton = InAppUtils.shouldShowCloseButton(getContext(), inAppMessage, enableClose);
         if (showCloseButton) {
             addCloseButton(inAppMessage);
+        }
+
+        applyTemplateDimensions(inAppMessage);
+    }
+
+    private void addBackgroundImageView() {
+        String url = InAppUtils.getTemplateString(
+                getContext(), inAppMessage, InAppConstants.BACKGROUND_IMAGE);
+        if (!TextUtils.isEmpty(url)) {
+            ImageView imageView = new ImageView(getContext());
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            addView(imageView);
+
+            InAppUtils.loadImageAsync(imageView, url);
         }
     }
 
@@ -122,20 +136,54 @@ public abstract class InAppMessageView extends RelativeLayout {
                         if (wPercentage > 0) {
                             int horizontalMargn = (lp.leftMargin + lp.rightMargin);
                             lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargn);
+                        } else {
+                            lp.width = (int) wPercentage;
                         }
 
                         float hPercentage = inAppMessage.getTemplateHeight(getContext());
                         if (hPercentage > 0) {
                             int verticalMargin = lp.topMargin + lp.bottomMargin;
                             lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
+                        } else {
+                            lp.height = (int) hPercentage;
                         }
 
                         lp.gravity = Gravity.CENTER;
+
+                        try {
+                            boolean isModal = InAppUtils.isModal(inAppMessage);
+                            if (isModal) {
+                                int modalWidth = lp.width > 0 ? lp.width : getMeasuredWidth();
+                                int modalHeight = lp.height > 0 ? lp.height : getMeasuredHeight();
+                                // image background will be at position 0 if available
+                                View view = getChildAt(0);
+                                if (view instanceof ImageView) {
+                                    // background image added, now we need to match it with the size
+                                    setViewDimensionsToMatchParent(view, modalWidth, modalHeight);
+
+                                    if (getChildCount() > 1) {
+                                        View contentView = getChildAt(1);
+                                        setViewDimensionsToMatchParent(contentView, modalWidth, modalHeight);
+                                    }
+                                } else if (view instanceof ViewGroup) {
+                                    setViewDimensionsToMatchParent(view, modalWidth, modalHeight);
+                                }
+                            }
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(TAG, e);
+                        }
 
                         setLayoutParams(lp);
                     }
                 }
             });
+        }
+    }
+
+    private void setViewDimensionsToMatchParent(View view, int width, int height) {
+        if (view != null && view.getLayoutParams() != null) {
+            view.getLayoutParams().width = width;
+            view.getLayoutParams().height = height;
         }
     }
 

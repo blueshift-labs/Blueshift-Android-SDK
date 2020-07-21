@@ -75,6 +75,22 @@ public class InAppMessageViewModal extends InAppMessageView {
 
             lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
             rootView.addView(messageTextView, lp);
+        } else {
+            // We are adding a placeholder View here to push the buttons to the bottom of
+            // the container view. This is required in case of modals with no message and
+            // with a background image.
+            View placeHolder = new View(getContext());
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+            // message window will take the full screen
+            if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)
+                    || InAppUtils.isHeightSet(getContext(), inAppMessage)) {
+                lp.height = 0;
+                lp.weight = 1;
+            }
+
+            rootView.addView(placeHolder, lp);
         }
 
         // action
