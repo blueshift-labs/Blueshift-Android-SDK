@@ -44,7 +44,7 @@ public class InAppManager {
     private static AlertDialog mDialog = null;
     private static InAppActionCallback mActionCallback = null;
     private static InAppMessage mInApp = null;
-    private static String mInAppOngoingIn = ""; // activity class name
+    private static String mInAppOngoingIn = null; // activity class name
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -578,20 +578,32 @@ public class InAppManager {
     }
 
     private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
+        // use app context to avoid leaks on this activity
+        Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
+        // reschedule next in-app here as the dialog callbacks are going to get removed in cleanup
+        InAppManager.scheduleNextInAppMessage(appContext);
+        // remove asset cache
+        InAppManager.clearCachedAssets(inAppMessage, appContext);
+        // clean up the ongoing in-app cache
         cleanUpOngoingInAppCache();
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
         // log the click event
-        Blueshift.getInstance(mActivity).trackInAppMessageClick(inAppMessage, elementName);
+        Blueshift.getInstance(appContext).trackInAppMessageClick(inAppMessage, elementName);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
         if (isRedundantDisplay()) return;
-        // send stats
-        Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
-        // update with displayed at timing
-        inAppMessage.setDisplayedAt(System.currentTimeMillis());
-        InAppMessageStore.getInstance(mActivity).update(inAppMessage);
+
+        // use app context to avoid leaks on this activity
+        Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
+        if (appContext != null) {
+            // send stats
+            Blueshift.getInstance(appContext).trackInAppMessageView(inAppMessage);
+            // update with displayed at timing
+            inAppMessage.setDisplayedAt(System.currentTimeMillis());
+            InAppMessageStore.getInstance(appContext).update(inAppMessage);
+        }
     }
 
     // checks if the display is already made and this display is duplicate.
@@ -610,9 +622,11 @@ public class InAppManager {
     }
 
     private static boolean buildAndShowAlertDialog(
-            final Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
+            Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
         if (mActivity != null && !mActivity.isFinishing()) {
             if (mDialog == null || !mDialog.isShowing()) {
+                final Context appContext = mActivity.getApplicationContext();
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
                 builder.setView(content);
                 mDialog = builder.create();
@@ -628,9 +642,9 @@ public class InAppManager {
                                 new Runnable() {
                                     @Override
                                     public void run() {
+                                        InAppManager.clearCachedAssets(inAppMessage, appContext);
+                                        InAppManager.scheduleNextInAppMessage(appContext);
                                         InAppManager.cleanUpOngoingInAppCache();
-                                        InAppManager.clearCachedAssets(inAppMessage, context);
-                                        InAppManager.scheduleNextInAppMessage(context);
                                     }
                                 }
                         );
@@ -642,6 +656,7 @@ public class InAppManager {
                 mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialogInterface) {
+                        InAppManager.scheduleNextInAppMessage(appContext);
                         InAppManager.cleanUpOngoingInAppCache();
                     }
                 });
