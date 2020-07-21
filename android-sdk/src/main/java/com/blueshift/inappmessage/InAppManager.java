@@ -62,7 +62,7 @@ public class InAppManager {
 
         // check if there is an ongoing in-app display (orientation change)
         if (isOngoingInAppMessagePresent()) {
-            displayInAppMessage(mInApp);
+            displayCachedOngoingInApp();
         } else {
             invokeTriggerWithinSdk();
         }
@@ -97,6 +97,10 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
+    }
+
+    private static void displayCachedOngoingInApp() {
+        displayInAppMessage(mInApp);
     }
 
     private static void cleanUpOngoingInAppCache() {
@@ -577,7 +581,7 @@ public class InAppManager {
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
-        if (isRedundantDisplay(inAppMessage)) return;
+        if (isRedundantDisplay()) return;
         // send stats
         Blueshift.getInstance(mActivity).trackInAppMessageView(inAppMessage);
         // update with displayed at timing
@@ -587,11 +591,8 @@ public class InAppManager {
 
     // checks if the display is already made and this display is duplicate.
     // this happens usually for orientation change based displays
-    private static boolean isRedundantDisplay(InAppMessage inAppMessage) {
-        return inAppMessage != null
-                && inAppMessage.getMessageUuid() != null
-                && mInApp != null
-                && inAppMessage.getMessageUuid().equals(mInApp.getMessageUuid());
+    private static boolean isRedundantDisplay() {
+        return mInAppOngoingIn != null;
     }
 
     private static void dismissAndCleanupDialog() {
