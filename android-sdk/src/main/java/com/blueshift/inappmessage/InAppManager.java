@@ -61,6 +61,7 @@ public class InAppManager {
         mActivity = activity;
 
         // check if there is an ongoing in-app display (orientation change)
+        // if found, display the cached in-app message.
         if (isOngoingInAppMessagePresent()) {
             displayCachedOngoingInApp();
         } else {
@@ -81,13 +82,17 @@ public class InAppManager {
             String oldName = mActivity.getLocalClassName();
             String newName = activity.getLocalClassName();
             if (!oldName.equals(newName)) {
+                // we don't need to re-display the in-app if we were moved to a new page
+                // so we should clean the cached in-app message
                 cleanUpOngoingInAppCache();
                 return;
             }
         }
 
-        // unregistering when in-app is in display, need to cache this for display again
-        // if orientation changes
+        // unregistering when in-app is in display, I am assuming this will only happen if
+        // you are moving to a new page with the in-app in display. or you are changing the
+        // screen orientation and unregister got called automatically. for re-display, we
+        // need to cache the in-app message in display.
         if (mDialog != null && mDialog.isShowing()) {
             cacheOngoingInApp();
         }
@@ -615,6 +620,7 @@ public class InAppManager {
                 boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
                 mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
 
+                // dismiss happens when user interacts with the dialog
                 mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialogInterface) {
@@ -630,12 +636,16 @@ public class InAppManager {
                         );
                     }
                 });
+
+                // cancel happens when it gets cancelled by actions like tap on outside,
+                // back button press or programmatically cancelling
                 mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialogInterface) {
                         InAppManager.cleanUpOngoingInAppCache();
                     }
                 });
+
                 mDialog.show();
 
                 Window window = mDialog.getWindow();
