@@ -153,18 +153,20 @@ public abstract class InAppMessageView extends RelativeLayout {
                         try {
                             boolean isModal = InAppUtils.isModal(inAppMessage);
                             if (isModal) {
+                                int modalWidth = lp.width > 0 ? lp.width : getMeasuredWidth();
+                                int modalHeight = lp.height > 0 ? lp.height : getMeasuredHeight();
                                 // image background will be at position 0 if available
                                 View view = getChildAt(0);
                                 if (view instanceof ImageView) {
                                     // background image added, now we need to match it with the size
-                                    setViewDimensionsToMatchParent(view, getMeasuredWidth(), getMeasuredHeight());
+                                    setViewDimensionsToMatchParent(view, modalWidth, modalHeight);
 
                                     if (getChildCount() > 1) {
                                         View contentView = getChildAt(1);
-                                        setViewDimensionsToMatchParent(contentView, getMeasuredWidth(), getMeasuredHeight());
+                                        setViewDimensionsToMatchParent(contentView, modalWidth, modalHeight);
                                     }
                                 } else if (view instanceof ViewGroup) {
-                                    setViewDimensionsToMatchParent(view, getMeasuredWidth(), getMeasuredHeight());
+                                    setViewDimensionsToMatchParent(view, modalWidth, modalHeight);
                                 }
                             }
                         } catch (Exception e) {
