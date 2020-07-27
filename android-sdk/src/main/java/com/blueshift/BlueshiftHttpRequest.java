@@ -5,6 +5,8 @@ import android.util.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Iterator;
 
 public class BlueshiftHttpRequest {
@@ -52,7 +54,16 @@ public class BlueshiftHttpRequest {
                         builder.append("&");
                     }
 
-                    builder.append(key).append("=").append(val);
+                    String strVal = String.valueOf(val);
+                    String encVal = null;
+
+                    try {
+                        encVal = URLEncoder.encode(strVal, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        BlueshiftLogger.e(TAG, e);
+                    }
+
+                    builder.append(key).append("=").append(encVal != null ? encVal : val);
                 }
             }
 
