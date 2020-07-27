@@ -39,6 +39,8 @@ public class BlueshiftHttpRequest {
     }
 
     public String getUrlWithParams() {
+        String finalUrl = url;
+
         if (url != null && urlParamsJson != null) {
             StringBuilder builder = new StringBuilder();
             boolean first = true;
@@ -67,10 +69,10 @@ public class BlueshiftHttpRequest {
                 }
             }
 
-            url += builder.toString();
+            finalUrl += builder.toString();
         }
 
-        return url;
+        return finalUrl;
     }
 
     public static class Builder {
