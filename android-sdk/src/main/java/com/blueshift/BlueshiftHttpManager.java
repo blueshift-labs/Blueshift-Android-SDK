@@ -68,30 +68,51 @@ public class BlueshiftHttpManager {
                         }
                     }
                 }
-
-                try {
-                    BlueshiftJSONObject logger = new BlueshiftJSONObject();
-                    logger.putOpt("url", request.getUrlWithParams());
-                    logger.putOpt("method", request.getMethod());
-                    logger.putOpt("body", request.getReqBodyJson());
-                    BlueshiftLogger.i(TAG, logger.toString());
-                } catch (JSONException e) {
-                    BlueshiftLogger.e(TAG, e);
-                }
             }
 
             BlueshiftHttpResponse response = builder.build();
 
+            // log request details for debugging purposes
+            logRequest(request);
+            logResponse(response);
+
+            return response;
+        }
+    }
+
+    private void logRequest(BlueshiftHttpRequest request) {
+        if (request != null) {
             try {
-                BlueshiftJSONObject logger = new BlueshiftJSONObject();
-                logger.putOpt("status", response.getCode());
-                logger.putOpt("response", new JSONObject(response.getBody()));
+                JSONObject logger = new JSONObject();
+                logger.putOpt("url", request.getUrlWithParams());
+                logger.putOpt("method", request.getMethod());
+                logger.putOpt("body", request.getReqBodyJson());
+
                 BlueshiftLogger.i(TAG, logger.toString());
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
+        }
+    }
 
-            return response;
+    private void logResponse(BlueshiftHttpResponse response) {
+        if (response != null) {
+            JSONObject logger = new JSONObject();
+            try {
+                logger.putOpt("status", response.getCode());
+            } catch (JSONException ignored) {
+            }
+
+            try {
+                logger.putOpt("response", new JSONObject(response.getBody()));
+            } catch (JSONException e) {
+                try {
+                    logger.putOpt("response", response.getBody());
+                } catch (JSONException ignored) {
+                }
+            }
+
+            BlueshiftLogger.i(TAG, logger.toString());
         }
     }
 
