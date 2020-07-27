@@ -16,80 +16,84 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class BlueshiftHttpManager {
     private static final String TAG = "BlueshiftHttpManager";
+    private static final Boolean lock = true;
     private static BlueshiftHttpManager instance = null;
 
     private BlueshiftHttpManager() {
     }
 
     public static BlueshiftHttpManager getInstance() {
-        if (instance == null) instance = new BlueshiftHttpManager();
-        return instance;
+        synchronized (lock) {
+            if (instance == null) instance = new BlueshiftHttpManager();
+            return instance;
+        }
     }
 
     public BlueshiftHttpResponse send(BlueshiftHttpRequest request) {
-        BlueshiftHttpResponse.Builder builder = new BlueshiftHttpResponse.Builder();
+        synchronized (lock) {
+            BlueshiftHttpResponse.Builder builder = new BlueshiftHttpResponse.Builder();
 
-        if (request != null) {
-            HttpsURLConnection connection = null;
-            try {
-                // open connection
-                connection = openConnection(request.getUrlWithParams());
+            if (request != null) {
+                HttpsURLConnection connection = null;
+                try {
+                    // open connection
+                    connection = openConnection(request.getUrlWithParams());
 
-                // set method
-                connection.setRequestMethod(request.getMethod().name());
+                    // set method
+                    connection.setRequestMethod(request.getMethod().name());
 
-                // add req headers
-                connection = addHeaders(connection, request.getReqHeaderJson());
+                    // add req headers
+                    connection = addHeaders(connection, request.getReqHeaderJson());
 
-                // write body
-                connection = writeReqBody(connection, request.getReqBodyJson());
+                    // write body
+                    connection = writeReqBody(connection, request.getReqBodyJson());
 
-                // get response code
-                int responseCode = connection.getResponseCode();
-                builder.setCode(responseCode);
+                    // get response code
+                    int responseCode = connection.getResponseCode();
+                    builder.setCode(responseCode);
 
-                // get response body
-                String responseBody = readResponseBody(connection);
-                builder.setBody(responseBody);
+                    // get response body
+                    String responseBody = readResponseBody(connection);
+                    builder.setBody(responseBody);
 
-                connection.disconnect();
-            } catch (IOException e) {
-                BlueshiftLogger.e(TAG, e);
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (Exception e) {
-                        // BlueshiftLogger.e(TAG, e);
+                    connection.disconnect();
+                } catch (IOException e) {
+                    BlueshiftLogger.e(TAG, e);
+                } finally {
+                    if (connection != null) {
+                        try {
+                            connection.disconnect();
+                        } catch (Exception ignored) {
+
+                        }
                     }
+                }
+
+                try {
+                    BlueshiftJSONObject logger = new BlueshiftJSONObject();
+                    logger.putOpt("url", request.getUrlWithParams());
+                    logger.putOpt("method", request.getMethod());
+                    logger.putOpt("body", request.getReqBodyJson());
+                    BlueshiftLogger.i(TAG, logger.toString());
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(TAG, e);
                 }
             }
 
+            BlueshiftHttpResponse response = builder.build();
+
             try {
                 BlueshiftJSONObject logger = new BlueshiftJSONObject();
-                logger.putOpt("url", request.getUrlWithParams());
-                logger.putOpt("method", request.getMethod());
-                logger.putOpt("body", request.getReqBodyJson());
+                logger.putOpt("status", response.getCode());
+                logger.putOpt("response", new JSONObject(response.getBody()));
                 BlueshiftLogger.i(TAG, logger.toString());
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
+
+            return response;
         }
-
-        BlueshiftHttpResponse response = builder.build();
-
-        try {
-            BlueshiftJSONObject logger = new BlueshiftJSONObject();
-            logger.putOpt("status", response.getCode());
-            logger.putOpt("response", new JSONObject(response.getBody()));
-            BlueshiftLogger.i(TAG, logger.toString());
-        } catch (JSONException e) {
-            BlueshiftLogger.e(TAG, e);
-        }
-
-        return response;
     }
-
 
     private HttpsURLConnection openConnection(String url) throws IOException {
         return (HttpsURLConnection) new URL(url).openConnection();
