@@ -12,6 +12,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
@@ -56,13 +57,19 @@ public class InAppMessageViewHTML extends InAppMessageView {
         InAppActionCallback actionCallback = InAppManager.getActionCallback();
         if (actionCallback != null) {
             try {
+                String link = uri.toString();
+
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put(InAppConstants.ANDROID_LINK, uri.toString());
+                jsonObject.put(InAppConstants.ANDROID_LINK, link);
                 actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
-                onDismiss(getInAppMessage(), uri.toString());
+
+                JSONObject statsParams = getClickStatsJSONObject(null);
+                statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
+
+                onDismiss(getInAppMessage(), statsParams);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
+                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
             }
         } else {
             openUri(uri);
@@ -72,17 +79,22 @@ public class InAppMessageViewHTML extends InAppMessageView {
     private void openUri(Uri uri) {
         try {
             if (uri != null) {
-                BlueshiftLogger.d(TAG, "URL: " + uri.toString());
+                String link = uri.toString();
+
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(uri);
                 getContext().startActivity(intent);
-                onDismiss(getInAppMessage(), uri.toString());
+
+                JSONObject statsParams = getClickStatsJSONObject(null);
+                statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
+
+                onDismiss(getInAppMessage(), statsParams);
             } else {
-                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
+                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
-            onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
+            onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
         }
     }
 
@@ -96,7 +108,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
+                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
             }
 
             return true;
@@ -109,7 +121,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 launchUri(uri);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
+                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
             }
 
             return true;

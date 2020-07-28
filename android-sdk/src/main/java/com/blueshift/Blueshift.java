@@ -47,6 +47,10 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
 
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -556,7 +560,12 @@ public class Blueshift {
             Iterator<Map.Entry<String, Object>> iterator = params.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<String, Object> param = iterator.next();
-                bodyBuilder.append(param.getKey()).append('=').append(param.getValue());
+                String encVal = null;
+                try {
+                    encVal = URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8");
+                } catch (UnsupportedEncodingException ignored) {
+                }
+                bodyBuilder.append(param.getKey()).append('=').append(encVal);
                 if (iterator.hasNext()) {
                     bodyBuilder.append('&');
                 }
@@ -1130,12 +1139,16 @@ public class Blueshift {
         }
     }
 
-    public void trackInAppMessageClick(InAppMessage inAppMessage, String elementName) {
+    public void trackInAppMessageClick(InAppMessage inAppMessage, JSONObject extraJson) {
         if (inAppMessage != null) {
             // sending the element name to identify click
             HashMap<String, Object> extras = new HashMap<>();
-            if (elementName != null) {
-                extras.put(InAppConstants.EVENT_EXTRA_ELEMENT, elementName);
+            if (extraJson != null) {
+                Iterator<String> keys = extraJson.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    extras.put(key, extraJson.opt(key));
+                }
             }
 
             trackCampaignEventAsync(InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras);
@@ -1213,6 +1226,13 @@ public class Blueshift {
 
             // Add Sdk version to the params
             eventParams.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+            // Add device_id
+            eventParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getDeviceId(mContext));
+            // Add app_name
+            String pkgName = mContext != null ? mContext.getPackageName() : null;
+            if (pkgName != null) {
+                eventParams.put(BlueshiftConstants.KEY_APP_NAME, pkgName);
+            }
 
             // any extra info available
             if (extras != null) {
