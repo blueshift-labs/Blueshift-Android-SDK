@@ -324,7 +324,7 @@ public class Blueshift {
         BulkEventManager.scheduleBulkEventEnqueue(mContext);
         // fire an app open automatically if enabled
         if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)) {
-            trackAppOpen(true);
+            trackAppOpen(false);
         }
         // pull latest font from server
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
