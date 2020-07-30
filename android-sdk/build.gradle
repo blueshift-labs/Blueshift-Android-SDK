@@ -1,48 +1,35 @@
 apply plugin: 'com.android.library'
 
-// =================================================================================================
-// VARIABLES FOR BINTRAY
-// =================================================================================================
 ext {
-    bintrayRepo = 'maven'
-    bintrayName = 'android-sdk'
+    // sdkOrg = 'blueshift-labs'
+    sdkOrg = 'nipun'
+    sdkGroup = 'com.blueshift'
+    sdkArtifactName = 'android-sdk'
 
-    publishedGroupId = 'com.blueshift'
-    libraryName = 'Blueshift Android SDK'
-    artifact = 'android-sdk'
+    sdkVersion = '3.1.3.1-beta'
+    sdkVersionDesc = 'Blueshift Android SDK v' + sdkVersion
+    sdkVcsTag = sdkVersion
 
-    libraryDescription = 'Blueshift Android SDK to make it easier for marketers to integrate their mobile app with Blueshift’s near real-time event processing platform and send personalized rich push notifications to their customers.'
+    sdkName = 'Blueshift Android SDK'
+    sdkDesc = 'Blueshift Android SDK to make it easier for marketers to integrate their mobile app with Blueshift’s near real-time event processing platform and send personalized rich push notifications to their customers.'
+    sdkSite = 'https://github.com/blueshift-labs/Blueshift-Android-SDK'
+    sdkVcsUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
 
-    siteUrl = 'https://getblueshift.com/'
-    gitUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
-
-    libraryVersion = '3.1.3'
-
-    developerId = 'rahulrvp'
-    developerName = 'Rahul Raveendran V P'
-    developerEmail = 'rahul.pmna@gmail.com'
-
-    licenseName = 'MIT'
-    licenseUrl = 'https://opensource.org/licenses/MIT'
-    allLicenses = ["MIT"]
+    sdkDevId = 'rahulrvp'
+    sdkDevName = 'Rahul Raveendran V P'
+    sdkDevEmail = 'rahul.raveendran@blueshift.com'
 }
 
-// =================================================================================================
-// ANDROID
-// =================================================================================================
 android {
-    compileSdkVersion 29
-    buildToolsVersion "27.0.2"
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 28
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField 'String', 'SDK_VERSION', "\"$libraryVersion\""
+        buildConfigField 'String', 'SDK_VERSION', "\"$sdkVersion\""
     }
     buildTypes {
         release {
@@ -53,129 +40,103 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile 'com.android.support:appcompat-v7:27.1.1'
-    // for JSON parsing
-    compile 'com.google.code.gson:gson:2.8.2'
-    // for FCM
-    compile 'com.google.firebase:firebase-core:16.0.6'
-    compile 'com.google.firebase:firebase-messaging:17.3.4'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:28.0.0'
 
-    testCompile 'junit:junit:4.12'
+    // for JSON parsing
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    // for FCM
+    implementation 'com.google.firebase:firebase-core:16.0.6'
+    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+
+    testImplementation 'junit:junit:4.13'
 }
 
-// =================================================================================================
-// BINTRAY - The values are taken from ext {} block above. Edit that section when changes comes.
-// =================================================================================================
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier = 'sources'
+}
 
-// ********** Maven Install **********
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
 
-apply plugin: 'com.github.dcendents.android-maven'
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
 
-group = publishedGroupId                               // Maven Group ID for the artifact
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
 
-install {
-    repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
-        pom {
-            project {
-                packaging 'aar'
-                groupId publishedGroupId
-                artifactId artifact
+    publications = ['release']
 
-                // Add your description here
-                name libraryName
-                description libraryDescription
-                url siteUrl
+    pkg {
+        repo = 'maven'
+        name = sdkArtifactName
+        userOrg = sdkOrg
+        licenses = ['MIT']
+        vcsUrl = sdkVcsUrl
+        websiteUrl = sdkSite
+        desc = sdkDesc
+        publish = true
+        publicDownloadNumbers = true
 
-                // Set your license
-                licenses {
-                    license {
-                        name licenseName
-                        url licenseUrl
-                    }
-                }
-                developers {
-                    developer {
-                        id developerId
-                        name developerName
-                        email developerEmail
-                    }
-                }
-                scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
+        version {
+            name = sdkVersion
+            desc = sdkVersionDesc
+            released = new Date()
+            vcsTag = sdkVcsTag
 
-                }
+            gpg {
+                sign = true
+                passphrase = System.getenv('BINTRAY_GPG')
             }
         }
     }
 }
 
-// ********** Bintray Upload **********
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
 
-apply plugin: 'com.jfrog.bintray'
+                artifact sourcesJar
+                artifact javadocJar
 
-version = libraryVersion
+                // You can then customize attributes of the publication as shown below.
+                groupId = sdkGroup
+                artifactId = sdkArtifactName
+                version = sdkVersion
 
-if (project.hasProperty("android")) { // Android libraries
-    task sourcesJar(type: Jar) {
-        from android.sourceSets.main.java.srcDirs
-        classifier = 'sources'
-    }
-
-    task javadoc(type: Javadoc) {
-        source = android.sourceSets.main.java.srcDirs
-        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-        // todo: remove below line when fixes are applied for excluding external aars for javadoc.
-        // failOnError = false;
-    }
-} else { // Java libraries
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        from sourceSets.main.allSource
-        classifier = 'sources'
-    }
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-
-// Bintray
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-
-    configurations = ['archives']
-    pkg {
-        repo = bintrayRepo
-        name = bintrayName
-        desc = libraryDescription
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = allLicenses
-        publish = true
-        publicDownloadNumbers = true
-        version {
-            desc = libraryDescription
-            gpg {
-                sign = true // Determines whether to GPG sign the files. The default is false
-                passphrase = properties.getProperty("bintray.gpg.password")
-                // Optional. The passphrase for GPG signing'
+                pom {
+                    developers {
+                        developer {
+                            id = sdkDevId
+                            name = sdkDevName
+                            email = sdkDevEmail
+                        }
+                    }
+                }
             }
         }
     }
