@@ -6,8 +6,8 @@ ext {
     sdkGroup = 'com.blueshift'
     sdkArtifactName = 'android-sdk'
 
-    sdkVersion = '3.1.3-beta'
-    sdkVersionDesc = 'Blueshift Android SDK '+ sdkVersion
+    sdkVersion = '3.1.3.1-beta'
+    sdkVersionDesc = 'Blueshift Android SDK v' + sdkVersion
     sdkVcsTag = sdkVersion
 
     sdkName = 'Blueshift Android SDK'
@@ -93,6 +93,10 @@ bintray {
         userOrg = sdkOrg
         licenses = ['MIT']
         vcsUrl = sdkVcsUrl
+        websiteUrl = sdkSite
+        desc = sdkDesc
+        publish = true
+        publicDownloadNumbers = true
 
         version {
             name = sdkVersion
