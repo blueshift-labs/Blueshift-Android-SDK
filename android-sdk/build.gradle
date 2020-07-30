@@ -51,8 +51,10 @@ dependencies {
     // for JSON parsing
     implementation 'com.google.code.gson:gson:2.8.6'
 
-    // for FCM
+    // for FCM (using the last versions that supports com.android.support libs)
+    //noinspection GradleDependency
     implementation 'com.google.firebase:firebase-core:16.0.6'
+    //noinspection GradleDependency
     implementation 'com.google.firebase:firebase-messaging:17.3.4'
 
     testImplementation 'junit:junit:4.13'
