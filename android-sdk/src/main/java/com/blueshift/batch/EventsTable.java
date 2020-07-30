@@ -182,7 +182,7 @@ public class EventsTable extends BaseSqliteTable<Event> {
                 BlueshiftLogger.e(LOG_TAG, e);
                 // return null to make sure no data is being sent to server and crash
                 // is not leading to any data leakage.
-                return null;
+                return new ArrayList<>(0);
             }
         }
     }
