@@ -79,12 +79,12 @@ public class RequestQueue {
         markQueueAvailable();
     }
 
-    public synchronized static RequestQueue getInstance() {
-        if (mInstance == null) {
-            mInstance = new RequestQueue();
-        }
+    public static RequestQueue getInstance() {
+        synchronized (lock) {
+            if (mInstance == null) mInstance = new RequestQueue();
 
-        return mInstance;
+            return mInstance;
+        }
     }
 
     public void add(Context context, Request request) {

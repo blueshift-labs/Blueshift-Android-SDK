@@ -18,7 +18,6 @@ import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.BuildConfig;
 import com.blueshift.inappmessage.InAppApiCallback;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -35,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -203,9 +203,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     private void handleDataMessage(Context context, Map<String, String> data) {
         if (data != null) {
-            if (BuildConfig.DEBUG) {
-                logPayload(data);
-            }
+            logPayload(data);
 
             if (isBlueshiftPushNotification(data)) {
                 processPushNotification(context, data);
@@ -374,16 +372,19 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
     private void logPayload(Map<String, String> map) {
         if (map != null) {
-            try {
-                Set<String> keySet = map.keySet();
-                JSONObject jsonObject = new JSONObject();
-                for (String key : keySet) {
-                    jsonObject.put(key, map.get(key));
+            JSONObject json = new JSONObject();
+            for (Map.Entry<String, String> item : map.entrySet()) {
+                if (item != null) {
+                    try {
+                        json.putOpt(item.getKey(), item.getValue());
+                    } catch (JSONException ignored) {
+                    }
                 }
+            }
 
-                BlueshiftLogger.d(LOG_TAG, "Push payload received:" +
-                        "\n" + jsonObject.toString(2));
-            } catch (Exception e) {
+            try {
+                BlueshiftLogger.d(LOG_TAG, "\n" + json.toString(2));
+            } catch (JSONException e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
         }
