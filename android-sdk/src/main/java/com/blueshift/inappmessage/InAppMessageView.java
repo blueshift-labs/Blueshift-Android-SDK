@@ -550,7 +550,7 @@ public abstract class InAppMessageView extends RelativeLayout {
             for (int i = 0; i < actions.length(); i++) {
                 try {
                     JSONObject actionObject = actions.getJSONObject(i);
-                    Button actionBtn = getActionButton(actionObject, "button_" + i);
+                    Button actionBtn = getActionButton(actionObject, BlueshiftConstants.BTN_(i));
                     if (actionBtn != null) {
                         LinearLayout.LayoutParams lp;
                         if (actionsRootView.getOrientation() == LinearLayout.VERTICAL) {

@@ -142,4 +142,8 @@ public class BlueshiftConstants {
 
     // Universal links
     public static final String KEY_REDIR = "redir";
+
+    public static String BTN_(int index) {
+        return "btn_" + index;
+    }
 }
