@@ -39,6 +39,7 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -49,8 +50,6 @@ import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -1044,7 +1043,18 @@ public class Blueshift {
             if (message.getBsftSeedListSend()) {
                 BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
             } else {
-                trackNotificationClick(message.getId(), message.getCampaignAttr());
+                HashMap<String, Object> eventParams = new HashMap<>();
+                if (message.getId() != null)
+                    eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, message.getId());
+                if (message.getCampaignAttr() != null)
+                    eventParams.putAll(message.getCampaignAttr());
+
+                HashMap<String, Object> extras = new HashMap<>();
+                if (message.isDeepLinkingEnabled()) {
+                    extras.put(BlueshiftConstants.KEY_CLICK_URL, NetworkUtils.encodeUrlParam(message.getDeepLinkUrl()));
+                }
+
+                trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, extras);
             }
         } else {
             BlueshiftLogger.e(LOG_TAG, "No message available");
