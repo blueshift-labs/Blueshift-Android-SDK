@@ -27,6 +27,7 @@ import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
+import com.blueshift.util.NetworkUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -110,7 +111,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         closeButtonView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                onDismiss(inAppMessage, getClickStatsJSONObject(InAppConstants.ACTION_CLOSE));
+                onDismiss(inAppMessage, getClickStatsJSONObject(InAppConstants.BTN_CLOSE));
             }
         });
 
@@ -255,7 +256,11 @@ public abstract class InAppMessageView extends RelativeLayout {
                 // add additional params for analytics
                 JSONObject statsParams = getClickStatsJSONObject(element);
                 String androidLink = actionJson.optString(InAppConstants.ANDROID_LINK);
-                statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, androidLink);
+                if (!TextUtils.isEmpty(androidLink)) {
+                    statsParams.putOpt(
+                            BlueshiftConstants.KEY_CLICK_URL,
+                            NetworkUtils.encodeUrlParam(androidLink));
+                }
 
                 if (InAppManager.getActionCallback() != null) {
                     // user has overridden the clicks by setting an action callback.

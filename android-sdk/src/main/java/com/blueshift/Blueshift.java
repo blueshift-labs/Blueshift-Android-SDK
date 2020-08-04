@@ -559,13 +559,8 @@ public class Blueshift {
         if (params != null) {
             Iterator<Map.Entry<String, Object>> iterator = params.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<String, Object> param = iterator.next();
-                String encVal = null;
-                try {
-                    encVal = URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8");
-                } catch (UnsupportedEncodingException ignored) {
-                }
-                bodyBuilder.append(param.getKey()).append('=').append(encVal);
+                Map.Entry<String, Object> item = iterator.next();
+                bodyBuilder.append(item.getKey()).append('=').append(item.getValue());
                 if (iterator.hasNext()) {
                     bodyBuilder.append('&');
                 }

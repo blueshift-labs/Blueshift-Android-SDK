@@ -17,7 +17,9 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
+import com.blueshift.util.NetworkUtils;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -55,46 +57,56 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
     private void launchUri(Uri uri) {
         InAppActionCallback actionCallback = InAppManager.getActionCallback();
-        if (actionCallback != null) {
+        if (actionCallback != null && uri != null) {
+            String link = uri.toString();
+
+            JSONObject statsParams = getClickStatsJSONObject(null);
             try {
-                String link = uri.toString();
-
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put(InAppConstants.ANDROID_LINK, link);
-                actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
-
-                JSONObject statsParams = getClickStatsJSONObject(null);
-                statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
-
-                onDismiss(getInAppMessage(), statsParams);
-            } catch (Exception e) {
-                BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
+                if (!TextUtils.isEmpty(link)) {
+                    statsParams.putOpt(
+                            BlueshiftConstants.KEY_CLICK_URL,
+                            NetworkUtils.encodeUrlParam(link));
+                }
+            } catch (JSONException ignore) {
             }
+
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put(InAppConstants.ANDROID_LINK, link);
+            } catch (JSONException ignored) {
+            }
+            actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
+
+            onDismiss(getInAppMessage(), statsParams);
         } else {
             openUri(uri);
         }
     }
 
     private void openUri(Uri uri) {
-        try {
-            if (uri != null) {
-                String link = uri.toString();
-
+        if (uri != null) {
+            try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(uri);
                 getContext().startActivity(intent);
-
-                JSONObject statsParams = getClickStatsJSONObject(null);
-                statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
-
-                onDismiss(getInAppMessage(), statsParams);
-            } else {
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
             }
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
-            onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
+
+            JSONObject statsParams = getClickStatsJSONObject(null);
+            try {
+                String link = uri.toString();
+                if (!TextUtils.isEmpty(link)) {
+                    statsParams.putOpt(
+                            BlueshiftConstants.KEY_CLICK_URL,
+                            NetworkUtils.encodeUrlParam(link));
+                }
+            } catch (JSONException ignored) {
+            }
+
+            onDismiss(getInAppMessage(), statsParams);
+        } else {
+            onDismiss(getInAppMessage(), null);
         }
     }
 
@@ -108,7 +120,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
+                onDismiss(getInAppMessage(), getClickStatsJSONObject(null));
             }
 
             return true;
@@ -121,7 +133,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 launchUri(uri);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_DISMISS));
+                onDismiss(getInAppMessage(), getClickStatsJSONObject(null));
             }
 
             return true;

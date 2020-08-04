@@ -101,8 +101,8 @@ public class BlueshiftConstants {
     public static final String KEY_SUBSCRIPTION_STATUS = "subscription_status";
     public static final String KEY_TIMESTAMP = "timestamp";
     public static final String KEY_SDK_VERSION = "bsft_sdk_version";
-    public static final String KEY_CLICK_URL = "bsft_click_url";
-    public static final String KEY_CLICK_ELEMENT = "bsft_click_element";
+    public static final String KEY_CLICK_URL = "clk_url";
+    public static final String KEY_CLICK_ELEMENT = "clk_elmt";
     public static final String KEY_UID = "uid";
     public static final String KEY_MID = "mid";
     public static final String KEY_EID = "eid";
