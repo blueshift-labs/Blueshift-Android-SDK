@@ -513,8 +513,8 @@ public class InAppManager {
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    invokeDismissButtonClick(inAppMessage, elementName);
+                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
+                    invokeDismissButtonClick(inAppMessage, extras);
                 }
             };
 
@@ -527,8 +527,8 @@ public class InAppManager {
     private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    invokeDismissButtonClick(inAppMessage, elementName);
+                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
+                    invokeDismissButtonClick(inAppMessage, extras);
                 }
             };
 
@@ -542,8 +542,8 @@ public class InAppManager {
         if (context != null && inAppMessage != null) {
             InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                 @Override
-                public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    invokeDismissButtonClick(inAppMessage, elementName);
+                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
+                    invokeDismissButtonClick(inAppMessage, extras);
                 }
             };
 
@@ -556,8 +556,8 @@ public class InAppManager {
     private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, String elementName) {
-                    invokeDismissButtonClick(inAppMessage, elementName);
+                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
+                    invokeDismissButtonClick(inAppMessage, extras);
                 }
             };
 
@@ -577,7 +577,7 @@ public class InAppManager {
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft, dimAmount);
     }
 
-    private static void invokeDismissButtonClick(InAppMessage inAppMessage, String elementName) {
+    private static void invokeDismissButtonClick(InAppMessage inAppMessage, JSONObject extras) {
         // use app context to avoid leaks on this activity
         Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
         // reschedule next in-app here as the dialog callbacks are going to get removed in cleanup
@@ -589,7 +589,7 @@ public class InAppManager {
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
         // log the click event
-        Blueshift.getInstance(appContext).trackInAppMessageClick(inAppMessage, elementName);
+        Blueshift.getInstance(appContext).trackInAppMessageClick(inAppMessage, extras);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
