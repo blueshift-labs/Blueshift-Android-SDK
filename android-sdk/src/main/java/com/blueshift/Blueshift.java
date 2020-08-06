@@ -558,8 +558,8 @@ public class Blueshift {
         if (params != null) {
             Iterator<Map.Entry<String, Object>> iterator = params.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<String, Object> item = iterator.next();
-                bodyBuilder.append(item.getKey()).append('=').append(item.getValue());
+                Map.Entry<String, Object> param = iterator.next();
+                bodyBuilder.append(param.getKey()).append('=').append(param.getValue());
                 if (iterator.hasNext()) {
                     bodyBuilder.append('&');
                 }
