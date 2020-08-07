@@ -39,7 +39,6 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
-import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -1038,23 +1037,25 @@ public class Blueshift {
         trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, null);
     }
 
+    public void trackNotificationClick(Message message, HashMap<String, Object> extras) {
+        if (message != null) {
+            if (message.getBsftSeedListSend()) {
+                BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
+            } else {
+                HashMap<String, Object> params = new HashMap<>();
+                params.put(Message.EXTRA_BSFT_MESSAGE_UUID, message.getId());
+                if (message.isCampaignPush()) params.putAll(message.getCampaignAttr());
+                trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_CLICK, params, extras);
+            }
+        }
+    }
+
     public void trackNotificationClick(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
                 BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
             } else {
-                HashMap<String, Object> eventParams = new HashMap<>();
-                if (message.getId() != null)
-                    eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, message.getId());
-                if (message.getCampaignAttr() != null)
-                    eventParams.putAll(message.getCampaignAttr());
-
-                HashMap<String, Object> extras = new HashMap<>();
-                if (message.isDeepLinkingEnabled()) {
-                    extras.put(BlueshiftConstants.KEY_CLICK_URL, NetworkUtils.encodeUrlParam(message.getDeepLinkUrl()));
-                }
-
-                trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, extras);
+                trackNotificationClick(message.getId(), message.getCampaignAttr());
             }
         } else {
             BlueshiftLogger.e(LOG_TAG, "No message available");
