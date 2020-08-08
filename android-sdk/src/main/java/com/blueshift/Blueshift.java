@@ -39,6 +39,7 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -1207,45 +1208,81 @@ public class Blueshift {
         }
     }
 
-    private boolean sendNotificationEvent(String eventName, HashMap<String, Object> campaignParams, HashMap<String, Object> extras) {
+    private void appendAnd(StringBuilder builder) {
+        if (builder != null && builder.length() > 0) {
+            builder.append("&");
+        }
+    }
+
+    private boolean sendNotificationEvent(String action, HashMap<String, Object> campaignParams, HashMap<String, Object> extras) {
         if (campaignParams != null) {
-            HashMap<String, Object> eventParams = new HashMap<>();
-            eventParams.put(BlueshiftConstants.KEY_ACTION, eventName);
-            eventParams.put(BlueshiftConstants.KEY_UID, campaignParams.get(Message.EXTRA_BSFT_USER_UUID));
-            eventParams.put(BlueshiftConstants.KEY_EID, campaignParams.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
+            StringBuilder q = new StringBuilder();
 
-            Object txnUuidObj = campaignParams.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
-            if (txnUuidObj != null) {
-                String txnUuid = (String) txnUuidObj;
-                if (!TextUtils.isEmpty(txnUuid)) {
-                    eventParams.put(BlueshiftConstants.KEY_TXNID, txnUuid);
-                }
+            if (action != null) q.append(BlueshiftConstants.KEY_ACTION).append("=").append(action);
+
+            Object uid = campaignParams.get(Message.EXTRA_BSFT_USER_UUID);
+            if (uid != null) {
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_UID).append("=").append(uid);
             }
 
-            Object msgUuidObj = campaignParams.get(Message.EXTRA_BSFT_MESSAGE_UUID);
-            if (msgUuidObj != null) {
-                String messageUuid = (String) msgUuidObj;
-                if (!TextUtils.isEmpty(messageUuid)) {
-                    eventParams.put(BlueshiftConstants.KEY_MID, messageUuid);
-                }
+            Object eid = campaignParams.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
+            if (eid != null) {
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_EID).append("=").append(eid);
             }
 
-            // Add Sdk version to the params
-            eventParams.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
-            // Add device_id
-            eventParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getDeviceId(mContext));
-            // Add app_name
+            Object tid = campaignParams.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
+            if (tid != null) {
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_TXNID).append("=").append(tid);
+            }
+
+            Object mid = campaignParams.get(Message.EXTRA_BSFT_MESSAGE_UUID);
+            if (mid != null) {
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_MID).append("=").append(mid);
+            }
+
+            appendAnd(q);
+            q.append(BlueshiftConstants.KEY_SDK_VERSION).append("=").append(BuildConfig.SDK_VERSION);
+
+            String dId = DeviceUtils.getDeviceId(mContext);
+            if (dId != null) {
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_DEVICE_IDENTIFIER).append("=").append(dId);
+            }
+
             String pkgName = mContext != null ? mContext.getPackageName() : null;
             if (pkgName != null) {
-                eventParams.put(BlueshiftConstants.KEY_APP_NAME, pkgName);
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_APP_NAME).append("=").append(pkgName);
             }
 
-            // any extra info available
-            if (extras != null) {
-                eventParams.putAll(extras);
+            if (extras != null && extras.size() > 0) {
+                String clickUrl = null;
+                Set<String> keys = extras.keySet();
+                for (String key : keys) {
+                    if (key != null && key.equals(BlueshiftConstants.KEY_CLICK_URL)) {
+                        // there is a click url inside the params, we need to push it to the end
+                        clickUrl = String.valueOf(extras.get(key));
+                    } else {
+                        Object val = extras.get(key);
+                        if (val != null) {
+                            appendAnd(q);
+                            q.append(key).append("=").append(val);
+                        }
+                    }
+                }
+
+                if (clickUrl != null) {
+                    appendAnd(q);
+                    String encodedUrl = NetworkUtils.encodeUrlParam(clickUrl);
+                    q.append(BlueshiftConstants.KEY_CLICK_URL).append("=").append(encodedUrl);
+                }
             }
 
-            String paramsUrl = getUrlParams(eventParams);
+            String paramsUrl = q.toString();
             if (!TextUtils.isEmpty(paramsUrl)) {
                 String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + paramsUrl;
 
