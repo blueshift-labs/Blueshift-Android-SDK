@@ -1263,14 +1263,16 @@ public class Blueshift {
                 String clickUrl = null;
                 Set<String> keys = extras.keySet();
                 for (String key : keys) {
-                    if (key != null && key.equals(BlueshiftConstants.KEY_CLICK_URL)) {
-                        // there is a click url inside the params, we need to push it to the end
-                        clickUrl = String.valueOf(extras.get(key));
-                    } else {
-                        Object val = extras.get(key);
-                        if (val != null) {
-                            appendAnd(q);
-                            q.append(key).append("=").append(val);
+                    if (key != null) {
+                        if (key.equals(BlueshiftConstants.KEY_CLICK_URL)) {
+                            // there is a click url inside the params, we need to push it to the end
+                            clickUrl = String.valueOf(extras.get(key));
+                        } else {
+                            Object val = extras.get(key);
+                            if (val != null) {
+                                appendAnd(q);
+                                q.append(key).append("=").append(val);
+                            }
                         }
                     }
                 }
