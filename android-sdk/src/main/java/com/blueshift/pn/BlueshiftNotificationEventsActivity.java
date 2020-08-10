@@ -52,7 +52,7 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
                 try {
                     HashMap<String, Object> clickAttr = new HashMap<>();
                     String deepLink = extraBundle.getString(RichPushConstants.EXTRA_DEEP_LINK_URL);
-                    clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, NetworkUtils.encodeUrlParam(deepLink));
+                    clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, deepLink);
 
                     // mark 'click'
                     Blueshift.getInstance(this).trackNotificationClick(message, clickAttr);
