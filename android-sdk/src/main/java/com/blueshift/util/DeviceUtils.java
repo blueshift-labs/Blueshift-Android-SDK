@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.WorkerThread;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftLogger;
@@ -30,6 +31,12 @@ import java.util.Enumeration;
  */
 public class DeviceUtils {
     private static final String LOG_TAG = DeviceUtils.class.getSimpleName();
+
+    private static String customDeviceId;
+
+    public static void setCustomDeviceId(String deviceId) {
+        customDeviceId = deviceId;
+    }
 
     public static String getSIMOperatorName(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -92,6 +99,12 @@ public class DeviceUtils {
                         BlueshiftLogger.e(LOG_TAG, "Could not build \"instance id - pkg name\" combo.");
                         BlueshiftLogger.e(LOG_TAG, e);
                     }
+                    break;
+                case CUSTOM:
+                    if (TextUtils.isEmpty(customDeviceId)) {
+                        BlueshiftLogger.e(LOG_TAG, "Custom device id is not provided!");
+                    }
+                    deviceId = customDeviceId;
                     break;
                 default:
                     // ADVERTISING_ID & Others
