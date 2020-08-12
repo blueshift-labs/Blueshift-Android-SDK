@@ -32,12 +32,6 @@ import java.util.Enumeration;
 public class DeviceUtils {
     private static final String LOG_TAG = DeviceUtils.class.getSimpleName();
 
-    private static String customDeviceId;
-
-    public static void setCustomDeviceId(String deviceId) {
-        customDeviceId = deviceId;
-    }
-
     public static String getSIMOperatorName(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (telephonyManager != null) {
@@ -101,10 +95,10 @@ public class DeviceUtils {
                     }
                     break;
                 case CUSTOM:
-                    if (TextUtils.isEmpty(customDeviceId)) {
+                    deviceId = configuration.getCustomDeviceId();
+                    if (TextUtils.isEmpty(deviceId)) {
                         BlueshiftLogger.e(LOG_TAG, "Custom device id is not provided!");
                     }
-                    deviceId = customDeviceId;
                     break;
                 default:
                     // ADVERTISING_ID & Others
