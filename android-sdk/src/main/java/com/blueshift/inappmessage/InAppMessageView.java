@@ -137,8 +137,8 @@ public abstract class InAppMessageView extends RelativeLayout {
 
                         float wPercentage = inAppMessage.getTemplateWidth(getContext());
                         if (wPercentage > 0) {
-                            int horizontalMargn = (lp.leftMargin + lp.rightMargin);
-                            lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargn);
+                            int horizontalMargin = (lp.leftMargin + lp.rightMargin);
+                            lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargin);
                         } else {
                             lp.width = (int) wPercentage;
                         }
