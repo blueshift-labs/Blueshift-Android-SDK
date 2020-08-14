@@ -68,8 +68,6 @@ public abstract class InAppMessageView extends RelativeLayout {
         if (showCloseButton) {
             addCloseButton(inAppMessage);
         }
-
-        applyTemplateDimensions(inAppMessage);
     }
 
     private void addBackgroundImageView() {
@@ -116,78 +114,6 @@ public abstract class InAppMessageView extends RelativeLayout {
         });
 
         addView(closeButtonView, lp);
-    }
-
-    private void applyTemplateDimensions(final InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) getLayoutParams();
-                    if (lp != null) {
-                        Rect margins = inAppMessage.getTemplateMargin(getContext());
-                        if (margins != null) {
-                            lp.leftMargin = CommonUtils.dpToPx(margins.left, getContext());
-                            lp.topMargin = CommonUtils.dpToPx(margins.top, getContext());
-                            lp.rightMargin = CommonUtils.dpToPx(margins.right, getContext());
-                            lp.bottomMargin = CommonUtils.dpToPx(margins.bottom, getContext());
-                        }
-
-                        DisplayMetrics metrics = getResources().getDisplayMetrics();
-
-                        float wPercentage = inAppMessage.getTemplateWidth(getContext());
-                        if (wPercentage > 0) {
-                            int horizontalMargin = (lp.leftMargin + lp.rightMargin);
-                            lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargin);
-                        } else {
-                            lp.width = (int) wPercentage;
-                        }
-
-                        float hPercentage = inAppMessage.getTemplateHeight(getContext());
-                        if (hPercentage > 0) {
-                            int verticalMargin = lp.topMargin + lp.bottomMargin;
-                            lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
-                        } else {
-                            lp.height = (int) hPercentage;
-                        }
-
-                        lp.gravity = Gravity.CENTER;
-
-                        try {
-                            boolean isModal = InAppUtils.isModal(inAppMessage);
-                            if (isModal) {
-                                int modalWidth = lp.width > 0 ? lp.width : getMeasuredWidth();
-                                int modalHeight = lp.height > 0 ? lp.height : getMeasuredHeight();
-                                // image background will be at position 0 if available
-                                View view = getChildAt(0);
-                                if (view instanceof ImageView) {
-                                    // background image added, now we need to match it with the size
-                                    setViewDimensionsToMatchParent(view, modalWidth, modalHeight);
-
-                                    if (getChildCount() > 1) {
-                                        View contentView = getChildAt(1);
-                                        setViewDimensionsToMatchParent(contentView, modalWidth, modalHeight);
-                                    }
-                                } else if (view instanceof ViewGroup) {
-                                    setViewDimensionsToMatchParent(view, modalWidth, modalHeight);
-                                }
-                            }
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(TAG, e);
-                        }
-
-                        setLayoutParams(lp);
-                    }
-                }
-            });
-        }
-    }
-
-    private void setViewDimensionsToMatchParent(View view, int width, int height) {
-        if (view != null && view.getLayoutParams() != null) {
-            view.getLayoutParams().width = width;
-            view.getLayoutParams().height = height;
-        }
     }
 
     public InAppMessage getInAppMessage() {

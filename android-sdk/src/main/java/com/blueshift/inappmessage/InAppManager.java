@@ -4,13 +4,17 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.WebView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
@@ -621,6 +625,83 @@ public class InAppManager {
         }
     }
 
+    private static void applyDimensionsToView(View view, int width, int height) {
+        if (view != null && view.getLayoutParams() != null) {
+            view.getLayoutParams().width = width;
+            view.getLayoutParams().height = height;
+        }
+    }
+
+    private static void adjustDimensionsForModal(final ViewGroup rootView) {
+        if (rootView != null) {
+            rootView.post(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            int modalWidth = rootView.getMeasuredWidth();
+                            int modalHeight = rootView.getMeasuredHeight();
+
+                            // image background will be at position 0 if available
+                            View view = rootView.getChildAt(0);
+                            if (view instanceof ImageView) {
+                                // background image added, now we need to match it with the size
+                                applyDimensionsToView(view, modalWidth, modalHeight);
+
+                                if (rootView.getChildCount() > 1) {
+                                    View contentView = rootView.getChildAt(1);
+                                    applyDimensionsToView(contentView, modalWidth, modalHeight);
+                                }
+                            } else if (view instanceof ViewGroup) {
+                                applyDimensionsToView(view, modalWidth, modalHeight);
+                            }
+                        }
+                    }
+            );
+        }
+    }
+
+    private static View applyTemplateStyle(View view, InAppMessage inAppMessage) {
+        Context context = view.getContext();
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        Rect margins = inAppMessage.getTemplateMargin(context);
+        if (margins != null) {
+            lp.leftMargin = CommonUtils.dpToPx(margins.left, context);
+            lp.topMargin = CommonUtils.dpToPx(margins.top, context);
+            lp.rightMargin = CommonUtils.dpToPx(margins.right, context);
+            lp.bottomMargin = CommonUtils.dpToPx(margins.bottom, context);
+        }
+
+        DisplayMetrics metrics = view.getResources().getDisplayMetrics();
+
+        float wPercentage = inAppMessage.getTemplateWidth(context);
+        if (wPercentage > 0) {
+            int horizontalMargin = (lp.leftMargin + lp.rightMargin);
+            lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargin);
+        } else {
+            lp.width = (int) wPercentage;
+        }
+
+        float hPercentage = inAppMessage.getTemplateHeight(context);
+        if (hPercentage > 0) {
+            int verticalMargin = lp.topMargin + lp.bottomMargin;
+            lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
+        } else {
+            lp.height = (int) hPercentage;
+        }
+
+        LinearLayout rootView = new LinearLayout(view.getContext());
+        rootView.addView(view, lp);
+
+        if (InAppUtils.isModal(inAppMessage)) {
+            if (view instanceof ViewGroup) adjustDimensionsForModal((ViewGroup) view);
+        }
+
+        return rootView;
+    }
+
     private static boolean buildAndShowAlertDialog(
             Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
         if (mActivity != null && !mActivity.isFinishing()) {
@@ -628,7 +709,7 @@ public class InAppManager {
                 final Context appContext = mActivity.getApplicationContext();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
-                builder.setView(content);
+                builder.setView(applyTemplateStyle(content, inAppMessage));
                 mDialog = builder.create();
 
                 boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
