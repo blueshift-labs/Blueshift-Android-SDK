@@ -663,6 +663,7 @@ public class InAppManager {
     private static View applyTemplateStyle(View view, InAppMessage inAppMessage) {
         Context context = view.getContext();
 
+        // The root view of dialog can not accept margins. hence adding a wrapper
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
