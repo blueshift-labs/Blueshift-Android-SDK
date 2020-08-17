@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.WorkerThread;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftLogger;
@@ -91,6 +92,12 @@ public class DeviceUtils {
                     } catch (Exception e) {
                         BlueshiftLogger.e(LOG_TAG, "Could not build \"instance id - pkg name\" combo.");
                         BlueshiftLogger.e(LOG_TAG, e);
+                    }
+                    break;
+                case CUSTOM:
+                    deviceId = configuration.getCustomDeviceId();
+                    if (TextUtils.isEmpty(deviceId)) {
+                        BlueshiftLogger.e(LOG_TAG, "Custom device id is not provided!");
                     }
                     break;
                 default:
