@@ -363,8 +363,14 @@ class RequestDispatcher {
 
                     BlueshiftLogger.d(LOG_TAG, "Adding failed request to failed events table");
 
-                    FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
-                    failedEventsTable.insert(event);
+                    try {
+                        FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
+                        failedEventsTable.insert(event);
+                    } catch (Exception e) {
+                        // could not add to failed requests. To avoid event drop, add it to
+                        // existing request queue instead of failed events.
+                        requestQueue.add(mContext, mRequest);
+                    }
                 }
             } else {
                 int retryCount = mRequest.getPendingRetryCount() - 1;
