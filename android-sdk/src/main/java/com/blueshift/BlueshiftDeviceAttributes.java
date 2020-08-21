@@ -212,6 +212,11 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         return this;
     }
 
+    public void updateDeviceToken(String newToken) {
+        if (newToken != null) {
+            setDeviceToken(newToken);
+        }
+    }
     public void log() {
         synchronized (instance) {
             BlueshiftLogger.v(TAG, instance.toString());

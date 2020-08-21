@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static android.view.Gravity.CENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
@@ -26,6 +27,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
     @Override
     public View getView(InAppMessage inAppMessage) {
         LinearLayout linearLayout = new LinearLayout(getContext());
+        linearLayout.setGravity(CENTER);
         linearLayout.setBackgroundResource(android.R.color.transparent);
 
         int dp48 = CommonUtils.dpToPx(48, getContext());

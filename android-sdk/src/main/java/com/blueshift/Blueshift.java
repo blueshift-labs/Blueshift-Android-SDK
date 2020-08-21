@@ -67,7 +67,7 @@ public class Blueshift {
     private static Blueshift instance = null;
 
     public enum DeviceIdSource {
-        ADVERTISING_ID, INSTANCE_ID, GUID, ADVERTISING_ID_PKG_NAME, INSTANCE_ID_PKG_NAME
+        ADVERTISING_ID, INSTANCE_ID, GUID, ADVERTISING_ID_PKG_NAME, INSTANCE_ID_PKG_NAME, CUSTOM
     }
 
     private Blueshift(Context context) {

@@ -1,9 +1,12 @@
 package com.blueshift.model;
 
 import android.app.AlarmManager;
+import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
+import com.blueshift.util.DeviceUtils;
 
 /**
  * @author Rahul Raveendran V P
@@ -47,6 +50,7 @@ public class Configuration {
     private boolean enableAutoAppOpen;
 
     private Blueshift.DeviceIdSource deviceIdSource;
+    private String customDeviceId;
 
     public Configuration() {
         // In-App Messaging
@@ -280,5 +284,22 @@ public class Configuration {
 
     public void setDeviceIdSource(Blueshift.DeviceIdSource deviceIdSource) {
         this.deviceIdSource = deviceIdSource;
+    }
+
+    public String getCustomDeviceId() {
+        return customDeviceId;
+    }
+
+    public void setCustomDeviceId(String deviceId) {
+        if (this.deviceIdSource == Blueshift.DeviceIdSource.CUSTOM) {
+            if (TextUtils.isEmpty(deviceId)) {
+                BlueshiftLogger.e(null, "No valid device_id is provided by the host app.");
+            } else {
+                BlueshiftLogger.d(null, "Custom device id available: " + deviceId);
+                this.customDeviceId = deviceId;
+            }
+        } else {
+            BlueshiftLogger.e(null, "Can not use custom device id without setting the deviceIdSource as Blueshift.DeviceIdSource.CUSTOM");
+        }
     }
 }
