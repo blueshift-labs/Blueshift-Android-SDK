@@ -10,14 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
-import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.NotificationUtils;
-
-import java.util.HashMap;
 
 
 /**
@@ -50,12 +46,8 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
             Message message = (Message) extraBundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
             if (message != null) {
                 try {
-                    HashMap<String, Object> clickAttr = new HashMap<>();
-                    String deepLink = extraBundle.getString(RichPushConstants.EXTRA_DEEP_LINK_URL);
-                    clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, deepLink);
-
                     // mark 'click'
-                    Blueshift.getInstance(this).trackNotificationClick(message, clickAttr);
+                    Blueshift.getInstance(this).trackNotificationClick(message);
 
                     Intent intent = null;
 
