@@ -39,7 +39,6 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
-import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -47,8 +46,6 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
-
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1043,18 +1040,7 @@ public class Blueshift {
             if (message.getBsftSeedListSend()) {
                 BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_CLICK);
             } else {
-                HashMap<String, Object> eventParams = new HashMap<>();
-                if (message.getId() != null)
-                    eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, message.getId());
-                if (message.getCampaignAttr() != null)
-                    eventParams.putAll(message.getCampaignAttr());
-
-                HashMap<String, Object> extras = new HashMap<>();
-                if (message.isDeepLinkingEnabled()) {
-                    extras.put(BlueshiftConstants.KEY_CLICK_URL, NetworkUtils.encodeUrlParam(message.getDeepLinkUrl()));
-                }
-
-                trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_CLICK, eventParams, extras);
+                trackNotificationClick(message.getId(), message.getCampaignAttr());
             }
         } else {
             BlueshiftLogger.e(LOG_TAG, "No message available");
@@ -1144,16 +1130,12 @@ public class Blueshift {
         }
     }
 
-    public void trackInAppMessageClick(InAppMessage inAppMessage, JSONObject extraJson) {
+    public void trackInAppMessageClick(InAppMessage inAppMessage, String elementName) {
         if (inAppMessage != null) {
             // sending the element name to identify click
             HashMap<String, Object> extras = new HashMap<>();
-            if (extraJson != null) {
-                Iterator<String> keys = extraJson.keys();
-                while (keys.hasNext()) {
-                    String key = keys.next();
-                    extras.put(key, extraJson.opt(key));
-                }
+            if (elementName != null) {
+                extras.put(InAppConstants.EVENT_EXTRA_ELEMENT, elementName);
             }
 
             trackCampaignEventAsync(InAppConstants.EVENT_CLICK, inAppMessage.getCampaignParamsMap(), extras);
@@ -1231,13 +1213,6 @@ public class Blueshift {
 
             // Add Sdk version to the params
             eventParams.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
-            // Add device_id
-            eventParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getDeviceId(mContext));
-            // Add app_name
-            String pkgName = mContext != null ? mContext.getPackageName() : null;
-            if (pkgName != null) {
-                eventParams.put(BlueshiftConstants.KEY_APP_NAME, pkgName);
-            }
 
             // any extra info available
             if (extras != null) {
