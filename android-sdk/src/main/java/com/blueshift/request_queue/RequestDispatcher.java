@@ -367,8 +367,9 @@ class RequestDispatcher {
                         FailedEventsTable failedEventsTable = FailedEventsTable.getInstance(mContext);
                         failedEventsTable.insert(event);
                     } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
                         // could not add to failed requests. To avoid event drop, add it to
-                        // existing request queue instead of failed events.
+                        // existing request queue instead of failed events table.
                         requestQueue.add(mContext, mRequest);
                     }
                 }
