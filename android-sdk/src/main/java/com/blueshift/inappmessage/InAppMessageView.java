@@ -23,14 +23,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
-import com.blueshift.util.NetworkUtils;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Iterator;
@@ -109,7 +106,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         closeButtonView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                onDismiss(inAppMessage, getClickStatsJSONObject(InAppConstants.BTN_CLOSE));
+                onDismiss(inAppMessage, InAppConstants.ACTION_CLOSE);
             }
         });
 
@@ -120,19 +117,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         return this.inAppMessage;
     }
 
-    public JSONObject getClickStatsJSONObject(String element) {
-        JSONObject statsParams = new JSONObject();
-        try {
-            if (element != null) {
-                statsParams.putOpt(BlueshiftConstants.KEY_CLICK_ELEMENT, element);
-            }
-        } catch (JSONException e) {
-            BlueshiftLogger.e(TAG, e);
-        }
-        return statsParams;
-    }
-
-    public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
+    public void onDismiss(InAppMessage inAppMessage, String trigger) {
         BlueshiftLogger.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
     }
 
@@ -157,13 +142,13 @@ public abstract class InAppMessageView extends RelativeLayout {
         return button;
     }
 
-    protected Button getActionButton(JSONObject actionJson, String element) {
+    protected Button getActionButton(JSONObject actionJson) {
         Button button = null;
 
         try {
             if (actionJson != null) {
                 button = getActionButtonBasic(actionJson);
-                button.setOnClickListener(getActionClickListener(actionJson, element));
+                button.setOnClickListener(getActionClickListener(actionJson));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -172,43 +157,34 @@ public abstract class InAppMessageView extends RelativeLayout {
         return button;
     }
 
-    protected OnClickListener getActionClickListener(JSONObject actionJson, String element) {
+    protected OnClickListener getActionClickListener(JSONObject actionJson) {
         OnClickListener listener = null;
 
         try {
             if (actionJson != null) {
                 String actionName = actionJson.optString(InAppConstants.ACTION_TYPE);
 
-                // add additional params for analytics
-                JSONObject statsParams = getClickStatsJSONObject(element);
-                String androidLink = actionJson.optString(InAppConstants.ANDROID_LINK);
-                if (!TextUtils.isEmpty(androidLink)) {
-                    statsParams.putOpt(
-                            BlueshiftConstants.KEY_CLICK_URL,
-                            NetworkUtils.encodeUrlParam(androidLink));
-                }
-
                 if (InAppManager.getActionCallback() != null) {
                     // user has overridden the clicks by setting an action callback.
                     JSONObject actionArgs = getCallbackActionJson(actionJson);
-                    return getActionCallbackListener(actionName, statsParams, actionArgs);
+                    return getActionCallbackListener(actionName, actionArgs);
                 }
 
                 switch (actionName) {
                     case InAppConstants.ACTION_DISMISS:
-                        listener = getDismissDialogClickListener(statsParams, actionJson);
+                        listener = getDismissDialogClickListener(actionName, actionJson);
                         break;
 
                     case InAppConstants.ACTION_OPEN:
-                        listener = getStartActivityClickListener(statsParams, actionJson);
+                        listener = getStartActivityClickListener(actionName, actionJson);
                         break;
 
                     case InAppConstants.ACTION_SHARE:
-                        listener = getShareClickListener(statsParams, actionJson);
+                        listener = getShareClickListener(actionName, actionJson);
                         break;
 
                     case InAppConstants.ACTION_RATE_APP:
-                        listener = getRateAppClickListener(statsParams, actionJson);
+                        listener = getRateAppClickListener(actionName, actionJson);
                         break;
                 }
             }
@@ -217,7 +193,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         }
 
         if (listener == null) {
-            listener = getDismissDialogClickListener(null, actionJson);
+            listener = getDismissDialogClickListener(InAppConstants.ACTION_DISMISS, actionJson);
         }
 
         return listener;
@@ -261,7 +237,7 @@ public abstract class InAppMessageView extends RelativeLayout {
 
     // action click listeners
 
-    protected OnClickListener getActionCallbackListener(final String actionName, final JSONObject clickStats, final JSONObject actionObject) {
+    protected OnClickListener getActionCallbackListener(final String actionName, final JSONObject actionObject) {
         return new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -269,12 +245,12 @@ public abstract class InAppMessageView extends RelativeLayout {
                 if (callback != null) callback.onAction(actionName, actionObject);
 
                 // dismiss dialog
-                onDismiss(getInAppMessage(), clickStats);
+                onDismiss(getInAppMessage(), actionName);
             }
         };
     }
 
-    protected OnClickListener getDismissDialogClickListener(final JSONObject clickStats, final JSONObject action) {
+    protected OnClickListener getDismissDialogClickListener(final String actionName, final JSONObject action) {
         OnClickListener listener = null;
 
         if (action != null) {
@@ -282,7 +258,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 @Override
                 public void onClick(View view) {
                     // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    onDismiss(getInAppMessage(), actionName);
                 }
             };
         }
@@ -290,7 +266,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         return listener;
     }
 
-    protected OnClickListener getStartActivityClickListener(final JSONObject clickStats, final JSONObject action) {
+    protected OnClickListener getStartActivityClickListener(final String actionName, final JSONObject action) {
         OnClickListener listener = null;
 
         if (action != null) {
@@ -301,7 +277,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                     open(action);
 
                     // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    onDismiss(getInAppMessage(), actionName);
                 }
             };
         }
@@ -309,7 +285,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         return listener;
     }
 
-    protected OnClickListener getShareClickListener(final JSONObject clickStats, final JSONObject action) {
+    protected OnClickListener getShareClickListener(final String actionName, final JSONObject action) {
         OnClickListener listener = null;
 
         if (action != null) {
@@ -320,7 +296,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                     shareText(action);
 
                     // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    onDismiss(getInAppMessage(), actionName);
                 }
             };
         }
@@ -328,7 +304,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         return listener;
     }
 
-    protected OnClickListener getRateAppClickListener(final JSONObject clickStats, final JSONObject action) {
+    protected OnClickListener getRateAppClickListener(final String actionName, final JSONObject action) {
         OnClickListener listener = null;
 
         if (action != null) {
@@ -339,7 +315,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                     rateAppInGooglePlayStore(action);
 
                     // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    onDismiss(getInAppMessage(), actionName);
                 }
             };
         }
@@ -473,10 +449,13 @@ public abstract class InAppMessageView extends RelativeLayout {
                 );
             }
 
-            for (int i = 0; i < actions.length(); i++) {
+            // todo: discuss if we need to set this limit
+            int len = actions.length() > 3 ? 3 : actions.length();
+
+            for (int i = 0; i < len; i++) {
                 try {
                     JSONObject actionObject = actions.getJSONObject(i);
-                    Button actionBtn = getActionButton(actionObject, BlueshiftConstants.BTN_(i));
+                    Button actionBtn = getActionButton(actionObject);
                     if (actionBtn != null) {
                         LinearLayout.LayoutParams lp;
                         if (actionsRootView.getOrientation() == LinearLayout.VERTICAL) {

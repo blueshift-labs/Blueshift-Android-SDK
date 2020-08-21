@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 
 /**
  * @author Rahul Raveendran V P
@@ -89,13 +88,5 @@ public class NetworkUtils {
         }
 
         return hasNetwork;
-    }
-
-    public static String encodeUrlParam(String input) {
-        try {
-            return URLEncoder.encode(input, "UTF-8");
-        } catch (Exception e) {
-            return input;
-        }
     }
 }

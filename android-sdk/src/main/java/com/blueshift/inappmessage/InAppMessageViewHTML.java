@@ -12,14 +12,11 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
-import com.blueshift.util.NetworkUtils;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -57,56 +54,35 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
     private void launchUri(Uri uri) {
         InAppActionCallback actionCallback = InAppManager.getActionCallback();
-        if (actionCallback != null && uri != null) {
-            String link = uri.toString();
-
-            JSONObject statsParams = getClickStatsJSONObject(null);
+        if (actionCallback != null) {
             try {
-                if (!TextUtils.isEmpty(link)) {
-                    statsParams.putOpt(
-                            BlueshiftConstants.KEY_CLICK_URL,
-                            NetworkUtils.encodeUrlParam(link));
-                }
-            } catch (JSONException ignore) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put(InAppConstants.ANDROID_LINK, uri.toString());
+                actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
+                onDismiss(getInAppMessage(), uri.toString());
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
-
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put(InAppConstants.ANDROID_LINK, link);
-            } catch (JSONException ignored) {
-            }
-            actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
-
-            onDismiss(getInAppMessage(), statsParams);
         } else {
             openUri(uri);
         }
     }
 
     private void openUri(Uri uri) {
-        if (uri != null) {
-            try {
+        try {
+            if (uri != null) {
+                BlueshiftLogger.d(TAG, "URL: " + uri.toString());
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(uri);
                 getContext().startActivity(intent);
-            } catch (Exception e) {
-                BlueshiftLogger.e(TAG, e);
+                onDismiss(getInAppMessage(), uri.toString());
+            } else {
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
-
-            JSONObject statsParams = getClickStatsJSONObject(null);
-            try {
-                String link = uri.toString();
-                if (!TextUtils.isEmpty(link)) {
-                    statsParams.putOpt(
-                            BlueshiftConstants.KEY_CLICK_URL,
-                            NetworkUtils.encodeUrlParam(link));
-                }
-            } catch (JSONException ignored) {
-            }
-
-            onDismiss(getInAppMessage(), statsParams);
-        } else {
-            onDismiss(getInAppMessage(), null);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+            onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
         }
     }
 
@@ -120,7 +96,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(null));
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
 
             return true;
@@ -133,7 +109,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 launchUri(uri);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(null));
+                onDismiss(getInAppMessage(), InAppConstants.ACTION_DISMISS);
             }
 
             return true;
