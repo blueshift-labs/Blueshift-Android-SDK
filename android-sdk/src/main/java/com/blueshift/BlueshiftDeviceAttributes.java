@@ -65,9 +65,34 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         }
 
         addDeviceId(context);
+        addDeviceAdId(context);
         addDeviceToken(context);
         addDeviceLocation(context);
         addAdTrackingStatus(context);
+    }
+
+    private void addDeviceAdId(final Context context) {
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        String adId = DeviceUtils.getAdvertisingId(context);
+                        setDeviceAdId(adId);
+                    }
+                }
+        );
+    }
+
+    private void setDeviceAdId(String adId) {
+        synchronized (instance) {
+            if (adId != null) {
+                try {
+                    instance.putOpt(BlueshiftConstants.KEY_DEVICE_AD_ID, adId);
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            }
+        }
     }
 
     private void addAdTrackingStatus(final Context context) {
@@ -203,6 +228,13 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         }
 
         try {
+            String adId = DeviceUtils.getAdvertisingId(context);
+            setDeviceAdId(adId);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
             boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
             setAdTrackingStatus(isAdEnabled);
         } catch (Exception e) {
@@ -217,6 +249,7 @@ public class BlueshiftDeviceAttributes extends JSONObject {
             setDeviceToken(newToken);
         }
     }
+
     public void log() {
         synchronized (instance) {
             BlueshiftLogger.v(TAG, instance.toString());

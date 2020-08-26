@@ -111,7 +111,7 @@ public class DeviceUtils {
         return deviceId;
     }
 
-    private static String getAdvertisingId(Context context) {
+    public static String getAdvertisingId(Context context) {
         String advertisingId = null;
 
         try {
