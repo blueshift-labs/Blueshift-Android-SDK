@@ -87,7 +87,7 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         synchronized (instance) {
             if (adId != null) {
                 try {
-                    instance.putOpt(BlueshiftConstants.KEY_DEVICE_AD_ID, adId);
+                    instance.putOpt(BlueshiftConstants.KEY_ADVERTISING_ID, adId);
                 } catch (JSONException e) {
                     BlueshiftLogger.e(TAG, e);
                 }

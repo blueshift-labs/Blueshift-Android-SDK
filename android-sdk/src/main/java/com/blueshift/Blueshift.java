@@ -1273,7 +1273,7 @@ public class Blueshift {
     private void updateAndroidAdId(String adId) {
         synchronized (sDeviceParams) {
             if (adId != null) {
-                sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_AD_ID, adId);
+                sDeviceParams.put(BlueshiftConstants.KEY_ADVERTISING_ID, adId);
             }
         }
     }
