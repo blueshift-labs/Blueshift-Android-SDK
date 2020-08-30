@@ -46,12 +46,10 @@ public class RequestQueueJobService extends JobService {
         }).start();
     }
 
-
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
         BlueshiftLogger.d(TAG, "Job cancel requested.");
 
         return false;
     }
-
 }
