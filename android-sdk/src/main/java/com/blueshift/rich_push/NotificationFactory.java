@@ -172,9 +172,6 @@ public class NotificationFactory {
                     }
                 }
 
-                // pending intent that opens the app using MAIN activity.
-                PendingIntent openAppPendingIntent = getOpenAppPendingIntent(context, message, notificationId);
-
                 switch (message.getCategory()) {
                     case Buy:
                         PendingIntent viewPendingIntent = getViewActionPendingIntent(context, message, notificationId);
@@ -183,7 +180,8 @@ public class NotificationFactory {
                         PendingIntent buyPendingIntent = getBuyActionPendingIntent(context, message, notificationId);
                         builder.addAction(0, "Buy", buyPendingIntent);
 
-                        builder.setContentIntent(openAppPendingIntent);
+                        PendingIntent contentIntentForBuy = getOpenAppPendingIntent(context, message, notificationId);
+                        builder.setContentIntent(contentIntentForBuy);
 
                         break;
 
@@ -191,7 +189,8 @@ public class NotificationFactory {
                         PendingIntent openCartPendingIntent = getOpenCartPendingIntent(context, message, notificationId);
                         builder.addAction(0, "Open Cart", openCartPendingIntent);
 
-                        builder.setContentIntent(openAppPendingIntent);
+                        PendingIntent contentIntentForViewCart = getOpenAppPendingIntent(context, message, notificationId);
+                        builder.setContentIntent(contentIntentForViewCart);
 
                         break;
 
@@ -205,7 +204,8 @@ public class NotificationFactory {
                         /*
                          * Default action is to open app and send all details as extra inside intent
                          */
-                        builder.setContentIntent(openAppPendingIntent);
+                        PendingIntent contentIntentForOpenApp = getOpenAppPendingIntent(context, message, notificationId);
+                        builder.setContentIntent(contentIntentForOpenApp);
                 }
             }
 
