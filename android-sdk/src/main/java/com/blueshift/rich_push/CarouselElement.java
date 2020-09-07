@@ -1,6 +1,11 @@
 package com.blueshift.rich_push;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.text.TextUtils;
+
+import com.blueshift.BlueshiftLogger;
+import com.google.gson.Gson;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -9,10 +14,12 @@ import java.util.HashMap;
  * This model represents the carousel element in carousel type notifications.
  *
  * @author Rahul Raveendran V P
- *         Created on 16/9/16 @ 3:03 PM
- *         https://github.com/rahulrvp
+ * Created on 16/9/16 @ 3:03 PM
+ * https://github.com/rahulrvp
  */
 public class CarouselElement implements Serializable {
+    private static final String TAG = "CarouselElement";
+
     /**
      * CarouselElementText to be shown on the carousel element
      */
@@ -86,5 +93,36 @@ public class CarouselElement implements Serializable {
 
     public CarouselElementText getContentSubtext() {
         return content_subtext;
+    }
+
+    public static CarouselElement parseIntent(Intent intent) {
+        if (intent != null) {
+            return parseBundle(intent.getExtras());
+        }
+
+        return null;
+    }
+
+    public static CarouselElement parseBundle(Bundle bundle) {
+        if (bundle != null) {
+            String json = bundle.getString(RichPushConstants.EXTRA_CAROUSEL_ELEMENT);
+            return fromJson(json);
+        }
+
+        return null;
+    }
+
+    public static CarouselElement fromJson(String json) {
+        try {
+            return new Gson().fromJson(json, CarouselElement.class);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return null;
+    }
+
+    public String toJson() {
+        return new Gson().toJson(this);
     }
 }

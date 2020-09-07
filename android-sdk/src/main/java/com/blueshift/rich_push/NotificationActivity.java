@@ -33,7 +33,7 @@ public class NotificationActivity extends AppCompatActivity {
         mContext = this;
 
         try {
-            mMessage = (Message) getIntent().getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+            mMessage = Message.parseIntent(getIntent());
         } catch (Exception ignore) {
         }
 

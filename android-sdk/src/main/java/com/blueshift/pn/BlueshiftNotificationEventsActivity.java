@@ -43,7 +43,7 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
 
     protected void processAction(String action, Bundle extraBundle) {
         if (extraBundle != null) {
-            Message message = (Message) extraBundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+            Message message = Message.parseBundle(extraBundle);
             if (message != null) {
                 try {
                     // mark 'click'

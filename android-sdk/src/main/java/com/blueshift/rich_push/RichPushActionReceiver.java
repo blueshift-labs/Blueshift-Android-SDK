@@ -50,7 +50,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
 
             Message message = null;
             try {
-                message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+                message = Message.parseIntent(intent);
             } catch (Exception ignore) {
             }
 
@@ -75,7 +75,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
     }
 
     public void displayProductPage(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null && configuration.getProductPage() != null) {
@@ -102,7 +102,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
     }
 
     public void addToCart(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null && configuration.getCartPage() != null) {
@@ -129,7 +129,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
     }
 
     public void displayCartPage(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null && configuration.getCartPage() != null) {
@@ -151,7 +151,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
     }
 
     public void displayOfferDisplayPage(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
             if (configuration != null && configuration.getOfferDisplayPage() != null) {
@@ -173,7 +173,7 @@ public class RichPushActionReceiver extends BroadcastReceiver {
     }
 
     public void openApp(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             PackageManager packageManager = context.getPackageManager();
             Intent launcherIntent = packageManager.getLaunchIntentForPackage(context.getPackageName());

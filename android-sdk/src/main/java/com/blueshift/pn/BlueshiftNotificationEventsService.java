@@ -61,7 +61,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
                     BlueshiftLogger.d(LOG_TAG, "No bundle data available with the broadcast.");
                 }
 
-                Message message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
+                Message message = Message.parseIntent(intent);
 
                 // remove cached images(if any) for this notification
                 NotificationUtils.removeCachedCarouselImages(this, message);
@@ -83,7 +83,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     }
 
     public void displayProductPage(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getProductPage() != null) {
@@ -110,7 +110,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     }
 
     public void addToCart(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getCartPage() != null) {
@@ -137,7 +137,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     }
 
     public void displayCartPage(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getCartPage() != null) {
@@ -159,7 +159,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     }
 
     public void displayOfferDisplayPage(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             Configuration configuration = BlueshiftUtils.getConfiguration(context);
             if (configuration != null && configuration.getOfferDisplayPage() != null) {
@@ -181,7 +181,7 @@ public class BlueshiftNotificationEventsService extends IntentService {
     }
 
     public void openApp(Context context, Bundle bundle) {
-        Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+        Message message = Message.parseBundle(bundle);
         if (message != null) {
             PackageManager packageManager = context.getPackageManager();
             Intent launcherIntent = packageManager.getLaunchIntentForPackage(context.getPackageName());

@@ -694,13 +694,17 @@ class CustomNotificationFactory {
 
         Bundle bundle = new Bundle();
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
-        bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
-        bundle.putSerializable(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
+        if (message != null) {
+            bundle.putString(RichPushConstants.EXTRA_MESSAGE, message.toJson());
+        }
+        if (element != null) {
+            bundle.putString(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element.toJson());
 
-        if (element.isDeepLinkingEnabled()) {
-            bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
-        } else {
-            action = RichPushConstants.buildAction(context, element.getAction());
+            if (element.isDeepLinkingEnabled()) {
+                bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
+            } else {
+                action = RichPushConstants.buildAction(context, element.getAction());
+            }
         }
 
         // get the activity to handle clicks (user defined or sdk defined
