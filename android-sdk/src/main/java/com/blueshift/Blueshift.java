@@ -247,6 +247,7 @@ public class Blueshift {
         }
 
         updateDeviceIdAsync(mContext);
+        updateAndroidAdId(mContext);
 
         if (mConfiguration != null && mConfiguration.isPushEnabled()) {
             updateFCMToken();
@@ -1255,6 +1256,26 @@ public class Blueshift {
                     }
                 }
         );
+    }
+
+    private void updateAndroidAdId(final Context context) {
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        String adId = DeviceUtils.getAdvertisingId(context);
+                        updateAndroidAdId(adId);
+                    }
+                }
+        );
+    }
+
+    private void updateAndroidAdId(String adId) {
+        synchronized (sDeviceParams) {
+            if (adId != null) {
+                sDeviceParams.put(BlueshiftConstants.KEY_ADVERTISING_ID, adId);
+            }
+        }
     }
 
     private void updateDeviceIdAsync(final Context context) {
