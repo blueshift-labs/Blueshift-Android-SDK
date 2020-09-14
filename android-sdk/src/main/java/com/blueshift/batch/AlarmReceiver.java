@@ -6,6 +6,7 @@ import android.content.Intent;
 
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.request_queue.RequestQueue;
 
 
 /**
@@ -21,22 +22,26 @@ import com.blueshift.BlueshiftLogger;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
-    private static final String LOG_TAG = AlarmReceiver.class.getSimpleName();
+    private static final String LOG_TAG = "BatchAlarmReceiver";
 
     @Override
-    public void onReceive(final Context context, Intent intent) {
-
+    public void onReceive(Context context, Intent intent) {
         BlueshiftLogger.d(LOG_TAG, "Received alarm for batch creation.");
 
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        BlueshiftLogger.d(LOG_TAG, "Enqueue bulk events started.");
-                        BulkEventManager.enqueueBulkEvents(context);
-                        BlueshiftLogger.d(LOG_TAG, "Enqueue bulk events completed.");
+        doBackgroundWork(context);
+    }
+
+    private void doBackgroundWork(Context context) {
+        final Context appContext = context != null ? context.getApplicationContext() : null;
+        if (appContext != null) {
+            new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            BulkEventManager.enqueueBulkEvents(appContext);
+                        }
                     }
-                }
-        );
+            ).start();
+        }
     }
 }

@@ -45,8 +45,6 @@ public class BulkEventManager {
     private static void scheduleBulkEventDispatchWithJobScheduler(Context context) {
         try {
             if (context != null) {
-                long fiveMinutes = 1000 * 60 * 5;
-
                 Configuration config = BlueshiftUtils.getConfiguration(context);
                 if (config != null) {
                     int jobId = config.getBulkEventsJobId();
@@ -57,7 +55,6 @@ public class BulkEventManager {
                     JobInfo.Builder builder = new JobInfo.Builder(jobId, componentName);
 
                     builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-                    builder.setBackoffCriteria(fiveMinutes, JobInfo.BACKOFF_POLICY_EXPONENTIAL);
                     builder.setPeriodic(config.getBatchInterval()); // 30 min batch interval by default
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
