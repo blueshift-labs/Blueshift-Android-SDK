@@ -21,10 +21,23 @@ public class NetworkChangeListener extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (context != null && intent != null
-                && "android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction())) {
-            // call the db sync task to send events to server
-            RequestQueue.getInstance().syncInBackground(context);
+        String action = "android.net.conn.CONNECTIVITY_CHANGE";
+        if (context != null && intent != null && action.equals(intent.getAction())) {
+            doBackgroundWork(context);
+        }
+    }
+
+    private void doBackgroundWork(Context context) {
+        final Context appContext = context != null ? context.getApplicationContext() : null;
+        if (appContext != null) {
+            new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            RequestQueue.getInstance().sync(appContext);
+                        }
+                    }
+            ).start();
         }
     }
 }

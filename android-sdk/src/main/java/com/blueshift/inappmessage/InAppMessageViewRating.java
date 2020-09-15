@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.util.InAppUtils;
@@ -112,7 +113,7 @@ public class InAppMessageViewRating extends InAppMessageView {
 
         // Submit button
         JSONObject submitAction = InAppUtils.getActionFromName(inAppMessage, InAppConstants.ACTION_RATE_APP);
-        Button submit = getActionButton(submitAction);
+        Button submit = getActionButton(submitAction, BlueshiftConstants.BTN_(0));
         if (submit == null) {
             submit = InAppUtils.getActionButtonDefault(getContext());
             submit.setText(R.string.bsft_rating_submit);
@@ -142,7 +143,7 @@ public class InAppMessageViewRating extends InAppMessageView {
 
         // Not now button
         JSONObject action = InAppUtils.getActionFromName(inAppMessage, InAppConstants.ACTION_DISMISS);
-        Button notNow = getActionButton(action);
+        Button notNow = getActionButton(action, BlueshiftConstants.BTN_(1));
         if (notNow != null) {
             LinearLayout.LayoutParams lpNotNow;
             if (buttonLayout.getOrientation() == LinearLayout.VERTICAL) {
@@ -170,7 +171,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         // open store
         openMarketApp();
 
-        onDismiss(getInAppMessage(), InAppConstants.ACTION_RATE_APP);
+        onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_RATE_APP));
     }
 
     private void logRatingToBlueshift() {

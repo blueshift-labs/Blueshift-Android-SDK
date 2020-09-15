@@ -615,7 +615,7 @@ public class InAppUtils {
     }
 
     public static void loadImageAsync(final ImageView imageView, final String path) {
-        if (imageView != null && path != null) {
+        if (imageView != null && path != null && !path.equals("null")) {
             final Context context = imageView.getContext();
             BlueshiftExecutor.getInstance().runOnDiskIOThread(
                     new Runnable() {
