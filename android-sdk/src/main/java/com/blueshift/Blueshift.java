@@ -251,9 +251,37 @@ public class Blueshift {
 
         updateDeviceIdAsync(mContext);
         updateAndroidAdId(mContext);
+        updateInstanceId(mContext);
 
         if (mConfiguration != null && mConfiguration.isPushEnabled()) {
             updateFCMToken();
+        }
+    }
+
+    private void updateInstanceId(Context context) {
+        try {
+            updateInstanceId();
+        } catch (Exception e) {
+            // tickets#8919 reported an issue with fcm token fetch. this is the
+            // fix for the same. we are manually calling initializeApp and trying
+            // to get token again.
+            FirebaseApp.initializeApp(context);
+            try {
+                updateInstanceId();
+            } catch (Exception ex) {
+                BlueshiftLogger.e(LOG_TAG, ex);
+            }
+        }
+    }
+
+    private void updateInstanceId() {
+        try {
+            String instanceId = FirebaseInstanceId.getInstance().getId();
+            synchronized (sDeviceParams) {
+                sDeviceParams.put(BlueshiftConstants.KEY_FIREBASE_INSTANCE_ID, instanceId);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
