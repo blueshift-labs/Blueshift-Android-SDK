@@ -238,8 +238,6 @@ public class Blueshift {
     private void initializeDeviceParams() {
         synchronized (sDeviceParams) {
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
             sDeviceParams.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
 
@@ -251,9 +249,41 @@ public class Blueshift {
 
         updateDeviceIdAsync(mContext);
         updateAndroidAdId(mContext);
+        updateFirebaseInstanceId(mContext);
 
         if (mConfiguration != null && mConfiguration.isPushEnabled()) {
             updateFCMToken();
+        }
+    }
+
+    private void updateFirebaseInstanceId(Context context) {
+        try {
+            updateFirebaseInstanceId();
+        } catch (Exception e) {
+            // tickets#8919 reported an issue with fcm token fetch. this is the
+            // fix for the same. we are manually calling initializeApp and trying
+            // to get token again.
+            FirebaseApp.initializeApp(context);
+            try {
+                updateFirebaseInstanceId();
+            } catch (Exception ex) {
+                BlueshiftLogger.e(LOG_TAG, ex);
+            }
+        }
+    }
+
+    private void updateFirebaseInstanceId() {
+        String instanceId = FirebaseInstanceId.getInstance().getId();
+        setFirebaseInstanceId(instanceId);
+    }
+
+    private void setFirebaseInstanceId(String instanceId) {
+        try {
+            synchronized (sDeviceParams) {
+                sDeviceParams.put(BlueshiftConstants.KEY_FIREBASE_INSTANCE_ID, instanceId);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 

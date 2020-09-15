@@ -55,10 +55,9 @@ public class BlueshiftConstants {
     public static final String KEY_LIMIT_AD_TRACKING = "limit_ad_tracking";
     public static final String KEY_DEVICE_IDENTIFIER = "device_id";
     public static final String KEY_ADVERTISING_ID = "advertising_id";
+    public static final String KEY_FIREBASE_INSTANCE_ID = "firebase_instance_id";
     public static final String KEY_DEVICE_TYPE = "device_type";
     public static final String KEY_DEVICE_TOKEN = "device_token";
-    public static final String KEY_DEVICE_IDFA = "device_idfa";
-    public static final String KEY_DEVICE_IDFV = "device_idfv";
     public static final String KEY_DEVICE_MANUFACTURER = "device_manufacturer";
     public static final String KEY_OS_NAME = "os_name";
     public static final String KEY_NETWORK_CARRIER = "network_carrier";

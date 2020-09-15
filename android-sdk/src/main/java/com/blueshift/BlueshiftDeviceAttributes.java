@@ -52,8 +52,6 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         synchronized (instance) {
             try {
                 instance.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-                instance.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
-                instance.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
                 instance.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
                 instance.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
 
@@ -69,6 +67,39 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         addDeviceToken(context);
         addDeviceLocation(context);
         addAdTrackingStatus(context);
+        addFirebaseInstanceId(context);
+    }
+
+    private void addFirebaseInstanceId(Context context) {
+        try {
+            addFirebaseInstanceId();
+        } catch (Exception e) {
+            // tickets#8919 reported an issue with fcm token fetch. this is the
+            // fix for the same. we are manually calling initializeApp and trying
+            // to get token again.
+            FirebaseApp.initializeApp(context);
+
+            try {
+                addFirebaseInstanceId();
+            } catch (Exception ex) {
+                BlueshiftLogger.e(TAG, ex);
+            }
+        }
+    }
+
+    private void addFirebaseInstanceId() {
+        String instanceId = FirebaseInstanceId.getInstance().getId();
+        setFirebaseInstanceId(instanceId);
+    }
+
+    private void setFirebaseInstanceId(String instanceId) {
+        synchronized (instance) {
+            try {
+                instance.putOpt(BlueshiftConstants.KEY_FIREBASE_INSTANCE_ID, instanceId);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
     }
 
     private void addDeviceAdId(final Context context) {
