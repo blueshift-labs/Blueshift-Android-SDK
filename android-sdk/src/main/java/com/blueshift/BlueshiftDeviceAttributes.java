@@ -52,8 +52,6 @@ public class BlueshiftDeviceAttributes extends JSONObject {
         synchronized (instance) {
             try {
                 instance.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-                instance.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
-                instance.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
                 instance.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
                 instance.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
 

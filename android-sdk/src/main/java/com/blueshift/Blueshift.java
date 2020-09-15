@@ -238,8 +238,6 @@ public class Blueshift {
     private void initializeDeviceParams() {
         synchronized (sDeviceParams) {
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFA, "");
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDFV, "");
             sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
             sDeviceParams.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
 
