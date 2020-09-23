@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.support.v4.app.NotificationManagerCompat;
 
 import com.blueshift.util.BlueshiftUtils;
 
@@ -35,6 +36,28 @@ public class BlueshiftApplicationAttributes extends JSONObject {
         addAppName(context);
         addAppVersion(context);
         addInAppEnabledStatus(context);
+        addPushEnabledStatus(context);
+    }
+
+    private void addPushEnabledStatus(Context context) {
+        boolean isEnabled = true;
+        try {
+            NotificationManagerCompat notificationMgr = NotificationManagerCompat.from(context);
+            isEnabled = notificationMgr.areNotificationsEnabled();
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+        setPushEnabledStatus(isEnabled);
+    }
+
+    private void setPushEnabledStatus(boolean isEnabled) {
+        synchronized (instance) {
+            try {
+                instance.putOpt(BlueshiftConstants.KEY_ENABLE_PUSH, isEnabled);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
     }
 
     private void addInAppEnabledStatus(Context context) {
@@ -98,5 +121,11 @@ public class BlueshiftApplicationAttributes extends JSONObject {
                 BlueshiftLogger.e(TAG, e);
             }
         }
+    }
+
+    public BlueshiftApplicationAttributes sync(Context context) {
+        addPushEnabledStatus(context);
+
+        return instance;
     }
 }
