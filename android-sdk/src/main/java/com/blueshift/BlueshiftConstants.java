@@ -119,6 +119,9 @@ public class BlueshiftConstants {
     public static final String KEY_ENABLE_INAPP = "enable_inapp";
     public static final String KEY_LAST_TIMESTAMP = "last_timestamp";
 
+    // push
+    public static final String KEY_ENABLE_PUSH = "enable_push";
+
     /**
      * Subscription status values
      */
