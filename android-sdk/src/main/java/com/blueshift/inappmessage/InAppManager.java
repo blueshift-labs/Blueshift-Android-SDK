@@ -174,7 +174,7 @@ public class InAppManager {
                                         .updateUserAttributesFromUserInfo(context);
                                 params.putAll(userAttributes);
 
-                                JSONObject appAttributes = BlueshiftApplicationAttributes.getInstance();
+                                JSONObject appAttributes = BlueshiftApplicationAttributes.getInstance().sync(context);
                                 params.putAll(appAttributes);
 
                                 // api key

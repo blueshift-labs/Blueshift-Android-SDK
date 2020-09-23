@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 
@@ -611,6 +612,15 @@ public class Blueshift {
     public void trackEvent(@NonNull final String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
         HashMap<String, Object> eventParams = new HashMap<>();
         eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
+
+        boolean isEnabled = true;
+        try {
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(mContext);
+            isEnabled = notificationManagerCompat.areNotificationsEnabled();
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+        eventParams.put(BlueshiftConstants.KEY_ENABLE_PUSH, isEnabled);
 
         // enable or disable in-app
         boolean enableInApp = mConfiguration != null && mConfiguration.isInAppEnabled();
