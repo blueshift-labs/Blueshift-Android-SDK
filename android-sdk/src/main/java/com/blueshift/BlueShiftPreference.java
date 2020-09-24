@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
 
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class BlueShiftPreference {
 
     private static final String PREF_FILE = "com.blueshift.sdk_preferences";
     private static final String PREF_KEY_DEVICE_ID = "blueshift_device_id";
+    private static final String PREF_KEY_PUSH_ENABLED = "blueshift_push_enabled";
     private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
 
     private static final String TAG = "BlueShiftPreference";
@@ -56,6 +58,31 @@ public class BlueShiftPreference {
         return deviceId;
     }
 
+    public static void saveCurrentPushPermissionStatus(Context context) {
+        NotificationManagerCompat mgr = NotificationManagerCompat.from(context);
+        boolean isPushEnabled = mgr.areNotificationsEnabled();
+
+        SharedPreferences preferences = getBlueshiftPreferences(context);
+        if (preferences != null) {
+            preferences.edit().putBoolean(PREF_KEY_PUSH_ENABLED, isPushEnabled).apply();
+        }
+    }
+
+    public static boolean didPushPermissionStatusChange(Context context) {
+        NotificationManagerCompat mgr = NotificationManagerCompat.from(context);
+        boolean isPushEnabled = mgr.areNotificationsEnabled();
+
+        SharedPreferences preferences = getBlueshiftPreferences(context);
+        if (preferences != null && preferences.contains(PREF_KEY_PUSH_ENABLED)) {
+            boolean cachedVal = preferences.getBoolean(PREF_KEY_PUSH_ENABLED, isPushEnabled);
+            return cachedVal != isPushEnabled;
+        }
+
+        BlueshiftLogger.d(TAG, "No existing value found for " + PREF_KEY_PUSH_ENABLED);
+        // ensure an identify call on any error or missing value
+        return true;
+    }
+
     public static boolean isEmailAlreadyIdentified(Context context, String email) {
         boolean result = false;
 
@@ -69,7 +96,6 @@ public class BlueShiftPreference {
         return result;
     }
 
-    @SuppressLint("CommitPrefEdits")
     public static void markEmailAsIdentified(Context context, String email) {
         if (context != null && !TextUtils.isEmpty(email)) {
             SharedPreferences preferences = getEmailPreference(context);
