@@ -119,7 +119,7 @@ class RequestDispatcher {
             HTTPManager httpManager = getHttpManagerWithAuthentication(url);
 
             addDeviceTokenToParams(fcmRegistrationToken);
-            doAutoIdentifyCheck();
+            doAutoIdentifyCheck(mContext);
 
             Response response = makeAPICall(httpManager);
             boolean apiStatus = response.getStatusCode() == 200;
@@ -202,31 +202,39 @@ class RequestDispatcher {
         }
     }
 
-    /**
-     * This method checks if an identify is called with the email address present
-     * inside {@link UserInfo}. If not, this method will schedule an identify call.
-     * <p>
-     * This is required to handle the case when multiple users sign in using same app.
-     */
-    private void doAutoIdentifyCheck() {
-        UserInfo userInfo = UserInfo.getInstance(mContext);
-        if (userInfo != null) {
-            String emailId = userInfo.getEmail();
-            if (!TextUtils.isEmpty(emailId)) {
-                /*
-                 * If user is signed in and email is already not verified, then we
-                 * need to call an identify with this new email id.
-                 */
-                if (!BlueShiftPreference.isEmailAlreadyIdentified(mContext, emailId)) {
-                    Blueshift
-                            .getInstance(mContext)
-                            .identifyUserByDeviceId(
-                                    DeviceUtils.getDeviceId(mContext), null, false);
+    private void doAutoIdentifyCheck(Context context) {
+        boolean identified = didEmailChange(context) || didPushPermissionChange(context);
+        if (identified) BlueshiftLogger.d(LOG_TAG, "Auto identify call fired.");
+    }
 
-                    BlueShiftPreference.markEmailAsIdentified(mContext, emailId);
-                }
+    private boolean didEmailChange(Context context) {
+        UserInfo userInfo = UserInfo.getInstance(context);
+        if (userInfo != null && !TextUtils.isEmpty(userInfo.getEmail())) {
+            if (!BlueShiftPreference.isEmailAlreadyIdentified(context, userInfo.getEmail())) {
+                identify(context);
+                BlueShiftPreference.markEmailAsIdentified(context, userInfo.getEmail());
+                BlueshiftLogger.d(LOG_TAG, "Change in email detected. Sending \"identify\".");
+                return true;
             }
         }
+
+        return false;
+    }
+
+    private boolean didPushPermissionChange(Context context) {
+        if (BlueShiftPreference.didPushPermissionStatusChange(context)) {
+            identify(context);
+            BlueShiftPreference.saveCurrentPushPermissionStatus(context);
+            BlueshiftLogger.d(LOG_TAG, "Change in push permission detected. Sending \"identify\".");
+            return true;
+        }
+
+        return false;
+    }
+
+    private void identify(Context context) {
+        String deviceId = DeviceUtils.getDeviceId(context);
+        Blueshift.getInstance(context).identifyUserByDeviceId(deviceId, null, false);
     }
 
     /**
