@@ -103,7 +103,7 @@ public class BlueShiftPreference {
                 preferences
                         .edit()
                         .putBoolean(email, true)
-                        .commit();
+                        .apply();
             }
         }
     }
