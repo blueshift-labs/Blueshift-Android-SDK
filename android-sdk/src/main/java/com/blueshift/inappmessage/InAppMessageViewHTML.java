@@ -22,7 +22,6 @@ import com.blueshift.util.NetworkUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class InAppMessageViewHTML extends InAppMessageView {
