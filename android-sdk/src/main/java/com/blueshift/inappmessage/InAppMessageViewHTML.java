@@ -22,7 +22,7 @@ import com.blueshift.util.NetworkUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class InAppMessageViewHTML extends InAppMessageView {
     private static final String TAG = InAppMessageViewHTML.class.getSimpleName();
@@ -47,7 +47,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
             webView.setWebViewClient(new InAppWebViewClient());
             webView.loadData(CommonUtils.getBase64(htmlContent), "text/html; charset=UTF-8", "base64");
 
-            webView.setLayoutParams(new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+            webView.setLayoutParams(new ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
             return webView;
         }
