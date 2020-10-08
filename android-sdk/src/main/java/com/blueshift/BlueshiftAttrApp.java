@@ -1,12 +1,19 @@
 package com.blueshift;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationManagerCompat;
 
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.DeviceUtils;
+import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -33,6 +40,13 @@ public class BlueshiftAttrApp extends JSONObject {
         synchronized (instance) {
             try {
                 instance.putOpt(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+
+                instance.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
+                instance.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
+                instance.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
+
+                String carrier = DeviceUtils.getSIMOperatorName(context);
+                instance.put(BlueshiftConstants.KEY_NETWORK_CARRIER, carrier != null ? carrier : "");
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
@@ -44,6 +58,107 @@ public class BlueshiftAttrApp extends JSONObject {
         addPushEnabledStatus(context);
         addFirebaseInstanceId(context);
         addFirebaseToken(context);
+        addDeviceId(context);
+        addDeviceAdId(context);
+        addDeviceLocation(context);
+        addAdTrackingStatus(context);
+    }
+
+    private void addDeviceAdId(final Context context) {
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        String adId = DeviceUtils.getAdvertisingId(context);
+                        setDeviceAdId(adId);
+                    }
+                }
+        );
+    }
+
+    private void setDeviceAdId(String adId) {
+        synchronized (instance) {
+            if (adId != null) {
+                try {
+                    instance.putOpt(BlueshiftConstants.KEY_ADVERTISING_ID, adId);
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            }
+        }
+    }
+
+    private void addAdTrackingStatus(final Context context) {
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+                        setAdTrackingStatus(isEnabled);
+                    }
+                }
+        );
+    }
+
+    private void setAdTrackingStatus(boolean isEnabled) {
+        synchronized (instance) {
+            try {
+                instance.putOpt(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, isEnabled);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+    }
+
+    private void addDeviceId(final Context context) {
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        String deviceId = DeviceUtils.getDeviceId(context);
+                        setDeviceId(deviceId);
+                    }
+                }
+        );
+    }
+
+    private void setDeviceId(String deviceId) {
+        synchronized (instance) {
+            try {
+                instance.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+    }
+
+    private void addDeviceLocation(Context context) {
+        if (context != null) {
+            LocationManager locationMgr = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            if (locationMgr != null) {
+                String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+                if (PermissionUtils.hasAnyPermission(context, permissions)) {
+                    @SuppressLint("MissingPermission")
+                    Location location = locationMgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    setDeviceLocation(location);
+                }
+            }
+        }
+    }
+
+    private void setDeviceLocation(Location location) {
+        synchronized (instance) {
+            if (location != null) {
+                try {
+                    instance.putOpt(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
+                    instance.putOpt(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            } else {
+                BlueshiftLogger.w(TAG, "No last-known location available!");
+            }
+        }
     }
 
     private void addFirebaseToken(Context context) {
@@ -207,8 +322,46 @@ public class BlueshiftAttrApp extends JSONObject {
         }
     }
 
+    /**
+     * This will refresh the device id and ad tracking status.
+     * This method should not be called from UI thread.
+     *
+     * @param context valid {@link Context} object
+     */
+    @WorkerThread
     public BlueshiftAttrApp sync(Context context) {
-        addPushEnabledStatus(context);
+        try {
+            addDeviceLocation(context);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            addPushEnabledStatus(context);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            String deviceId = DeviceUtils.getDeviceId(context);
+            setDeviceId(deviceId);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            String adId = DeviceUtils.getAdvertisingId(context);
+            setDeviceAdId(adId);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+            setAdTrackingStatus(isAdEnabled);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
 
         return instance;
     }

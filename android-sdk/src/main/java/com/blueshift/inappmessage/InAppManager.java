@@ -20,7 +20,6 @@ import android.widget.LinearLayout;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttrApp;
 import com.blueshift.BlueshiftConstants;
-import com.blueshift.BlueshiftAttrDevice;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
@@ -165,9 +164,6 @@ public class InAppManager {
                         public void run() {
                             try {
                                 BlueshiftJSONObject params = new BlueshiftJSONObject();
-
-                                JSONObject deviceAttributes = BlueshiftAttrDevice.getInstance().sync(context);
-                                params.putAll(deviceAttributes);
 
                                 JSONObject userAttributes = BlueshiftAttrUser.getInstance().sync(context);
                                 params.putAll(userAttributes);
