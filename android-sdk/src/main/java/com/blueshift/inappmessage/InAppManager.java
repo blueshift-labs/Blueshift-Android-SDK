@@ -167,7 +167,7 @@ public class InAppManager {
                                 BlueshiftJSONObject params = new BlueshiftJSONObject();
 
                                 JSONObject deviceAttributes = BlueshiftDeviceAttributes.getInstance()
-                                        .updateUserResettableDeviceAttributes(context);
+                                        .sync(context);
                                 params.putAll(deviceAttributes);
 
                                 JSONObject userAttributes = BlueshiftUserAttributes.getInstance()

@@ -250,7 +250,7 @@ public class BlueshiftDeviceAttributes extends JSONObject {
      * @param context valid {@link Context} object
      */
     @WorkerThread
-    public BlueshiftDeviceAttributes updateUserResettableDeviceAttributes(Context context) {
+    public BlueshiftDeviceAttributes sync(Context context) {
         try {
             String deviceId = DeviceUtils.getDeviceId(context);
             setDeviceId(deviceId);
