@@ -19,7 +19,7 @@ public class BlueshiftAttrUser extends JSONObject {
         }
     }
 
-    public BlueshiftAttrUser updateUserAttributesFromUserInfo(Context context) {
+    public BlueshiftAttrUser sync(Context context) {
         synchronized (instance) {
             UserInfo userInfo = UserInfo.getInstance(context);
             if (userInfo != null) {
