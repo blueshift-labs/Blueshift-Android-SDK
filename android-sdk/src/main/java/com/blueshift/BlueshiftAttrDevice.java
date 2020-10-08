@@ -8,14 +8,8 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.support.annotation.WorkerThread;
 
-import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.PermissionUtils;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,42 +58,8 @@ public class BlueshiftAttrDevice extends JSONObject {
 
         addDeviceId(context);
         addDeviceAdId(context);
-        addDeviceToken(context);
         addDeviceLocation(context);
         addAdTrackingStatus(context);
-        addFirebaseInstanceId(context);
-    }
-
-    private void addFirebaseInstanceId(Context context) {
-        try {
-            addFirebaseInstanceId();
-        } catch (Exception e) {
-            // tickets#8919 reported an issue with fcm token fetch. this is the
-            // fix for the same. we are manually calling initializeApp and trying
-            // to get token again.
-            FirebaseApp.initializeApp(context);
-
-            try {
-                addFirebaseInstanceId();
-            } catch (Exception ex) {
-                BlueshiftLogger.e(TAG, ex);
-            }
-        }
-    }
-
-    private void addFirebaseInstanceId() {
-        String instanceId = FirebaseInstanceId.getInstance().getId();
-        setFirebaseInstanceId(instanceId);
-    }
-
-    private void setFirebaseInstanceId(String instanceId) {
-        synchronized (instance) {
-            try {
-                instance.putOpt(BlueshiftConstants.KEY_FIREBASE_INSTANCE_ID, instanceId);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(TAG, e);
-            }
-        }
     }
 
     private void addDeviceAdId(final Context context) {
@@ -170,45 +130,6 @@ public class BlueshiftAttrDevice extends JSONObject {
         }
     }
 
-    private void addDeviceToken(Context context) {
-        if (!BlueshiftUtils.isPushEnabled(context)) return;
-
-        try {
-            addDeviceToken();
-        } catch (Exception e) {
-            // tickets#8919 reported an issue with fcm token fetch. this is the
-            // fix for the same. we are manually calling initializeApp and trying
-            // to get token again.
-            FirebaseApp.initializeApp(context);
-            try {
-                addDeviceToken();
-            } catch (Exception e1) {
-                BlueshiftLogger.e(TAG, e1);
-            }
-        }
-    }
-
-    private void addDeviceToken() {
-        Task<InstanceIdResult> task = FirebaseInstanceId.getInstance().getInstanceId();
-        task.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                String deviceToken = instanceIdResult.getToken();
-                setDeviceToken(deviceToken);
-            }
-        });
-    }
-
-    private void setDeviceToken(String deviceToken) {
-        synchronized (instance) {
-            try {
-                instance.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(TAG, e);
-            }
-        }
-    }
-
     private void addDeviceLocation(Context context) {
         if (context != null) {
             LocationManager locationMgr = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -273,12 +194,6 @@ public class BlueshiftAttrDevice extends JSONObject {
         }
 
         return this;
-    }
-
-    public void updateDeviceToken(String newToken) {
-        if (newToken != null) {
-            setDeviceToken(newToken);
-        }
     }
 
     public void log() {
