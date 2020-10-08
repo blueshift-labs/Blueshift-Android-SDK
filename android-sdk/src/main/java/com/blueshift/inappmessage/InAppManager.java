@@ -18,13 +18,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftApplicationAttributes;
+import com.blueshift.BlueshiftAttrApp;
 import com.blueshift.BlueshiftConstants;
-import com.blueshift.BlueshiftDeviceAttributes;
+import com.blueshift.BlueshiftAttrDevice;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.BlueshiftUserAttributes;
+import com.blueshift.BlueshiftAttrUser;
 import com.blueshift.R;
 import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Response;
@@ -166,15 +166,15 @@ public class InAppManager {
                             try {
                                 BlueshiftJSONObject params = new BlueshiftJSONObject();
 
-                                JSONObject deviceAttributes = BlueshiftDeviceAttributes.getInstance()
+                                JSONObject deviceAttributes = BlueshiftAttrDevice.getInstance()
                                         .sync(context);
                                 params.putAll(deviceAttributes);
 
-                                JSONObject userAttributes = BlueshiftUserAttributes.getInstance()
+                                JSONObject userAttributes = BlueshiftAttrUser.getInstance()
                                         .updateUserAttributesFromUserInfo(context);
                                 params.putAll(userAttributes);
 
-                                JSONObject appAttributes = BlueshiftApplicationAttributes.getInstance().sync(context);
+                                JSONObject appAttributes = BlueshiftAttrApp.getInstance().sync(context);
                                 params.putAll(appAttributes);
 
                                 // api key

@@ -23,14 +23,14 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class BlueshiftDeviceAttributes extends JSONObject {
+public class BlueshiftAttrDevice extends JSONObject {
     private static final String TAG = "DeviceAttributes";
-    private static final BlueshiftDeviceAttributes instance = new BlueshiftDeviceAttributes();
+    private static final BlueshiftAttrDevice instance = new BlueshiftAttrDevice();
 
-    private BlueshiftDeviceAttributes() {
+    private BlueshiftAttrDevice() {
     }
 
-    public static BlueshiftDeviceAttributes getInstance() {
+    public static BlueshiftAttrDevice getInstance() {
         synchronized (instance) {
             return instance;
         }
@@ -250,7 +250,7 @@ public class BlueshiftDeviceAttributes extends JSONObject {
      * @param context valid {@link Context} object
      */
     @WorkerThread
-    public BlueshiftDeviceAttributes sync(Context context) {
+    public BlueshiftAttrDevice sync(Context context) {
         try {
             String deviceId = DeviceUtils.getDeviceId(context);
             setDeviceId(deviceId);

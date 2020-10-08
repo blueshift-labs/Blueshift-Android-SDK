@@ -11,14 +11,14 @@ import com.blueshift.util.BlueshiftUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class BlueshiftApplicationAttributes extends JSONObject {
+public class BlueshiftAttrApp extends JSONObject {
     private static final String TAG = "ApplicationAttributes";
-    private static final BlueshiftApplicationAttributes instance = new BlueshiftApplicationAttributes();
+    private static final BlueshiftAttrApp instance = new BlueshiftAttrApp();
 
-    private BlueshiftApplicationAttributes() {
+    private BlueshiftAttrApp() {
     }
 
-    public static BlueshiftApplicationAttributes getInstance() {
+    public static BlueshiftAttrApp getInstance() {
         synchronized (instance) {
             return instance;
         }
@@ -123,7 +123,7 @@ public class BlueshiftApplicationAttributes extends JSONObject {
         }
     }
 
-    public BlueshiftApplicationAttributes sync(Context context) {
+    public BlueshiftAttrApp sync(Context context) {
         addPushEnabledStatus(context);
 
         return instance;
