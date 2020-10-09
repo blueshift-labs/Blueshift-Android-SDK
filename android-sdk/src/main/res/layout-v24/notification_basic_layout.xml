@@ -82,7 +82,7 @@
             android:layout_height="match_parent"
             android:contentDescription="@string/large_icon"
             android:scaleType="fitXY"
-            android:src="@drawable/notification_big_icon_overlay"
+            android:src="@drawable/bsft_notification_big_icon_overlay"
             android:visibility="gone" />
 
         <ImageView
