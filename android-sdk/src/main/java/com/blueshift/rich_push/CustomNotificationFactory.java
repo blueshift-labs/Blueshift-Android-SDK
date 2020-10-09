@@ -316,7 +316,7 @@ class CustomNotificationFactory {
                     break;
 
                 case "center_right":
-                    resId = R.layout.carousel_overlay_center_right;
+                    resId = R.layout.bsft_carousel_overlay_center_right;
                     break;
 
                 case "bottom_left":
