@@ -1,13 +1,12 @@
 <resources>
-    <string name="dialog_button_open">Open</string>
-    <string name="dialog_button_dismiss">Dismiss</string>
-    <string name="large_icon">Large Icon</string>
-    <string name="small_icon">Small Icon</string>
-    <string name="carousel_prev_button">Carousel prev button</string>
-    <string name="carousel_next_button">Carousel next button</string>
-    <string name="big_picture">Big picture</string>
-    <string name="gps_not_found_msg">Could not fetch Advertising ID!\nPlease make sure that Google Play services 4.0+ or Google Mobile Ads lib is included in your project.\nVisit \"https://developer.android.com/google/play-services/setup.html\" for more help.</string>
-    <string name="carousel_image">Carousel image</string>
-    <string name="dot">&#8226;</string>
-    <string name="bsft_rating_submit">Submit</string>
+    <string name="bsft_dialog_button_open">Open</string>
+    <string name="bsft_dialog_button_dismiss">Dismiss</string>
+    <string name="bsft_notification_large_icon">Large Icon</string>
+    <string name="bsft_notification_small_icon">Small Icon</string>
+    <string name="bsft_notification_carousel_prev_button">Carousel prev button</string>
+    <string name="bsft_notification_carousel_next_button">Carousel next button</string>
+    <string name="bsft_notification_big_picture">Big picture</string>
+    <string name="bsft_notification_carousel_image">Carousel image</string>
+    <string name="bsft_notification_dot">&#8226;</string>
+    <string name="bsft_in_app_rating_submit">Submit</string>
 </resources>

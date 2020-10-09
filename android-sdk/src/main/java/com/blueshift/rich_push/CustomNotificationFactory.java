@@ -460,7 +460,7 @@ class CustomNotificationFactory {
                 String bigContentSummary = message.getBigContentSummaryText();
                 if (!TextUtils.isEmpty(bigContentSummary)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        String dot = context.getString(R.string.dot);
+                        String dot = context.getString(R.string.bsft_notification_dot);
                         bigContentSummary = " " + dot + " " + bigContentSummary;
                     } else {
                         // we have both content and content sub text. make room for content sub text
@@ -483,7 +483,7 @@ class CustomNotificationFactory {
                 String contentSubText = message.getContentSubText();
                 if (!TextUtils.isEmpty(contentSubText)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        String dot = context.getString(R.string.dot);
+                        String dot = context.getString(R.string.bsft_notification_dot);
                         contentSubText = " " + dot + " " + contentSubText;
                     } else {
                         // we have both content and content sub text. make room for content sub text

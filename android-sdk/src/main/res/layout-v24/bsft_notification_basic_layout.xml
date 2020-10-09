@@ -16,7 +16,7 @@
         android:layout_height="18dp"
         android:layout_marginEnd="5dp"
         android:background="@android:color/transparent"
-        android:contentDescription="@string/small_icon"
+        android:contentDescription="@string/bsft_notification_small_icon"
         android:tint="#808080" />
 
     <TextView
@@ -80,7 +80,7 @@
             android:id="@+id/notification_icon_overlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/large_icon"
+            android:contentDescription="@string/bsft_notification_large_icon"
             android:scaleType="fitXY"
             android:src="@drawable/bsft_notification_big_icon_overlay"
             android:visibility="gone" />
@@ -89,7 +89,7 @@
             android:id="@+id/notification_icon"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/large_icon" />
+            android:contentDescription="@string/bsft_notification_large_icon" />
 
     </FrameLayout>
 

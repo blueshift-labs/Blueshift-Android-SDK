@@ -96,7 +96,7 @@ public class NotificationActivity extends AppCompatActivity {
     private AlertDialog.Builder setActions(AlertDialog.Builder builder) {
         switch (mMessage.getCategory()) {
             case AlertBoxOpenDismiss:
-                builder.setPositiveButton(R.string.dialog_button_open, new DialogInterface.OnClickListener() {
+                builder.setPositiveButton(R.string.bsft_dialog_button_open, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -113,12 +113,12 @@ public class NotificationActivity extends AppCompatActivity {
                     }
                 });
 
-                builder.setNegativeButton(R.string.dialog_button_dismiss, mOnDismissClickListener);
+                builder.setNegativeButton(R.string.bsft_dialog_button_dismiss, mOnDismissClickListener);
 
                 break;
 
             case AlertBoxDismiss:
-                builder.setNegativeButton(R.string.dialog_button_dismiss, mOnDismissClickListener);
+                builder.setNegativeButton(R.string.bsft_dialog_button_dismiss, mOnDismissClickListener);
 
                 break;
         }

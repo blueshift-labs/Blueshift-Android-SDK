@@ -17,7 +17,7 @@
             android:id="@+id/big_picture"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/big_picture"
+            android:contentDescription="@string/bsft_notification_big_picture"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
@@ -36,7 +36,7 @@
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:background="@color/bsft_notification_carousel_button_background"
-            android:contentDescription="@string/carousel_prev_button"
+            android:contentDescription="@string/bsft_notification_carousel_prev_button"
             android:src="@drawable/bsft_notification_carousel_previous"
             android:visibility="gone" />
 
@@ -48,7 +48,7 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:background="@color/bsft_notification_carousel_button_background"
-            android:contentDescription="@string/carousel_next_button"
+            android:contentDescription="@string/bsft_notification_carousel_next_button"
             android:src="@drawable/bsft_notification_carousel_next"
             android:visibility="gone" />
 
