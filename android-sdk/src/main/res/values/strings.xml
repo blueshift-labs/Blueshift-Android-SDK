@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Blueshift Android SDK</string>
     <string name="dialog_button_open">Open</string>
     <string name="dialog_button_dismiss">Dismiss</string>
     <string name="large_icon">Large Icon</string>
