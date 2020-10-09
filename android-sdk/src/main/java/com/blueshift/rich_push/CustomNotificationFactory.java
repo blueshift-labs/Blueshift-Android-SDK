@@ -611,7 +611,7 @@ class CustomNotificationFactory {
                 setBasicNotificationData(context, message, contentView, true);
 
                 // create/inflate ViewFlipper layout.
-                RemoteViews viewFlipper = new RemoteViews(packageName, R.layout.carousel_view_flipper);
+                RemoteViews viewFlipper = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper);
 
                 // loop through the carousel elements and add the image into ViewFlipper.
                 CarouselElement[] elements = message.getCarouselElements();
