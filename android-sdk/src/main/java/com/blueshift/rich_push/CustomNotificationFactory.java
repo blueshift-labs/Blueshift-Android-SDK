@@ -291,7 +291,7 @@ class CustomNotificationFactory {
     }
 
     private int getLayoutResIdFromType(String type) {
-        int resId = R.layout.carousel_overlay_center;
+        int resId = R.layout.bsft_carousel_overlay_center;
 
         if (type != null) {
             switch (type) {
@@ -312,7 +312,7 @@ class CustomNotificationFactory {
                     break;
 
                 case "center":
-                    resId = R.layout.carousel_overlay_center;
+                    resId = R.layout.bsft_carousel_overlay_center;
                     break;
 
                 case "center_right":
@@ -332,7 +332,7 @@ class CustomNotificationFactory {
                     break;
 
                 default:
-                    resId = R.layout.carousel_overlay_center;
+                    resId = R.layout.bsft_carousel_overlay_center;
             }
         }
 
