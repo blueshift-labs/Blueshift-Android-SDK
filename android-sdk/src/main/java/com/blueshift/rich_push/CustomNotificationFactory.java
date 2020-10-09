@@ -296,7 +296,7 @@ class CustomNotificationFactory {
         if (type != null) {
             switch (type) {
                 case "top_left":
-                    resId = R.layout.carousel_overlay_top_left;
+                    resId = R.layout.bsft_carousel_overlay_top_left;
                     break;
 
                 case "top_center":
