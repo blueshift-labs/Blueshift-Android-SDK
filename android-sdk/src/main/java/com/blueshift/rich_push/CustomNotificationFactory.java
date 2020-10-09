@@ -570,7 +570,7 @@ class CustomNotificationFactory {
                 builder.setContentTitle(message.getContentTitle());
                 builder.setContentText(message.getContentText());
 
-                RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_basic_layout);
+                RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.bsft_notification_basic_layout);
                 builder.setContent(contentView);
 
                 setBasicNotificationData(context, message, contentView, false);
