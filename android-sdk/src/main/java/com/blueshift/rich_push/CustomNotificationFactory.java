@@ -161,7 +161,7 @@ class CustomNotificationFactory {
         RemoteViews contentView = null;
 
         if (context != null) {
-            contentView = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
+            contentView = new RemoteViews(context.getPackageName(), R.layout.bsft_carousel_layout);
 
             setBasicNotificationData(context, message, contentView, true);
 
@@ -602,7 +602,7 @@ class CustomNotificationFactory {
             String packageName = context.getPackageName();
             if (!TextUtils.isEmpty(packageName)) {
                 // create/inflate carousel notification's layout.
-                contentView = new RemoteViews(packageName, R.layout.carousel_layout);
+                contentView = new RemoteViews(packageName, R.layout.bsft_carousel_layout);
 
                 // show the container to host ViewFlipper.
                 contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
