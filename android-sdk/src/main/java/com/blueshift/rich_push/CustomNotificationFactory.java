@@ -328,7 +328,7 @@ class CustomNotificationFactory {
                     break;
 
                 case "bottom_right":
-                    resId = R.layout.carousel_overlay_bottom_right;
+                    resId = R.layout.bsft_carousel_overlay_bottom_right;
                     break;
 
                 default:
