@@ -623,7 +623,7 @@ class CustomNotificationFactory {
                             Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
                             // Set the image into the view.
-                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.carousel_view_flipper_entry);
+                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper_entry);
                             viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
                             // Attach an onClick pending intent.
