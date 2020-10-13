@@ -9,17 +9,17 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-public class BlueshiftAttrUser extends JSONObject {
+public class BlueshiftAttributesUser extends JSONObject {
     private static final String TAG = "UserAttributes";
-    private static final BlueshiftAttrUser instance = new BlueshiftAttrUser();
+    private static final BlueshiftAttributesUser instance = new BlueshiftAttributesUser();
 
-    public static BlueshiftAttrUser getInstance() {
+    public static BlueshiftAttributesUser getInstance() {
         synchronized (instance) {
             return instance;
         }
     }
 
-    public BlueshiftAttrUser sync(Context context) {
+    public BlueshiftAttributesUser sync(Context context) {
         synchronized (instance) {
             UserInfo userInfo = UserInfo.getInstance(context);
             if (userInfo != null) {

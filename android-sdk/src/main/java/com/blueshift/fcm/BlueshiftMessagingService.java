@@ -15,7 +15,7 @@ import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftAttrApp;
+import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
@@ -400,7 +400,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         BlueshiftLogger.d(LOG_TAG, "FCM token: " + newToken);
 
         Blueshift.updateDeviceToken(newToken);
-        BlueshiftAttrApp.getInstance().updateFirebaseToken(newToken);
+        BlueshiftAttributesApp.getInstance().updateFirebaseToken(newToken);
         callIdentify();
     }
 

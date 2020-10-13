@@ -23,14 +23,14 @@ import com.google.firebase.iid.InstanceIdResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class BlueshiftAttrApp extends JSONObject {
+public class BlueshiftAttributesApp extends JSONObject {
     private static final String TAG = "ApplicationAttributes";
-    private static final BlueshiftAttrApp instance = new BlueshiftAttrApp();
+    private static final BlueshiftAttributesApp instance = new BlueshiftAttributesApp();
 
-    private BlueshiftAttrApp() {
+    private BlueshiftAttributesApp() {
     }
 
-    public static BlueshiftAttrApp getInstance() {
+    public static BlueshiftAttributesApp getInstance() {
         synchronized (instance) {
             return instance;
         }
@@ -329,7 +329,7 @@ public class BlueshiftAttrApp extends JSONObject {
      * @param context valid {@link Context} object
      */
     @WorkerThread
-    public BlueshiftAttrApp sync(Context context) {
+    public BlueshiftAttributesApp sync(Context context) {
         try {
             addDeviceLocation(context);
         } catch (Exception e) {
