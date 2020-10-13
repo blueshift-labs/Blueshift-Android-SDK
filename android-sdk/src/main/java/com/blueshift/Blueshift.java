@@ -614,11 +614,19 @@ public class Blueshift {
 
         boolean isEnabled = true;
         try {
+            // read from system settings
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(mContext);
-            isEnabled = notificationManagerCompat.areNotificationsEnabled();
+            boolean systemPreferenceVal = notificationManagerCompat.areNotificationsEnabled();
+
+            // read from app preferences
+            boolean appPreferenceVal = BlueshiftAppPreferences.getInstance(mContext).getEnablePush();
+
+            // push is enabled if it is enabled on both sides
+            isEnabled = systemPreferenceVal && appPreferenceVal;
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
+
         eventParams.put(BlueshiftConstants.KEY_ENABLE_PUSH, isEnabled);
 
         // enable or disable in-app

@@ -241,11 +241,19 @@ public class BlueshiftAttributesApp extends JSONObject {
     private void addPushEnabledStatus(Context context) {
         boolean isEnabled = true;
         try {
+            // read from system settings
             NotificationManagerCompat notificationMgr = NotificationManagerCompat.from(context);
-            isEnabled = notificationMgr.areNotificationsEnabled();
+            boolean systemPreferenceVal = notificationMgr.areNotificationsEnabled();
+
+            // read from app preferences
+            boolean appPreferenceVal = BlueshiftAppPreferences.getInstance(context).getEnablePush();
+
+            // push is enabled if it is enabled on both sides
+            isEnabled = systemPreferenceVal && appPreferenceVal;
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
+
         setPushEnabledStatus(isEnabled);
     }
 
