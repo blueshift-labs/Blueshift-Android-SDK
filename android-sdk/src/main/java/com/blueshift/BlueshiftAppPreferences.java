@@ -22,11 +22,7 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
                 // Fresh instance, load value from preferences
                 JSONObject cachedInstance = getCachedInstance(context);
                 if (cachedInstance != null) {
-                    try {
-                        instance.putAll(cachedInstance);
-                    } catch (JSONException e) {
-                        BlueshiftLogger.e(TAG, e);
-                    }
+                    instance.putAll(cachedInstance);
                 }
             }
 
