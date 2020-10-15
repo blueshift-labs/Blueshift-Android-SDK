@@ -6,12 +6,12 @@
     <include
         layout="@layout/bsft_notification_basic_layout"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/bs_notification_min_height" />
+        android:layout_height="@dimen/bsft_notification_min_height" />
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/bs_notification_big_pic_height"
-        android:layout_marginTop="@dimen/bs_notification_min_height">
+        android:layout_height="@dimen/bsft_notification_big_pic_height"
+        android:layout_marginTop="@dimen/bsft_notification_min_height">
 
         <ImageView
             android:id="@+id/big_picture"
