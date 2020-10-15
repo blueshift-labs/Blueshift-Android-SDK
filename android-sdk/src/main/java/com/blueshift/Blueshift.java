@@ -41,7 +41,6 @@ import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NetworkUtils;
-import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -49,6 +48,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -464,122 +464,53 @@ public class Blueshift {
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      * @return true if everything works fine, else false
      */
-    private boolean sendEvent(HashMap<String, Object> params, boolean canBatchThisEvent) {
-        // Check for presence of API key
-        Configuration configuration = getConfiguration();
-        if (configuration == null) {
-            BlueshiftLogger.e(LOG_TAG, "Please initialize the SDK. Call initialize() method with a valid configuration object.");
+    private boolean sendEvent(String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
+        String apiKey = BlueshiftUtils.getApiKey(mContext);
+        if (TextUtils.isEmpty(apiKey)) {
+            BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
             return false;
         } else {
-            if (TextUtils.isEmpty(configuration.getApiKey())) {
-                BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
-                return false;
-            } else {
-                if (params != null) {
-                    // Add Sdk version to the params
-                    params.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+            BlueshiftJSONObject eventParams = new BlueshiftJSONObject();
 
-                    HashMap<String, Object> requestParams = getDeviceParams();
-                    if (requestParams != null) {
-                        // Appending params with the device dependant details.
-                        requestParams.putAll(params);
-
-                        // Append app info
-                        requestParams.putAll(getAppInfoMap());
-
-                        // check if device id (Android Ad Id) is available in parameters' list.
-                        // if not found, try to get it now and fill it in.
-                        Object deviceId = requestParams.get(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
-                        if (deviceId == null) {
-                            String adId = DeviceUtils.getDeviceId(mContext);
-                            requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, adId);
-                        }
-
-                        // Appending email and customer id.
-                        UserInfo userInfo = UserInfo.getInstance(mContext);
-                        if (userInfo != null) {
-                            // checks if the hash already contains an email in it (identify event has email as arg).
-                            if (userInfo.getEmail() != null && !requestParams.containsKey(BlueshiftConstants.KEY_EMAIL)) {
-                                requestParams.put(BlueshiftConstants.KEY_EMAIL, userInfo.getEmail());
-                            }
-
-                            if (userInfo.getRetailerCustomerId() != null) {
-                                requestParams.put(BlueshiftConstants.KEY_CUSTOMER_ID, userInfo.getRetailerCustomerId());
-                            } else {
-                                BlueshiftLogger.w(LOG_TAG, "Retailer customer id found missing in UserInfo.");
-                            }
-                        }
-
-                        // append the optional user parameters based on availability.
-                        requestParams = appendOptionalUserInfo(requestParams);
-
-                        // setting the last known location parameters.
-                        LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
-                        if (locationManager != null) {
-                            if (PermissionUtils.hasAnyPermission(mContext,
-                                    new String[]{
-                                            Manifest.permission.ACCESS_FINE_LOCATION,
-                                            Manifest.permission.ACCESS_COARSE_LOCATION})) {
-
-                                // We have either of the above 2 permissions granted.
-
-                                @SuppressLint("MissingPermission")
-                                Location location =
-                                        locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-                                if (location != null) {
-                                    requestParams.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
-                                    requestParams.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
-                                }
-                            } else {
-                                // Location permission is not available. The client app needs to grand permission.
-                                BlueshiftLogger.w(LOG_TAG, "Location access permission unavailable. Require " +
-                                        Manifest.permission.ACCESS_FINE_LOCATION + " OR " +
-                                        Manifest.permission.ACCESS_COARSE_LOCATION);
-                            }
-                        }
-
-                        // adding timestamp
-                        requestParams.put(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
-
-                        // get status of fresh device id & ad opt out
-                        // calling this synchronously as this method is called from a bg thread
-                        requestParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, DeviceUtils.getDeviceId(mContext));
-                        requestParams.put(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, DeviceUtils.isLimitAdTrackingEnabled(mContext));
-
-                        String reqParamsJSON = new Gson().toJson(requestParams);
-
-                        if (canBatchThisEvent) {
-                            Event event = new Event();
-                            event.setEventParams(requestParams);
-
-                            BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
-
-                            EventsTable.getInstance(mContext).insert(event);
-                        } else {
-                            // Creating the request object.
-                            Request request = new Request();
-                            request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                            request.setUrl(BlueshiftConstants.EVENT_API_URL);
-                            request.setMethod(Method.POST);
-                            request.setParamJson(reqParamsJSON);
-
-                            BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
-
-                            // Adding the request to the queue.
-                            RequestQueue.getInstance().add(mContext, request);
-                        }
-
-                        return true;
-                    } else {
-                        BlueshiftLogger.e(LOG_TAG, "Could not load device specific parameters. Please try again.");
-                        return false;
-                    }
-                } else {
-                    BlueshiftLogger.e(LOG_TAG, "params can't be null");
-                    return false;
-                }
+            try {
+                eventParams.putOpt(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
+                eventParams.putOpt(BlueshiftConstants.KEY_EVENT, eventName);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(LOG_TAG, e);
             }
+
+            BlueshiftAttributesApp appInfo = BlueshiftAttributesApp.getInstance().sync(mContext);
+            eventParams.putAll(appInfo);
+
+            BlueshiftAttributesUser userInfo = BlueshiftAttributesUser.getInstance().sync(mContext);
+            eventParams.putAll(userInfo);
+
+            if (params != null && params.size() > 0) {
+                eventParams.putAll(params);
+            }
+
+            if (canBatchThisEvent) {
+                Event event = new Event();
+                event.setEventParams(eventParams.toHasMap());
+
+                BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
+
+                EventsTable.getInstance(mContext).insert(event);
+            } else {
+                // Creating the request object.
+                Request request = new Request();
+                request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
+                request.setUrl(BlueshiftConstants.EVENT_API_URL);
+                request.setMethod(Method.POST);
+                request.setParamJson(eventParams.toString());
+
+                BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
+
+                // Adding the request to the queue.
+                RequestQueue.getInstance().add(mContext, request);
+            }
+
+            return true;
         }
     }
 
@@ -608,47 +539,13 @@ public class Blueshift {
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      */
     @SuppressWarnings("WeakerAccess")
-    public void trackEvent(@NonNull final String eventName, HashMap<String, Object> params, final boolean canBatchThisEvent) {
-        HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
-
-        boolean isEnabled = true;
-        try {
-            // read from system settings
-            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(mContext);
-            boolean systemPreferenceVal = notificationManagerCompat.areNotificationsEnabled();
-
-            // read from app preferences
-            boolean appPreferenceVal = BlueshiftAppPreferences.getInstance(mContext).getEnablePush();
-
-            // push is enabled if it is enabled on both sides
-            isEnabled = systemPreferenceVal && appPreferenceVal;
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        eventParams.put(BlueshiftConstants.KEY_ENABLE_PUSH, isEnabled);
-
-        // enable or disable in-app
-        boolean enableInApp = mConfiguration != null && mConfiguration.isInAppEnabled();
-        eventParams.put(BlueshiftConstants.KEY_ENABLE_INAPP, enableInApp);
-
-        // insert extra params (if any)
-        if (params != null) {
-            eventParams.putAll(params);
-        }
-
-        // running on a non-UI thread to avoid possible ANR.
-        sendEventAsync(eventName, eventParams, canBatchThisEvent);
-    }
-
-    private void sendEventAsync(final String eventName, final HashMap<String, Object> params, final boolean canBatch) {
+    public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
         BlueshiftExecutor.getInstance().runOnDiskIOThread(
                 new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            boolean tracked = sendEvent(params, canBatch);
+                            boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
                             BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
                         } catch (Exception e) {
                             BlueshiftLogger.e(LOG_TAG, e);
