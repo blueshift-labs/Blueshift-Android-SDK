@@ -473,8 +473,8 @@ public class Blueshift {
             BlueshiftJSONObject eventParams = new BlueshiftJSONObject();
 
             try {
-                eventParams.putOpt(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
-                eventParams.putOpt(BlueshiftConstants.KEY_EVENT, eventName);
+                eventParams.put(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
+                eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
             } catch (JSONException e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
