@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="12dp"
-            android:contentDescription="@string/large_icon"
+            android:contentDescription="@string/bsft_notification_large_icon"
             android:scaleType="centerInside" />
 
         <ImageView
@@ -24,9 +24,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="12dp"
-            android:contentDescription="@string/large_icon"
+            android:contentDescription="@string/bsft_notification_large_icon"
             android:scaleType="fitXY"
-            android:src="@drawable/notification_big_icon_overlay"
+            android:src="@drawable/bsft_notification_big_icon_overlay"
             android:visibility="gone" />
 
         <ImageView
@@ -37,9 +37,9 @@
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
-            android:contentDescription="@string/small_icon"
+            android:contentDescription="@string/bsft_notification_small_icon"
             android:scaleType="fitXY"
-            android:src="@drawable/notification_small_icon_bg"
+            android:src="@drawable/bsft_notification_small_icon_background"
             android:visibility="gone" />
 
         <ImageView
@@ -51,7 +51,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:background="@android:color/transparent"
-            android:contentDescription="@string/small_icon"
+            android:contentDescription="@string/bsft_notification_small_icon"
             android:padding="3dp"
             android:tint="@android:color/white"
             android:visibility="gone" />

@@ -161,7 +161,7 @@ class CustomNotificationFactory {
         RemoteViews contentView = null;
 
         if (context != null) {
-            contentView = new RemoteViews(context.getPackageName(), R.layout.carousel_layout);
+            contentView = new RemoteViews(context.getPackageName(), R.layout.bsft_carousel_layout);
 
             setBasicNotificationData(context, message, contentView, true);
 
@@ -291,48 +291,48 @@ class CustomNotificationFactory {
     }
 
     private int getLayoutResIdFromType(String type) {
-        int resId = R.layout.carousel_overlay_center;
+        int resId = R.layout.bsft_carousel_overlay_center;
 
         if (type != null) {
             switch (type) {
                 case "top_left":
-                    resId = R.layout.carousel_overlay_top_left;
+                    resId = R.layout.bsft_carousel_overlay_top_left;
                     break;
 
                 case "top_center":
-                    resId = R.layout.carousel_overlay_top_center;
+                    resId = R.layout.bsft_carousel_overlay_top_center;
                     break;
 
                 case "top_right":
-                    resId = R.layout.carousel_overlay_top_right;
+                    resId = R.layout.bsft_carousel_overlay_top_right;
                     break;
 
                 case "center_left":
-                    resId = R.layout.carousel_overlay_center_left;
+                    resId = R.layout.bsft_carousel_overlay_center_left;
                     break;
 
                 case "center":
-                    resId = R.layout.carousel_overlay_center;
+                    resId = R.layout.bsft_carousel_overlay_center;
                     break;
 
                 case "center_right":
-                    resId = R.layout.carousel_overlay_center_right;
+                    resId = R.layout.bsft_carousel_overlay_center_right;
                     break;
 
                 case "bottom_left":
-                    resId = R.layout.carousel_overlay_bottom_left;
+                    resId = R.layout.bsft_carousel_overlay_bottom_left;
                     break;
 
                 case "bottom_center":
-                    resId = R.layout.carousel_overlay_bottom_center;
+                    resId = R.layout.bsft_carousel_overlay_bottom_center;
                     break;
 
                 case "bottom_right":
-                    resId = R.layout.carousel_overlay_bottom_right;
+                    resId = R.layout.bsft_carousel_overlay_bottom_right;
                     break;
 
                 default:
-                    resId = R.layout.carousel_overlay_center;
+                    resId = R.layout.bsft_carousel_overlay_center;
             }
         }
 
@@ -460,7 +460,7 @@ class CustomNotificationFactory {
                 String bigContentSummary = message.getBigContentSummaryText();
                 if (!TextUtils.isEmpty(bigContentSummary)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        String dot = context.getString(R.string.dot);
+                        String dot = context.getString(R.string.bsft_notification_dot);
                         bigContentSummary = " " + dot + " " + bigContentSummary;
                     } else {
                         // we have both content and content sub text. make room for content sub text
@@ -483,7 +483,7 @@ class CustomNotificationFactory {
                 String contentSubText = message.getContentSubText();
                 if (!TextUtils.isEmpty(contentSubText)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        String dot = context.getString(R.string.dot);
+                        String dot = context.getString(R.string.bsft_notification_dot);
                         contentSubText = " " + dot + " " + contentSubText;
                     } else {
                         // we have both content and content sub text. make room for content sub text
@@ -570,7 +570,7 @@ class CustomNotificationFactory {
                 builder.setContentTitle(message.getContentTitle());
                 builder.setContentText(message.getContentText());
 
-                RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_basic_layout);
+                RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.bsft_notification_basic_layout);
                 builder.setContent(contentView);
 
                 setBasicNotificationData(context, message, contentView, false);
@@ -602,7 +602,7 @@ class CustomNotificationFactory {
             String packageName = context.getPackageName();
             if (!TextUtils.isEmpty(packageName)) {
                 // create/inflate carousel notification's layout.
-                contentView = new RemoteViews(packageName, R.layout.carousel_layout);
+                contentView = new RemoteViews(packageName, R.layout.bsft_carousel_layout);
 
                 // show the container to host ViewFlipper.
                 contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
@@ -611,7 +611,7 @@ class CustomNotificationFactory {
                 setBasicNotificationData(context, message, contentView, true);
 
                 // create/inflate ViewFlipper layout.
-                RemoteViews viewFlipper = new RemoteViews(packageName, R.layout.carousel_view_flipper);
+                RemoteViews viewFlipper = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper);
 
                 // loop through the carousel elements and add the image into ViewFlipper.
                 CarouselElement[] elements = message.getCarouselElements();
@@ -623,7 +623,7 @@ class CustomNotificationFactory {
                             Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
 
                             // Set the image into the view.
-                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.carousel_view_flipper_entry);
+                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper_entry);
                             viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
                             // Attach an onClick pending intent.

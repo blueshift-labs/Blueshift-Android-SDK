@@ -7,7 +7,7 @@
         android:id="@+id/carousel_image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/carousel_image"
+        android:contentDescription="@string/bsft_notification_carousel_image"
         android:scaleType="centerCrop" />
 
     <RelativeLayout
