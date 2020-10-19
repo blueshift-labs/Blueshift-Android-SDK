@@ -36,6 +36,45 @@ public class BlueshiftAttributesApp extends JSONObject {
         }
     }
 
+    private void runPermissionChecksAndLogAsync(final Context context) {
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        runPermissionChecksAndLog(context);
+                    }
+                }
+        );
+    }
+
+    private void runPermissionChecksAndLog(Context context) {
+        try {
+            // Location
+            String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+            boolean isAvailable = PermissionUtils.hasAnyPermission(context, permissions);
+            BlueshiftLogger.i(TAG, "Location permission is" + (isAvailable ? "" : " not") + " available.");
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            // read from system settings
+            NotificationManagerCompat notificationMgr = NotificationManagerCompat.from(context);
+            boolean isPushEnabledAndroid = notificationMgr.areNotificationsEnabled();
+            BlueshiftLogger.i(TAG, "Notifications turned" + (isPushEnabledAndroid ? " ON" : " OFF") + " in Android settings.");
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            // read from app preferences
+            boolean isPushEnabledApp = BlueshiftAppPreferences.getInstance(context).getEnablePush();
+            BlueshiftLogger.i(TAG, "Notifications turned" + (isPushEnabledApp ? " ON" : " OFF") + " in app's preferences.");
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+    }
+
     public void init(Context context) {
         synchronized (instance) {
             try {
@@ -62,6 +101,8 @@ public class BlueshiftAttributesApp extends JSONObject {
         addDeviceAdId(context);
         addDeviceLocation(context);
         addAdTrackingStatus(context);
+
+        runPermissionChecksAndLogAsync(context);
     }
 
     private void addDeviceAdId(final Context context) {
