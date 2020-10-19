@@ -70,7 +70,9 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
     public boolean getEnablePush() {
         synchronized (instance) {
             try {
-                return instance.getBoolean(KEY_ENABLE_PUSH);
+                if (instance.has(KEY_ENABLE_PUSH)) {
+                    return instance.getBoolean(KEY_ENABLE_PUSH);
+                }
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
