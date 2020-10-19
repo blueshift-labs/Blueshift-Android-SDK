@@ -16,7 +16,7 @@ public class BlueshiftJSONObject extends JSONObject {
                 try {
                     String key = keys.next();
                     Object val = jsonObject.get(key);
-                    putOpt(key, val);
+                    put(key, val);
                 } catch (JSONException ignored) {
                 }
             }
@@ -27,7 +27,7 @@ public class BlueshiftJSONObject extends JSONObject {
         if (map != null) {
             for (String key : map.keySet()) {
                 try {
-                    putOpt(key, map.get(key));
+                    put(key, map.get(key));
                 } catch (JSONException ignored) {
                 }
             }

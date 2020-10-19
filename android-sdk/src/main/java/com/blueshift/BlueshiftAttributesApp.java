@@ -39,7 +39,7 @@ public class BlueshiftAttributesApp extends JSONObject {
     public void init(Context context) {
         synchronized (instance) {
             try {
-                instance.putOpt(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+                instance.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
 
                 instance.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
                 instance.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
@@ -80,7 +80,7 @@ public class BlueshiftAttributesApp extends JSONObject {
         synchronized (instance) {
             if (adId != null) {
                 try {
-                    instance.putOpt(BlueshiftConstants.KEY_ADVERTISING_ID, adId);
+                    instance.put(BlueshiftConstants.KEY_ADVERTISING_ID, adId);
                 } catch (JSONException e) {
                     BlueshiftLogger.e(TAG, e);
                 }
@@ -103,7 +103,7 @@ public class BlueshiftAttributesApp extends JSONObject {
     private void setAdTrackingStatus(boolean isEnabled) {
         synchronized (instance) {
             try {
-                instance.putOpt(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, isEnabled);
+                instance.put(BlueshiftConstants.KEY_LIMIT_AD_TRACKING, isEnabled);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
@@ -150,8 +150,8 @@ public class BlueshiftAttributesApp extends JSONObject {
         synchronized (instance) {
             if (location != null) {
                 try {
-                    instance.putOpt(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
-                    instance.putOpt(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
+                    instance.put(BlueshiftConstants.KEY_LATITUDE, location.getLatitude());
+                    instance.put(BlueshiftConstants.KEY_LONGITUDE, location.getLongitude());
                 } catch (JSONException e) {
                     BlueshiftLogger.e(TAG, e);
                 }
@@ -225,7 +225,7 @@ public class BlueshiftAttributesApp extends JSONObject {
     private void setFirebaseInstanceId(String instanceId) {
         synchronized (instance) {
             try {
-                instance.putOpt(BlueshiftConstants.KEY_FIREBASE_INSTANCE_ID, instanceId);
+                instance.put(BlueshiftConstants.KEY_FIREBASE_INSTANCE_ID, instanceId);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
@@ -260,7 +260,7 @@ public class BlueshiftAttributesApp extends JSONObject {
     private void setPushEnabledStatus(boolean isEnabled) {
         synchronized (instance) {
             try {
-                instance.putOpt(BlueshiftConstants.KEY_ENABLE_PUSH, isEnabled);
+                instance.put(BlueshiftConstants.KEY_ENABLE_PUSH, isEnabled);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
@@ -271,7 +271,7 @@ public class BlueshiftAttributesApp extends JSONObject {
         synchronized (instance) {
             boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
             try {
-                instance.putOpt(BlueshiftConstants.KEY_ENABLE_INAPP, isEnabled);
+                instance.put(BlueshiftConstants.KEY_ENABLE_INAPP, isEnabled);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
@@ -283,7 +283,7 @@ public class BlueshiftAttributesApp extends JSONObject {
             if (context != null) {
                 try {
                     String pkgName = context.getPackageName();
-                    instance.putOpt(BlueshiftConstants.KEY_APP_NAME, pkgName);
+                    instance.put(BlueshiftConstants.KEY_APP_NAME, pkgName);
                 } catch (JSONException e) {
                     BlueshiftLogger.e(TAG, e);
                 }
@@ -323,7 +323,7 @@ public class BlueshiftAttributesApp extends JSONObject {
     private void setAppVersion(String appVersion) {
         synchronized (instance) {
             try {
-                instance.putOpt(BlueshiftConstants.KEY_APP_VERSION, appVersion);
+                instance.put(BlueshiftConstants.KEY_APP_VERSION, appVersion);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
