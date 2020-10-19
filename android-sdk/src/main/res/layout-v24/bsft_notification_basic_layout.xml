@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="90dp"
+    android:background="@android:color/white"
     android:paddingBottom="2dp"
     android:paddingEnd="15dp"
     android:paddingStart="15dp"
@@ -15,7 +16,7 @@
         android:layout_height="18dp"
         android:layout_marginEnd="5dp"
         android:background="@android:color/transparent"
-        android:contentDescription="@string/small_icon"
+        android:contentDescription="@string/bsft_notification_small_icon"
         android:tint="#808080" />
 
     <TextView
@@ -24,7 +25,7 @@
         android:layout_height="18dp"
         android:layout_toEndOf="@id/notification_small_icon"
         android:gravity="center"
-        style="@style/TextAppearance.Compat.Notification.Info" />
+        android:textAppearance="@style/NotificationInfo" />
 
     <TextView
         android:id="@+id/notification_sub_text"
@@ -32,7 +33,7 @@
         android:layout_height="18dp"
         android:layout_toEndOf="@id/notification_app_name_text"
         android:gravity="center"
-        style="@style/TextAppearance.Compat.Notification.Info" />
+        android:textAppearance="@style/NotificationInfo" />
 
     <TextView
         android:id="@+id/notification_time"
@@ -42,7 +43,7 @@
         android:layout_toEndOf="@id/notification_sub_text"
         android:gravity="center"
         android:maxLines="1"
-        style="@style/TextAppearance.Compat.Notification.Time" />
+        android:textAppearance="@style/NotificationTime" />
 
     <TextView
         android:id="@+id/notification_content_title"
@@ -52,7 +53,7 @@
         android:layout_marginTop="5dp"
         android:layout_toStartOf="@id/icon_group"
         android:gravity="center_vertical"
-        style="@style/TextAppearance.Compat.Notification.Title" />
+        android:textAppearance="@style/NotificationTitle" />
 
     <TextView
         android:id="@+id/notification_content_text"
@@ -61,7 +62,7 @@
         android:layout_below="@id/notification_content_title"
         android:layout_toStartOf="@id/icon_group"
         android:maxLines="1"
-        style="@style/TextAppearance.Compat.Notification.Line2" />
+        android:textAppearance="@style/NotificationLine2" />
 
     <!--Notification icon group-->
 
@@ -79,17 +80,18 @@
             android:id="@+id/notification_icon_overlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/large_icon"
+            android:contentDescription="@string/bsft_notification_large_icon"
             android:scaleType="fitXY"
-            android:src="@drawable/notification_big_icon_overlay"
+            android:src="@drawable/bsft_notification_big_icon_overlay"
             android:visibility="gone" />
 
         <ImageView
             android:id="@+id/notification_icon"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/large_icon" />
+            android:contentDescription="@string/bsft_notification_large_icon" />
 
     </FrameLayout>
+
 
 </RelativeLayout>

@@ -1,11 +1,14 @@
 package com.blueshift.util;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
+import com.blueshift.rich_push.Message;
+import com.google.firebase.messaging.RemoteMessage;
 
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
@@ -91,5 +94,31 @@ public class BlueshiftUtils {
         }
 
         return isEnabled;
+    }
+
+    /**
+     * Checks the payload received and looks for bsft_message_uuid in it to confirm if
+     * the push message belongs to Blueshift.
+     *
+     * @param intent from push message receiver
+     * @return true if push belongs to Blueshift, else false
+     */
+    public static boolean isBlueshiftPushMessage(Intent intent) {
+        return intent != null
+                && intent.getExtras() != null
+                && intent.getExtras().containsKey(Message.EXTRA_BSFT_MESSAGE_UUID);
+    }
+
+    /**
+     * Checks the payload received and looks for bsft_message_uuid in it to confirm if
+     * the push message belongs to Blueshift.
+     *
+     * @param remoteMessage from push message receiver
+     * @return true if push belongs to Blueshift, else false
+     */
+    public static boolean isBlueshiftPushMessage(RemoteMessage remoteMessage) {
+        return remoteMessage != null
+                && remoteMessage.getData() != null
+                && remoteMessage.getData().containsKey(Message.EXTRA_BSFT_MESSAGE_UUID);
     }
 }
