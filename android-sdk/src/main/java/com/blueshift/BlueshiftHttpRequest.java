@@ -78,9 +78,9 @@ public class BlueshiftHttpRequest {
     public static class Builder {
         private String url;
         private Method method;
-        private BlueshiftJSONObject urlParamsJson;
-        private BlueshiftJSONObject reqHeaderJson;
-        private BlueshiftJSONObject reqBodyJson;
+        private final BlueshiftJSONObject urlParamsJson;
+        private final BlueshiftJSONObject reqHeaderJson;
+        private final BlueshiftJSONObject reqBodyJson;
 
         public Builder() {
             method = Method.GET;
@@ -100,29 +100,17 @@ public class BlueshiftHttpRequest {
         }
 
         public Builder setUrlParamsJson(JSONObject urlParamsJson) {
-            try {
-                this.urlParamsJson.putAll(urlParamsJson);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(TAG, e);
-            }
+            this.urlParamsJson.putAll(urlParamsJson);
             return this;
         }
 
         public Builder setReqHeaderJson(JSONObject reqHeaderJson) {
-            try {
-                this.reqHeaderJson.putAll(reqHeaderJson);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(TAG, e);
-            }
+            this.reqHeaderJson.putAll(reqHeaderJson);
             return this;
         }
 
         public Builder setReqBodyJson(JSONObject reqBodyJson) {
-            try {
-                this.reqBodyJson.putAll(reqBodyJson);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(TAG, e);
-            }
+            this.reqBodyJson.putAll(reqBodyJson);
             return this;
         }
 
