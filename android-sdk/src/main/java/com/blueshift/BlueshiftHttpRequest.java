@@ -111,7 +111,7 @@ public class BlueshiftHttpRequest {
 
         public Builder setReqBodyJson(JSONObject reqBodyJson) {
             this.reqBodyJson.putAll(reqBodyJson);
-            return this;
+            return acceptJson();
         }
 
         public Builder addBasicAuth(String username, String password) {
@@ -130,7 +130,7 @@ public class BlueshiftHttpRequest {
             return this;
         }
 
-        public Builder acceptJson() {
+        private Builder acceptJson() {
             if (this.reqHeaderJson != null) {
                 try {
                     reqHeaderJson.putOpt("Accept", "application/json");
