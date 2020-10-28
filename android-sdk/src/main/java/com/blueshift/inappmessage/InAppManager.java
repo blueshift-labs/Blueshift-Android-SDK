@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
+import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftHttpManager;
@@ -26,10 +27,7 @@ import com.blueshift.BlueshiftHttpRequest;
 import com.blueshift.BlueshiftHttpResponse;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.R;
-import com.blueshift.httpmanager.HTTPManager;
-import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
@@ -193,11 +191,11 @@ public class InAppManager {
                                 // lastTimestamp
                                 params.put(BlueshiftConstants.KEY_LAST_TIMESTAMP, lastTimestamp != null ? lastTimestamp : 0);
 
-                                BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder();
-                                builder.setUrl(BlueshiftConstants.IN_APP_API_URL);
-                                builder.setMethod(BlueshiftHttpRequest.Method.POST);
-                                builder.addBasicAuth(apiKey, "");
-                                builder.setReqBodyJson(params);
+                                BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
+                                        .setUrl(BlueshiftConstants.IN_APP_API_URL)
+                                        .setMethod(BlueshiftHttpRequest.Method.POST)
+                                        .addBasicAuth(apiKey, "")
+                                        .setReqBodyJson(params);
 
                                 BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(builder.build());
                                 int statusCode = response.getCode();
@@ -205,7 +203,6 @@ public class InAppManager {
 
                                 if (statusCode == 200) {
                                     if (!TextUtils.isEmpty(responseBody)) {
-                                        BlueshiftLogger.d(LOG_TAG, "(Fetch in-app) Response body: " + responseBody);
                                         try {
                                             JSONArray inAppJsonArray = decodeResponse(responseBody);
                                             InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
