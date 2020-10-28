@@ -47,28 +47,12 @@
         <item name="android:paddingTop">2dp</item>
     </style>
 
-    <style name="carouselElementTitleLeft" parent="carouselElementTitle">
-        <item name="android:gravity">start</item>
-    </style>
-
     <style name="carouselElementTitleCenter" parent="carouselElementTitle">
         <item name="android:gravity">center</item>
     </style>
 
-    <style name="carouselElementTitleRight" parent="carouselElementTitle">
-        <item name="android:gravity">end</item>
-    </style>
-
-    <style name="carouselElementSubtitleLeft" parent="carouselElementSubtitle">
-        <item name="android:gravity">start</item>
-    </style>
-
     <style name="carouselElementSubtitleCenter" parent="carouselElementSubtitle">
         <item name="android:gravity">center</item>
-    </style>
-
-    <style name="carouselElementSubtitleRight" parent="carouselElementSubtitle">
-        <item name="android:gravity">end</item>
     </style>
 
     <style name="dialogStyleInApp" parent="Theme.AppCompat.Light.Dialog">
