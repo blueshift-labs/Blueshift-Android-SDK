@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/carousel_content_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/carousel_content_text_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/carousel_content_text"
+            style="@style/carouselElementTitleCenter" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/carousel_content_subtext_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/carousel_content_subtext"
+            style="@style/carouselElementSubtitleCenter" />
+
+    </LinearLayout>
+
+</LinearLayout>

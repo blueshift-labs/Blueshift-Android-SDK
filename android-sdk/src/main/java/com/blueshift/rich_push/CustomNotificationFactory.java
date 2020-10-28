@@ -17,6 +17,7 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -245,29 +246,33 @@ class CustomNotificationFactory {
             }
 
             // decide which layout and add it in the content view
-            int resId = getLayoutResIdFromType(element.getContentLayoutType());
-            overlayView = new RemoteViews(context.getPackageName(), resId);
+            overlayView = new RemoteViews(context.getPackageName(), R.layout.bsft_carousel_text_overlay_view);
+
+            String position = element.getContentLayoutType();
 
             // fill the overlay texts
-            setOverlayText(overlayView, R.id.carousel_content_text, text);
-            setOverlayText(overlayView, R.id.carousel_content_subtext, subText);
+            setOverlayText(overlayView, R.id.carousel_content_text, R.id.carousel_content_text_layout, text, position);
+            setOverlayText(overlayView, R.id.carousel_content_subtext, R.id.carousel_content_subtext_layout, subText, position);
+
+            // set gravity
+            overlayView.setInt(R.id.carousel_content_layout, "setGravity", getElementGravity(position));
         }
 
         return overlayView;
     }
 
-    private void setOverlayText(RemoteViews containerView, int resourceID, CarouselElementText content) {
+    private void setOverlayText(RemoteViews containerView, int textViewId, int containerViewId, CarouselElementText content, String position) {
         if (containerView != null && content != null && !TextUtils.isEmpty(content.getText())) {
             // BlueshiftLogger.d(LOG_TAG, "Carousel text: " + content.getText());
 
-            containerView.setTextViewText(resourceID, content.getText());
+            containerView.setTextViewText(textViewId, content.getText());
 
             // color
             if (!TextUtils.isEmpty(content.getTextColor())) {
                 // BlueshiftLogger.d(LOG_TAG, "Carousel text color: " + content.getTextColor());
 
                 int color = Color.parseColor(content.getTextColor());
-                containerView.setTextColor(resourceID, color);
+                containerView.setTextColor(textViewId, color);
             }
 
             // bg color
@@ -275,8 +280,11 @@ class CustomNotificationFactory {
                 // BlueshiftLogger.d(LOG_TAG, "Carousel text background color: " + content.getTextBackgroundColor());
 
                 int color = Color.parseColor(content.getTextBackgroundColor());
-                containerView.setInt(resourceID, "setBackgroundColor", color);
+                containerView.setInt(containerViewId, "setBackgroundColor", color);
             }
+
+            // text gravity
+            containerView.setInt(containerViewId, "setGravity", getElementTextGravity(position));
 
             // size
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -284,59 +292,60 @@ class CustomNotificationFactory {
 
                 if (content.getTextSize() > 0) {
                     containerView.setTextViewTextSize(
-                            resourceID, TypedValue.COMPLEX_UNIT_SP, content.getTextSize());
+                            textViewId, TypedValue.COMPLEX_UNIT_SP, content.getTextSize());
                 }
             }
         }
     }
 
-    private int getLayoutResIdFromType(String type) {
-        int resId = R.layout.bsft_carousel_overlay_center;
+    private int getElementGravity(String position) {
+        int gravity = Gravity.CENTER;
 
-        if (type != null) {
-            switch (type) {
-                case "top_left":
-                    resId = R.layout.bsft_carousel_overlay_top_left;
-                    break;
+        if (position != null) {
+            String[] parts = position.split("_");
+            if (parts != null && parts.length == 2) {
+                switch (parts[0]) {
+                    case "top":
+                        gravity = Gravity.TOP;
+                        break;
 
-                case "top_center":
-                    resId = R.layout.bsft_carousel_overlay_top_center;
-                    break;
+                    case "center":
+                        gravity = Gravity.CENTER_VERTICAL;
+                        break;
 
-                case "top_right":
-                    resId = R.layout.bsft_carousel_overlay_top_right;
-                    break;
-
-                case "center_left":
-                    resId = R.layout.bsft_carousel_overlay_center_left;
-                    break;
-
-                case "center":
-                    resId = R.layout.bsft_carousel_overlay_center;
-                    break;
-
-                case "center_right":
-                    resId = R.layout.bsft_carousel_overlay_center_right;
-                    break;
-
-                case "bottom_left":
-                    resId = R.layout.bsft_carousel_overlay_bottom_left;
-                    break;
-
-                case "bottom_center":
-                    resId = R.layout.bsft_carousel_overlay_bottom_center;
-                    break;
-
-                case "bottom_right":
-                    resId = R.layout.bsft_carousel_overlay_bottom_right;
-                    break;
-
-                default:
-                    resId = R.layout.bsft_carousel_overlay_center;
+                    case "bottom":
+                        gravity = Gravity.BOTTOM;
+                        break;
+                }
             }
         }
 
-        return resId;
+        return gravity;
+    }
+
+    private int getElementTextGravity(String position) {
+        int gravity = Gravity.CENTER;
+
+        if (position != null) {
+            String[] parts = position.split("_");
+            if (parts != null && parts.length == 2) {
+                switch (parts[1]) {
+                    case "left":
+                        gravity = Gravity.START;
+                        break;
+
+                    case "center":
+                        gravity = Gravity.CENTER;
+                        break;
+
+                    case "right":
+                        gravity = Gravity.END;
+                        break;
+                }
+            }
+        }
+
+        return gravity;
     }
 
     /**
