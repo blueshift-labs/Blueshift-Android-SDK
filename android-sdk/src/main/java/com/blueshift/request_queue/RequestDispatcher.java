@@ -9,10 +9,14 @@ import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftHttpManager;
+import com.blueshift.BlueshiftHttpRequest;
+import com.blueshift.BlueshiftHttpResponse;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.HTTPManager;
+import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
@@ -121,8 +125,8 @@ class RequestDispatcher {
             addDeviceTokenToParams(fcmRegistrationToken);
             doAutoIdentifyCheck(mContext);
 
-            Response response = makeAPICall(httpManager);
-            boolean apiStatus = response.getStatusCode() == 200;
+            BlueshiftHttpResponse response = makeAPICall(httpManager);
+            boolean apiStatus = response != null && response.getCode() == 200;
             updateRequestQueue(apiStatus);
         }
     }
@@ -244,38 +248,32 @@ class RequestDispatcher {
      * @param httpManager valid {@link HTTPManager} object
      * @return the {@link Response} of the API call
      */
-    private Response makeAPICall(HTTPManager httpManager) {
-        Response response = null;
+    private BlueshiftHttpResponse makeAPICall(HTTPManager httpManager) {
+        String apiKey = BlueshiftUtils.getApiKey(mContext);
 
-        if (mRequest != null) {
-            switch (mRequest.getMethod()) {
-                case POST:
-                    String json = mRequest.getParamJson();
+        if (apiKey != null && mRequest != null) {
+            BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
+                    .setUrl(mRequest.getUrl())
+                    .addBasicAuth(apiKey, "");
 
-                    response = httpManager.post(json);
-                    String eventName = getEventName(json);
-                    String apiStatus = getStatusFromResponse(response);
-
-                    BlueshiftLogger.d(LOG_TAG, "Event name: " + eventName + ", API Status: " + apiStatus);
-
-                    break;
-
-                case GET:
-                    response = httpManager.get();
-
-
-                    break;
-
-                default:
-                    BlueshiftLogger.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
+            if (mRequest.getMethod() == Method.POST) {
+                builder.setMethod(BlueshiftHttpRequest.Method.POST);
             }
 
-            if (response != null && mRequest != null) {
-                mRequest.log(LOG_TAG, response);
+            String json = mRequest.getParamJson();
+            if (json != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(json);
+                    builder.setReqBodyJson(jsonObject);
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
             }
+
+            return BlueshiftHttpManager.getInstance().send(builder.build());
         }
 
-        return response;
+        return null;
     }
 
     /**
