@@ -1314,11 +1314,14 @@ public class Blueshift {
             String idKey,
             HashMap<String, Object> liveContentContext
     ) {
-        String responseJson = null;
+        JSONObject reqParams = new JSONObject();
 
-        HashMap<String, Object> reqParams = new HashMap<>();
         if (!TextUtils.isEmpty(slot)) {
-            reqParams.put(BlueshiftConstants.KEY_SLOT, slot);
+            try {
+                reqParams.put(BlueshiftConstants.KEY_SLOT, slot);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
         } else {
             BlueshiftLogger.e(LOG_TAG, "Live Content Api: No slot provided.");
         }
@@ -1327,7 +1330,11 @@ public class Blueshift {
         if (config != null) {
             String apiKey = config.getApiKey();
             if (!TextUtils.isEmpty(apiKey)) {
-                reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
+                try {
+                    reqParams.put(BlueshiftConstants.KEY_API_KEY, apiKey);
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
             } else {
                 BlueshiftLogger.e(LOG_TAG, "Live Content Api: No Api Key provided.");
             }
@@ -1335,7 +1342,7 @@ public class Blueshift {
             BlueshiftLogger.e(LOG_TAG, "Live Content Api: No valid config provided.");
         }
 
-        HashMap<String, Object> userHash = new HashMap<>();
+        JSONObject userHash = new JSONObject();
 
         if (idKey != null) {
             switch (idKey) {
@@ -1344,7 +1351,11 @@ public class Blueshift {
                     if (userInfo != null) {
                         String email = userInfo.getEmail();
                         if (!TextUtils.isEmpty(email)) {
-                            userHash.put(BlueshiftConstants.KEY_EMAIL, email);
+                            try {
+                                userHash.put(BlueshiftConstants.KEY_EMAIL, email);
+                            } catch (JSONException e) {
+                                BlueshiftLogger.e(LOG_TAG, e);
+                            }
                         } else {
                             BlueshiftLogger.e(LOG_TAG, "Live Content Api: No email id provided in UserInfo.");
                         }
@@ -1355,7 +1366,11 @@ public class Blueshift {
                 case BlueshiftConstants.KEY_DEVICE_IDENTIFIER:
                     String deviceId = DeviceUtils.getDeviceId(context);
                     if (!TextUtils.isEmpty(deviceId)) {
-                        userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+                        try {
+                            userHash.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+                        } catch (JSONException e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
+                        }
                     } else {
                         BlueshiftLogger.e(LOG_TAG, "Live Content Api: No advertisingID available.");
                     }
@@ -1367,7 +1382,11 @@ public class Blueshift {
                     if (bsftUserInfo != null) {
                         String customerId = bsftUserInfo.getRetailerCustomerId();
                         if (!TextUtils.isEmpty(customerId)) {
-                            userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                            try {
+                                userHash.put(BlueshiftConstants.KEY_CUSTOMER_ID, customerId);
+                            } catch (JSONException e) {
+                                BlueshiftLogger.e(LOG_TAG, e);
+                            }
                         } else {
                             BlueshiftLogger.e(LOG_TAG, "Live Content Api: No customerId provided in UserInfo.");
                         }
@@ -1378,22 +1397,30 @@ public class Blueshift {
         }
 
         // add user params
-        reqParams.put(BlueshiftConstants.KEY_USER, userHash);
+        try {
+            reqParams.put(BlueshiftConstants.KEY_USER, userHash);
+        } catch (JSONException e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
 
         // add extra params if available
         if (liveContentContext != null && liveContentContext.size() > 0) {
-            reqParams.put(BlueshiftConstants.KEY_CONTEXT, liveContentContext);
+            try {
+                reqParams.put(BlueshiftConstants.KEY_CONTEXT, liveContentContext);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
         }
 
-        String paramsJson = new Gson().toJson(reqParams);
-        HTTPManager httpManager = new HTTPManager(BlueshiftConstants.LIVE_CONTENT_API_URL);
-        Response response = httpManager.post(paramsJson);
+        BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
+                .setUrl(BlueshiftConstants.LIVE_CONTENT_API_URL)
+                .setMethod(BlueshiftHttpRequest.Method.POST)
+                .setReqBodyJson(reqParams)
+                .build();
 
-        if (response.getStatusCode() == 200) {
-            responseJson = response.getResponseBody();
-        }
+        BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(request);
 
-        return responseJson;
+        return response.getCode() == 200 ? response.getBody() : null;
     }
 
     private void fetchLiveContentAsync(
