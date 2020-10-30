@@ -15,7 +15,6 @@ import com.blueshift.BlueshiftHttpResponse;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.FailedEventsTable;
-import com.blueshift.httpmanager.HTTPManager;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
@@ -120,12 +119,10 @@ class RequestDispatcher {
     private synchronized void processRequest(String fcmRegistrationToken) {
         String url = mRequest.getUrl();
         if (!TextUtils.isEmpty(url)) {
-            HTTPManager httpManager = getHttpManagerWithAuthentication(url);
-
             addDeviceTokenToParams(fcmRegistrationToken);
             doAutoIdentifyCheck(mContext);
 
-            BlueshiftHttpResponse response = makeAPICall(httpManager);
+            BlueshiftHttpResponse response = makeAPICall();
             boolean apiStatus = response != null && response.getCode() == 200;
             updateRequestQueue(apiStatus);
         }
@@ -141,21 +138,6 @@ class RequestDispatcher {
         if (mCallback != null) {
             mCallback.onDispatchComplete();
         }
-    }
-
-    /**
-     * Create and return a valid HTTPManager object with URL and basic authentication.
-     *
-     * @param url valid api URL.
-     * @return valid {@link HTTPManager} object with URL & basic authentication.
-     */
-    private HTTPManager getHttpManagerWithAuthentication(@NonNull String url) {
-        HTTPManager httpManager = new HTTPManager(url);
-
-        String apiKey = BlueshiftUtils.getApiKey(mContext);
-        if (apiKey != null) httpManager.addBasicAuthentication(apiKey, "");
-
-        return httpManager;
     }
 
     /**
@@ -245,10 +227,9 @@ class RequestDispatcher {
      * Makes the actual API call with the server, based on the details provided inside
      * the {@link Request} object.
      *
-     * @param httpManager valid {@link HTTPManager} object
      * @return the {@link Response} of the API call
      */
-    private BlueshiftHttpResponse makeAPICall(HTTPManager httpManager) {
+    private BlueshiftHttpResponse makeAPICall() {
         String apiKey = BlueshiftUtils.getApiKey(mContext);
 
         if (apiKey != null && mRequest != null) {
