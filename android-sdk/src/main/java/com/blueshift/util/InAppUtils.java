@@ -82,7 +82,7 @@ public class InAppUtils {
 
     public static String getStringFromJSONObject(JSONObject jsonObject, String key) {
         try {
-            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+            if (jsonObject != null && !TextUtils.isEmpty(key) && !jsonObject.isNull(key)) {
                 return jsonObject.optString(key);
             }
         } catch (Exception e) {
@@ -94,7 +94,7 @@ public class InAppUtils {
 
     public static int getIntFromJSONObject(JSONObject jsonObject, String key, int fallback) {
         try {
-            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+            if (jsonObject != null && !TextUtils.isEmpty(key) && !jsonObject.isNull(key)) {
                 return jsonObject.optInt(key, fallback);
             }
         } catch (Exception e) {
@@ -106,7 +106,7 @@ public class InAppUtils {
 
     public static double getDoubleFromJSONObject(JSONObject jsonObject, String key, double fallback) {
         try {
-            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+            if (jsonObject != null && !TextUtils.isEmpty(key) && !jsonObject.isNull(key)) {
                 return jsonObject.optDouble(key, fallback);
             }
         } catch (Exception e) {
@@ -118,7 +118,7 @@ public class InAppUtils {
 
     public static boolean getBooleanFromJSONObject(JSONObject jsonObject, String key, boolean fallback) {
         try {
-            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+            if (jsonObject != null && !TextUtils.isEmpty(key) && !jsonObject.isNull(key)) {
                 return jsonObject.optBoolean(key, fallback);
             }
         } catch (Exception e) {
@@ -130,7 +130,7 @@ public class InAppUtils {
 
     public static Rect getRectFromJSONObject(JSONObject jsonObject, String key) {
         try {
-            if (jsonObject != null && !TextUtils.isEmpty(key)) {
+            if (jsonObject != null && !TextUtils.isEmpty(key) && !jsonObject.isNull(key)) {
                 String json = jsonObject.optString(key);
                 return new Gson().fromJson(json, Rect.class);
             }
