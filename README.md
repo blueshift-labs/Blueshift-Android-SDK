@@ -1,5 +1,5 @@
 ## Blueshift Android SDK
-[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=3.1.6) ](https://bintray.com/nipun/maven/android-sdk/3.1.6/link)
+[ ![Download](https://api.bintray.com/packages/nipun/maven/android-sdk/images/download.svg?version=3.1.7) ](https://bintray.com/nipun/maven/android-sdk/3.1.7/link)
 
 Get started [here](https://developer.blueshift.com/docs/about-blueshifts-android-sdk)
 

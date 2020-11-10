@@ -6,7 +6,7 @@ ext {
     sdkGroup = 'com.blueshift'
     sdkArtifactName = 'android-sdk'
 
-    sdkVersion = '3.1.6'
+    sdkVersion = '3.1.7'
     sdkVersionDesc = 'Blueshift Android SDK v' + sdkVersion
     sdkVcsTag = sdkVersion
 
