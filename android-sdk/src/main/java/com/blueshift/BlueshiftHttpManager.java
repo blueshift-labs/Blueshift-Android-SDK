@@ -57,7 +57,7 @@ public class BlueshiftHttpManager {
                     builder.setBody(responseBody);
 
                     connection.disconnect();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     BlueshiftLogger.e(TAG, e);
                 } finally {
                     if (connection != null) {
@@ -89,7 +89,7 @@ public class BlueshiftHttpManager {
                 logger.putOpt("body", request.getReqBodyJson());
 
                 BlueshiftLogger.i(TAG, logger.toString());
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             }
         }
@@ -100,15 +100,15 @@ public class BlueshiftHttpManager {
             JSONObject logger = new JSONObject();
             try {
                 logger.putOpt("status", response.getCode());
-            } catch (JSONException ignored) {
+            } catch (Exception ignored) {
             }
 
             try {
                 logger.putOpt("response", new JSONObject(response.getBody()));
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 try {
                     logger.putOpt("response", response.getBody());
-                } catch (JSONException ignored) {
+                } catch (Exception ignored) {
                 }
             }
 
@@ -153,7 +153,7 @@ public class BlueshiftHttpManager {
                 writer.close();
 
                 outputStream.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             } finally {
                 if (outputStream != null) {
@@ -168,10 +168,10 @@ public class BlueshiftHttpManager {
     private String readResponseBody(HttpsURLConnection urlConnection) {
         try {
             return readStream(urlConnection.getInputStream());
-        } catch (IOException e) {
+        } catch (Exception e) {
             try {
                 return readStream(urlConnection.getErrorStream());
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 BlueshiftLogger.e(TAG, ex);
             }
 
