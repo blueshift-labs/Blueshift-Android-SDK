@@ -673,7 +673,7 @@ public class InAppManager {
             int horizontalMargin = (lp.leftMargin + lp.rightMargin);
             lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargin);
         } else {
-            lp.width = (int) wPercentage;
+            lp.width = ViewGroup.LayoutParams.WRAP_CONTENT;
         }
 
         float hPercentage = inAppMessage.getTemplateHeight(context);
@@ -681,7 +681,7 @@ public class InAppManager {
             int verticalMargin = lp.topMargin + lp.bottomMargin;
             lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
         } else {
-            lp.height = (int) hPercentage;
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         }
 
         LinearLayout rootView = new LinearLayout(view.getContext());
