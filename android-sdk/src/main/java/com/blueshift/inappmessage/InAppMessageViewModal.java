@@ -65,19 +65,23 @@ public class InAppMessageViewModal extends InAppMessageView {
         }
 
         // message
+        LinearLayout.LayoutParams lpMsgView = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        // message view/placeholder should fill the modal.
+        if (isHeightAvailable) {
+            lpMsgView.height = 0;
+            lpMsgView.weight = 1;
+        }
+
         TextView messageTextView = getContentTextView(inAppMessage, InAppConstants.MESSAGE);
         if (messageTextView != null) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-            // message window will take the full screen
+            lpMsgView.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
+            rootView.addView(messageTextView, lpMsgView);
+        } else {
             if (isHeightAvailable) {
-                lp.height = 0;
-                lp.weight = 1;
+                rootView.addView(new TextView(getContext()), lpMsgView);
             }
-
-            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
-            rootView.addView(messageTextView, lp);
         }
 
         // action

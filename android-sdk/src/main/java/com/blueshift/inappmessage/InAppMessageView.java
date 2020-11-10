@@ -509,12 +509,13 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     public TextView getContentTextView(InAppMessage inAppMessage, String contentName) {
-        TextView textView = new TextView(getContext());
+        TextView textView = null;
 
         if (inAppMessage != null && !TextUtils.isEmpty(contentName)) {
             String titleText = inAppMessage.getContentString(contentName);
 
             if (!TextUtils.isEmpty(titleText)) {
+                textView = new TextView(getContext());
                 InAppUtils.setContentTextView(textView, inAppMessage, contentName);
             }
         }
