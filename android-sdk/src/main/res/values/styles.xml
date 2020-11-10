@@ -30,7 +30,7 @@
     <!--Carousel Texts-->
 
     <style name="carouselElementText" parent="android:Widget.TextView">
-        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:padding">5dp</item>
@@ -47,28 +47,12 @@
         <item name="android:paddingTop">2dp</item>
     </style>
 
-    <style name="carouselElementTitleLeft" parent="carouselElementTitle">
-        <item name="android:gravity">start</item>
-    </style>
-
     <style name="carouselElementTitleCenter" parent="carouselElementTitle">
         <item name="android:gravity">center</item>
     </style>
 
-    <style name="carouselElementTitleRight" parent="carouselElementTitle">
-        <item name="android:gravity">end</item>
-    </style>
-
-    <style name="carouselElementSubtitleLeft" parent="carouselElementSubtitle">
-        <item name="android:gravity">start</item>
-    </style>
-
     <style name="carouselElementSubtitleCenter" parent="carouselElementSubtitle">
         <item name="android:gravity">center</item>
-    </style>
-
-    <style name="carouselElementSubtitleRight" parent="carouselElementSubtitle">
-        <item name="android:gravity">end</item>
     </style>
 
     <style name="dialogStyleInApp" parent="Theme.AppCompat.Light.Dialog">

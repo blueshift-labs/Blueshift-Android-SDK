@@ -192,7 +192,9 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public String getContentString(String contentName) {
         try {
-            return content.optString(contentName);
+            if (!content.isNull(contentName)) {
+                return content.optString(contentName);
+            }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }

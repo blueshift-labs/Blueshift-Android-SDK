@@ -2,7 +2,6 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -21,10 +20,14 @@ public class InAppMessageViewModal extends InAppMessageView {
 
     @Override
     public View getView(InAppMessage inAppMessage) {
+        boolean isHeightAvailable = InAppUtils.isHeightSet(getContext(), inAppMessage);
+
         LinearLayout rootView = new LinearLayout(getContext());
         rootView.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        int width = ViewGroup.LayoutParams.MATCH_PARENT;
+        int height = isHeightAvailable ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT;
+        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(width, height);
 
         if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)) {
             lp2.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -62,35 +65,23 @@ public class InAppMessageViewModal extends InAppMessageView {
         }
 
         // message
+        LinearLayout.LayoutParams lpMsgView = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        // message view/placeholder should fill the modal.
+        if (isHeightAvailable) {
+            lpMsgView.height = 0;
+            lpMsgView.weight = 1;
+        }
+
         TextView messageTextView = getContentTextView(inAppMessage, InAppConstants.MESSAGE);
         if (messageTextView != null) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-            // message window will take the full screen
-            if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage) || InAppUtils.isHeightSet(getContext(), inAppMessage)) {
-                lp.height = 0;
-                lp.weight = 1;
-            }
-
-            lp.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
-            rootView.addView(messageTextView, lp);
+            lpMsgView.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
+            rootView.addView(messageTextView, lpMsgView);
         } else {
-            // We are adding a placeholder View here to push the buttons to the bottom of
-            // the container view. This is required in case of modals with no message and
-            // with a background image.
-            View placeHolder = new View(getContext());
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-            // message window will take the full screen
-            if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)
-                    || InAppUtils.isHeightSet(getContext(), inAppMessage)) {
-                lp.height = 0;
-                lp.weight = 1;
+            if (isHeightAvailable) {
+                rootView.addView(new TextView(getContext()), lpMsgView);
             }
-
-            rootView.addView(placeHolder, lp);
         }
 
         // action

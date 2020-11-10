@@ -9,10 +9,13 @@ import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftHttpManager;
+import com.blueshift.BlueshiftHttpRequest;
+import com.blueshift.BlueshiftHttpResponse;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.FailedEventsTable;
-import com.blueshift.httpmanager.HTTPManager;
+import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.httpmanager.Response;
 import com.blueshift.model.Configuration;
@@ -116,13 +119,11 @@ class RequestDispatcher {
     private synchronized void processRequest(String fcmRegistrationToken) {
         String url = mRequest.getUrl();
         if (!TextUtils.isEmpty(url)) {
-            HTTPManager httpManager = getHttpManagerWithAuthentication(url);
-
             addDeviceTokenToParams(fcmRegistrationToken);
             doAutoIdentifyCheck(mContext);
 
-            Response response = makeAPICall(httpManager);
-            boolean apiStatus = response.getStatusCode() == 200;
+            BlueshiftHttpResponse response = makeAPICall();
+            boolean apiStatus = response != null && response.getCode() == 200;
             updateRequestQueue(apiStatus);
         }
     }
@@ -137,21 +138,6 @@ class RequestDispatcher {
         if (mCallback != null) {
             mCallback.onDispatchComplete();
         }
-    }
-
-    /**
-     * Create and return a valid HTTPManager object with URL and basic authentication.
-     *
-     * @param url valid api URL.
-     * @return valid {@link HTTPManager} object with URL & basic authentication.
-     */
-    private HTTPManager getHttpManagerWithAuthentication(@NonNull String url) {
-        HTTPManager httpManager = new HTTPManager(url);
-
-        String apiKey = BlueshiftUtils.getApiKey(mContext);
-        if (apiKey != null) httpManager.addBasicAuthentication(apiKey, "");
-
-        return httpManager;
     }
 
     /**
@@ -241,41 +227,34 @@ class RequestDispatcher {
      * Makes the actual API call with the server, based on the details provided inside
      * the {@link Request} object.
      *
-     * @param httpManager valid {@link HTTPManager} object
      * @return the {@link Response} of the API call
      */
-    private Response makeAPICall(HTTPManager httpManager) {
-        Response response = null;
+    private BlueshiftHttpResponse makeAPICall() {
+        String apiKey = BlueshiftUtils.getApiKey(mContext);
 
-        if (mRequest != null) {
-            switch (mRequest.getMethod()) {
-                case POST:
-                    String json = mRequest.getParamJson();
+        if (apiKey != null && mRequest != null) {
+            BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
+                    .setUrl(mRequest.getUrl())
+                    .addBasicAuth(apiKey, "");
 
-                    response = httpManager.post(json);
-                    String eventName = getEventName(json);
-                    String apiStatus = getStatusFromResponse(response);
-
-                    BlueshiftLogger.d(LOG_TAG, "Event name: " + eventName + ", API Status: " + apiStatus);
-
-                    break;
-
-                case GET:
-                    response = httpManager.get();
-
-
-                    break;
-
-                default:
-                    BlueshiftLogger.e(LOG_TAG, "Unknown method" + mRequest.getMethod());
+            if (mRequest.getMethod() == Method.POST) {
+                builder.setMethod(BlueshiftHttpRequest.Method.POST);
             }
 
-            if (response != null && mRequest != null) {
-                mRequest.log(LOG_TAG, response);
+            String json = mRequest.getParamJson();
+            if (json != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(json);
+                    builder.setReqBodyJson(jsonObject);
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
             }
+
+            return BlueshiftHttpManager.getInstance().send(builder.build());
         }
 
-        return response;
+        return null;
     }
 
     /**
