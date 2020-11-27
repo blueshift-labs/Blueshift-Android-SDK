@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -24,6 +25,8 @@ import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -516,5 +519,74 @@ public class NotificationUtils {
         }
 
         return launcherIntent;
+    }
+
+    public static Bitmap compressBitmap(Bitmap input) {
+        if (input != null) {
+            try {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                input.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+
+                byte[] bytes = byteArrayOutputStream.toByteArray();
+
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+                Bitmap compressed = BitmapFactory.decodeStream(byteArrayInputStream);
+
+                int len = bytes != null ? bytes.length : 0;
+                BlueshiftLogger.d(LOG_TAG, "Compressed image size: " + len + " bytes.");
+
+                return compressed;
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+        }
+
+        return input;
+    }
+
+    public static Bitmap loadScaledBitmap(String url, int reqWidth, int reqHeight) {
+        try {
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(new URL(url).openStream(), new Rect(), options);
+
+            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+            options.inJustDecodeBounds = false;
+
+            Bitmap raw = BitmapFactory.decodeStream(new URL(url).openStream(), new Rect(), options);
+            if (raw != null) {
+                Bitmap compressed = compressBitmap(raw);
+                raw.recycle();
+                return compressed;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
+    }
+
+    private static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 }

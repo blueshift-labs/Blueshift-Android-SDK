@@ -28,6 +28,7 @@ import com.blueshift.model.Configuration;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -195,6 +196,17 @@ class CustomNotificationFactory {
                     }
 
                     if (bitmap != null) {
+                        try {
+                            // compress image and set in notification
+                            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+                            byte[] bytes = byteArrayOutputStream.toByteArray();
+                            int len = bytes != null ? bytes.length : 0;
+                            BlueshiftLogger.d(LOG_TAG, "image size: " + len + " bytes, url: " + element.getImageUrl());
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
+                        }
+
                         contentView.setImageViewBitmap(R.id.big_picture, bitmap);
                     } else {
                         // show the app icon as place holder for corrupted image
@@ -626,35 +638,31 @@ class CustomNotificationFactory {
                 CarouselElement[] elements = message.getCarouselElements();
                 if (elements != null) {
                     for (CarouselElement element : elements) {
-                        try {
-                            // Load image using remote URL.
-                            URL imageURL = new URL(element.getImageUrl());
-                            Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+                        // Load image using remote URL.
+                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(element.getImageUrl(), 400, 200);
+                        if (bitmap == null) continue;
 
-                            // Set the image into the view.
-                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper_entry);
-                            viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
+                        // Set the image into the view.
+                        RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper_entry);
+                        viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
-                            // Attach an onClick pending intent.
-                            viewFlipperEntry.setOnClickPendingIntent(
-                                    R.id.carousel_image_view,
-                                    getCarouselImageClickPendingIntent(context, message, element, notificationId)
-                            );
+                        // Attach an onClick pending intent.
+                        viewFlipperEntry.setOnClickPendingIntent(
+                                R.id.carousel_image_view,
+                                getCarouselImageClickPendingIntent(context, message, element, notificationId)
+                        );
 
-                            // remove any view found on the overlay container
-                            viewFlipperEntry.removeAllViews(R.id.carousel_overlay_container);
+                        // remove any view found on the overlay container
+                        viewFlipperEntry.removeAllViews(R.id.carousel_overlay_container);
 
-                            // look for overlay content and add it in the container layout (if found)
-                            RemoteViews overlay = getOverlayView(context, element);
-                            if (overlay != null) {
-                                viewFlipperEntry.addView(R.id.carousel_overlay_container, overlay);
-                            }
-
-                            // Add the image into ViewFlipper.
-                            viewFlipper.addView(R.id.view_flipper, viewFlipperEntry);
-                        } catch (IOException e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
+                        // look for overlay content and add it in the container layout (if found)
+                        RemoteViews overlay = getOverlayView(context, element);
+                        if (overlay != null) {
+                            viewFlipperEntry.addView(R.id.carousel_overlay_container, overlay);
                         }
+
+                        // Add the image into ViewFlipper.
+                        viewFlipper.addView(R.id.view_flipper, viewFlipperEntry);
                     }
                 }
 
