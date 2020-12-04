@@ -639,7 +639,7 @@ class CustomNotificationFactory {
                 if (elements != null) {
                     for (CarouselElement element : elements) {
                         // Load image using remote URL.
-                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(element.getImageUrl(), 400, 200);
+                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(element.getImageUrl(), 300, 150);
                         if (bitmap == null) continue;
 
                         // Set the image into the view.

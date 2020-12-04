@@ -521,29 +521,6 @@ public class NotificationUtils {
         return launcherIntent;
     }
 
-    public static Bitmap compressBitmap(Bitmap input) {
-        if (input != null) {
-            try {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                input.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
-
-                byte[] bytes = byteArrayOutputStream.toByteArray();
-
-                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
-                Bitmap compressed = BitmapFactory.decodeStream(byteArrayInputStream);
-
-                int len = bytes != null ? bytes.length : 0;
-                BlueshiftLogger.d(LOG_TAG, "Compressed image size: " + len + " bytes.");
-
-                return compressed;
-            } catch (Exception e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-        }
-
-        return input;
-    }
-
     public static Bitmap loadScaledBitmap(String url, int reqWidth, int reqHeight) {
         try {
             final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -556,9 +533,10 @@ public class NotificationUtils {
 
             Bitmap raw = BitmapFactory.decodeStream(new URL(url).openStream(), new Rect(), options);
             if (raw != null) {
-                Bitmap compressed = compressBitmap(raw);
-                raw.recycle();
-                return compressed;
+                BlueshiftLogger.d(LOG_TAG, "Bitmap (" +
+                        "size: " + (raw.getByteCount() / 1024f) / 1024f + " MB\t" +
+                        "url: " + url + ")");
+                return raw;
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
