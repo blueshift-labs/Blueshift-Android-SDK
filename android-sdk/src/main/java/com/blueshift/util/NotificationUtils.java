@@ -25,8 +25,6 @@ import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -70,12 +68,10 @@ public class NotificationUtils {
                     FileOutputStream fileOutputStream = null;
                     try {
                         if (element != null) {
-                            // download image
-                            URL imageURL = new URL(element.getImageUrl());
-                            Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
-
-                            // resize image
-                            bitmap = resizeImageForDevice(context, bitmap);
+                            Bitmap bitmap = NotificationUtils.loadScaledBitmap(
+                                    element.getImageUrl(),
+                                    RichPushConstants.BIG_IMAGE_WIDTH,
+                                    RichPushConstants.BIG_IMAGE_HEIGHT);
 
                             // save image
                             String imageUrl = element.getImageUrl();
@@ -84,7 +80,7 @@ public class NotificationUtils {
                             if (!TextUtils.isEmpty(fileName)) {
                                 if (bitmap != null) {
                                     fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
                                     fileOutputStream.close();
                                 }
                             }

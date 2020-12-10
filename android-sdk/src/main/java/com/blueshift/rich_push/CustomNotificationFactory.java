@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,9 +27,6 @@ import com.blueshift.model.Configuration;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -196,17 +192,6 @@ class CustomNotificationFactory {
                     }
 
                     if (bitmap != null) {
-                        try {
-                            // compress image and set in notification
-                            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
-                            byte[] bytes = byteArrayOutputStream.toByteArray();
-                            int len = bytes != null ? bytes.length : 0;
-                            BlueshiftLogger.d(LOG_TAG, "image size: " + len + " bytes, url: " + element.getImageUrl());
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
-                        }
-
                         contentView.setImageViewBitmap(R.id.big_picture, bitmap);
                     } else {
                         // show the app icon as place holder for corrupted image
@@ -639,7 +624,11 @@ class CustomNotificationFactory {
                 if (elements != null) {
                     for (CarouselElement element : elements) {
                         // Load image using remote URL.
-                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(element.getImageUrl(), 300, 150);
+                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(
+                                element.getImageUrl(),
+                                RichPushConstants.BIG_IMAGE_WIDTH,
+                                RichPushConstants.BIG_IMAGE_HEIGHT);
+
                         if (bitmap == null) continue;
 
                         // Set the image into the view.
