@@ -102,35 +102,6 @@ public class NotificationUtils {
     }
 
     /**
-     * This method re-sizes the bitmap to have aspect ration 2:1 based on the device's dimension.
-     *
-     * @param context      valid context object
-     * @param sourceBitmap the image to resize
-     * @return resized image
-     */
-    public static Bitmap resizeImageForDevice(Context context, Bitmap sourceBitmap) {
-        Bitmap resizedBitmap = null;
-
-        if (sourceBitmap != null) {
-            if (sourceBitmap.getWidth() > sourceBitmap.getHeight()) {
-                DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-
-                // ideal image aspect ratio for notification is 2:1
-                int newWidth = displayMetrics.widthPixels;
-                int newHeight = newWidth / 2;
-
-                resizedBitmap = Bitmap.createScaledBitmap(sourceBitmap, newWidth, newHeight, true);
-            }
-        }
-
-        if (resizedBitmap == null) {
-            resizedBitmap = sourceBitmap;
-        }
-
-        return resizedBitmap;
-    }
-
-    /**
      * Loads the image stored inside app's private file location
      *
      * @param context  valid context object
