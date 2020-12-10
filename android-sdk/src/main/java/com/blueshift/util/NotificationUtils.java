@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -67,12 +68,10 @@ public class NotificationUtils {
                     FileOutputStream fileOutputStream = null;
                     try {
                         if (element != null) {
-                            // download image
-                            URL imageURL = new URL(element.getImageUrl());
-                            Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
-
-                            // resize image
-                            bitmap = resizeImageForDevice(context, bitmap);
+                            Bitmap bitmap = NotificationUtils.loadScaledBitmap(
+                                    element.getImageUrl(),
+                                    RichPushConstants.BIG_IMAGE_WIDTH,
+                                    RichPushConstants.BIG_IMAGE_HEIGHT);
 
                             // save image
                             String imageUrl = element.getImageUrl();
@@ -81,7 +80,7 @@ public class NotificationUtils {
                             if (!TextUtils.isEmpty(fileName)) {
                                 if (bitmap != null) {
                                     fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
                                     fileOutputStream.close();
                                 }
                             }
@@ -100,35 +99,6 @@ public class NotificationUtils {
                 }
             }
         }
-    }
-
-    /**
-     * This method re-sizes the bitmap to have aspect ration 2:1 based on the device's dimension.
-     *
-     * @param context      valid context object
-     * @param sourceBitmap the image to resize
-     * @return resized image
-     */
-    public static Bitmap resizeImageForDevice(Context context, Bitmap sourceBitmap) {
-        Bitmap resizedBitmap = null;
-
-        if (sourceBitmap != null) {
-            if (sourceBitmap.getWidth() > sourceBitmap.getHeight()) {
-                DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-
-                // ideal image aspect ratio for notification is 2:1
-                int newWidth = displayMetrics.widthPixels;
-                int newHeight = newWidth / 2;
-
-                resizedBitmap = Bitmap.createScaledBitmap(sourceBitmap, newWidth, newHeight, true);
-            }
-        }
-
-        if (resizedBitmap == null) {
-            resizedBitmap = sourceBitmap;
-        }
-
-        return resizedBitmap;
     }
 
     /**
@@ -516,5 +486,52 @@ public class NotificationUtils {
         }
 
         return launcherIntent;
+    }
+
+    public static Bitmap loadScaledBitmap(String url, int reqWidth, int reqHeight) {
+        try {
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(new URL(url).openStream(), new Rect(), options);
+
+            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+            options.inJustDecodeBounds = false;
+
+            Bitmap raw = BitmapFactory.decodeStream(new URL(url).openStream(), new Rect(), options);
+            if (raw != null) {
+                BlueshiftLogger.d(LOG_TAG, "Bitmap (" +
+                        "size: " + (raw.getByteCount() / 1024f) / 1024f + " MB\t" +
+                        "url: " + url + ")");
+                return raw;
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return null;
+    }
+
+    private static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 }
