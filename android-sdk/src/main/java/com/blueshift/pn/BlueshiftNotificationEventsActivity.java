@@ -14,7 +14,6 @@ import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.RichPushConstants;
-import com.blueshift.util.NetworkUtils;
 import com.blueshift.util.NotificationUtils;
 
 import java.util.HashMap;
@@ -22,8 +21,8 @@ import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 22/12/17 @ 3:25 PM
- *         https://github.com/rahulrvp
+ * Created on 22/12/17 @ 3:25 PM
+ * https://github.com/rahulrvp
  */
 
 public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
@@ -31,18 +30,13 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
     private static final String LOG_TAG = "NotificationClick";
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onResume() {
+        super.onResume();
 
-        if (getIntent() != null) {
-            Bundle extraBundle = getIntent().getExtras();
-            String action = getIntent().getAction();
-
-            processAction(action, extraBundle);
+        Intent intent = getIntent();
+        if (intent != null) {
+            processAction(intent.getAction(), intent.getExtras());
         }
-
-        // close activity once action is taken.
-        finish();
     }
 
     protected void processAction(String action, Bundle extraBundle) {
