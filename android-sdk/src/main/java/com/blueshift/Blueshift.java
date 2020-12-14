@@ -1197,6 +1197,9 @@ public class Blueshift {
                 q.append(BlueshiftConstants.KEY_APP_NAME).append("=").append(pkgName);
             }
 
+            appendAnd(q);
+            q.append(BlueshiftConstants.KEY_TIMESTAMP).append("=").append(CommonUtils.getCurrentUtcTimestamp());
+
             if (extras != null && extras.size() > 0) {
                 String clickUrl = null;
                 Set<String> keys = extras.keySet();
