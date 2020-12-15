@@ -1077,10 +1077,8 @@ public class Blueshift {
 
     public void trackInAppMessageView(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            HashMap<String, Object> extra = new HashMap<>();
-            extra.put(BlueshiftConstants.KEY_TIMESTAMP, inAppMessage.getTimestamp());
-
-            trackCampaignEventAsync(InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extra);
+            trackCampaignEventAsync(
+                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), null);
         }
     }
 
