@@ -4,6 +4,9 @@ import android.util.Log;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @SuppressWarnings("WeakerAccess")
 public class BlueshiftLogger {
@@ -14,9 +17,14 @@ public class BlueshiftLogger {
     public static final int ERROR = 2;
     private static final String TAG = "Blueshift";
     private static int sLogLevel = 0;
+    private static boolean sEnableErrorReporting = true;
 
     public static void setLogLevel(int logLevel) {
         sLogLevel = logLevel;
+    }
+
+    public static void setEnableErrorReporting(boolean enable) {
+        sEnableErrorReporting = enable;
     }
 
     private static String prepareMessage(String tag, String message) {
@@ -63,9 +71,38 @@ public class BlueshiftLogger {
                 e.printStackTrace(printWriter);
                 String stackTrace = stringWriter.toString();
                 e(tag, stackTrace);
+
+                // report error to blueshift
+                reportError(e);
             } else {
                 e(tag, "Unknown error!");
             }
         }
+    }
+
+    private static void reportError(Exception e) {
+        if (sEnableErrorReporting && e != null) {
+            final HashMap<String, Object> params = new HashMap<>();
+            params.put("error_class", e.getClass().getName());
+            params.put("error_cause", e.getMessage());
+            params.put("error_stack_trace", getStacktraceList(e));
+
+            Blueshift.reportError(params);
+        }
+    }
+
+    private static List<String> getStacktraceList(Exception e) {
+        if (e != null) {
+            final List<String> traceArray = new ArrayList<>();
+            final StackTraceElement[] elements = e.getStackTrace();
+
+            for (StackTraceElement element : elements) {
+                traceArray.add(element.toString());
+            }
+
+            return traceArray;
+        }
+
+        return null;
     }
 }

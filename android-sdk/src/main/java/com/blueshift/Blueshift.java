@@ -40,6 +40,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -59,7 +60,7 @@ public class Blueshift {
     private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
     private static final HashMap<String, Object> sAppParams = new HashMap<>();
 
-    private Context mContext;
+    private static Context mContext;
     private static Configuration mConfiguration;
     private static Blueshift instance = null;
 
@@ -482,9 +483,11 @@ public class Blueshift {
                 eventParams.putAll(params);
             }
 
+            HashMap<String, Object> paramsMap = eventParams.toHasMap();
+
             if (canBatchThisEvent) {
                 Event event = new Event();
-                event.setEventParams(eventParams.toHasMap());
+                event.setEventParams(paramsMap);
 
                 BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
 
@@ -495,7 +498,7 @@ public class Blueshift {
                 request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
                 request.setUrl(BlueshiftConstants.EVENT_API_URL);
                 request.setMethod(Method.POST);
-                request.setParamJson(eventParams.toString());
+                request.setParamJson(new Gson().toJson(paramsMap));
 
                 BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
@@ -1457,5 +1460,14 @@ public class Blueshift {
                     }
                 }
         );
+    }
+
+    public static void reportError(HashMap<String, Object> params) {
+        if (mContext != null) {
+            Blueshift.getInstance(mContext).trackEvent(
+                    "bsft_sdk_error_android",
+                    params,
+                    false);
+        }
     }
 }
