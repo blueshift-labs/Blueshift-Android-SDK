@@ -40,6 +40,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -482,9 +483,11 @@ public class Blueshift {
                 eventParams.putAll(params);
             }
 
+            HashMap<String, Object> map = eventParams.toHasMap();
+
             if (canBatchThisEvent) {
                 Event event = new Event();
-                event.setEventParams(eventParams.toHasMap());
+                event.setEventParams(map);
 
                 BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
 
@@ -495,7 +498,7 @@ public class Blueshift {
                 request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
                 request.setUrl(BlueshiftConstants.EVENT_API_URL);
                 request.setMethod(Method.POST);
-                request.setParamJson(eventParams.toString());
+                request.setParamJson(new Gson().toJson(map));
 
                 BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
