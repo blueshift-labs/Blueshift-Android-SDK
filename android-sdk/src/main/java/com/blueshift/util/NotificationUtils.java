@@ -614,4 +614,19 @@ public class NotificationUtils {
                     "(context: " + context + ", action: " + action + ", bundle: " + bundle + ").");
         }
     }
+
+    /**
+     * Simplified version of processNotificationClick(context, action, bundle)
+     *
+     * @param context valid context object
+     * @param intent  valid intent
+     */
+    public static void processNotificationClick(Context context, Intent intent) {
+        if (context != null && intent != null) {
+            processNotificationClick(context, intent.getAction(), intent.getExtras());
+        } else {
+            BlueshiftLogger.d(LOG_TAG, "processNotificationClick: Invalid arguments " +
+                    "(context: " + context + ", intent: " + intent + ").");
+        }
+    }
 }
