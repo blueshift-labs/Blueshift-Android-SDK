@@ -545,8 +545,9 @@ public class NotificationUtils {
      * @param context valid context object
      * @param action  action from the intent
      * @param bundle  bundle inside the intent
+     * @return true: if the click was handled by the sdk, false: if the click was not handled by the sdk.
      */
-    public static void processNotificationClick(Context context, String action, Bundle bundle) {
+    public static boolean processNotificationClick(Context context, String action, Bundle bundle) {
         if (context != null && action != null && bundle != null) {
             Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
             if (message != null) {
@@ -603,6 +604,9 @@ public class NotificationUtils {
                     }
 
                     context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+
+                    // click was handled by Blueshift SDK
+                    return true;
                 } catch (Exception e) {
                     BlueshiftLogger.e(LOG_TAG, e);
                 }
@@ -613,6 +617,9 @@ public class NotificationUtils {
             BlueshiftLogger.d(LOG_TAG, "processNotificationClick: Invalid arguments " +
                     "(context: " + context + ", action: " + action + ", bundle: " + bundle + ").");
         }
+
+        // click was not handled by Blueshift SDK
+        return false;
     }
 
     /**
@@ -621,12 +628,13 @@ public class NotificationUtils {
      * @param context valid context object
      * @param intent  valid intent
      */
-    public static void processNotificationClick(Context context, Intent intent) {
+    public static boolean processNotificationClick(Context context, Intent intent) {
         if (context != null && intent != null) {
-            processNotificationClick(context, intent.getAction(), intent.getExtras());
+            return processNotificationClick(context, intent.getAction(), intent.getExtras());
         } else {
             BlueshiftLogger.d(LOG_TAG, "processNotificationClick: Invalid arguments " +
                     "(context: " + context + ", intent: " + intent + ").");
+            return false;
         }
     }
 }
