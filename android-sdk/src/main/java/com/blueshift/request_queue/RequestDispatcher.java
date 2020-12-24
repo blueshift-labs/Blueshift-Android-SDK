@@ -119,12 +119,18 @@ class RequestDispatcher {
     private synchronized void processRequest(String fcmRegistrationToken) {
         String url = mRequest.getUrl();
         if (!TextUtils.isEmpty(url)) {
-            addDeviceTokenToParams(fcmRegistrationToken);
-            doAutoIdentifyCheck(mContext);
+            String deviceId = DeviceUtils.getDeviceId(mContext);
+            if (deviceId != null) {
+                addDeviceIdAndTokenToParams(deviceId, fcmRegistrationToken);
+                doAutoIdentifyCheck(mContext);
 
-            BlueshiftHttpResponse response = makeAPICall();
-            boolean apiStatus = response != null && response.getCode() == 200;
-            updateRequestQueue(apiStatus);
+                BlueshiftHttpResponse response = makeAPICall();
+                boolean apiStatus = response != null && response.getCode() == 200;
+                updateRequestQueue(apiStatus);
+            } else {
+                // device_id is not present. let's try again later
+                updateRequestQueue(false);
+            }
         }
     }
 
@@ -141,14 +147,14 @@ class RequestDispatcher {
     }
 
     /**
-     * The minimum requirement for an event to be valid is to have a valid device_token in it.
+     * The minimum requirement for an event to be valid is to have a valid device_id in it.
      * <p>
      * This method modifies the {@link Request} object by adding latest device token
      * to the parameters JSON.
      * <p>
      * This method ensures that the event always has the latest device token in it.
      */
-    private void addDeviceTokenToParams(String token) {
+    private void addDeviceIdAndTokenToParams(String deviceId, String token) {
         if (mRequest != null) {
             try {
                 String url = mRequest.getUrl();
@@ -164,6 +170,7 @@ class RequestDispatcher {
                                 for (int index = 0; index < eventArray.length(); index++) {
                                     JSONObject event = eventArray.getJSONObject(index);
                                     event.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
+                                    event.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
                                     eventArray.put(index, event);
                                 }
                                 payloadJson.putOpt(eventsKey, eventArray);
@@ -178,6 +185,7 @@ class RequestDispatcher {
                     if (!TextUtils.isEmpty(paramsJson)) {
                         JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
                         jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
+                        jsonObject.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
 
                         mRequest.setParamJson(jsonObject.toString());
                     }
