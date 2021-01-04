@@ -120,8 +120,7 @@ class RequestDispatcher {
         String url = mRequest.getUrl();
         if (!TextUtils.isEmpty(url)) {
             String deviceId = DeviceUtils.getDeviceId(mContext);
-            if (deviceId != null) {
-                addDeviceIdAndTokenToParams(deviceId, fcmRegistrationToken);
+            if (addDeviceIdAndTokenToParams(deviceId, fcmRegistrationToken)) {
                 doAutoIdentifyCheck(mContext);
 
                 BlueshiftHttpResponse response = makeAPICall();
@@ -146,6 +145,27 @@ class RequestDispatcher {
         }
     }
 
+    private boolean deviceIdCheckFails(JSONObject eventJson, String deviceId) throws JSONException {
+        if (!eventJson.has(BlueshiftConstants.KEY_DEVICE_IDENTIFIER)
+                || TextUtils.isEmpty(eventJson.getString(BlueshiftConstants.KEY_DEVICE_IDENTIFIER))) {
+            if (deviceId != null) {
+                eventJson.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+            } else {
+                deviceId = DeviceUtils.getDeviceId(mContext);
+                if (deviceId != null) {
+                    eventJson.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+                } else {
+                    // We could not add device_id in the event,
+                    // let's try again later.
+                    BlueshiftLogger.e(LOG_TAG, "We could not add the device id in bulk event params");
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     /**
      * The minimum requirement for an event to be valid is to have a valid device_id in it.
      * <p>
@@ -154,7 +174,7 @@ class RequestDispatcher {
      * <p>
      * This method ensures that the event always has the latest device token in it.
      */
-    private void addDeviceIdAndTokenToParams(String deviceId, String token) {
+    private boolean addDeviceIdAndTokenToParams(String deviceId, String token) {
         if (mRequest != null) {
             try {
                 String url = mRequest.getUrl();
@@ -170,11 +190,12 @@ class RequestDispatcher {
                                 for (int index = 0; index < eventArray.length(); index++) {
                                     JSONObject event = eventArray.getJSONObject(index);
                                     event.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
-                                    event.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+                                    if (deviceIdCheckFails(event, deviceId)) return false;
                                     eventArray.put(index, event);
                                 }
                                 payloadJson.putOpt(eventsKey, eventArray);
                                 mRequest.setParamJson(payloadJson.toString());
+                                return true;
                             }
                         } catch (Exception e) {
                             BlueshiftLogger.e(LOG_TAG, e);
@@ -185,15 +206,17 @@ class RequestDispatcher {
                     if (!TextUtils.isEmpty(paramsJson)) {
                         JSONObject jsonObject = new JSONObject(mRequest.getParamJson());
                         jsonObject.put(BlueshiftConstants.KEY_DEVICE_TOKEN, token);
-                        jsonObject.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
-
+                        if (deviceIdCheckFails(jsonObject, deviceId)) return false;
                         mRequest.setParamJson(jsonObject.toString());
+                        return true;
                     }
                 }
             } catch (JSONException e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
         }
+
+        return true;
     }
 
     private void doAutoIdentifyCheck(Context context) {
