@@ -32,6 +32,7 @@ import com.blueshift.request_queue.RequestQueue;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NetworkUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -39,6 +40,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,8 +52,8 @@ import java.util.Set;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 17/2/15 @ 3:08 PM
- *         https://github.com/rahulrvp
+ * Created on 17/2/15 @ 3:08 PM
+ * https://github.com/rahulrvp
  */
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
@@ -465,8 +467,8 @@ public class Blueshift {
             BlueshiftJSONObject eventParams = new BlueshiftJSONObject();
 
             try {
-                eventParams.put(BlueshiftConstants.KEY_TIMESTAMP, System.currentTimeMillis() / 1000);
                 eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
+                eventParams.put(BlueshiftConstants.KEY_TIMESTAMP, CommonUtils.getCurrentUtcTimestamp());
             } catch (JSONException e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
@@ -481,9 +483,11 @@ public class Blueshift {
                 eventParams.putAll(params);
             }
 
+            HashMap<String, Object> map = eventParams.toHasMap();
+
             if (canBatchThisEvent) {
                 Event event = new Event();
-                event.setEventParams(eventParams.toHasMap());
+                event.setEventParams(map);
 
                 BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
 
@@ -494,7 +498,7 @@ public class Blueshift {
                 request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
                 request.setUrl(BlueshiftConstants.EVENT_API_URL);
                 request.setMethod(Method.POST);
-                request.setParamJson(eventParams.toString());
+                request.setParamJson(new Gson().toJson(map));
 
                 BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
 
@@ -1076,10 +1080,8 @@ public class Blueshift {
 
     public void trackInAppMessageView(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
-            HashMap<String, Object> extra = new HashMap<>();
-            extra.put(BlueshiftConstants.KEY_TIMESTAMP, inAppMessage.getTimestamp());
-
-            trackCampaignEventAsync(InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extra);
+            trackCampaignEventAsync(
+                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), null);
         }
     }
 
@@ -1195,6 +1197,9 @@ public class Blueshift {
                 appendAnd(q);
                 q.append(BlueshiftConstants.KEY_APP_NAME).append("=").append(pkgName);
             }
+
+            appendAnd(q);
+            q.append(BlueshiftConstants.KEY_TIMESTAMP).append("=").append(CommonUtils.getCurrentUtcTimestamp());
 
             if (extras != null && extras.size() > 0) {
                 String clickUrl = null;

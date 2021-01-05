@@ -11,13 +11,15 @@ import android.util.TypedValue;
 import com.blueshift.BlueshiftLogger;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 17/01/18 @ 4:41 PM
- *         https://github.com/rahulrvp
+ * Created on 17/01/18 @ 4:41 PM
+ * https://github.com/rahulrvp
  */
 
 
@@ -90,5 +92,13 @@ public class CommonUtils {
         }
 
         return false;
+    }
+
+    public static String getCurrentUtcTimestamp() {
+        Date now = new Date(System.currentTimeMillis());
+        SimpleDateFormat sdf = new SimpleDateFormat(
+                "yyyy-MM-dd'T'hh:mm:ss.SSSSSS'Z'", Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(now);
     }
 }

@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,8 +27,6 @@ import com.blueshift.model.Configuration;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 
-import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -626,35 +623,35 @@ class CustomNotificationFactory {
                 CarouselElement[] elements = message.getCarouselElements();
                 if (elements != null) {
                     for (CarouselElement element : elements) {
-                        try {
-                            // Load image using remote URL.
-                            URL imageURL = new URL(element.getImageUrl());
-                            Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
+                        // Load image using remote URL.
+                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(
+                                element.getImageUrl(),
+                                RichPushConstants.BIG_IMAGE_WIDTH,
+                                RichPushConstants.BIG_IMAGE_HEIGHT);
 
-                            // Set the image into the view.
-                            RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper_entry);
-                            viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
+                        if (bitmap == null) continue;
 
-                            // Attach an onClick pending intent.
-                            viewFlipperEntry.setOnClickPendingIntent(
-                                    R.id.carousel_image_view,
-                                    getCarouselImageClickPendingIntent(context, message, element, notificationId)
-                            );
+                        // Set the image into the view.
+                        RemoteViews viewFlipperEntry = new RemoteViews(packageName, R.layout.bsft_carousel_view_flipper_entry);
+                        viewFlipperEntry.setImageViewBitmap(R.id.carousel_image_view, bitmap);
 
-                            // remove any view found on the overlay container
-                            viewFlipperEntry.removeAllViews(R.id.carousel_overlay_container);
+                        // Attach an onClick pending intent.
+                        viewFlipperEntry.setOnClickPendingIntent(
+                                R.id.carousel_image_view,
+                                getCarouselImageClickPendingIntent(context, message, element, notificationId)
+                        );
 
-                            // look for overlay content and add it in the container layout (if found)
-                            RemoteViews overlay = getOverlayView(context, element);
-                            if (overlay != null) {
-                                viewFlipperEntry.addView(R.id.carousel_overlay_container, overlay);
-                            }
+                        // remove any view found on the overlay container
+                        viewFlipperEntry.removeAllViews(R.id.carousel_overlay_container);
 
-                            // Add the image into ViewFlipper.
-                            viewFlipper.addView(R.id.view_flipper, viewFlipperEntry);
-                        } catch (IOException e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
+                        // look for overlay content and add it in the container layout (if found)
+                        RemoteViews overlay = getOverlayView(context, element);
+                        if (overlay != null) {
+                            viewFlipperEntry.addView(R.id.carousel_overlay_container, overlay);
                         }
+
+                        // Add the image into ViewFlipper.
+                        viewFlipper.addView(R.id.view_flipper, viewFlipperEntry);
                     }
                 }
 

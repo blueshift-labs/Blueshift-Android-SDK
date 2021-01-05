@@ -8,6 +8,9 @@ import android.content.Context;
  *         https://github.com/rahulrvp
  */
 public final class RichPushConstants {
+    public static final int BIG_IMAGE_WIDTH = 300;
+    public static final int BIG_IMAGE_HEIGHT = 150;
+
     public static final String DEFAULT_CHANNEL_ID = "bsft_channel_General";
     public static final String DEFAULT_CHANNEL_NAME = "General";
     public static final String EXTRA_MESSAGE = "message";
