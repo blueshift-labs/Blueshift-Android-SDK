@@ -635,8 +635,9 @@ public class InAppManager {
                             // image background will be at position 0 if available
                             View view = rootView.getChildAt(0);
                             if (view instanceof ImageView) {
-                                // background image added, now we need to match it with the size
-                                applyDimensionsToView(view, modalWidth, modalHeight);
+                                // background image is present and it will fill the parent view
+                                // automatically. Now let's adjust the dimensions of the parent view
+                                // to match the dimensions of the dialog container.
 
                                 if (rootView.getChildCount() > 1) {
                                     View contentView = rootView.getChildAt(1);
