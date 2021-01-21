@@ -1,22 +1,12 @@
 package com.blueshift.pn;
 
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 
-import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.rich_push.Message;
-import com.blueshift.rich_push.RichPushConstants;
 import com.blueshift.util.NotificationUtils;
-
-import java.util.HashMap;
 
 
 /**
@@ -28,12 +18,17 @@ import java.util.HashMap;
 public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
-        if (intent != null) {
-            processAction(intent.getAction(), intent.getExtras());
+        if (intent != null) processAction(intent.getAction(), intent.getExtras());
+
+        // finish this activity to avoid onResume execution (mobl-639)
+        if (!isFinishing()) {
+            finish();
+        } else {
+            BlueshiftLogger.d("NotificationEventsActivity", "finish() called externally.");
         }
     }
 
