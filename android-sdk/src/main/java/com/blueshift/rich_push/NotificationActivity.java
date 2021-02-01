@@ -18,7 +18,11 @@ import com.blueshift.model.Configuration;
  * <p>
  * This activity is responsible for creating dialog notifications.
  * Currently supports two types of dialogues.
+ *
+ * @deprecated This Activity is deprecated as the notification_type "alert" is deprecated.
+ * This class will be removed from the project later in time.
  */
+@Deprecated
 public class NotificationActivity extends AppCompatActivity {
 
     private Context mContext;
