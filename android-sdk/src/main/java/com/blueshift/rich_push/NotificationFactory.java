@@ -290,7 +290,7 @@ public class NotificationFactory {
             }
 
             // Tracking the notification display.
-            Blueshift.getInstance(context).trackNotificationView(message);
+            NotificationUtils.invokePushDelivered(context, message);
         }
     }
 

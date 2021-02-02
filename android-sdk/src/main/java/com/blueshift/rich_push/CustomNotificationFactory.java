@@ -89,8 +89,7 @@ class CustomNotificationFactory {
                     manager.notify(notificationId, notification);
                 }
 
-                // Tracking the notification display.
-                Blueshift.getInstance(context).trackNotificationView(message);
+                NotificationUtils.invokePushDelivered(context, message);
             }
         }
     }
@@ -142,7 +141,7 @@ class CustomNotificationFactory {
 
                 if (!isUpdating) {
                     // Tracking the notification display for the first time
-                    Blueshift.getInstance(context).trackNotificationView(message);
+                    NotificationUtils.invokePushDelivered(context, message);
                 }
             }
         }

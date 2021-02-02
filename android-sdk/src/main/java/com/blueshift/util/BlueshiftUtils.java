@@ -7,9 +7,15 @@ import android.text.TextUtils;
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.google.firebase.messaging.RemoteMessage;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.Map;
 
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
@@ -141,4 +147,22 @@ public class BlueshiftUtils {
                 && remoteMessage.getData() != null
                 && remoteMessage.getData().containsKey(Message.EXTRA_BSFT_MESSAGE_UUID);
     }
+
+    public static Map<String, Object> getMapFromPushMessage(Message message) {
+        if (message != null) {
+            Gson gson = new Gson();
+            String json = gson.toJson(message);
+            Type type = new TypeToken<Map<String, Object>>() {
+            }.getType();
+
+            return gson.fromJson(json, type);
+        }
+
+        return null;
+    }
+
+    public static Map<String, Object> getMapFromInAppMessage(InAppMessage inAppMessage) {
+        return null;
+    }
+
 }

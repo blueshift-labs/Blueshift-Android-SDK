@@ -180,28 +180,14 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         return false;
     }
 
-    public static void handlePushMessage(Context context, Intent intent) {
-        try {
-            if (context != null && intent != null) {
-                Bundle bundle = intent.getExtras();
-                if (bundle != null) {
-                    Map<String, String> map = new HashMap<>();
-                    for (String key : bundle.keySet()) {
-                        Object val = bundle.get(key);
-                        if (val != null) map.put(key, String.valueOf(val));
-                    }
 
-                    BlueshiftMessagingService service = new BlueshiftMessagingService();
-                    service.handleDataMessage(context, map);
-                }
-            } else {
-                BlueshiftLogger.e(LOG_TAG, "Could not handle push. Context is " + context + " and Intent is" + intent);
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-    }
-
+    /**
+     * This method takes care of parsing the data payload to see if the push belongs to Blueshift
+     * and what action needs to be taken based on the payload content.
+     *
+     * @param context A valid {@link Context} object from the caller
+     * @param data    A valid data payload in the form of a {@link Map}
+     */
     private void handleDataMessage(Context context, Map<String, String> data) {
         if (data != null) {
             logPayload(data);
@@ -413,5 +399,57 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         Blueshift
                 .getInstance(this)
                 .identifyUserByDeviceId(deviceId, null, false);
+    }
+
+    /**
+     * This method is required by the Blueshift-mParticle-Kit to do the push rendering when a push
+     * message is handed over to the kit by the mParticle SDK
+     *
+     * @param context {@link Context} object from the mParticle kit callback
+     * @param intent  {@link Intent} object from the mParticle kit callback
+     */
+    public static void handlePushMessage(Context context, Intent intent) {
+        try {
+            if (context != null && intent != null) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    Map<String, String> map = new HashMap<>();
+                    for (String key : bundle.keySet()) {
+                        Object val = bundle.get(key);
+                        if (val != null) map.put(key, String.valueOf(val));
+                    }
+
+                    BlueshiftMessagingService service = new BlueshiftMessagingService();
+                    service.handleDataMessage(context, map);
+                }
+            } else {
+                BlueshiftLogger.e(LOG_TAG, "Could not handle push. Context is " + context + " and Intent is" + intent);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+    }
+
+    /**
+     * Helper method for the host app to invoke the onMessageReceived method of the BlueshiftMessagingService class
+     *
+     * @param context       Valid {@link Context} object
+     * @param remoteMessage Valid {@link RemoteMessage} object
+     */
+    public static void handleMessageReceived(Context context, RemoteMessage remoteMessage) {
+        if (context != null && remoteMessage != null) {
+            new BlueshiftMessagingService().handleDataMessage(context, remoteMessage.getData());
+        }
+    }
+
+    /**
+     * Helper method for the host app to invoke the onNewToken method of the BlueshiftMessagingService class
+     *
+     * @param newToken Valid new token provided by FCM
+     */
+    public static void handleNewToken(String newToken) {
+        if (newToken != null) {
+            new BlueshiftMessagingService().onNewToken(newToken);
+        }
     }
 }

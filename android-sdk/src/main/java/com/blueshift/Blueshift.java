@@ -63,6 +63,8 @@ public class Blueshift {
     private Context mContext;
     private static Configuration mConfiguration;
     private static Blueshift instance = null;
+    private static BlueshiftPushListener blueshiftPushListener;
+    private static BlueshiftInAppListener blueshiftInAppListener;
 
     public enum DeviceIdSource {
         ADVERTISING_ID, INSTANCE_ID, GUID, ADVERTISING_ID_PKG_NAME, INSTANCE_ID_PKG_NAME, CUSTOM
@@ -86,6 +88,22 @@ public class Blueshift {
         }
 
         return instance;
+    }
+
+    public static BlueshiftPushListener getBlueshiftPushListener() {
+        return blueshiftPushListener;
+    }
+
+    public static BlueshiftInAppListener getBlueshiftInAppListener() {
+        return blueshiftInAppListener;
+    }
+
+    public static void setBlueshiftPushListener(BlueshiftPushListener pushListener) {
+        blueshiftPushListener = pushListener;
+    }
+
+    public static void setBlueshiftInAppListener(BlueshiftInAppListener inAppListener) {
+        blueshiftInAppListener = inAppListener;
     }
 
     public void registerForInAppMessages(Activity activity) {
