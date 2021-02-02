@@ -44,6 +44,30 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private String transaction_uuid;
     private String timestamp;
 
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put(InAppConstants.TYPE, type);
+        map.put(InAppConstants.EXPIRES_AT, expires_at);
+        map.put(InAppConstants.TRIGGER, trigger);
+        map.put(InAppConstants.DISPLAY_ON, display_on);
+        map.put(InAppConstants.TEMPLATE_STYLE, template_style);
+        map.put(InAppConstants.TEMPLATE_STYLE_DARK, template_style_dark);
+        map.put(InAppConstants.CONTENT_STYLE, content_style);
+        map.put(InAppConstants.CONTENT_STYLE_DARK, content_style_dark);
+        map.put(InAppConstants.CONTENT, content);
+        map.put(InAppConstants.EXTRAS, extras);
+
+        map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
+        map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
+        map.put(Message.EXTRA_BSFT_USER_UUID, user_uuid);
+        map.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, transaction_uuid);
+
+        map.put(BlueshiftConstants.KEY_TIMESTAMP, timestamp);
+
+        return map;
+    }
+
     public static InAppMessage getInstance(JSONObject jsonObject) {
         try {
             String json = jsonObject.optString(InAppMessage.EXTRA_IN_APP);

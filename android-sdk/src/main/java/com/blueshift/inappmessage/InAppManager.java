@@ -298,7 +298,7 @@ public class InAppManager {
             BlueshiftLogger.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
 
             if (inAppMessage != null) {
-                Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
+                InAppUtils.invokeInAppDelivered(context, inAppMessage);
 
                 if (!inAppMessage.isExpired()) {
                     boolean inserted = InAppMessageStore.getInstance(context).insert(inAppMessage);
@@ -584,7 +584,7 @@ public class InAppManager {
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
         // log the click event
-        Blueshift.getInstance(appContext).trackInAppMessageClick(inAppMessage, extras);
+        InAppUtils.invokeInAppClicked(appContext, inAppMessage, extras);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
@@ -594,7 +594,7 @@ public class InAppManager {
         Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
         if (appContext != null) {
             // send stats
-            Blueshift.getInstance(appContext).trackInAppMessageView(inAppMessage);
+            InAppUtils.invokeInAppOpened(appContext, inAppMessage);
             // update with displayed at timing
             inAppMessage.setDisplayedAt(System.currentTimeMillis());
             InAppMessageStore.getInstance(appContext).update(inAppMessage);
