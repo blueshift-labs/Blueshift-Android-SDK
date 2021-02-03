@@ -2,12 +2,14 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.BuildConfig;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.google.firebase.messaging.RemoteMessage;
@@ -162,7 +164,18 @@ public class BlueshiftUtils {
         return null;
     }
 
-    public static Map<String, String> buildTrackApiAttributesFromPayload(Map<String, Object> inputMap) {
+    /**
+     * This method is responsible for building the attributes for calling the track API.
+     * <p>
+     * <b>Note:</b>
+     * This method must be called from a non UI thread if the deviceIdSource is set to ADVERTISING_ID.
+     *
+     * @param inputMap in-app or push payload with additional tracking info.
+     * @param context  valid context object.
+     * @return {@link Map} of attributes with appropriate keys required to call the track API.
+     */
+    @WorkerThread
+    public static Map<String, String> buildTrackApiAttributesFromPayload(Map<String, Object> inputMap, Context context) {
         Map<String, String> attr = new HashMap<>();
 
         // campaign attributes
@@ -177,6 +190,17 @@ public class BlueshiftUtils {
 
         String txnid = readValue(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, inputMap);
         if (txnid != null) attr.put(BlueshiftConstants.KEY_TXNID, txnid);
+
+        // app name
+        if (context != null) attr.put(BlueshiftConstants.KEY_APP_NAME, context.getPackageName());
+
+        // device id
+        String deviceId = DeviceUtils.getDeviceId(context);
+        if (deviceId != null) attr.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+
+        // sdk version & timestamp
+        attr.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+        attr.put(BlueshiftConstants.KEY_TIMESTAMP, CommonUtils.getCurrentUtcTimestamp());
 
         // click attributes (if present)
         String clickElement = readValue(BlueshiftConstants.KEY_CLICK_ELEMENT, inputMap);
