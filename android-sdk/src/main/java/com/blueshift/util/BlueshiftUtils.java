@@ -6,8 +6,8 @@ import android.text.TextUtils;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.google.firebase.messaging.RemoteMessage;
@@ -157,6 +157,41 @@ public class BlueshiftUtils {
             }.getType();
 
             return gson.fromJson(json, type);
+        }
+
+        return null;
+    }
+
+    public static Map<String, String> buildTrackApiAttributesFromPayload(Map<String, Object> inputMap) {
+        Map<String, String> attr = new HashMap<>();
+
+        // campaign attributes
+        String mid = readValue(Message.EXTRA_BSFT_MESSAGE_UUID, inputMap);
+        if (mid != null) attr.put(BlueshiftConstants.KEY_MID, mid);
+
+        String eid = readValue(Message.EXTRA_BSFT_EXPERIMENT_UUID, inputMap);
+        if (eid != null) attr.put(BlueshiftConstants.KEY_EID, eid);
+
+        String uid = readValue(Message.EXTRA_BSFT_USER_UUID, inputMap);
+        if (uid != null) attr.put(BlueshiftConstants.KEY_UID, uid);
+
+        String txnid = readValue(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, inputMap);
+        if (txnid != null) attr.put(BlueshiftConstants.KEY_TXNID, txnid);
+
+        // click attributes (if present)
+        String clickElement = readValue(BlueshiftConstants.KEY_CLICK_ELEMENT, inputMap);
+        if (clickElement != null) attr.put(BlueshiftConstants.KEY_CLICK_ELEMENT, clickElement);
+
+        String clickUrl = readValue(BlueshiftConstants.KEY_CLICK_URL, inputMap);
+        if (clickUrl != null) attr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+
+        return attr;
+    }
+
+    private static String readValue(String key, Map<String, Object> inputMap) {
+        if (key != null && inputMap != null && inputMap.containsKey(key)) {
+            Object val = inputMap.get(key);
+            if (val != null) return String.valueOf(val);
         }
 
         return null;
