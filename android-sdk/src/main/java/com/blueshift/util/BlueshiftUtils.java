@@ -207,7 +207,10 @@ public class BlueshiftUtils {
         if (clickElement != null) attr.put(BlueshiftConstants.KEY_CLICK_ELEMENT, clickElement);
 
         String clickUrl = readValue(BlueshiftConstants.KEY_CLICK_URL, inputMap);
-        if (clickUrl != null) attr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+        if (clickUrl != null) {
+            String encodedUrl = NetworkUtils.encodeUrlParam(clickUrl);
+            attr.put(BlueshiftConstants.KEY_CLICK_URL, encodedUrl);
+        }
 
         return attr;
     }
