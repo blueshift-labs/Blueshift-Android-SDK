@@ -1108,7 +1108,6 @@ public class InAppUtils {
             map.putAll(ex.toHasMap());
         }
 
-
         if (Blueshift.getBlueshiftInAppListener() != null) {
             Blueshift.getBlueshiftInAppListener().onInAppClicked(map);
         }
