@@ -49,6 +49,9 @@ public class Configuration {
 
     private boolean enableAutoAppOpen;
 
+    // This is the time interval between the app_open events fired by the SDK in seconds.
+    private long autoAppOpenInterval;
+
     private Blueshift.DeviceIdSource deviceIdSource;
     private String customDeviceId;
 
@@ -75,6 +78,10 @@ public class Configuration {
         // Job ids used in the SDK
         networkChangeListenerJobId = 901;
         bulkEventsJobId = 902;
+
+        // The default value is 0. When set to default, app_open
+        // event will be fired on each app restart.
+        autoAppOpenInterval = 0;
     }
 
     public int getAppIcon() {
@@ -212,6 +219,14 @@ public class Configuration {
 
     public void setBulkEventsJobId(int bulkEventsJobId) {
         this.bulkEventsJobId = bulkEventsJobId;
+    }
+
+    public long getAutoAppOpenInterval() {
+        return autoAppOpenInterval;
+    }
+
+    public void setAutoAppOpenInterval(long intervalInSeconds) {
+        this.autoAppOpenInterval = intervalInSeconds;
     }
 
     public boolean isAutoAppOpenFiringEnabled() {
