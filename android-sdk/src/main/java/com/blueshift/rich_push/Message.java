@@ -5,11 +5,12 @@ import android.text.TextUtils;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 18/2/15 @ 12:20 PM
- *         https://github.com/rahulrvp
+ * Created on 18/2/15 @ 12:20 PM
+ * https://github.com/rahulrvp
  */
 public class Message implements Serializable {
     public static final String EXTRA_MESSAGE = "message";
@@ -29,7 +30,7 @@ public class Message implements Serializable {
     private String bsft_transaction_uuid; // present only with transactional campaign
     private Boolean bsft_seed_list_send; // test messages sent to seed list of users will have this
 
-    /**
+    /*
      * The following variables are used for parsing the 'message' payload.
      * They are the values used for creating the notification.
      */
@@ -164,6 +165,41 @@ public class Message implements Serializable {
     private String notification_channel_id;
     private String notification_channel_name;
     private String notification_channel_description;
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+
+        map.put(Message.EXTRA_BSFT_MESSAGE_UUID, bsft_message_uuid);
+        map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, bsft_experiment_uuid);
+        map.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, bsft_transaction_uuid);
+        map.put(Message.EXTRA_BSFT_USER_UUID, bsft_user_uuid);
+        map.put(Message.EXTRA_BSFT_SEED_LIST_SEND, bsft_seed_list_send);
+
+        map.put("notification_type", notification_type);
+        map.put("category", category);
+        map.put("content_title", content_title);
+        map.put("content_text", content_text);
+        map.put("content_sub_text", content_sub_text);
+        map.put("big_content_title", big_content_title);
+        map.put("big_content_summary_text", big_content_summary_text);
+        map.put("image_url", image_url);
+        map.put("carousel_elements", carousel_elements);
+        map.put("deep_link_url", deep_link_url);
+        map.put("url", url);
+        map.put("product_id", product_id);
+        map.put("sku", sku);
+        map.put("mrp", mrp);
+        map.put("price", price);
+        map.put("data", data);
+        map.put("notifications", notifications);
+        map.put("timestamp_to_display", timestamp_to_display);
+        map.put("timestamp_to_expire_display", timestamp_to_expire_display);
+        map.put("notification_channel_id", notification_channel_id);
+        map.put("notification_channel_name", notification_channel_name);
+        map.put("notification_channel_description", notification_channel_description);
+
+        return map;
+    }
 
     /**
      * The following are the get / set methods for the above declared variables.

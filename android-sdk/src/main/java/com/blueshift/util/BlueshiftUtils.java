@@ -151,19 +151,6 @@ public class BlueshiftUtils {
                 && remoteMessage.getData().containsKey(Message.EXTRA_BSFT_MESSAGE_UUID);
     }
 
-    public static Map<String, Object> getMapFromPushMessage(Message message) {
-        if (message != null) {
-            Gson gson = new Gson();
-            String json = gson.toJson(message);
-            Type type = new TypeToken<Map<String, Object>>() {
-            }.getType();
-
-            return gson.fromJson(json, type);
-        }
-
-        return null;
-    }
-
     /**
      * This method is responsible for building the attributes for calling the track API.
      * <p>

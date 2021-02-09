@@ -645,8 +645,8 @@ public class NotificationUtils {
      * @param message valid {@link Message} object
      */
     public static void invokePushDelivered(Context context, Message message) {
-        if (Blueshift.getBlueshiftPushListener() != null) {
-            Map<String, Object> attr = BlueshiftUtils.getMapFromPushMessage(message);
+        if (Blueshift.getBlueshiftPushListener() != null && message != null) {
+            Map<String, Object> attr = message.toMap();
             if (Blueshift.getBlueshiftPushListener() != null) {
                 Blueshift.getBlueshiftPushListener().onPushDelivered(attr);
             }
@@ -663,8 +663,8 @@ public class NotificationUtils {
      * @param message valid {@link Message} object
      */
     public static void invokePushClicked(Context context, Message message, String clickUrl) {
-        if (Blueshift.getBlueshiftPushListener() != null) {
-            Map<String, Object> attr = BlueshiftUtils.getMapFromPushMessage(message);
+        if (Blueshift.getBlueshiftPushListener() != null && message != null) {
+            Map<String, Object> attr = message.toMap();
             if (attr != null && clickUrl != null) {
                 attr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
             }
