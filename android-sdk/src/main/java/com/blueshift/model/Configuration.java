@@ -79,9 +79,9 @@ public class Configuration {
         networkChangeListenerJobId = 901;
         bulkEventsJobId = 902;
 
-        // The default value is 0. When set to default, app_open
+        // The default value is 86400 seconds (24 hours). When set to 0, an app_open
         // event will be fired on each app restart.
-        autoAppOpenInterval = 0;
+        autoAppOpenInterval = 86400;
     }
 
     public int getAppIcon() {
