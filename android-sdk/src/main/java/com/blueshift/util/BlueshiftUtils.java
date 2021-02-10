@@ -94,7 +94,7 @@ public class BlueshiftUtils {
             if (trackedAt > 0) {
                 long now = System.currentTimeMillis() / 1000;
                 long diff = now - trackedAt;
-                return diff > 0 && diff > config.getAutoAppOpenInterval();
+                return diff > config.getAutoAppOpenInterval();
             } else {
                 BlueshiftLogger.d(LOG_TAG, "app_open default behavior (trackedAt == 0)");
             }
