@@ -351,8 +351,12 @@ public class Blueshift {
         // schedule the bulk events dispatch
         BulkEventManager.scheduleBulkEventEnqueue(mContext);
         // fire an app open automatically if enabled
-        if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)) {
+        if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)
+                && BlueshiftUtils.canAutomaticAppOpenBeSentNow(mContext)) {
             trackAppOpen(false);
+            // mark the tracking time
+            long now = System.currentTimeMillis() / 1000;
+            BlueShiftPreference.setAppOpenTrackedAt(mContext, now);
         }
         // pull latest font from server
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);

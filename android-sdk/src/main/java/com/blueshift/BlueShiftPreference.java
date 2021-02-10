@@ -22,6 +22,7 @@ public class BlueShiftPreference {
     private static final String PREF_FILE = "com.blueshift.sdk_preferences";
     private static final String PREF_KEY_DEVICE_ID = "blueshift_device_id";
     private static final String PREF_KEY_PUSH_ENABLED = "blueshift_push_enabled";
+    private static final String PREF_KEY_APP_OPEN_TRACKED_AT = "blueshift_app_open_tracked_at";
     private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
 
     private static final String TAG = "BlueShiftPreference";
@@ -133,5 +134,23 @@ public class BlueShiftPreference {
 
     private static String getPreferenceFileName(@NonNull Context context, @NonNull String fileName) {
         return context.getPackageName() + "." + fileName;
+    }
+
+    public static long getAppOpenTrackedAt(Context context) {
+        long val = 0;
+
+        SharedPreferences preferences = getBlueshiftPreferences(context);
+        if (preferences != null) {
+            val = preferences.getLong(PREF_KEY_APP_OPEN_TRACKED_AT, 0);
+        }
+
+        return val;
+    }
+
+    public static void setAppOpenTrackedAt(Context context, long seconds) {
+        SharedPreferences preferences = getBlueshiftPreferences(context);
+        if (preferences != null) {
+            preferences.edit().putLong(PREF_KEY_APP_OPEN_TRACKED_AT, seconds).apply();
+        }
     }
 }

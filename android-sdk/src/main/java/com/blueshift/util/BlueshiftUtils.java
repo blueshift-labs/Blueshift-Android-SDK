@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 
+import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
@@ -84,6 +85,25 @@ public class BlueshiftUtils {
         }
 
         return isEnabled;
+    }
+
+    public static boolean canAutomaticAppOpenBeSentNow(Context context) {
+        Configuration config = BlueshiftUtils.getConfiguration(context);
+        if (config != null && config.getAutoAppOpenInterval() > 0) {
+            long trackedAt = BlueShiftPreference.getAppOpenTrackedAt(context);
+            if (trackedAt > 0) {
+                long now = System.currentTimeMillis() / 1000;
+                long diff = now - trackedAt;
+                return diff > config.getAutoAppOpenInterval();
+            } else {
+                BlueshiftLogger.d(LOG_TAG, "app_open default behavior (trackedAt == 0)");
+            }
+        } else {
+            BlueshiftLogger.d(LOG_TAG, "app_open default behavior (interval == 0)");
+        }
+
+        // the fall back value is set to true to keep the default behaviour
+        return true;
     }
 
     public static boolean isPushEnabled(Context context) {
