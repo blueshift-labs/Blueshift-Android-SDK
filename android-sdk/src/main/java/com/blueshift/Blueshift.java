@@ -581,6 +581,16 @@ public class Blueshift {
     }
 
     /**
+     * This method fires an identify event that fills in customer identifiers from user info and device info
+     *
+     * @param details           optional additional parameters
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
+     */
+    public void identifyUser(HashMap<String, Object> details, boolean canBatchThisEvent) {
+        trackEvent(BlueshiftConstants.EVENT_IDENTIFY, details, canBatchThisEvent);
+    }
+
+    /**
      * Helps trigger identify user api call using key 'retailer_customer_id'.
      *
      * @param customerId        if provided, replaces existing one (taken from UserInfo) inside request params.
