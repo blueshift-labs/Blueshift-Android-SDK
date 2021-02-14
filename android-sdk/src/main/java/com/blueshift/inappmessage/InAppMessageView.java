@@ -185,9 +185,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 JSONObject statsParams = getClickStatsJSONObject(element);
                 String androidLink = actionJson.optString(InAppConstants.ANDROID_LINK);
                 if (!TextUtils.isEmpty(androidLink)) {
-                    statsParams.putOpt(
-                            BlueshiftConstants.KEY_CLICK_URL,
-                            NetworkUtils.encodeUrlParam(androidLink));
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, androidLink);
                 }
 
                 if (InAppManager.getActionCallback() != null) {

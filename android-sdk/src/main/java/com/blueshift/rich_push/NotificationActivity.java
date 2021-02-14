@@ -12,6 +12,7 @@ import android.view.Window;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.NotificationUtils;
 
 /**
  * Created by Rahul Raveendran
@@ -85,7 +86,7 @@ public class NotificationActivity extends AppCompatActivity {
             builder.create().show();
 
             // Tracking the notification display.
-            Blueshift.getInstance(mContext).trackNotificationView(mMessage);
+            NotificationUtils.invokePushDelivered(mContext, mMessage);
         } else {
             finish();
         }

@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A class with helper methods to show custom notification.
@@ -552,12 +553,10 @@ public class NotificationUtils {
             Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
             if (message != null) {
                 try {
-                    HashMap<String, Object> clickAttr = new HashMap<>();
                     String deepLink = bundle.getString(RichPushConstants.EXTRA_DEEP_LINK_URL);
-                    clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, deepLink);
 
                     // mark 'click'
-                    Blueshift.getInstance(context).trackNotificationClick(message, clickAttr);
+                    NotificationUtils.invokePushClicked(context, message, deepLink);
 
                     Intent intent = null;
 
@@ -636,5 +635,47 @@ public class NotificationUtils {
                     "(context: " + context + ", intent: " + intent + ").");
             return false;
         }
+    }
+
+    /**
+     * This helper method allows the sdk to call the listener method (if provided) along with
+     * internal tracking method for push delivered.
+     *
+     * @param context valid {@link Context} object
+     * @param message valid {@link Message} object
+     */
+    public static void invokePushDelivered(Context context, Message message) {
+        if (Blueshift.getBlueshiftPushListener() != null && message != null) {
+            Map<String, Object> attr = message.toMap();
+            if (Blueshift.getBlueshiftPushListener() != null) {
+                Blueshift.getBlueshiftPushListener().onPushDelivered(attr);
+            }
+        }
+
+        Blueshift.getInstance(context).trackNotificationView(message);
+    }
+
+    /**
+     * This helper method allows the sdk to call the listener method (if provided) along with
+     * internal tracking method for push click.
+     *
+     * @param context valid {@link Context} object
+     * @param message valid {@link Message} object
+     */
+    public static void invokePushClicked(Context context, Message message, String clickUrl) {
+        if (Blueshift.getBlueshiftPushListener() != null && message != null) {
+            Map<String, Object> attr = message.toMap();
+            if (attr != null && clickUrl != null) {
+                attr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+            }
+
+            if (Blueshift.getBlueshiftPushListener() != null) {
+                Blueshift.getBlueshiftPushListener().onPushClicked(attr);
+            }
+        }
+
+        HashMap<String, Object> clickAttr = new HashMap<>();
+        if (clickUrl != null) clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+        Blueshift.getInstance(context).trackNotificationClick(message, clickAttr);
     }
 }
