@@ -2,13 +2,23 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
+import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.BuildConfig;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.google.firebase.messaging.RemoteMessage;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
@@ -86,6 +96,25 @@ public class BlueshiftUtils {
         return isEnabled;
     }
 
+    public static boolean canAutomaticAppOpenBeSentNow(Context context) {
+        Configuration config = BlueshiftUtils.getConfiguration(context);
+        if (config != null && config.getAutoAppOpenInterval() > 0) {
+            long trackedAt = BlueShiftPreference.getAppOpenTrackedAt(context);
+            if (trackedAt > 0) {
+                long now = System.currentTimeMillis() / 1000;
+                long diff = now - trackedAt;
+                return diff > config.getAutoAppOpenInterval();
+            } else {
+                BlueshiftLogger.d(LOG_TAG, "app_open default behavior (trackedAt == 0)");
+            }
+        } else {
+            BlueshiftLogger.d(LOG_TAG, "app_open default behavior (interval == 0)");
+        }
+
+        // the fall back value is set to true to keep the default behaviour
+        return true;
+    }
+
     public static boolean isPushEnabled(Context context) {
         Configuration config = getConfiguration(context);
         boolean isEnabled = config != null && config.isPushEnabled();
@@ -120,5 +149,65 @@ public class BlueshiftUtils {
         return remoteMessage != null
                 && remoteMessage.getData() != null
                 && remoteMessage.getData().containsKey(Message.EXTRA_BSFT_MESSAGE_UUID);
+    }
+
+    /**
+     * This method is responsible for building the attributes for calling the track API.
+     * <p>
+     * <b>Note:</b>
+     * This method must be called from a non UI thread if the deviceIdSource is set to ADVERTISING_ID.
+     *
+     * @param inputMap in-app or push payload with additional tracking info.
+     * @param context  valid context object.
+     * @return {@link Map} of attributes with appropriate keys required to call the track API.
+     */
+    @WorkerThread
+    public static Map<String, String> buildTrackApiAttributesFromPayload(Map<String, Object> inputMap, Context context) {
+        Map<String, String> attr = new HashMap<>();
+
+        // campaign attributes
+        String mid = readValue(Message.EXTRA_BSFT_MESSAGE_UUID, inputMap);
+        if (mid != null) attr.put(BlueshiftConstants.KEY_MID, mid);
+
+        String eid = readValue(Message.EXTRA_BSFT_EXPERIMENT_UUID, inputMap);
+        if (eid != null) attr.put(BlueshiftConstants.KEY_EID, eid);
+
+        String uid = readValue(Message.EXTRA_BSFT_USER_UUID, inputMap);
+        if (uid != null) attr.put(BlueshiftConstants.KEY_UID, uid);
+
+        String txnid = readValue(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, inputMap);
+        if (txnid != null) attr.put(BlueshiftConstants.KEY_TXNID, txnid);
+
+        // app name
+        if (context != null) attr.put(BlueshiftConstants.KEY_APP_NAME, context.getPackageName());
+
+        // device id
+        String deviceId = DeviceUtils.getDeviceId(context);
+        if (deviceId != null) attr.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
+
+        // sdk version & timestamp
+        attr.put(BlueshiftConstants.KEY_SDK_VERSION, BuildConfig.SDK_VERSION);
+        attr.put(BlueshiftConstants.KEY_TIMESTAMP, CommonUtils.getCurrentUtcTimestamp());
+
+        // click attributes (if present)
+        String clickElement = readValue(BlueshiftConstants.KEY_CLICK_ELEMENT, inputMap);
+        if (clickElement != null) attr.put(BlueshiftConstants.KEY_CLICK_ELEMENT, clickElement);
+
+        String clickUrl = readValue(BlueshiftConstants.KEY_CLICK_URL, inputMap);
+        if (clickUrl != null) {
+            String encodedUrl = NetworkUtils.encodeUrlParam(clickUrl);
+            attr.put(BlueshiftConstants.KEY_CLICK_URL, encodedUrl);
+        }
+
+        return attr;
+    }
+
+    private static String readValue(String key, Map<String, Object> inputMap) {
+        if (key != null && inputMap != null && inputMap.containsKey(key)) {
+            Object val = inputMap.get(key);
+            if (val != null) return String.valueOf(val);
+        }
+
+        return null;
     }
 }

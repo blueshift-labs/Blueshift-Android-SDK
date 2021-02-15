@@ -18,7 +18,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppMessage;
@@ -41,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class InAppUtils {
@@ -174,9 +177,9 @@ public class InAppUtils {
             try {
                 if (isDarkModeEnabled(context) && contentName != null) {
                     /*
-                    * This check is to safely fallback to the default config if the key
-                    * is absent in dark theme config.
-                    */
+                     * This check is to safely fallback to the default config if the key
+                     * is absent in dark theme config.
+                     */
                     JSONObject darkThemeConfig = inAppMessage.getContentStyleDark();
                     if (darkThemeConfig != null && darkThemeConfig.has(contentName)) {
                         return darkThemeConfig;
@@ -1074,5 +1077,41 @@ public class InAppUtils {
         }
 
         return epoch;
+    }
+
+    public static void invokeInAppDelivered(Context context, InAppMessage inAppMessage) {
+        Map<String, Object> map = inAppMessage != null ? inAppMessage.toMap() : null;
+
+        if (Blueshift.getBlueshiftInAppListener() != null) {
+            Blueshift.getBlueshiftInAppListener().onInAppDelivered(map);
+        }
+
+        Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
+    }
+
+    public static void invokeInAppOpened(Context context, InAppMessage inAppMessage) {
+        Map<String, Object> map = inAppMessage != null ? inAppMessage.toMap() : null;
+
+        if (Blueshift.getBlueshiftInAppListener() != null) {
+            Blueshift.getBlueshiftInAppListener().onInAppOpened(map);
+        }
+
+        Blueshift.getInstance(context).trackInAppMessageView(inAppMessage);
+    }
+
+    public static void invokeInAppClicked(Context context, InAppMessage inAppMessage, JSONObject extras) {
+        Map<String, Object> map = inAppMessage != null ? inAppMessage.toMap() : null;
+
+        if (map != null && extras != null) {
+            BlueshiftJSONObject ex = new BlueshiftJSONObject();
+            ex.putAll(extras);
+            map.putAll(ex.toHasMap());
+        }
+
+        if (Blueshift.getBlueshiftInAppListener() != null) {
+            Blueshift.getBlueshiftInAppListener().onInAppClicked(map);
+        }
+
+        Blueshift.getInstance(context).trackInAppMessageClick(inAppMessage, extras);
     }
 }

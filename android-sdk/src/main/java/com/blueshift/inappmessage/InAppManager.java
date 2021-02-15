@@ -298,7 +298,7 @@ public class InAppManager {
             BlueshiftLogger.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
 
             if (inAppMessage != null) {
-                Blueshift.getInstance(context).trackInAppMessageDelivered(inAppMessage);
+                InAppUtils.invokeInAppDelivered(context, inAppMessage);
 
                 if (!inAppMessage.isExpired()) {
                     boolean inserted = InAppMessageStore.getInstance(context).insert(inAppMessage);
@@ -584,7 +584,7 @@ public class InAppManager {
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
         // log the click event
-        Blueshift.getInstance(appContext).trackInAppMessageClick(inAppMessage, extras);
+        InAppUtils.invokeInAppClicked(appContext, inAppMessage, extras);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
@@ -594,7 +594,7 @@ public class InAppManager {
         Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
         if (appContext != null) {
             // send stats
-            Blueshift.getInstance(appContext).trackInAppMessageView(inAppMessage);
+            InAppUtils.invokeInAppOpened(appContext, inAppMessage);
             // update with displayed at timing
             inAppMessage.setDisplayedAt(System.currentTimeMillis());
             InAppMessageStore.getInstance(appContext).update(inAppMessage);
@@ -780,10 +780,19 @@ public class InAppManager {
                 // do nothing. cache is managed by WebView
             } else {
                 // modal with background
-                String bgImage = inAppMessage.getContentString(InAppConstants.BACKGROUND_IMAGE);
-                if (!TextUtils.isEmpty(bgImage)) {
-                    deleteCachedImage(context, bgImage);
+                // bg image: normal
+                String bgImgNormal = inAppMessage.getTemplateStyle() != null
+                        ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (!TextUtils.isEmpty(bgImgNormal)) deleteCachedImage(context, bgImgNormal);
+                // bg image: dark
+                String bgImgDark = inAppMessage.getTemplateStyleDark() != null
+                        ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
+                    deleteCachedImage(context, bgImgDark);
                 }
+
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
@@ -824,10 +833,19 @@ public class InAppManager {
                 // cache for modals and other templates
 
                 // modal with background
-                String bgImage = inAppMessage.getContentString(InAppConstants.BACKGROUND_IMAGE);
-                if (!TextUtils.isEmpty(bgImage)) {
-                    cacheImage(context, bgImage);
+                // bg image: normal
+                String bgImgNormal = inAppMessage.getTemplateStyle() != null
+                        ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (!TextUtils.isEmpty(bgImgNormal)) cacheImage(context, bgImgNormal);
+                // bg image: dark
+                String bgImgDark = inAppMessage.getTemplateStyleDark() != null
+                        ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
+                    cacheImage(context, bgImgDark);
                 }
+
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {

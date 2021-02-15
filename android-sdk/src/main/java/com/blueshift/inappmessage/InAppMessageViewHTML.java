@@ -63,9 +63,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
             JSONObject statsParams = getClickStatsJSONObject(null);
             try {
                 if (!TextUtils.isEmpty(link)) {
-                    statsParams.putOpt(
-                            BlueshiftConstants.KEY_CLICK_URL,
-                            NetworkUtils.encodeUrlParam(link));
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
                 }
             } catch (JSONException ignore) {
             }
@@ -97,9 +95,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
             try {
                 String link = uri.toString();
                 if (!TextUtils.isEmpty(link)) {
-                    statsParams.putOpt(
-                            BlueshiftConstants.KEY_CLICK_URL,
-                            NetworkUtils.encodeUrlParam(link));
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
                 }
             } catch (JSONException ignored) {
             }

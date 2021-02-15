@@ -12,13 +12,18 @@ import android.view.Window;
 import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.NotificationUtils;
 
 /**
  * Created by Rahul Raveendran
  * <p>
  * This activity is responsible for creating dialog notifications.
  * Currently supports two types of dialogues.
+ *
+ * @deprecated This Activity is deprecated as the notification_type "alert" is deprecated.
+ * This class will be removed from the project later in time.
  */
+@Deprecated
 public class NotificationActivity extends AppCompatActivity {
 
     private Context mContext;
@@ -81,7 +86,7 @@ public class NotificationActivity extends AppCompatActivity {
             builder.create().show();
 
             // Tracking the notification display.
-            Blueshift.getInstance(mContext).trackNotificationView(mMessage);
+            NotificationUtils.invokePushDelivered(mContext, mMessage);
         } else {
             finish();
         }

@@ -63,6 +63,8 @@ public class Blueshift {
     private Context mContext;
     private static Configuration mConfiguration;
     private static Blueshift instance = null;
+    private static BlueshiftPushListener blueshiftPushListener;
+    private static BlueshiftInAppListener blueshiftInAppListener;
 
     public enum DeviceIdSource {
         ADVERTISING_ID, INSTANCE_ID, GUID, ADVERTISING_ID_PKG_NAME, INSTANCE_ID_PKG_NAME, CUSTOM
@@ -86,6 +88,22 @@ public class Blueshift {
         }
 
         return instance;
+    }
+
+    public static BlueshiftPushListener getBlueshiftPushListener() {
+        return blueshiftPushListener;
+    }
+
+    public static BlueshiftInAppListener getBlueshiftInAppListener() {
+        return blueshiftInAppListener;
+    }
+
+    public static void setBlueshiftPushListener(BlueshiftPushListener pushListener) {
+        blueshiftPushListener = pushListener;
+    }
+
+    public static void setBlueshiftInAppListener(BlueshiftInAppListener inAppListener) {
+        blueshiftInAppListener = inAppListener;
     }
 
     public void registerForInAppMessages(Activity activity) {
@@ -351,8 +369,12 @@ public class Blueshift {
         // schedule the bulk events dispatch
         BulkEventManager.scheduleBulkEventEnqueue(mContext);
         // fire an app open automatically if enabled
-        if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)) {
+        if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)
+                && BlueshiftUtils.canAutomaticAppOpenBeSentNow(mContext)) {
             trackAppOpen(false);
+            // mark the tracking time
+            long now = System.currentTimeMillis() / 1000;
+            BlueShiftPreference.setAppOpenTrackedAt(mContext, now);
         }
         // pull latest font from server
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
@@ -574,6 +596,16 @@ public class Blueshift {
 
             trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, utmParamsHash, canBatchThisEvent);
         }
+    }
+
+    /**
+     * This method fires an identify event that fills in customer identifiers from user info and device info
+     *
+     * @param details           optional additional parameters
+     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
+     */
+    public void identifyUser(HashMap<String, Object> details, boolean canBatchThisEvent) {
+        trackEvent(BlueshiftConstants.EVENT_IDENTIFY, details, canBatchThisEvent);
     }
 
     /**

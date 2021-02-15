@@ -33,8 +33,8 @@ import java.util.Random;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 18/2/15 @ 12:22 PM
- *         https://github.com/rahulrvp
+ * Created on 18/2/15 @ 12:22 PM
+ * https://github.com/rahulrvp
  */
 public class NotificationFactory {
     private final static String LOG_TAG = NotificationFactory.class.getSimpleName();
@@ -74,6 +74,16 @@ public class NotificationFactory {
         }
     }
 
+    /**
+     * This method is responsible for showing a popup dialog when receiving a push message with
+     * notification_type "alert".
+     *
+     * @param context context object
+     * @param message message object
+     * @deprecated This method is deprecated because Blueshift has deprecated the notification type
+     * "alert" that displays popup dialogs on receiving the push. Use in-app messages instead.
+     */
+    @Deprecated
     private static void buildAndShowAlertDialog(final Context context, final Message message) {
         if (context != null && message != null) {
             final Handler handler = BlueshiftExecutor.getInstance().getMyHandler();
@@ -98,6 +108,7 @@ public class NotificationFactory {
         }
     }
 
+    @Deprecated
     private static void launchNotificationActivity(Context context, Message message, boolean appIsInForeground) {
         if (context != null && message != null) {
             Intent notificationIntent = new Intent(context, NotificationActivity.class);
@@ -279,7 +290,7 @@ public class NotificationFactory {
             }
 
             // Tracking the notification display.
-            Blueshift.getInstance(context).trackNotificationView(message);
+            NotificationUtils.invokePushDelivered(context, message);
         }
     }
 
