@@ -780,10 +780,17 @@ public class InAppManager {
                 // do nothing. cache is managed by WebView
             } else {
                 // modal with background
-                String bgImage = inAppMessage.getContentString(InAppConstants.BACKGROUND_IMAGE);
-                if (!TextUtils.isEmpty(bgImage)) {
-                    deleteCachedImage(context, bgImage);
-                }
+                // bg image: normal
+                String bgImgNormal = inAppMessage.getTemplateStyle() != null
+                        ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (!TextUtils.isEmpty(bgImgNormal)) deleteCachedImage(context, bgImgNormal);
+                // bg image: dark
+                String bgImgDark = inAppMessage.getTemplateStyleDark() != null
+                        ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (!TextUtils.isEmpty(bgImgDark)) deleteCachedImage(context, bgImgDark);
+
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
@@ -824,10 +831,17 @@ public class InAppManager {
                 // cache for modals and other templates
 
                 // modal with background
-                String bgImage = inAppMessage.getContentString(InAppConstants.BACKGROUND_IMAGE);
-                if (!TextUtils.isEmpty(bgImage)) {
-                    cacheImage(context, bgImage);
-                }
+                // bg image: normal
+                String bgImgNormal = inAppMessage.getTemplateStyle() != null
+                        ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (!TextUtils.isEmpty(bgImgNormal)) cacheImage(context, bgImgNormal);
+                // bg image: dark
+                String bgImgDark = inAppMessage.getTemplateStyleDark() != null
+                        ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
+                        : null;
+                if (!TextUtils.isEmpty(bgImgDark)) cacheImage(context, bgImgDark);
+
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
