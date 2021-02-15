@@ -789,7 +789,9 @@ public class InAppManager {
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgDark)) deleteCachedImage(context, bgImgDark);
+                if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
+                    deleteCachedImage(context, bgImgDark);
+                }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
@@ -840,7 +842,9 @@ public class InAppManager {
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgDark)) cacheImage(context, bgImgDark);
+                if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
+                    cacheImage(context, bgImgDark);
+                }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
