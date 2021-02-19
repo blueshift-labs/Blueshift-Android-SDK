@@ -17,7 +17,6 @@ import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
@@ -179,10 +178,13 @@ public class InAppManager {
                                 String messageUuid = null;
                                 String lastTimestamp = null;
 
-                                InAppMessage inAppMessage = InAppMessageStore.getInstance(context).getLastInAppMessage();
-                                if (inAppMessage != null) {
-                                    messageUuid = inAppMessage.getMessageUuid();
-                                    lastTimestamp = inAppMessage.getTimestamp();
+                                InAppMessageStore store = InAppMessageStore.getInstance(context);
+                                if (store != null) {
+                                    InAppMessage inAppMessage = store.getLastInAppMessage();
+                                    if (inAppMessage != null) {
+                                        messageUuid = inAppMessage.getMessageUuid();
+                                        lastTimestamp = inAppMessage.getTimestamp();
+                                    }
                                 }
 
                                 // message uuid
@@ -301,11 +303,16 @@ public class InAppManager {
                 InAppUtils.invokeInAppDelivered(context, inAppMessage);
 
                 if (!inAppMessage.isExpired()) {
-                    boolean inserted = InAppMessageStore.getInstance(context).insert(inAppMessage);
-                    if (inserted) {
-                        InAppManager.cacheAssets(inAppMessage, context);
+                    InAppMessageStore store = InAppMessageStore.getInstance(context);
+                    if (store != null) {
+                        boolean inserted = store.insert(inAppMessage);
+                        if (inserted) {
+                            InAppManager.cacheAssets(inAppMessage, context);
+                        } else {
+                            BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                        }
                     } else {
-                        BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                        BlueshiftLogger.w(LOG_TAG, "Could not open the database. Dropping the in-app message. Message UUID: " + inAppMessage.getMessageUuid());
                     }
                 } else {
                     BlueshiftLogger.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
@@ -339,19 +346,22 @@ public class InAppManager {
                 BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
                     @Override
                     public void run() {
-                        InAppMessage input = InAppMessageStore.getInstance(mActivity).getInAppMessage(mActivity);
+                        InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
+                        if (store != null) {
+                            InAppMessage input = store.getInAppMessage(mActivity);
 
-                        if (input == null) {
-                            BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
-                            return;
+                            if (input == null) {
+                                BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
+                                return;
+                            }
+
+                            if (!validate(input)) {
+                                BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
+                                return;
+                            }
+
+                            displayInAppMessage(input);
                         }
-
-                        if (!validate(input)) {
-                            BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
-                            return;
-                        }
-
-                        displayInAppMessage(input);
                     }
                 });
             } catch (Exception e) {
@@ -415,7 +425,8 @@ public class InAppManager {
                     public void run() {
                         if (input != null && mActivity != null) {
                             input.setDisplayedAt(System.currentTimeMillis());
-                            InAppMessageStore.getInstance(mActivity).update(input);
+                            InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
+                            if (store != null) store.update(input);
                         }
                     }
                 }
@@ -454,7 +465,9 @@ public class InAppManager {
         Configuration config = BlueshiftUtils.getConfiguration(mActivity);
         if (config != null) {
             long intervalMs = config.getInAppInterval();
-            long lastDisplayedAt = InAppMessageStore.getInstance(mActivity).getLastDisplayedAt();
+
+            InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
+            long lastDisplayedAt = store != null ? store.getLastDisplayedAt() : 0;
 
             BlueshiftLogger.d(LOG_TAG, "Last In App Message was displayed at " + CommonUtils.formatMilliseconds(lastDisplayedAt));
 
@@ -597,7 +610,9 @@ public class InAppManager {
             InAppUtils.invokeInAppOpened(appContext, inAppMessage);
             // update with displayed at timing
             inAppMessage.setDisplayedAt(System.currentTimeMillis());
-            InAppMessageStore.getInstance(appContext).update(inAppMessage);
+
+            InAppMessageStore store = InAppMessageStore.getInstance(appContext);
+            if (store != null) store.update(inAppMessage);
         }
     }
 

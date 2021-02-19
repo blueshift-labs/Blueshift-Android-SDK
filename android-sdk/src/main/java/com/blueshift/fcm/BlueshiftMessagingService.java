@@ -171,7 +171,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
         try {
             if (intent != null) {
                 Bundle bundle = intent.getExtras();
-                return  (bundle != null && bundle.keySet() != null && bundle.keySet().contains("message"));
+                return (bundle != null && bundle.keySet() != null && bundle.keySet().contains("message"));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -269,7 +269,10 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             InAppMessage inAppMessage = InAppMessage.getInstance(data);
             if (inAppMessage != null) {
                 InAppManager.onInAppMessageReceived(context, inAppMessage);
-                InAppMessageStore.getInstance(context).clean();
+
+                InAppMessageStore store = InAppMessageStore.getInstance(context);
+                if (store != null) store.clean();
+
                 InAppManager.invokeTriggerWithinSdk();
             }
         } catch (Exception e) {
@@ -335,7 +338,8 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                     BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
                         @Override
                         public void run() {
-                            InAppMessageStore.getInstance(context).markAsRead(messageUUIDs);
+                            InAppMessageStore store = InAppMessageStore.getInstance(context);
+                            if (store != null) store.markAsRead(messageUUIDs);
                         }
                     });
                 }

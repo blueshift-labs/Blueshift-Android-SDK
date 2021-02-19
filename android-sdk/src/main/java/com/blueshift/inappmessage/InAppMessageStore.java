@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -53,8 +54,20 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         super(context, DB_NAME, null, DB_VERSION);
     }
 
-    public static InAppMessageStore getInstance(Context context) {
-        if (sInstance == null) sInstance = new InAppMessageStore(context);
+    /**
+     * This method maintains the singleton behavior of the class. At the same time, it prevents the
+     * possibility of passing null as context into the SQLiteOpenHelper instance. This is to avoid
+     * crashes while attempting to read the database path from null mContext variable.
+     *
+     * @param context valid {@link Context} variable
+     * @return {@link InAppMessageStore} object or null (if instance and context are both null)
+     */
+    @Nullable
+    public static InAppMessageStore getInstance(@NonNull Context context) {
+        if (sInstance == null && context != null) {
+            sInstance = new InAppMessageStore(context.getApplicationContext());
+        }
+
         return sInstance;
     }
 
