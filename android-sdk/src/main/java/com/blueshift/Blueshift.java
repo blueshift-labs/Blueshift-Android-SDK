@@ -126,6 +126,10 @@ public class Blueshift {
         InAppManager.setActionCallback(callback);
     }
 
+    public void handleInAppMessageApiResponse(Context context, String response) {
+        InAppManager.handleInAppMessageApiResponse(context, response);
+    }
+
     /**
      * Reset uuid which is being sent as device_id for this app
      */
