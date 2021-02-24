@@ -9,7 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.SystemClock;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;

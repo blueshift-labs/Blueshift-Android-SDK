@@ -8,8 +8,9 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
-import android.support.annotation.WorkerThread;
-import android.support.v4.app.NotificationManagerCompat;
+
+import androidx.annotation.WorkerThread;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;

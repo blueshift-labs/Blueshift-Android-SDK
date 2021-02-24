@@ -14,8 +14,9 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.TaskStackBuilder;
+import androidx.annotation.NonNull;
+import androidx.core.app.TaskStackBuilder;
+
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;

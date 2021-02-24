@@ -8,7 +8,7 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.WorkerThread;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.View;
