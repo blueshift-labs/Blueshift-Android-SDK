@@ -126,8 +126,12 @@ public class Blueshift {
         InAppManager.setActionCallback(callback);
     }
 
-    public void handleInAppMessageApiResponse(Context context, String response) {
-        InAppManager.handleInAppMessageApiResponse(context, response);
+    public void handleInAppMessageAPIResponse(Context context, String response) {
+        InAppManager.handleInAppMessageAPIResponse(context, response);
+    }
+
+    public JSONObject getInAppMessageAPIRequestPayload(Context context) {
+        return InAppManager.generateInAppMessageAPIRequestPayload(context);
     }
 
     /**
