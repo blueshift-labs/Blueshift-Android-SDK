@@ -90,6 +90,16 @@ public class Blueshift {
         return instance;
     }
 
+    public static void setTrackingEnabled(Context context, boolean enabled) {
+        BlueshiftAppPreferences.getInstance(context).setEnableTracking(context, enabled);
+
+        // TODO: 25/02/21 Wipe data async
+    }
+
+    public static boolean isTrackingEnabled(Context context) {
+        return BlueshiftAppPreferences.getInstance(context).getEnableTracking();
+    }
+
     public static BlueshiftPushListener getBlueshiftPushListener() {
         return blueshiftPushListener;
     }
@@ -566,19 +576,23 @@ public class Blueshift {
      */
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
-                            BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
+        if (Blueshift.isTrackingEnabled(mContext)) {
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
+                                BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                            } catch (Exception e) {
+                                BlueshiftLogger.e(LOG_TAG, e);
+                            }
                         }
                     }
-                }
-        );
+            );
+        } else {
+            BlueshiftLogger.i(LOG_TAG, "The tracking is disabled. Dropping event: " + eventName);
+        }
     }
 
     /**
@@ -1293,15 +1307,19 @@ public class Blueshift {
     private void trackCampaignEventAsync(final String eventName,
                                          final HashMap<String, Object> campaignAttr,
                                          final HashMap<String, Object> extraAttr) {
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean tracked = sendNotificationEvent(eventName, campaignAttr, extraAttr);
-                        BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+        if (Blueshift.isTrackingEnabled(mContext)) {
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            boolean tracked = sendNotificationEvent(eventName, campaignAttr, extraAttr);
+                            BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                        }
                     }
-                }
-        );
+            );
+        } else {
+            BlueshiftLogger.i(LOG_TAG, "The tracking is disabled. Dropping event: " + eventName);
+        }
     }
 
     private void updateAndroidAdId(final Context context) {
