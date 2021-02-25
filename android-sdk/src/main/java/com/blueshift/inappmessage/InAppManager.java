@@ -252,13 +252,11 @@ public class InAppManager {
      * @param apiResponse valid API response in JSON format
      */
     public static void handleInAppMessageApiResponse(Context context, String apiResponse) {
-        if (apiResponse != null && !apiResponse.isEmpty()) {
+        if (context != null && apiResponse != null && !apiResponse.isEmpty()) {
             JSONArray messages = decodeResponse(apiResponse);
-            if (messages != null) {
-                onInAppMessageArrayReceived(context, messages);
-            }
+            if (messages != null) onInAppMessageArrayReceived(context, messages);
         } else {
-            BlueshiftLogger.d(LOG_TAG, "The in-app API response is null or empty.");
+            BlueshiftLogger.d(LOG_TAG, "The context is null or the in-app API response is null or empty.");
         }
     }
 
