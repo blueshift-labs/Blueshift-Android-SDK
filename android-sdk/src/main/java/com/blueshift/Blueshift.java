@@ -127,11 +127,11 @@ public class Blueshift {
     }
 
     public void handleInAppMessageAPIResponse(Context context, String response) {
-        InAppManager.handleInAppMessageApiResponse(context, response);
+        InAppManager.handleInAppMessageAPIResponse(context, response);
     }
 
     public JSONObject getInAppMessageAPIRequestPayload(Context context) {
-        return InAppManager.generateInAppAPIRequestPayload(context);
+        return InAppManager.generateInAppMessageAPIRequestPayload(context);
     }
 
     /**

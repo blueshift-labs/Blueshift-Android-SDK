@@ -165,7 +165,7 @@ public class InAppManager {
                         public void run() {
                             try {
                                 String apiKey = BlueshiftUtils.getApiKey(context);
-                                JSONObject requestBody = generateInAppAPIRequestPayload(context);
+                                JSONObject requestBody = generateInAppMessageAPIRequestPayload(context);
 
                                 if (apiKey != null && requestBody != null) {
                                     BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
@@ -179,7 +179,7 @@ public class InAppManager {
                                     String responseBody = response.getBody();
 
                                     if (statusCode == 200) {
-                                        handleInAppMessageApiResponse(context, responseBody);
+                                        handleInAppMessageAPIResponse(context, responseBody);
 
                                         invokeApiSuccessCallback(callbackHandler, callback);
                                     } else {
@@ -233,7 +233,7 @@ public class InAppManager {
      * @return valid JSONObject filled with params, null if any error happens in getting params.
      */
     @WorkerThread
-    public static JSONObject generateInAppAPIRequestPayload(Context context) {
+    public static JSONObject generateInAppMessageAPIRequestPayload(Context context) {
         try {
             BlueshiftJSONObject params = new BlueshiftJSONObject();
 
@@ -278,7 +278,7 @@ public class InAppManager {
      * @param context     valid context object
      * @param apiResponse valid API response in JSON format
      */
-    public static void handleInAppMessageApiResponse(Context context, String apiResponse) {
+    public static void handleInAppMessageAPIResponse(Context context, String apiResponse) {
         if (context != null && apiResponse != null && !apiResponse.isEmpty()) {
             JSONArray messages = decodeResponse(apiResponse);
             if (messages != null) onInAppMessageArrayReceived(context, messages);
