@@ -204,14 +204,7 @@ public class InAppManager {
                                 String responseBody = response.getBody();
 
                                 if (statusCode == 200) {
-                                    if (!TextUtils.isEmpty(responseBody)) {
-                                        try {
-                                            JSONArray inAppJsonArray = decodeResponse(responseBody);
-                                            InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
-                                        } catch (Exception e) {
-                                            BlueshiftLogger.e(LOG_TAG, e);
-                                        }
-                                    }
+                                    handleInAppMessageApiResponse(context, responseBody);
 
                                     invokeApiSuccessCallback(callbackHandler, callback);
                                 } else {
@@ -248,6 +241,22 @@ public class InAppManager {
                     callback.onFailure(errorCode, errorMessage);
                 }
             });
+        }
+    }
+
+    /**
+     * This method can accept the in-app API response (JSON) and decode in-app messages from it.
+     * The decoded in-app messages will be inserted into the database and displayed to the user.
+     *
+     * @param context     valid context object
+     * @param apiResponse valid API response in JSON format
+     */
+    public static void handleInAppMessageApiResponse(Context context, String apiResponse) {
+        if (context != null && apiResponse != null && !apiResponse.isEmpty()) {
+            JSONArray messages = decodeResponse(apiResponse);
+            if (messages != null) onInAppMessageArrayReceived(context, messages);
+        } else {
+            BlueshiftLogger.d(LOG_TAG, "The context is null or the in-app API response is null or empty.");
         }
     }
 
