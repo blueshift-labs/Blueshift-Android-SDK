@@ -126,7 +126,7 @@ public class BulkEventManager {
 
     public static void enqueueBulkEvents(Context context) {
         if (!Blueshift.isTrackingEnabled(context)) {
-            BlueshiftLogger.i(LOG_TAG, "The tracking is disabled. Skipping bulk event enqueueing.");
+            BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Skipping bulk event enqueueing.");
             return;
         }
 

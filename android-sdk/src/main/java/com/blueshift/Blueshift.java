@@ -591,7 +591,7 @@ public class Blueshift {
                     }
             );
         } else {
-            BlueshiftLogger.i(LOG_TAG, "The tracking is disabled. Dropping event: " + eventName);
+            BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
         }
     }
 
@@ -1318,7 +1318,7 @@ public class Blueshift {
                     }
             );
         } else {
-            BlueshiftLogger.i(LOG_TAG, "The tracking is disabled. Dropping event: " + eventName);
+            BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
         }
     }
 
