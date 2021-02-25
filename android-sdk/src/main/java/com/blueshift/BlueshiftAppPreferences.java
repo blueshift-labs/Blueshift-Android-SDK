@@ -87,7 +87,6 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
         synchronized (instance) {
             try {
                 instance.put(KEY_ENABLE_TRACKING, enable);
-
                 save(context);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
