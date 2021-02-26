@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
+import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.inappmessage.InAppActionCallback;
@@ -29,6 +30,7 @@ import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
 import com.blueshift.model.UserInfo;
 import com.blueshift.request_queue.RequestQueue;
+import com.blueshift.request_queue.RequestQueueTable;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
@@ -93,7 +95,15 @@ public class Blueshift {
     public static void setTrackingEnabled(Context context, boolean enabled) {
         BlueshiftAppPreferences.getInstance(context).setEnableTracking(context, enabled);
 
-        // TODO: 25/02/21 Wipe data async
+        // Delete events from all tables when tracking is disabled.
+        if (!enabled) {
+            // Request queue table. This include both realtime and batched events.
+            RequestQueueTable.getInstance(context).deleteAllAsync();
+            // Events table. These are events waiting to get batched.
+            EventsTable.getInstance(context).deleteAllAsync();
+            // Failed events table. These will also get batched periodically.
+            FailedEventsTable.getInstance(context).deleteAllAsync();
+        }
     }
 
     public static boolean isTrackingEnabled(Context context) {

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.batch.EventsTable;
 import com.blueshift.batch.FailedEventsTable;
@@ -18,8 +19,8 @@ import java.util.Set;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 21/11/13 @ 3:07 PM
- *         https://github.com/rahulrvp
+ * Created on 21/11/13 @ 3:07 PM
+ * https://github.com/rahulrvp
  */
 public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     protected static final Boolean lock = true;
@@ -198,14 +199,35 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         return count;
     }
 
+    public void deleteAllAsync() {
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized (lock) {
+                            try {
+                                BlueshiftLogger.i(LOG_TAG, "Deleting events from " + getTableName() + " started.");
+                                deleteAll();
+                            } catch (Exception e) {
+                                BlueshiftLogger.e(LOG_TAG, "Deleting events from " + getTableName() + " failed.");
+                                BlueshiftLogger.e(LOG_TAG, e);
+                            }
+                        }
+                    }
+                }
+        );
+    }
+
     public void deleteAll() {
         synchronized (lock) {
             SQLiteDatabase db = getWritableDatabase();
 
             try {
                 if (db != null) {
-                    db.delete(getTableName(), null, null);
+                    int rows = db.delete(getTableName(), null, null);
                     db.close();
+
+                    BlueshiftLogger.i(LOG_TAG, "Deleted " + rows + " rows from the table: " + getTableName());
                 }
             } finally {
                 if (db != null && db.isOpen()) {
