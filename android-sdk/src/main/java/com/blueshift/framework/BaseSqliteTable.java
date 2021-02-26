@@ -204,14 +204,14 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
                 new Runnable() {
                     @Override
                     public void run() {
-                        synchronized (lock) {
-                            try {
-                                BlueshiftLogger.i(LOG_TAG, "Deleting events from " + getTableName() + " started.");
+                        try {
+                            BlueshiftLogger.i(LOG_TAG, "Deleting events from " + getTableName() + " started.");
+                            synchronized (lock) {
                                 deleteAll();
-                            } catch (Exception e) {
-                                BlueshiftLogger.e(LOG_TAG, "Deleting events from " + getTableName() + " failed.");
-                                BlueshiftLogger.e(LOG_TAG, e);
                             }
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, "Deleting events from " + getTableName() + " failed.");
+                            BlueshiftLogger.e(LOG_TAG, e);
                         }
                     }
                 }
