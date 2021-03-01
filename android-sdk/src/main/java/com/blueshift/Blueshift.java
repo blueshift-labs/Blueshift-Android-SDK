@@ -92,11 +92,39 @@ public class Blueshift {
         return instance;
     }
 
-    public static void setTrackingEnabled(Context context, boolean enabled) {
-        BlueshiftAppPreferences.getInstance(context).setEnableTracking(context, enabled);
+    /**
+     * Enable/disable the event tracking done by the SDK. By default, the tracking is enabled.
+     * <p>
+     * When disabled, no new events will be added to the queue. Also, any unsent events
+     * (batched and realtime) will be deleted from the SDK's database immediately.
+     *
+     * @param context   valid context object
+     * @param isEnabled the value that decides if the SDK should be enabled (true) or disabled (false)
+     * @since 3.1.10
+     */
+    public static void setTrackingEnabled(Context context, boolean isEnabled) {
+        // The events should be removed when the SDK is disabled. This is the default behavior.
+        boolean shouldRemoveEvents = !isEnabled;
 
-        // Delete events from all tables when tracking is disabled.
-        if (!enabled) {
+        setTrackingEnabled(context, isEnabled, shouldRemoveEvents);
+    }
+
+
+    /**
+     * Enable/disable the event tracking done by the SDK. By default, the tracking is enabled.
+     *
+     * @param context            valid context object
+     * @param isEnabled          the value that decides if the SDK should be enabled (true) or disabled (false).
+     * @param shouldRemoveEvents the value that decided if the SDK should remove unsent events from it's database.
+     * @since 3.1.10
+     */
+    public static void setTrackingEnabled(Context context, boolean isEnabled, boolean shouldRemoveEvents) {
+        BlueshiftLogger.d(LOG_TAG, "Event tracking is " + (isEnabled ? "enabled." : "disabled.")
+                + " Unsent events will" + (shouldRemoveEvents ? " " : " not ") + "be removed.");
+
+        BlueshiftAppPreferences.getInstance(context).setEnableTracking(context, isEnabled);
+
+        if (shouldRemoveEvents) {
             // Request queue table. This include both realtime and batched events.
             RequestQueueTable.getInstance(context).deleteAllAsync();
             // Events table. These are events waiting to get batched.
