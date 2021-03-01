@@ -96,7 +96,7 @@ public class Blueshift {
      * Enable/disable the event tracking done by the SDK. By default, the tracking is enabled.
      * <p>
      * When disabled, no new events will be added to the queue. Also, any unsent events
-     * (batched and realtime) will be deleted from the database immediately.
+     * (batched and realtime) will be deleted from the SDK's database immediately.
      *
      * @param context   valid context object
      * @param isEnabled the value that decides if the SDK should be enabled (true) or disabled (false)
@@ -114,8 +114,8 @@ public class Blueshift {
      * Enable/disable the event tracking done by the SDK. By default, the tracking is enabled.
      *
      * @param context            valid context object
-     * @param isEnabled          the value that decides if the SDK should be enabled (true) or disabled (false)
-     * @param shouldRemoveEvents the value that decided if we should remove unsent events from the database
+     * @param isEnabled          the value that decides if the SDK should be enabled (true) or disabled (false).
+     * @param shouldRemoveEvents the value that decided if the SDK should remove unsent events from it's database.
      * @since 3.1.10
      */
     public static void setTrackingEnabled(Context context, boolean isEnabled, boolean shouldRemoveEvents) {
