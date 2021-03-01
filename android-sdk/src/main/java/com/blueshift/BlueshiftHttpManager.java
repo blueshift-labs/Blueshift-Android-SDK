@@ -1,6 +1,5 @@
 package com.blueshift;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -83,12 +82,13 @@ public class BlueshiftHttpManager {
     private void logRequest(BlueshiftHttpRequest request) {
         if (request != null) {
             try {
-                JSONObject logger = new JSONObject();
-                logger.putOpt("url", request.getUrlWithParams());
-                logger.putOpt("method", request.getMethod());
-                logger.putOpt("body", request.getReqBodyJson());
+                String log = "{" +
+                        "\"api\":\"" + request.getUrlWithParams() + "\"," +
+                        "\"method\":\"" + request.getMethod() + "\"," +
+                        "\"body\":" + request.getReqBodyJson() +
+                        "}";
 
-                BlueshiftLogger.i(TAG, logger.toString());
+                BlueshiftLogger.i(TAG, log);
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             }

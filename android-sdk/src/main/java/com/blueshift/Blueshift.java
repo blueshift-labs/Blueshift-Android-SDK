@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
+import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.inappmessage.InAppActionCallback;
@@ -29,6 +30,7 @@ import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
 import com.blueshift.model.UserInfo;
 import com.blueshift.request_queue.RequestQueue;
+import com.blueshift.request_queue.RequestQueueTable;
 import com.blueshift.rich_push.Message;
 import com.blueshift.type.SubscriptionState;
 import com.blueshift.util.BlueshiftUtils;
@@ -90,6 +92,52 @@ public class Blueshift {
         return instance;
     }
 
+    /**
+     * Enable/disable the event tracking done by the SDK. By default, the tracking is enabled.
+     * <p>
+     * When disabled, no new events will be added to the queue. Also, any unsent events
+     * (batched and realtime) will be deleted from the SDK's database immediately.
+     *
+     * @param context   valid context object
+     * @param isEnabled the value that decides if the SDK should be enabled (true) or disabled (false)
+     * @since 3.1.10
+     */
+    public static void setTrackingEnabled(Context context, boolean isEnabled) {
+        // The events should be removed when the SDK is disabled. This is the default behavior.
+        boolean shouldRemoveEvents = !isEnabled;
+
+        setTrackingEnabled(context, isEnabled, shouldRemoveEvents);
+    }
+
+
+    /**
+     * Enable/disable the event tracking done by the SDK. By default, the tracking is enabled.
+     *
+     * @param context            valid context object
+     * @param isEnabled          the value that decides if the SDK should be enabled (true) or disabled (false).
+     * @param shouldRemoveEvents the value that decided if the SDK should remove unsent events from it's database.
+     * @since 3.1.10
+     */
+    public static void setTrackingEnabled(Context context, boolean isEnabled, boolean shouldRemoveEvents) {
+        BlueshiftLogger.d(LOG_TAG, "Event tracking is " + (isEnabled ? "enabled." : "disabled.")
+                + " Unsent events will" + (shouldRemoveEvents ? " " : " not ") + "be removed.");
+
+        BlueshiftAppPreferences.getInstance(context).setEnableTracking(context, isEnabled);
+
+        if (shouldRemoveEvents) {
+            // Request queue table. This include both realtime and batched events.
+            RequestQueueTable.getInstance(context).deleteAllAsync();
+            // Events table. These are events waiting to get batched.
+            EventsTable.getInstance(context).deleteAllAsync();
+            // Failed events table. These will also get batched periodically.
+            FailedEventsTable.getInstance(context).deleteAllAsync();
+        }
+    }
+
+    public static boolean isTrackingEnabled(Context context) {
+        return BlueshiftAppPreferences.getInstance(context).getEnableTracking();
+    }
+
     public static BlueshiftPushListener getBlueshiftPushListener() {
         return blueshiftPushListener;
     }
@@ -124,6 +172,14 @@ public class Blueshift {
 
     public void setInAppActionCallback(InAppActionCallback callback) {
         InAppManager.setActionCallback(callback);
+    }
+
+    public void handleInAppMessageAPIResponse(Context context, String response) {
+        InAppManager.handleInAppMessageAPIResponse(context, response);
+    }
+
+    public JSONObject getInAppMessageAPIRequestPayload(Context context) {
+        return InAppManager.generateInAppMessageAPIRequestPayload(context);
     }
 
     /**
@@ -558,19 +614,23 @@ public class Blueshift {
      */
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
-                            BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
+        if (Blueshift.isTrackingEnabled(mContext)) {
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
+                                BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                            } catch (Exception e) {
+                                BlueshiftLogger.e(LOG_TAG, e);
+                            }
                         }
                     }
-                }
-        );
+            );
+        } else {
+            BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
+        }
     }
 
     /**
@@ -1285,15 +1345,19 @@ public class Blueshift {
     private void trackCampaignEventAsync(final String eventName,
                                          final HashMap<String, Object> campaignAttr,
                                          final HashMap<String, Object> extraAttr) {
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean tracked = sendNotificationEvent(eventName, campaignAttr, extraAttr);
-                        BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+        if (Blueshift.isTrackingEnabled(mContext)) {
+            BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            boolean tracked = sendNotificationEvent(eventName, campaignAttr, extraAttr);
+                            BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+                        }
                     }
-                }
-        );
+            );
+        } else {
+            BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
+        }
     }
 
     private void updateAndroidAdId(final Context context) {

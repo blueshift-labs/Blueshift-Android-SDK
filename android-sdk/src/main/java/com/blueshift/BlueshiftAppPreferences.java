@@ -13,6 +13,7 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
     private static final String PREF_KEY = "bsft_app_preferences_json";
 
     private static final String KEY_ENABLE_PUSH = "bsft_enable_push";
+    private static final String KEY_ENABLE_TRACKING = "bsft_enable_tracking";
 
     private static final BlueshiftAppPreferences instance = new BlueshiftAppPreferences();
 
@@ -78,6 +79,32 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
             }
 
             // default true
+            return true;
+        }
+    }
+
+    void setEnableTracking(Context context, boolean enable) {
+        synchronized (instance) {
+            try {
+                instance.put(KEY_ENABLE_TRACKING, enable);
+                save(context);
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+    }
+
+    boolean getEnableTracking() {
+        synchronized (instance) {
+            try {
+                if (instance.has(KEY_ENABLE_TRACKING)) {
+                    return instance.getBoolean(KEY_ENABLE_TRACKING);
+                }
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+
+            // SDK sends events by default.
             return true;
         }
     }

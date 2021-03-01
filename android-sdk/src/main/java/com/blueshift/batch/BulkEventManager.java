@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.httpmanager.Method;
@@ -124,6 +125,11 @@ public class BulkEventManager {
     }
 
     public static void enqueueBulkEvents(Context context) {
+        if (!Blueshift.isTrackingEnabled(context)) {
+            BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Skipping bulk event enqueueing.");
+            return;
+        }
+
         ArrayList<HashMap<String, Object>> tempBulkEventsApiParams = new ArrayList<>();
 
         int failedEventsCount;

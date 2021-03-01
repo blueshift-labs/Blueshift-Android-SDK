@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -17,7 +18,6 @@ import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
@@ -164,56 +164,29 @@ public class InAppManager {
                         @Override
                         public void run() {
                             try {
-                                BlueshiftJSONObject params = new BlueshiftJSONObject();
-
-                                JSONObject userAttributes = BlueshiftAttributesUser.getInstance().sync(context);
-                                params.putAll(userAttributes);
-
-                                JSONObject appAttributes = BlueshiftAttributesApp.getInstance().sync(context);
-                                params.putAll(appAttributes);
-
-                                // api key
                                 String apiKey = BlueshiftUtils.getApiKey(context);
-                                params.put(BlueshiftConstants.KEY_API_KEY, apiKey != null ? apiKey : "");
+                                JSONObject requestBody = generateInAppMessageAPIRequestPayload(context);
 
-                                String messageUuid = null;
-                                String lastTimestamp = null;
+                                if (apiKey != null && requestBody != null) {
+                                    BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
+                                            .setUrl(BlueshiftConstants.IN_APP_API_URL)
+                                            .setMethod(BlueshiftHttpRequest.Method.POST)
+                                            .addBasicAuth(apiKey, "")
+                                            .setReqBodyJson(requestBody);
 
-                                InAppMessage inAppMessage = InAppMessageStore.getInstance(context).getLastInAppMessage();
-                                if (inAppMessage != null) {
-                                    messageUuid = inAppMessage.getMessageUuid();
-                                    lastTimestamp = inAppMessage.getTimestamp();
-                                }
+                                    BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(builder.build());
+                                    int statusCode = response.getCode();
+                                    String responseBody = response.getBody();
 
-                                // message uuid
-                                params.put(Message.EXTRA_BSFT_MESSAGE_UUID, messageUuid != null ? messageUuid : "");
+                                    if (statusCode == 200) {
+                                        handleInAppMessageAPIResponse(context, responseBody);
 
-                                // lastTimestamp
-                                params.put(BlueshiftConstants.KEY_LAST_TIMESTAMP, lastTimestamp != null ? lastTimestamp : 0);
-
-                                BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
-                                        .setUrl(BlueshiftConstants.IN_APP_API_URL)
-                                        .setMethod(BlueshiftHttpRequest.Method.POST)
-                                        .addBasicAuth(apiKey, "")
-                                        .setReqBodyJson(params);
-
-                                BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(builder.build());
-                                int statusCode = response.getCode();
-                                String responseBody = response.getBody();
-
-                                if (statusCode == 200) {
-                                    if (!TextUtils.isEmpty(responseBody)) {
-                                        try {
-                                            JSONArray inAppJsonArray = decodeResponse(responseBody);
-                                            InAppManager.onInAppMessageArrayReceived(context, inAppJsonArray);
-                                        } catch (Exception e) {
-                                            BlueshiftLogger.e(LOG_TAG, e);
-                                        }
+                                        invokeApiSuccessCallback(callbackHandler, callback);
+                                    } else {
+                                        invokeApiFailureCallback(callbackHandler, callback, statusCode, responseBody);
                                     }
-
-                                    invokeApiSuccessCallback(callbackHandler, callback);
                                 } else {
-                                    invokeApiFailureCallback(callbackHandler, callback, statusCode, responseBody);
+                                    invokeApiFailureCallback(callbackHandler, callback, 0, "Could not make the API call.");
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
@@ -246,6 +219,71 @@ public class InAppManager {
                     callback.onFailure(errorCode, errorMessage);
                 }
             });
+        }
+    }
+
+    /**
+     * This method is a helper for getting the request body expected by the in-app API end-point
+     * on Blueshift server-side.
+     * <p>
+     * The host app should call this method from a worker thread as this method involves db access
+     * and advertising id requests (depending on device_id source).
+     *
+     * @param context a valid context object
+     * @return valid JSONObject filled with params, null if any error happens in getting params.
+     */
+    @WorkerThread
+    public static JSONObject generateInAppMessageAPIRequestPayload(Context context) {
+        try {
+            BlueshiftJSONObject params = new BlueshiftJSONObject();
+
+            JSONObject userAttributes = BlueshiftAttributesUser.getInstance().sync(context);
+            params.putAll(userAttributes);
+
+            JSONObject appAttributes = BlueshiftAttributesApp.getInstance().sync(context);
+            params.putAll(appAttributes);
+
+            // api key
+            String apiKey = BlueshiftUtils.getApiKey(context);
+            params.put(BlueshiftConstants.KEY_API_KEY, apiKey != null ? apiKey : "");
+
+            String msgUUID = null;
+            String timestamp = null;
+
+            InAppMessageStore store = InAppMessageStore.getInstance(context);
+            InAppMessage inAppMessage = store != null ? store.getLastInAppMessage() : null;
+            if (inAppMessage != null) {
+                msgUUID = inAppMessage.getMessageUuid();
+                timestamp = inAppMessage.getTimestamp();
+            }
+
+            // message uuid
+            params.put(Message.EXTRA_BSFT_MESSAGE_UUID, msgUUID != null ? msgUUID : "");
+
+            // timestamp
+            params.put(BlueshiftConstants.KEY_LAST_TIMESTAMP, timestamp != null ? timestamp : 0);
+
+            return params;
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+
+            return null;
+        }
+    }
+
+    /**
+     * This method can accept the in-app API response (JSON) and decode in-app messages from it.
+     * The decoded in-app messages will be inserted into the database and displayed to the user.
+     *
+     * @param context     valid context object
+     * @param apiResponse valid API response in JSON format
+     */
+    public static void handleInAppMessageAPIResponse(Context context, String apiResponse) {
+        if (context != null && apiResponse != null && !apiResponse.isEmpty()) {
+            JSONArray messages = decodeResponse(apiResponse);
+            if (messages != null) onInAppMessageArrayReceived(context, messages);
+        } else {
+            BlueshiftLogger.d(LOG_TAG, "The context is null or the in-app API response is null or empty.");
         }
     }
 
@@ -292,6 +330,12 @@ public class InAppManager {
         }
     }
 
+    /**
+     * This method accepts one in-app message instance from the host app for storing.
+     *
+     * @param context      valid context object
+     * @param inAppMessage valid inAppMessage object
+     */
     public static void onInAppMessageReceived(Context context, InAppMessage inAppMessage) {
         boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
         if (isEnabled) {
@@ -301,11 +345,16 @@ public class InAppManager {
                 InAppUtils.invokeInAppDelivered(context, inAppMessage);
 
                 if (!inAppMessage.isExpired()) {
-                    boolean inserted = InAppMessageStore.getInstance(context).insert(inAppMessage);
-                    if (inserted) {
-                        InAppManager.cacheAssets(inAppMessage, context);
+                    InAppMessageStore store = InAppMessageStore.getInstance(context);
+                    if (store != null) {
+                        boolean inserted = store.insert(inAppMessage);
+                        if (inserted) {
+                            InAppManager.cacheAssets(inAppMessage, context);
+                        } else {
+                            BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                        }
                     } else {
-                        BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
+                        BlueshiftLogger.w(LOG_TAG, "Could not open the database. Dropping the in-app message. Message UUID: " + inAppMessage.getMessageUuid());
                     }
                 } else {
                     BlueshiftLogger.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
@@ -339,19 +388,22 @@ public class InAppManager {
                 BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
                     @Override
                     public void run() {
-                        InAppMessage input = InAppMessageStore.getInstance(mActivity).getInAppMessage(mActivity);
+                        InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
+                        if (store != null) {
+                            InAppMessage input = store.getInAppMessage(mActivity);
 
-                        if (input == null) {
-                            BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
-                            return;
+                            if (input == null) {
+                                BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
+                                return;
+                            }
+
+                            if (!validate(input)) {
+                                BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
+                                return;
+                            }
+
+                            displayInAppMessage(input);
                         }
-
-                        if (!validate(input)) {
-                            BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
-                            return;
-                        }
-
-                        displayInAppMessage(input);
                     }
                 });
             } catch (Exception e) {
@@ -415,7 +467,8 @@ public class InAppManager {
                     public void run() {
                         if (input != null && mActivity != null) {
                             input.setDisplayedAt(System.currentTimeMillis());
-                            InAppMessageStore.getInstance(mActivity).update(input);
+                            InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
+                            if (store != null) store.update(input);
                         }
                     }
                 }
@@ -454,7 +507,9 @@ public class InAppManager {
         Configuration config = BlueshiftUtils.getConfiguration(mActivity);
         if (config != null) {
             long intervalMs = config.getInAppInterval();
-            long lastDisplayedAt = InAppMessageStore.getInstance(mActivity).getLastDisplayedAt();
+
+            InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
+            long lastDisplayedAt = store != null ? store.getLastDisplayedAt() : 0;
 
             BlueshiftLogger.d(LOG_TAG, "Last In App Message was displayed at " + CommonUtils.formatMilliseconds(lastDisplayedAt));
 
@@ -597,7 +652,9 @@ public class InAppManager {
             InAppUtils.invokeInAppOpened(appContext, inAppMessage);
             // update with displayed at timing
             inAppMessage.setDisplayedAt(System.currentTimeMillis());
-            InAppMessageStore.getInstance(appContext).update(inAppMessage);
+
+            InAppMessageStore store = InAppMessageStore.getInstance(appContext);
+            if (store != null) store.update(inAppMessage);
         }
     }
 
