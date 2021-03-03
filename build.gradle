@@ -6,13 +6,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath 'com.android.tools.build:gradle:4.0.2'
     }
-}
-
-plugins {
-    id "com.jfrog.bintray" version "1.8.5"
-    id "maven-publish"
 }
 
 allprojects {

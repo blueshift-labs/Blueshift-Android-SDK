@@ -1,3 +1,4 @@
+*.gpg
 *.iml
 .gradle
 /local.properties
