@@ -6,8 +6,6 @@ ext {
     PUBLISH_VERSION = '3.1.10'
 }
 
-apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
-
 android {
     compileSdkVersion 30
 
@@ -47,3 +45,5 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
 }
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"

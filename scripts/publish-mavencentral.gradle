@@ -17,8 +17,22 @@ task androidSourcesJar(type: Jar) {
     }
 }
 
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+    failOnError false
+}
+
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
 artifacts {
     archives androidSourcesJar
+    archives javadocJar
 }
 
 group = PUBLISH_GROUP_ID
@@ -65,6 +79,7 @@ publishing {
                 artifact("$buildDir/libs/${project.getName()}-${version}.jar")
             }
             artifact androidSourcesJar
+            artifact javadocJar
 
             // Mostly self-explanatory metadata
             pom {
