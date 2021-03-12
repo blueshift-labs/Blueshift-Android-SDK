@@ -203,11 +203,17 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         return fieldTypeHashMap;
     }
 
-    InAppMessage getInAppMessage(Activity activity) {
+    InAppMessage getInAppMessage(Activity activity, String screenName) {
         synchronized (_LOCK) {
             InAppMessage inAppMessage = null;
 
-            String className = activity != null ? activity.getClass().getName() : "unknown";
+            String className = "unknown";
+
+            if (screenName != null && !screenName.isEmpty()) {
+                className = screenName;
+            } else if (activity != null) {
+                className = activity.getClass().getName();
+            }
 
             SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
             qb.setTables(getTableName());

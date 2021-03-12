@@ -158,6 +158,10 @@ public class Blueshift {
         InAppManager.registerForInAppMessages(activity);
     }
 
+    public void registerForInAppMessages(Activity activity, String screenName) {
+        InAppManager.registerForInAppMessages(activity, screenName);
+    }
+
     public void unregisterForInAppMessages(Activity activity) {
         InAppManager.unregisterForInAppMessages(activity);
     }

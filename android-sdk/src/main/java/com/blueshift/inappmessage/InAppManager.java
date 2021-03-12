@@ -45,6 +45,7 @@ public class InAppManager {
 
     @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
     private static Activity mActivity = null;
+    private static String mScreen = null;
     private static AlertDialog mDialog = null;
     private static InAppActionCallback mActionCallback = null;
     private static InAppMessage mInApp = null;
@@ -53,9 +54,20 @@ public class InAppManager {
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
      *
-     * @param activity valid Activity object.
+     * @param activity Valid Activity object.
      */
     public static void registerForInAppMessages(Activity activity) {
+        registerForInAppMessages(activity, null);
+    }
+
+    /**
+     * Calling this method makes the activity eligible for displaying InAppMessage.
+     * It also takes in a unique screen name to be used instead of the activity class name.
+     *
+     * @param activity   Valid Activity object.
+     * @param screenName The screen name in which the in-app should be displayed
+     */
+    public static void registerForInAppMessages(Activity activity, String screenName) {
         if (mActivity != null) {
             // BlueshiftLogger.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
             // do the clean up for old activity to avoid mem leak
@@ -63,6 +75,7 @@ public class InAppManager {
         }
 
         mActivity = activity;
+        mScreen = screenName;
 
         // check if there is an ongoing in-app display (orientation change)
         // if found, display the cached in-app message.
@@ -106,6 +119,7 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
+        mScreen = null;
     }
 
     private static void displayCachedOngoingInApp() {
@@ -390,7 +404,7 @@ public class InAppManager {
                     public void run() {
                         InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
                         if (store != null) {
-                            InAppMessage input = store.getInAppMessage(mActivity);
+                            InAppMessage input = store.getInAppMessage(mActivity, mScreen);
 
                             if (input == null) {
                                 BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
