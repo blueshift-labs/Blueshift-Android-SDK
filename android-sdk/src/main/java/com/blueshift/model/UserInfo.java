@@ -211,4 +211,12 @@ public class UserInfo {
     public Date getDateOfBirth() {
         return dateOfBirth;
     }
+
+    public void clear(Context context) {
+        // set the single instance to null so that the next getInstance()
+        // method will return a new instance with all fields set to default
+        instance = null;
+
+        save(context);
+    }
 }
