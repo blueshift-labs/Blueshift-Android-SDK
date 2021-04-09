@@ -309,8 +309,25 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addInAppEnabledStatus(Context context) {
+        boolean isEnabled = true;
+        try {
+            // read from config
+            boolean configVal = BlueshiftUtils.isInAppEnabled(context);
+
+            // read from app preferences
+            boolean appPreferenceVal = BlueshiftAppPreferences.getInstance(context).getEnableInApp();
+
+            // push is enabled if it is enabled on both sides
+            isEnabled = configVal && appPreferenceVal;
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        setInAppEnabledStatus(isEnabled);
+    }
+
+    private void setInAppEnabledStatus(boolean isEnabled) {
         synchronized (instance) {
-            boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
             try {
                 instance.put(BlueshiftConstants.KEY_ENABLE_INAPP, isEnabled);
             } catch (JSONException e) {
@@ -387,6 +404,12 @@ public class BlueshiftAttributesApp extends JSONObject {
 
         try {
             addPushEnabledStatus(context);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            addInAppEnabledStatus(context);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
