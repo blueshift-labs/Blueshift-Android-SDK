@@ -3,20 +3,19 @@ package com.blueshift.util;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.WorkerThread;
+import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftAppPreferences;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.BuildConfig;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.google.firebase.messaging.RemoteMessage;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -123,6 +122,51 @@ public class BlueshiftUtils {
         }
 
         return isEnabled;
+    }
+
+    /**
+     * Checks both config and app preferences to see if the user has opted in for in-app messages.
+     * Both the flags should be enabled to opt in for in-app messages.
+     *
+     * @param context valid context object
+     * @return true if in-app is ON in both app preferences and config object
+     */
+    public static boolean isOptedInForInAppMessages(Context context) {
+        try {
+            // read from config
+            boolean configVal = BlueshiftUtils.isInAppEnabled(context);
+
+            // read from app preferences
+            boolean appPreferenceVal = BlueshiftAppPreferences.getInstance(context).getEnableInApp();
+
+            // push is enabled if it is enabled on both sides
+            return configVal && appPreferenceVal;
+        } catch (Exception e) {
+            return true; // enabled by default
+        }
+    }
+
+    /**
+     * Checks both system settings and app preferences to see if the user has opted in for push
+     * notifications. Both the flags should be enabled to opt in for push notification.
+     *
+     * @param context valid context object
+     * @return true if push is ON in both app preferences and system settings, else false
+     */
+    public static boolean isOptedInForPushNotification(Context context) {
+        try {
+            // read from system settings
+            NotificationManagerCompat notificationMgr = NotificationManagerCompat.from(context);
+            boolean systemPreferenceVal = notificationMgr.areNotificationsEnabled();
+
+            // read from app preferences
+            boolean appPreferenceVal = BlueshiftAppPreferences.getInstance(context).getEnablePush();
+
+            // push is enabled if it is enabled on both sides
+            return systemPreferenceVal && appPreferenceVal;
+        } catch (Exception e) {
+            return true; // enabled by default
+        }
     }
 
     /**

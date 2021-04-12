@@ -280,21 +280,7 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addPushEnabledStatus(Context context) {
-        boolean isEnabled = true;
-        try {
-            // read from system settings
-            NotificationManagerCompat notificationMgr = NotificationManagerCompat.from(context);
-            boolean systemPreferenceVal = notificationMgr.areNotificationsEnabled();
-
-            // read from app preferences
-            boolean appPreferenceVal = BlueshiftAppPreferences.getInstance(context).getEnablePush();
-
-            // push is enabled if it is enabled on both sides
-            isEnabled = systemPreferenceVal && appPreferenceVal;
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
-        }
-
+        boolean isEnabled = BlueshiftUtils.isOptedInForPushNotification(context);
         setPushEnabledStatus(isEnabled);
     }
 
@@ -309,8 +295,12 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addInAppEnabledStatus(Context context) {
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
+        setInAppEnabledStatus(isEnabled);
+    }
+
+    private void setInAppEnabledStatus(boolean isEnabled) {
         synchronized (instance) {
-            boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
             try {
                 instance.put(BlueshiftConstants.KEY_ENABLE_INAPP, isEnabled);
             } catch (JSONException e) {
@@ -387,6 +377,12 @@ public class BlueshiftAttributesApp extends JSONObject {
 
         try {
             addPushEnabledStatus(context);
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            addInAppEnabledStatus(context);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
