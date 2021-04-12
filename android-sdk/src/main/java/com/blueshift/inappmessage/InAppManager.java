@@ -170,7 +170,7 @@ public class InAppManager {
     }
 
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
-        boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         if (isEnabled) {
             final Handler callbackHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
@@ -351,7 +351,7 @@ public class InAppManager {
      * @param inAppMessage valid inAppMessage object
      */
     public static void onInAppMessageReceived(Context context, InAppMessage inAppMessage) {
-        boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         if (isEnabled) {
             BlueshiftLogger.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
 
@@ -396,7 +396,7 @@ public class InAppManager {
             return;
         }
 
-        boolean isEnabled = BlueshiftUtils.isInAppEnabled(mActivity);
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(mActivity);
         if (isEnabled) {
             try {
                 BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
