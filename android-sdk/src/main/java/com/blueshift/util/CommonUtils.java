@@ -95,10 +95,9 @@ public class CommonUtils {
     }
 
     public static String getCurrentUtcTimestamp() {
-        Date now = new Date(System.currentTimeMillis());
-        SimpleDateFormat sdf = new SimpleDateFormat(
-                "yyyy-MM-dd'T'hh:mm:ss.SSSSSS'Z'", Locale.getDefault());
+        String formatString = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+        SimpleDateFormat sdf = new SimpleDateFormat(formatString, Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(now);
+        return sdf.format(new Date());
     }
 }
