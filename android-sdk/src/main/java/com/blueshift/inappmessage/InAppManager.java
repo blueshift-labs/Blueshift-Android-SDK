@@ -210,6 +210,8 @@ public class InAppManager {
                         }
                     }
             );
+        } else {
+            BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not fetch in-app messages from API.");
         }
     }
 
@@ -374,6 +376,8 @@ public class InAppManager {
                     BlueshiftLogger.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
                 }
             }
+        } else {
+            BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not accept in-app messages.");
         }
     }
 
@@ -423,6 +427,8 @@ public class InAppManager {
             } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
+        } else {
+            BlueshiftLogger.w(LOG_TAG, "In-app opted-out. Can not display in-app messages.");
         }
     }
 
