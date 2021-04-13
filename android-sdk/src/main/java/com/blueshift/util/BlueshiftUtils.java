@@ -26,7 +26,7 @@ public class BlueshiftUtils {
      * This method checks if a non-empty API key is supplied to the
      * SDK while initialization and returns the same if available.
      *
-     * @param context Context object to get the Blueshift instance.
+     * @param context {@link Context} object to get the Blueshift instance.
      * @return API Key, if present. Else null.
      */
     public static String getApiKey(Context context) {
@@ -48,7 +48,7 @@ public class BlueshiftUtils {
      * Checks if a not-null {@link Configuration} object is supplied during
      * the SDK initialization and returns the same if available.
      *
-     * @param context Context object to get the Blueshift instance.
+     * @param context {@link Context} object to get the Blueshift instance.
      * @return Valid {@link Configuration} object, if found. Else null.
      */
     public static Configuration getConfiguration(Context context) {
@@ -66,21 +66,13 @@ public class BlueshiftUtils {
         return null;
     }
 
-    public static boolean isInAppEnabled(Context context) {
-        boolean isEnabled = false;
-
-        Configuration config = getConfiguration(context);
-        if (config != null) {
-            isEnabled = config.isInAppEnabled();
-            if (!isEnabled) {
-                BlueshiftLogger.e(LOG_TAG, "In-App is not enabled. Please call setInAppEnabled(true) " +
-                        "to enable it during SDK initialization.");
-            }
-        }
-
-        return isEnabled;
-    }
-
+    /**
+     * Checks the config object provided during SDK initialisation to see automatic app_open event
+     * firing is enabled.
+     *
+     * @param context valid {@link Context} object
+     * @return true if automatic app_open is enabled in configuration, else false
+     */
     public static boolean isAutomaticAppOpenFiringEnabled(Context context) {
         boolean isEnabled = false;
 
@@ -95,6 +87,15 @@ public class BlueshiftUtils {
         return isEnabled;
     }
 
+    /**
+     * Checks if we can send an app_open now. This checks the interval specified by the host app
+     * and takes decision. If nothing is set, falls back into the default interval of 24h.
+     * <p>
+     * This method is used internally by the SDK to throttle automatic app_open events.
+     *
+     * @param context valid {@link Context} object
+     * @return true if we can fire app_open, else false
+     */
     public static boolean canAutomaticAppOpenBeSentNow(Context context) {
         Configuration config = BlueshiftUtils.getConfiguration(context);
         if (config != null && config.getAutoAppOpenInterval() > 0) {
@@ -114,6 +115,33 @@ public class BlueshiftUtils {
         return true;
     }
 
+    /**
+     * Checks the config object provided during SDK initialisation to see if in-app is enabled.
+     *
+     * @param context valid {@link Context} object
+     * @return true if in-app enabled in configuration, else false
+     */
+    public static boolean isInAppEnabled(Context context) {
+        boolean isEnabled = false;
+
+        Configuration config = getConfiguration(context);
+        if (config != null) {
+            isEnabled = config.isInAppEnabled();
+            if (!isEnabled) {
+                BlueshiftLogger.e(LOG_TAG, "In-App is not enabled. Please call setInAppEnabled(true) " +
+                        "to enable it during SDK initialization.");
+            }
+        }
+
+        return isEnabled;
+    }
+
+    /**
+     * Checks the config object provided during SDK initialisation to see if push is enabled.
+     *
+     * @param context valid {@link Context} object
+     * @return true if push enabled in configuration, else false
+     */
     public static boolean isPushEnabled(Context context) {
         Configuration config = getConfiguration(context);
         boolean isEnabled = config != null && config.isPushEnabled();
@@ -128,7 +156,7 @@ public class BlueshiftUtils {
      * Checks both config and app preferences to see if the user has opted in for in-app messages.
      * Both the flags should be enabled to opt in for in-app messages.
      *
-     * @param context valid context object
+     * @param context valid {@link Context} object
      * @return true if in-app is ON in both app preferences and config object
      */
     public static boolean isOptedInForInAppMessages(Context context) {
@@ -150,7 +178,7 @@ public class BlueshiftUtils {
      * Checks both system settings and app preferences to see if the user has opted in for push
      * notifications. Both the flags should be enabled to opt in for push notification.
      *
-     * @param context valid context object
+     * @param context valid {@link Context} object
      * @return true if push is ON in both app preferences and system settings, else false
      */
     public static boolean isOptedInForPushNotification(Context context) {
@@ -202,7 +230,7 @@ public class BlueshiftUtils {
      * This method must be called from a non UI thread if the deviceIdSource is set to ADVERTISING_ID.
      *
      * @param inputMap in-app or push payload with additional tracking info.
-     * @param context  valid context object.
+     * @param context  valid {@link Context} object.
      * @return {@link Map} of attributes with appropriate keys required to call the track API.
      */
     @WorkerThread
