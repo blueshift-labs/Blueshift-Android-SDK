@@ -11,6 +11,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -581,6 +582,13 @@ public class NotificationUtils {
 
                     // add complete bundle to the intent.
                     intent.putExtras(bundle);
+
+                    try {
+                        // add deep link URL to the intent's data as well.
+                        if (deepLink != null) intent.setData(Uri.parse(deepLink));
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
 
                     // Note: This will create a new task and launch the app with the corresponding
                     // activity. As per the docs, the dev should add parent activity to all the
