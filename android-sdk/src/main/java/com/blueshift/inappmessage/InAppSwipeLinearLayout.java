@@ -60,8 +60,6 @@ public class InAppSwipeLinearLayout extends LinearLayout {
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            Log.d(TAG, "onSingleTapConfirmed: ");
-
             if (gestureListener != null) {
                 gestureListener.onSingleTapConfirmed();
                 return true;
@@ -72,8 +70,6 @@ public class InAppSwipeLinearLayout extends LinearLayout {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            Log.d(TAG, "onFling: ");
-
             if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
                     && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
                 // swipe right to left
