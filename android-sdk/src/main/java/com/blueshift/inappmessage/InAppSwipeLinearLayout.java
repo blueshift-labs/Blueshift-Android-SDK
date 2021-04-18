@@ -12,8 +12,6 @@ import android.widget.LinearLayout;
 
 public class InAppSwipeLinearLayout extends LinearLayout {
 
-    private static final String TAG = "InAppSwipeLinearLayout";
-
     public InAppSwipeLinearLayout(Context context) {
         super(context);
     }
