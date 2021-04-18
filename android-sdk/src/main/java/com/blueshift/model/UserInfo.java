@@ -81,6 +81,28 @@ public class UserInfo {
         return userInfo;
     }
 
+    public HashMap<String, Object> toHashMap() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("email", email);
+        map.put("retailer_customer_id", retailer_customer_id);
+        map.put("name", name);
+        map.put("uuid", uuid);
+        map.put("firstname", firstname);
+        map.put("lastname", lastname);
+        map.put("gender", gender);
+        map.put("joined_at", joined_at);
+        map.put("facebook_id", facebook_id);
+        map.put("education", education);
+        map.put("unsubscribed", unsubscribed);
+        map.put("engagement_score", engagement_score);
+        map.put("purchase_intent", purchase_intent);
+        map.put("recommended_products", recommended_products);
+        map.put("dateOfBirth", dateOfBirth);
+        if (details != null) map.putAll(details);
+
+        return map;
+    }
+
     public void save(Context context) {
         context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
                 .edit()

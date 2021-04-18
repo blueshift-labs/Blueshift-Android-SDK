@@ -138,6 +138,46 @@ public class Blueshift {
         return BlueshiftAppPreferences.getInstance(context).getEnableTracking();
     }
 
+    /**
+     * Utility method to set in-app opt-in status. This method will send an identify event
+     * with the latest information.
+     *
+     * @param context   Valid {@link Context} object
+     * @param isOptedIn The opt-in status as boolean
+     */
+    public static void optInForInAppNotifications(Context context, boolean isOptedIn) {
+        BlueshiftAppPreferences preferences = BlueshiftAppPreferences.getInstance(context);
+        preferences.setEnableInApp(isOptedIn);
+        preferences.save(context);
+
+        // identify call w/ map for avoiding race conditions
+        HashMap<String, Object> map = new HashMap<>();
+        UserInfo cu = UserInfo.getInstance(context);
+        if (cu != null) map.putAll(cu.toHashMap());
+
+        Blueshift.getInstance(context).identifyUser(map, false);
+    }
+
+    /**
+     * Utility method to set push opt-in status. This method will send an identify event
+     * with the latest information.
+     *
+     * @param context   Valid {@link Context} object
+     * @param isOptedIn The opt-in status as boolean
+     */
+    public static void optInForPushNotifications(Context context, boolean isOptedIn) {
+        BlueshiftAppPreferences preferences = BlueshiftAppPreferences.getInstance(context);
+        preferences.setEnablePush(isOptedIn);
+        preferences.save(context);
+
+        // identify call w/ map for avoiding race conditions
+        HashMap<String, Object> map = new HashMap<>();
+        UserInfo cu = UserInfo.getInstance(context);
+        if (cu != null) map.putAll(cu.toHashMap());
+
+        Blueshift.getInstance(context).identifyUser(map, false);
+    }
+
     public static BlueshiftPushListener getBlueshiftPushListener() {
         return blueshiftPushListener;
     }
