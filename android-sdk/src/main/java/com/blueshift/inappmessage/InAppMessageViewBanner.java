@@ -24,7 +24,6 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class InAppMessageViewBanner extends InAppMessageView {
     private static final String TAG = InAppMessageViewBanner.class.getSimpleName();
-    private OnClickListener onClickListener = null;
 
     public InAppMessageViewBanner(Context context, InAppMessage inAppMessage) {
         super(context, inAppMessage);
@@ -61,13 +60,15 @@ public class InAppMessageViewBanner extends InAppMessageView {
             linearLayout.addView(secondaryIconTextView, lpIcon);
         }
 
-        // assumed that only one action is provided. if more actions found, first one is taken.
+        OnClickListener onClickListener = null;
+// assumed that only one action is provided. if more actions found, first one is taken.
         JSONArray actions = inAppMessage.getActionsJSONArray();
         if (actions != null && actions.length() > 0) {
             try {
                 JSONObject actionJson = actions.getJSONObject(0);
+//                linearLayout.setOnClickListener(getActionClickListener(actionJson, null));
                 onClickListener = getActionClickListener(actionJson, null);
-                if (onClickListener == null) Log.d(TAG, "getView: null listener");
+//                if (onClickListener == null) Log.d(TAG, "getView: null listener");
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
@@ -76,6 +77,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
         linearLayout.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
         linearLayout.setMinimumHeight(dp48);
 
+        final OnClickListener finalOnClickListener = onClickListener;
         linearLayout.enableSwipeAndTap(
                 new InAppSwipeLinearLayout.OnSwipeGestureListener() {
                     @Override
@@ -131,23 +133,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
                     @Override
                     public void onSingleTapConfirmed() {
                         Log.d(TAG, "onSingleTapConfirmed: 2");
-                        onClickListener.onClick(linearLayout);
-
-                        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.bsft_translate_right_side);
-                        linearLayout.setAnimation(animation);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                            linearLayout
-                                    .animate()
-                                    .translationX(linearLayout.getWidth())
-                                    .setDuration(1000)
-                                    .withEndAction(new Runnable() {
-                                        @Override
-                                        public void run() {
-//                                            onClickListener.onClick(linearLayout);
-                                        }
-                                    }).start();
-                        }
-
+                        finalOnClickListener.onClick(linearLayout);
                     }
                 });
 
