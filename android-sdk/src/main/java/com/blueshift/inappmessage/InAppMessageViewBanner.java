@@ -2,16 +2,14 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.R;
 import com.blueshift.util.CommonUtils;
 
 import org.json.JSONArray;
@@ -60,83 +58,79 @@ public class InAppMessageViewBanner extends InAppMessageView {
             linearLayout.addView(secondaryIconTextView, lpIcon);
         }
 
-        OnClickListener onClickListener = null;
-// assumed that only one action is provided. if more actions found, first one is taken.
+        // assumed that only one action is provided. if more actions found, first one is taken.
+        JSONObject actionJson = null;
         JSONArray actions = inAppMessage.getActionsJSONArray();
         if (actions != null && actions.length() > 0) {
             try {
-                JSONObject actionJson = actions.getJSONObject(0);
-//                linearLayout.setOnClickListener(getActionClickListener(actionJson, null));
-                onClickListener = getActionClickListener(actionJson, null);
-//                if (onClickListener == null) Log.d(TAG, "getView: null listener");
+                actionJson = actions.getJSONObject(0);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
         }
 
-        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        linearLayout.setMinimumHeight(dp48);
-
-        final OnClickListener finalOnClickListener = onClickListener;
+        final OnClickListener clickListener = getActionClickListener(actionJson, null);
         linearLayout.enableSwipeAndTap(
                 new InAppSwipeLinearLayout.OnSwipeGestureListener() {
                     @Override
                     public void onSwipeUp() {
-                        Log.d(TAG, "onSwipeUp: ");
                     }
 
                     @Override
                     public void onSwipeDown() {
-                        Log.d(TAG, "onSwipeDown: ");
                     }
 
                     @Override
                     public void onSwipeLeft() {
-                        Log.d(TAG, "onSwipeLeft: ");
-
-                        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.bsft_translate_left_side);
-                        linearLayout.setAnimation(animation);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                            linearLayout
-                                    .animate()
-                                    .translationX(-linearLayout.getWidth())
-                                    .setDuration(1000)
-                                    .withEndAction(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            onDismiss(inAppMessage, null);
-                                        }
-                                    }).start();
-                        }
+                        playExitAnimation(-linearLayout.getWidth(), linearLayout, new Runnable() {
+                            @Override
+                            public void run() {
+                                onDismiss(inAppMessage, null);
+                            }
+                        });
                     }
 
                     @Override
                     public void onSwipeRight() {
-                        Log.d(TAG, "onSwipeRight: ");
-                        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.bsft_translate_right_side);
-                        linearLayout.setAnimation(animation);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                            linearLayout
-                                    .animate()
-                                    .translationX(linearLayout.getWidth())
-                                    .setDuration(1000)
-                                    .withEndAction(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            onDismiss(inAppMessage, null);
-                                        }
-                                    }).start();
-                        }
-
+                        playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
+                            @Override
+                            public void run() {
+                                onDismiss(inAppMessage, null);
+                            }
+                        });
                     }
 
                     @Override
                     public void onSingleTapConfirmed() {
-                        Log.d(TAG, "onSingleTapConfirmed: 2");
-                        finalOnClickListener.onClick(linearLayout);
+                        playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
+                            @Override
+                            public void run() {
+                                if (clickListener != null) {
+                                    clickListener.onClick(linearLayout);
+                                }
+                            }
+                        });
                     }
                 });
 
+        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
+        linearLayout.setMinimumHeight(dp48);
+
         return linearLayout;
+    }
+
+    private void playExitAnimation(int translationX, View view, Runnable onAnimComplete) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (view != null) {
+                ViewParent viewParent = view.getParent();
+                if (viewParent != null) {
+                    ViewGroup parent = (ViewGroup) viewParent;
+                    parent.animate()
+                            .translationX(translationX)
+                            .setDuration(1000)
+                            .withEndAction(onAnimComplete).start();
+                }
+            }
+        }
     }
 }
