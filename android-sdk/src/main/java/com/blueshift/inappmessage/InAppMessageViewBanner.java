@@ -70,48 +70,47 @@ public class InAppMessageViewBanner extends InAppMessageView {
         }
 
         final OnClickListener clickListener = getActionClickListener(actionJson, null);
-        linearLayout.enableSwipeAndTap(
-                new InAppSwipeLinearLayout.OnSwipeGestureListener() {
-                    @Override
-                    public void onSwipeUp() {
-                    }
+        linearLayout.enableSwipeAndTap(new InAppSwipeLinearLayout.OnSwipeGestureListener() {
+            @Override
+            public void onSwipeUp() {
+            }
 
-                    @Override
-                    public void onSwipeDown() {
-                    }
+            @Override
+            public void onSwipeDown() {
+            }
 
+            @Override
+            public void onSwipeLeft() {
+                playExitAnimation(-linearLayout.getWidth(), linearLayout, new Runnable() {
                     @Override
-                    public void onSwipeLeft() {
-                        playExitAnimation(-linearLayout.getWidth(), linearLayout, new Runnable() {
-                            @Override
-                            public void run() {
-                                onDismiss(inAppMessage, null);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onSwipeRight() {
-                        playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
-                            @Override
-                            public void run() {
-                                onDismiss(inAppMessage, null);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onSingleTapConfirmed() {
-                        playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
-                            @Override
-                            public void run() {
-                                if (clickListener != null) {
-                                    clickListener.onClick(linearLayout);
-                                }
-                            }
-                        });
+                    public void run() {
+                        onDismiss(inAppMessage, null);
                     }
                 });
+            }
+
+            @Override
+            public void onSwipeRight() {
+                playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
+                    @Override
+                    public void run() {
+                        onDismiss(inAppMessage, null);
+                    }
+                });
+            }
+
+            @Override
+            public void onSingleTapConfirmed() {
+                playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
+                    @Override
+                    public void run() {
+                        if (clickListener != null) {
+                            clickListener.onClick(linearLayout);
+                        }
+                    }
+                });
+            }
+        });
 
         linearLayout.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
         linearLayout.setMinimumHeight(dp48);
@@ -123,12 +122,13 @@ public class InAppMessageViewBanner extends InAppMessageView {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             if (view != null) {
                 ViewParent viewParent = view.getParent();
-                if (viewParent != null) {
+                if (viewParent instanceof ViewGroup) {
                     ViewGroup parent = (ViewGroup) viewParent;
                     parent.animate()
                             .translationX(translationX)
                             .setDuration(1000)
-                            .withEndAction(onAnimComplete).start();
+                            .withEndAction(onAnimComplete)
+                            .start();
                 }
             }
         }
