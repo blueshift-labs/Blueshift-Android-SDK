@@ -2,6 +2,7 @@ package com.blueshift.model;
 
 import android.content.Context;
 
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -11,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Rahul Raveendran V P
@@ -79,6 +81,39 @@ public class UserInfo {
         }
 
         return userInfo;
+    }
+
+    public HashMap<String, Object> toHashMap() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put(BlueshiftConstants.KEY_CUSTOMER_ID, getRetailerCustomerId());
+        map.put(BlueshiftConstants.KEY_EMAIL, getEmail());
+        map.put(BlueshiftConstants.KEY_FIRST_NAME, getFirstname());
+        map.put(BlueshiftConstants.KEY_LAST_NAME, getLastname());
+        map.put(BlueshiftConstants.KEY_GENDER, getGender());
+        map.put(BlueshiftConstants.KEY_FACEBOOK_ID, getFacebookId());
+        map.put(BlueshiftConstants.KEY_EDUCATION, getEducation());
+
+        if (getJoinedAt() > 0) {
+            map.put(BlueshiftConstants.KEY_JOINED_AT, getJoinedAt());
+        }
+
+        if (getDateOfBirth() != null) {
+            long seconds = getDateOfBirth().getTime() / 1000;
+            map.put(BlueshiftConstants.KEY_DATE_OF_BIRTH, seconds);
+        }
+
+        if (isUnsubscribed()) {
+            // we don't need to send this key if it set to false
+            map.put(BlueshiftConstants.KEY_UNSUBSCRIBED_PUSH, true);
+        }
+
+        if (getDetails() != null) {
+            for (Map.Entry<String, Object> entry : getDetails().entrySet()) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return map;
     }
 
     public void save(Context context) {
