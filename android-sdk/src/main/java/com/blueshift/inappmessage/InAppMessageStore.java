@@ -359,6 +359,15 @@ public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessag
         }
     }
 
+    /**
+     * Delete all the in-app messages stored in the database.
+     */
+    public void cleanAll() {
+        synchronized (_LOCK) {
+            deleteAll(null, null);
+        }
+    }
+
     public void markAsRead(List<String> messageUUIDs) {
         synchronized (_LOCK) {
             if (messageUUIDs != null && messageUUIDs.size() > 0) {

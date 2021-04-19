@@ -25,6 +25,7 @@ import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.inappmessage.InAppMessageIconFont;
+import com.blueshift.inappmessage.InAppMessageStore;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
@@ -145,7 +146,7 @@ public class Blueshift {
      * @param context   Valid {@link Context} object
      * @param isOptedIn The opt-in status as boolean
      */
-    public static void optInForInAppNotifications(Context context, boolean isOptedIn) {
+    public static void optInForInAppNotifications(final Context context, boolean isOptedIn) {
         BlueshiftAppPreferences preferences = BlueshiftAppPreferences.getInstance(context);
         preferences.setEnableInApp(isOptedIn);
         preferences.save(context);
@@ -156,6 +157,17 @@ public class Blueshift {
         if (cu != null) map.putAll(cu.toHashMap());
 
         Blueshift.getInstance(context).identifyUser(map, false);
+
+        if (isOptedIn) return;
+
+        // remove all cached in-app messages if user opt-out from in-app
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
+            @Override
+            public void run() {
+                InAppMessageStore store = InAppMessageStore.getInstance(context);
+                if (store != null) store.cleanAll();
+            }
+        });
     }
 
     /**
