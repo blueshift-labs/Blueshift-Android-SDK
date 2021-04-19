@@ -2,6 +2,7 @@ package com.blueshift.model;
 
 import android.content.Context;
 
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -11,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Rahul Raveendran V P
@@ -83,22 +85,33 @@ public class UserInfo {
 
     public HashMap<String, Object> toHashMap() {
         HashMap<String, Object> map = new HashMap<>();
-        map.put("email", email);
-        map.put("retailer_customer_id", retailer_customer_id);
-        map.put("name", name);
-        map.put("uuid", uuid);
-        map.put("firstname", firstname);
-        map.put("lastname", lastname);
-        map.put("gender", gender);
-        map.put("joined_at", joined_at);
-        map.put("facebook_id", facebook_id);
-        map.put("education", education);
-        map.put("unsubscribed", unsubscribed);
-        map.put("engagement_score", engagement_score);
-        map.put("purchase_intent", purchase_intent);
-        map.put("recommended_products", recommended_products);
-        map.put("dateOfBirth", dateOfBirth);
-        if (details != null) map.putAll(details);
+        map.put(BlueshiftConstants.KEY_CUSTOMER_ID, getRetailerCustomerId());
+        map.put(BlueshiftConstants.KEY_EMAIL, getEmail());
+        map.put(BlueshiftConstants.KEY_FIRST_NAME, getFirstname());
+        map.put(BlueshiftConstants.KEY_LAST_NAME, getLastname());
+        map.put(BlueshiftConstants.KEY_GENDER, getGender());
+        map.put(BlueshiftConstants.KEY_FACEBOOK_ID, getFacebookId());
+        map.put(BlueshiftConstants.KEY_EDUCATION, getEducation());
+
+        if (getJoinedAt() > 0) {
+            map.put(BlueshiftConstants.KEY_JOINED_AT, getJoinedAt());
+        }
+
+        if (getDateOfBirth() != null) {
+            long seconds = getDateOfBirth().getTime() / 1000;
+            map.put(BlueshiftConstants.KEY_DATE_OF_BIRTH, seconds);
+        }
+
+        if (isUnsubscribed()) {
+            // we don't need to send this key if it set to false
+            map.put(BlueshiftConstants.KEY_UNSUBSCRIBED_PUSH, true);
+        }
+
+        if (getDetails() != null) {
+            for (Map.Entry<String, Object> entry : getDetails().entrySet()) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
 
         return map;
     }
