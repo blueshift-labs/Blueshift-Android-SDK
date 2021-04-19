@@ -2,6 +2,7 @@ package com.blueshift.httpmanager.request_queue;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
@@ -31,10 +32,11 @@ public class RequestQueueJobService extends JobService {
     }
 
     private void doBackgroundWork(final JobParameters jobParameters) {
+        final Context appContext = getApplicationContext();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                RequestQueue.getInstance().sync(getApplicationContext());
+                RequestQueue.getInstance().sync(appContext);
 
                 // this is a periodic job, we don't need the job scheduler to
                 // reschedule this with available backoff policy. hence passing

@@ -2,6 +2,7 @@ package com.blueshift.batch;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
@@ -22,10 +23,11 @@ public class BulkEventJobService extends JobService {
     }
 
     private void doBackgroundWork(final JobParameters jobParameters) {
+        final Context appContext = getApplicationContext();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                BulkEventManager.enqueueBulkEvents(getApplicationContext());
+                BulkEventManager.enqueueBulkEvents(appContext);
 
                 // this is a periodic job, we don't need the job scheduler to
                 // reschedule this with available backoff policy. hence passing
