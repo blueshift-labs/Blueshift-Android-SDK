@@ -1,7 +1,10 @@
 package com.blueshift.inappmessage;
 
 import android.content.Context;
+import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,8 +28,8 @@ public class InAppMessageViewBanner extends InAppMessageView {
     }
 
     @Override
-    public View getView(InAppMessage inAppMessage) {
-        LinearLayout linearLayout = new LinearLayout(getContext());
+    public View getView(final InAppMessage inAppMessage) {
+        final InAppSwipeLinearLayout linearLayout = new InAppSwipeLinearLayout(getContext());
         linearLayout.setGravity(CENTER);
         linearLayout.setBackgroundResource(android.R.color.transparent);
 
@@ -56,19 +59,78 @@ public class InAppMessageViewBanner extends InAppMessageView {
         }
 
         // assumed that only one action is provided. if more actions found, first one is taken.
+        JSONObject actionJson = null;
         JSONArray actions = inAppMessage.getActionsJSONArray();
         if (actions != null && actions.length() > 0) {
             try {
-                JSONObject actionJson = actions.getJSONObject(0);
-                linearLayout.setOnClickListener(getActionClickListener(actionJson, null));
+                actionJson = actions.getJSONObject(0);
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);
             }
         }
 
+        final OnClickListener clickListener = getActionClickListener(actionJson, null);
+        linearLayout.enableSwipeAndTap(new InAppSwipeLinearLayout.OnSwipeGestureListener() {
+            @Override
+            public void onSwipeUp() {
+            }
+
+            @Override
+            public void onSwipeDown() {
+            }
+
+            @Override
+            public void onSwipeLeft() {
+                playExitAnimation(-linearLayout.getWidth(), linearLayout, new Runnable() {
+                    @Override
+                    public void run() {
+                        onDismiss(inAppMessage, null);
+                    }
+                });
+            }
+
+            @Override
+            public void onSwipeRight() {
+                playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
+                    @Override
+                    public void run() {
+                        onDismiss(inAppMessage, null);
+                    }
+                });
+            }
+
+            @Override
+            public void onSingleTapConfirmed() {
+                playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
+                    @Override
+                    public void run() {
+                        if (clickListener != null) {
+                            clickListener.onClick(linearLayout);
+                        }
+                    }
+                });
+            }
+        });
+
         linearLayout.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
         linearLayout.setMinimumHeight(dp48);
 
         return linearLayout;
+    }
+
+    private void playExitAnimation(int translationX, View view, Runnable onAnimComplete) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (view != null) {
+                ViewParent viewParent = view.getParent();
+                if (viewParent instanceof ViewGroup) {
+                    ViewGroup parent = (ViewGroup) viewParent;
+                    parent.animate()
+                            .translationX(translationX)
+                            .setDuration(1000)
+                            .withEndAction(onAnimComplete)
+                            .start();
+                }
+            }
+        }
     }
 }

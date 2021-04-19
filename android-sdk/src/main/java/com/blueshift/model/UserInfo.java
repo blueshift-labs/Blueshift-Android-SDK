@@ -2,6 +2,7 @@ package com.blueshift.model;
 
 import android.content.Context;
 
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -11,16 +12,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 5/3/15 @ 3:05 PM
- *         https://github.com/rahulrvp
+ * Created on 5/3/15 @ 3:05 PM
+ * https://github.com/rahulrvp
  */
 public class UserInfo {
     private static final String TAG = "UserInfo";
     private static final String PREF_FILE = "user_info_file";
     private static final String PREF_KEY = "user_info_key";
+    private static final Boolean lock = false;
 
     private String email;
     private String email_hash;
@@ -46,15 +49,15 @@ public class UserInfo {
         unsubscribed = false;
     }
 
-    public static synchronized UserInfo getInstance(Context context) {
-        if (instance == null) {
-            instance = load(context);
+    public static UserInfo getInstance(Context context) {
+        synchronized (lock) {
             if (instance == null) {
-                instance = new UserInfo();
+                instance = load(context);
+                if (instance == null) instance = new UserInfo();
             }
-        }
 
-        return instance;
+            return instance;
+        }
     }
 
     private static String getPrefFile(Context context) {
@@ -78,6 +81,39 @@ public class UserInfo {
         }
 
         return userInfo;
+    }
+
+    public HashMap<String, Object> toHashMap() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put(BlueshiftConstants.KEY_CUSTOMER_ID, getRetailerCustomerId());
+        map.put(BlueshiftConstants.KEY_EMAIL, getEmail());
+        map.put(BlueshiftConstants.KEY_FIRST_NAME, getFirstname());
+        map.put(BlueshiftConstants.KEY_LAST_NAME, getLastname());
+        map.put(BlueshiftConstants.KEY_GENDER, getGender());
+        map.put(BlueshiftConstants.KEY_FACEBOOK_ID, getFacebookId());
+        map.put(BlueshiftConstants.KEY_EDUCATION, getEducation());
+
+        if (getJoinedAt() > 0) {
+            map.put(BlueshiftConstants.KEY_JOINED_AT, getJoinedAt());
+        }
+
+        if (getDateOfBirth() != null) {
+            long seconds = getDateOfBirth().getTime() / 1000;
+            map.put(BlueshiftConstants.KEY_DATE_OF_BIRTH, seconds);
+        }
+
+        if (isUnsubscribed()) {
+            // we don't need to send this key if it set to false
+            map.put(BlueshiftConstants.KEY_UNSUBSCRIBED_PUSH, true);
+        }
+
+        if (getDetails() != null) {
+            for (Map.Entry<String, Object> entry : getDetails().entrySet()) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return map;
     }
 
     public void save(Context context) {
@@ -210,5 +246,29 @@ public class UserInfo {
 
     public Date getDateOfBirth() {
         return dateOfBirth;
+    }
+
+    public void clear(Context context) {
+        synchronized (lock) {
+            instance.email = null;
+            instance.email_hash = null;
+            instance.retailer_customer_id = null;
+            instance.uuid = null;
+            instance.name = null;
+            instance.firstname = null;
+            instance.lastname = null;
+            instance.gender = null;
+            instance.joined_at = 0;
+            instance.facebook_id = null;
+            instance.education = null;
+            instance.unsubscribed = false;
+            instance.engagement_score = null;
+            instance.purchase_intent = null;
+            instance.recommended_products = null;
+            instance.details = null;
+            instance.dateOfBirth = null;
+        }
+
+        save(context);
     }
 }

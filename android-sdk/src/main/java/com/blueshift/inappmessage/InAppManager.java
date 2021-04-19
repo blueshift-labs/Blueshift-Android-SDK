@@ -45,6 +45,7 @@ public class InAppManager {
 
     @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
     private static Activity mActivity = null;
+    private static String mScreen = null;
     private static AlertDialog mDialog = null;
     private static InAppActionCallback mActionCallback = null;
     private static InAppMessage mInApp = null;
@@ -53,9 +54,20 @@ public class InAppManager {
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
      *
-     * @param activity valid Activity object.
+     * @param activity Valid Activity object.
      */
     public static void registerForInAppMessages(Activity activity) {
+        registerForInAppMessages(activity, null);
+    }
+
+    /**
+     * Calling this method makes the activity eligible for displaying InAppMessage.
+     * It also takes in a unique screen name to be used instead of the activity class name.
+     *
+     * @param activity   Valid Activity object.
+     * @param screenName The screen name in which the in-app should be displayed
+     */
+    public static void registerForInAppMessages(Activity activity, String screenName) {
         if (mActivity != null) {
             // BlueshiftLogger.w(LOG_TAG, "Possible memory leak detected! Cleaning up. ");
             // do the clean up for old activity to avoid mem leak
@@ -63,6 +75,7 @@ public class InAppManager {
         }
 
         mActivity = activity;
+        mScreen = screenName;
 
         // check if there is an ongoing in-app display (orientation change)
         // if found, display the cached in-app message.
@@ -106,6 +119,7 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
+        mScreen = null;
     }
 
     private static void displayCachedOngoingInApp() {
@@ -156,7 +170,7 @@ public class InAppManager {
     }
 
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
-        boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         if (isEnabled) {
             final Handler callbackHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
@@ -196,6 +210,8 @@ public class InAppManager {
                         }
                     }
             );
+        } else {
+            BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not fetch in-app messages from API.");
         }
     }
 
@@ -337,7 +353,7 @@ public class InAppManager {
      * @param inAppMessage valid inAppMessage object
      */
     public static void onInAppMessageReceived(Context context, InAppMessage inAppMessage) {
-        boolean isEnabled = BlueshiftUtils.isInAppEnabled(context);
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         if (isEnabled) {
             BlueshiftLogger.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
 
@@ -360,6 +376,8 @@ public class InAppManager {
                     BlueshiftLogger.d(LOG_TAG, "Expired in-app received. Message UUID: " + inAppMessage.getMessageUuid());
                 }
             }
+        } else {
+            BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not accept in-app messages.");
         }
     }
 
@@ -382,7 +400,7 @@ public class InAppManager {
             return;
         }
 
-        boolean isEnabled = BlueshiftUtils.isInAppEnabled(mActivity);
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(mActivity);
         if (isEnabled) {
             try {
                 BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
@@ -390,7 +408,7 @@ public class InAppManager {
                     public void run() {
                         InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
                         if (store != null) {
-                            InAppMessage input = store.getInAppMessage(mActivity);
+                            InAppMessage input = store.getInAppMessage(mActivity, mScreen);
 
                             if (input == null) {
                                 BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
@@ -409,6 +427,8 @@ public class InAppManager {
             } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
+        } else {
+            BlueshiftLogger.w(LOG_TAG, "In-app opted-out. Can not display in-app messages.");
         }
     }
 

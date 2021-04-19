@@ -13,6 +13,7 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
     private static final String PREF_KEY = "bsft_app_preferences_json";
 
     private static final String KEY_ENABLE_PUSH = "bsft_enable_push";
+    private static final String KEY_ENABLE_IN_APP = "bsft_enable_in_app";
     private static final String KEY_ENABLE_TRACKING = "bsft_enable_tracking";
 
     private static final BlueshiftAppPreferences instance = new BlueshiftAppPreferences();
@@ -73,6 +74,31 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
             try {
                 if (instance.has(KEY_ENABLE_PUSH)) {
                     return instance.getBoolean(KEY_ENABLE_PUSH);
+                }
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+
+            // default true
+            return true;
+        }
+    }
+
+    public void setEnableInApp(boolean enableInApp) {
+        synchronized (instance) {
+            try {
+                instance.put(KEY_ENABLE_IN_APP, enableInApp);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+    }
+
+    public boolean getEnableInApp() {
+        synchronized (instance) {
+            try {
+                if (instance.has(KEY_ENABLE_IN_APP)) {
+                    return instance.getBoolean(KEY_ENABLE_IN_APP);
                 }
             } catch (JSONException e) {
                 BlueshiftLogger.e(TAG, e);

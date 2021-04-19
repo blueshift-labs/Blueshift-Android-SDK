@@ -25,6 +25,7 @@ import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.inappmessage.InAppMessageIconFont;
+import com.blueshift.inappmessage.InAppMessageStore;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
@@ -138,6 +139,57 @@ public class Blueshift {
         return BlueshiftAppPreferences.getInstance(context).getEnableTracking();
     }
 
+    /**
+     * Utility method to set in-app opt-in status. This method will send an identify event
+     * with the latest information.
+     *
+     * @param context   Valid {@link Context} object
+     * @param isOptedIn The opt-in status as boolean
+     */
+    public static void optInForInAppNotifications(final Context context, boolean isOptedIn) {
+        BlueshiftAppPreferences preferences = BlueshiftAppPreferences.getInstance(context);
+        preferences.setEnableInApp(isOptedIn);
+        preferences.save(context);
+
+        // identify call w/ map for avoiding race conditions
+        HashMap<String, Object> map = new HashMap<>();
+        UserInfo cu = UserInfo.getInstance(context);
+        if (cu != null) map.putAll(cu.toHashMap());
+
+        Blueshift.getInstance(context).identifyUser(map, false);
+
+        if (isOptedIn) return;
+
+        // remove all cached in-app messages if user opt-out from in-app
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
+            @Override
+            public void run() {
+                InAppMessageStore store = InAppMessageStore.getInstance(context);
+                if (store != null) store.cleanAll();
+            }
+        });
+    }
+
+    /**
+     * Utility method to set push opt-in status. This method will send an identify event
+     * with the latest information.
+     *
+     * @param context   Valid {@link Context} object
+     * @param isOptedIn The opt-in status as boolean
+     */
+    public static void optInForPushNotifications(Context context, boolean isOptedIn) {
+        BlueshiftAppPreferences preferences = BlueshiftAppPreferences.getInstance(context);
+        preferences.setEnablePush(isOptedIn);
+        preferences.save(context);
+
+        // identify call w/ map for avoiding race conditions
+        HashMap<String, Object> map = new HashMap<>();
+        UserInfo cu = UserInfo.getInstance(context);
+        if (cu != null) map.putAll(cu.toHashMap());
+
+        Blueshift.getInstance(context).identifyUser(map, false);
+    }
+
     public static BlueshiftPushListener getBlueshiftPushListener() {
         return blueshiftPushListener;
     }
@@ -156,6 +208,10 @@ public class Blueshift {
 
     public void registerForInAppMessages(Activity activity) {
         InAppManager.registerForInAppMessages(activity);
+    }
+
+    public void registerForInAppMessages(Activity activity, String screenName) {
+        InAppManager.registerForInAppMessages(activity, screenName);
     }
 
     public void unregisterForInAppMessages(Activity activity) {
