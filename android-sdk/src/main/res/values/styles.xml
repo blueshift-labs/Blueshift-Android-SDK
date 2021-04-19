@@ -68,7 +68,7 @@
 
     <style name="slideInWindowAnimation" parent="">
         <item name="android:windowEnterAnimation">@anim/bsft_translate_left_side</item>
-        <item name="android:windowExitAnimation">@anim/bsft_translate_right_side</item>
+<!--        <item name="android:windowExitAnimation">@anim/bsft_translate_right_side</item>-->
     </style>
 
 </resources>
