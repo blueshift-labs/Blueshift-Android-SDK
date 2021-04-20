@@ -1,35 +1,21 @@
 apply plugin: 'com.android.library'
 
 ext {
-    // sdkOrg = 'blueshift-labs'
-    sdkOrg = 'nipun'
-    sdkGroup = 'com.blueshift'
-    sdkArtifactName = 'android-sdk'
-
-    sdkVersion = '3.1.10'
-    sdkVersionDesc = 'Blueshift Android SDK v' + sdkVersion
-    sdkVcsTag = sdkVersion
-
-    sdkName = 'Blueshift Android SDK'
-    sdkDesc = 'Blueshift Android SDK to make it easier for marketers to integrate their mobile app with Blueshift’s near real-time event processing platform and send personalized rich push notifications to their customers.'
-    sdkSite = 'https://github.com/blueshift-labs/Blueshift-Android-SDK'
-    sdkVcsUrl = 'https://github.com/blueshift-labs/Blueshift-Android-SDK.git'
-
-    sdkDevId = 'rahulrvp'
-    sdkDevName = 'Rahul Raveendran V P'
-    sdkDevEmail = 'rahul.raveendran@blueshift.com'
+    PUBLISH_GROUP_ID = 'com.blueshift'
+    PUBLISH_ARTIFACT_ID = 'android-sdk'
+    PUBLISH_VERSION = '3.2.0'
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 28
+        targetSdkVersion 30
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField 'String', 'SDK_VERSION', "\"$sdkVersion\""
+        buildConfigField 'String', 'SDK_VERSION', "\"$PUBLISH_VERSION\""
     }
     buildTypes {
         release {
@@ -57,89 +43,7 @@ dependencies {
     //noinspection GradleDependency
     implementation 'com.google.firebase:firebase-messaging:17.3.4'
 
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.2'
 }
 
-// build a jar with source files
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    archiveClassifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.sourceFiles
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    classpath += configurations.compile
-}
-// build a jar with javadoc
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-
-    publications = ['release']
-
-    pkg {
-        repo = 'maven'
-        name = sdkArtifactName
-        userOrg = sdkOrg
-        licenses = ['MIT']
-        vcsUrl = sdkVcsUrl
-        websiteUrl = sdkSite
-        desc = sdkDesc
-        publish = true
-        publicDownloadNumbers = true
-
-        version {
-            name = sdkVersion
-            desc = sdkVersionDesc
-            released = new Date()
-            vcsTag = sdkVcsTag
-
-            gpg {
-                sign = true
-                passphrase = System.getenv('BINTRAY_GPG')
-            }
-        }
-    }
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            // Creates a Maven publication called "release".
-            release(MavenPublication) {
-                // Applies the component for the release build variant.
-                from components.release
-
-                artifact sourcesJar
-                artifact javadocJar
-
-                // You can then customize attributes of the publication as shown below.
-                groupId = sdkGroup
-                artifactId = sdkArtifactName
-                version = sdkVersion
-
-                pom {
-                    developers {
-                        developer {
-                            id = sdkDevId
-                            name = sdkDevName
-                            email = sdkDevEmail
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
