@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 ext {
     PUBLISH_GROUP_ID = 'com.blueshift'
-    PUBLISH_ARTIFACT_ID = 'android-sdk'
+    PUBLISH_ARTIFACT_ID = 'android-sdk-x'
     PUBLISH_VERSION = '3.2.0'
 }
 
