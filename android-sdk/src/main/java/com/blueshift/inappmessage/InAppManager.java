@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,7 +11,6 @@ import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.LruCache;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -36,12 +34,9 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
-import com.blueshift.util.NetworkUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.io.File;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -873,24 +868,28 @@ public class InAppManager {
                 String bgImgNormal = inAppMessage.getTemplateStyle() != null
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgNormal)) deleteCachedImage(context, bgImgNormal);
+                if (!TextUtils.isEmpty(bgImgNormal)) {
+                    BlueshiftImgCache.clean(context, bgImgNormal);
+                }
+
                 // bg image: dark
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    deleteCachedImage(context, bgImgDark);
+                    BlueshiftImgCache.clean(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    deleteCachedImage(context, bannerImage);
+                    BlueshiftImgCache.clean(context, bannerImage);
                 }
+
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    deleteCachedImage(context, iconImage);
+                    BlueshiftImgCache.clean(context, iconImage);
                 }
             }
         }
@@ -926,58 +925,30 @@ public class InAppManager {
                 String bgImgNormal = inAppMessage.getTemplateStyle() != null
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgNormal)) cacheImage(context, bgImgNormal);
+                if (!TextUtils.isEmpty(bgImgNormal)) {
+                    BlueshiftImgCache.preload(context, bgImgNormal);
+                }
+
                 // bg image: dark
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    cacheImage(context, bgImgDark);
+                    BlueshiftImgCache.preload(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    cacheImage(context, bannerImage);
+                    BlueshiftImgCache.preload(context, bannerImage);
                 }
+
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    cacheImage(context, iconImage);
+                    BlueshiftImgCache.preload(context, iconImage);
                 }
             }
         }
-    }
-
-    private static void deleteCachedImage(Context context, String url) {
-        if (context != null && url != null) {
-
-            BlueshiftLogger.d(LOG_TAG, "Cached image delete " + (BlueshiftImgCache.clean(context, url) ? "success." : "failed."));
-//            File imgFile = InAppUtils.getCachedImageFile(context, url);
-//            if (imgFile != null && imgFile.exists()) {
-//                BlueshiftLogger.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
-//                        + imgFile.getAbsolutePath());
-//            }
-        }
-    }
-
-    private static void cacheImage(final Context context, final String url) {
-        BlueshiftImgCache.preload(context,url);
-
-//        final File file = InAppUtils.getCachedImageFile(context, url);
-//
-//        if (file != null) {
-//            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        boolean success = NetworkUtils.downloadFile(url, file.getAbsolutePath());
-//                        BlueshiftLogger.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
-//                    } catch (Exception e) {
-//                        BlueshiftLogger.e(LOG_TAG, e);
-//                    }
-//                }
-//            });
-//        }
     }
 }
