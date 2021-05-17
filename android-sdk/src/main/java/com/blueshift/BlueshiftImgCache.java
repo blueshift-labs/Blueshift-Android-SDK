@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.util.LruCache;
+import android.widget.ImageView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,23 +33,22 @@ public class BlueshiftImgCache {
         return key != null ? "bsft_" + key : null;
     }
 
-    public static boolean clean(Context context, String url) {
-        String key = md5(url);
-        return removeFromMemCache(key) || removeFromDiskCache(context, key);
+    public static Bitmap getBitmap(Context context, String url) {
+        return getScaledBitmap(context, url, 0, 0);
     }
 
-    public static Bitmap getBitmap(Context context, String url) {
+    public static Bitmap getScaledBitmap(Context context, String url, int reqWidth, int reqHeight) {
         String key = md5(url);
         Bitmap bitmap = null;
 
         if (key != null) {
-            BlueshiftLogger.d(TAG, "Attempting to load image.\t key:" + key + "\t url:" + url);
+            BlueshiftLogger.d(TAG, "Attempting to load image with url:" + url);
 
             bitmap = getFromMemCache(key);
             if (bitmap == null) {
                 bitmap = getFromDiskCache(context, key);
                 if (bitmap == null) {
-                    bitmap = downloadScaledBitmap(url, 100, 100);
+                    bitmap = downloadScaledBitmap(url, reqWidth, reqHeight);
                     if (bitmap != null) {
                         addToMemCache(key, bitmap);
                         addToDiskCache(context, key, bitmap);
@@ -67,10 +67,38 @@ public class BlueshiftImgCache {
         return bitmap;
     }
 
+    public static void loadBitmapOntoImageView(final Context context, final String url, final ImageView imageView) {
+        if (imageView != null) {
+            BlueshiftExecutor.getInstance().runOnWorkerThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            final Bitmap bitmap = getBitmap(context, url);
+                            if (bitmap != null) {
+                                imageView.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        imageView.setImageBitmap(bitmap);
+                                    }
+                                });
+                            }
+                        }
+                    }
+            );
+        }
+    }
+
     public static void preload(Context context, String url) {
         Bitmap bitmap = getBitmap(context, url);
-        if (bitmap != null) {
-            BlueshiftLogger.d(TAG, "preload success " + url);
+        String status = bitmap != null ? "success" : "failed";
+        BlueshiftLogger.d(TAG, "Preload " + status + " for url: " + url);
+    }
+
+    public static void clean(Context context, String url) {
+        String key = md5(url);
+        if (key != null) {
+            BlueshiftLogger.d(TAG, "Removing image from memory: " + removeFromMemCache(key));
+            BlueshiftLogger.d(TAG, "Removing image from disk: " + removeFromDiskCache(context, key));
         }
     }
 
@@ -183,6 +211,11 @@ public class BlueshiftImgCache {
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeStream(new URL(url).openStream(), new Rect(), options);
+
+            if (reqWidth == 0) reqWidth = options.outWidth;
+            if (reqHeight == 0) reqHeight = options.outHeight;
+
+            BlueshiftLogger.d(TAG, "reqWidth: " + reqWidth + ", reqHeight: " + reqHeight);
 
             options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
 
