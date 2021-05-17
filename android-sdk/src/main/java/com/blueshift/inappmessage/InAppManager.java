@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +12,7 @@ import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.LruCache;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -25,6 +27,7 @@ import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftHttpManager;
 import com.blueshift.BlueshiftHttpRequest;
 import com.blueshift.BlueshiftHttpResponse;
+import com.blueshift.BlueshiftImgCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
@@ -451,33 +454,42 @@ public class InAppManager {
         }
     }
 
-    private static void displayInAppMessage(final InAppMessage input) {
-        if (input != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mActivity != null) {
-                                boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
-                                if (isSuccess) {
-                                    mInApp = input;
-                                    markAsDisplayed(input);
-                                }
-
-                                if (isSuccess) {
-                                    BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
-                                } else {
-                                    BlueshiftLogger.e(LOG_TAG, "InApp message display failed!");
-                                }
-                            } else {
-                                BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
-                            }
-                        }
-                    }
-            );
+    private static void displayInAppMessage(final InAppMessage inAppMessage) {
+        if (inAppMessage != null) {
+            cacheAssets(inAppMessage);
+            showInAppOnMainThread(inAppMessage);
         } else {
             BlueshiftLogger.e(LOG_TAG, "InApp message is null!");
         }
+    }
+
+    private static void cacheAssets(final InAppMessage inAppMessage) {
+
+    }
+
+    private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
+        BlueshiftExecutor.getInstance().runOnMainThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mActivity != null) {
+                            boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                            if (isSuccess) {
+                                mInApp = inAppMessage;
+                                markAsDisplayed(inAppMessage);
+                            }
+
+                            if (isSuccess) {
+                                BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
+                            } else {
+                                BlueshiftLogger.e(LOG_TAG, "InApp message display failed!");
+                            }
+                        } else {
+                            BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
+                        }
+                    }
+                }
+        );
     }
 
     private static void markAsDisplayed(final InAppMessage input) {
@@ -939,29 +951,33 @@ public class InAppManager {
 
     private static void deleteCachedImage(Context context, String url) {
         if (context != null && url != null) {
-            File imgFile = InAppUtils.getCachedImageFile(context, url);
-            if (imgFile != null && imgFile.exists()) {
-                BlueshiftLogger.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
-                        + imgFile.getAbsolutePath());
-            }
+
+            BlueshiftLogger.d(LOG_TAG, "Cached image delete " + (BlueshiftImgCache.clean(context, url) ? "success." : "failed."));
+//            File imgFile = InAppUtils.getCachedImageFile(context, url);
+//            if (imgFile != null && imgFile.exists()) {
+//                BlueshiftLogger.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
+//                        + imgFile.getAbsolutePath());
+//            }
         }
     }
 
     private static void cacheImage(final Context context, final String url) {
-        final File file = InAppUtils.getCachedImageFile(context, url);
+        BlueshiftImgCache.preload(context,url);
 
-        if (file != null) {
-            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        boolean success = NetworkUtils.downloadFile(url, file.getAbsolutePath());
-                        BlueshiftLogger.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
-                    } catch (Exception e) {
-                        BlueshiftLogger.e(LOG_TAG, e);
-                    }
-                }
-            });
-        }
+//        final File file = InAppUtils.getCachedImageFile(context, url);
+//
+//        if (file != null) {
+//            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    try {
+//                        boolean success = NetworkUtils.downloadFile(url, file.getAbsolutePath());
+//                        BlueshiftLogger.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
+//                    } catch (Exception e) {
+//                        BlueshiftLogger.e(LOG_TAG, e);
+//                    }
+//                }
+//            });
+//        }
     }
 }

@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftImgCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
@@ -625,10 +626,11 @@ public class InAppUtils {
                         @Override
                         public void run() {
                             try {
-                                Bitmap bitmap = loadFromDisk(context, path);
-                                if (bitmap == null) {
-                                    bitmap = loadFromNetwork(path);
-                                }
+                                Bitmap bitmap = BlueshiftImgCache.getBitmap(context, path);
+//                                Bitmap bitmap = loadFromDisk(context, path);
+//                                if (bitmap == null) {
+//                                    bitmap = loadFromNetwork(path);
+//                                }
 
                                 if (bitmap != null) {
                                     final Bitmap finalBitmap = bitmap;
