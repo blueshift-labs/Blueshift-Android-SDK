@@ -362,9 +362,7 @@ public class InAppManager {
                     InAppMessageStore store = InAppMessageStore.getInstance(context);
                     if (store != null) {
                         boolean inserted = store.insert(inAppMessage);
-                        if (inserted) {
-                            InAppManager.cacheAssets(inAppMessage, context);
-                        } else {
+                        if (!inserted) {
                             BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
                         }
                     } else {
@@ -450,16 +448,12 @@ public class InAppManager {
     }
 
     private static void displayInAppMessage(final InAppMessage inAppMessage) {
-        if (inAppMessage != null) {
-            cacheAssets(inAppMessage);
+        if (inAppMessage != null && mActivity != null) {
+            cacheAssets(inAppMessage, mActivity.getApplicationContext());
             showInAppOnMainThread(inAppMessage);
         } else {
-            BlueshiftLogger.e(LOG_TAG, "InApp message is null!");
+            BlueshiftLogger.e(LOG_TAG, "InApp message or mActivity is null!");
         }
-    }
-
-    private static void cacheAssets(final InAppMessage inAppMessage) {
-
     }
 
     private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
