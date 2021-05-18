@@ -25,7 +25,7 @@ import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftHttpManager;
 import com.blueshift.BlueshiftHttpRequest;
 import com.blueshift.BlueshiftHttpResponse;
-import com.blueshift.BlueshiftImgCache;
+import com.blueshift.BlueshiftImageLoader;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
@@ -863,7 +863,7 @@ public class InAppManager {
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (!TextUtils.isEmpty(bgImgNormal)) {
-                    BlueshiftImgCache.clean(context, bgImgNormal);
+                    BlueshiftImageLoader.clean(context, bgImgNormal);
                 }
 
                 // bg image: dark
@@ -871,19 +871,19 @@ public class InAppManager {
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    BlueshiftImgCache.clean(context, bgImgDark);
+                    BlueshiftImageLoader.clean(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    BlueshiftImgCache.clean(context, bannerImage);
+                    BlueshiftImageLoader.clean(context, bannerImage);
                 }
 
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    BlueshiftImgCache.clean(context, iconImage);
+                    BlueshiftImageLoader.clean(context, iconImage);
                 }
             }
         }
@@ -920,7 +920,7 @@ public class InAppManager {
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (!TextUtils.isEmpty(bgImgNormal)) {
-                    BlueshiftImgCache.preload(context, bgImgNormal);
+                    BlueshiftImageLoader.preload(context, bgImgNormal);
                 }
 
                 // bg image: dark
@@ -928,19 +928,19 @@ public class InAppManager {
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    BlueshiftImgCache.preload(context, bgImgDark);
+                    BlueshiftImageLoader.preload(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    BlueshiftImgCache.preload(context, bannerImage);
+                    BlueshiftImageLoader.preload(context, bannerImage);
                 }
 
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    BlueshiftImgCache.preload(context, iconImage);
+                    BlueshiftImageLoader.preload(context, iconImage);
                 }
             }
         }
