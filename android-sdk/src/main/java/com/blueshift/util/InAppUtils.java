@@ -17,7 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftImageLoader;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
@@ -616,7 +616,7 @@ public class InAppUtils {
     public static void loadImageAsync(final ImageView imageView, final String path) {
         if (imageView != null && path != null && !path.equals("null")) {
             final Context context = imageView.getContext();
-            BlueshiftImageLoader.loadBitmapOntoImageView(context, path, imageView);
+            BlueshiftImageCache.loadBitmapOntoImageView(context, path, imageView);
         }
     }
 
