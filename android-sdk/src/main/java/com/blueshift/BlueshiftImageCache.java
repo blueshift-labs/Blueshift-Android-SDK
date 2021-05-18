@@ -67,8 +67,9 @@ public class BlueshiftImageCache {
         return bitmap;
     }
 
-    public static void loadBitmapOntoImageView(final Context context, final String url, final ImageView imageView) {
+    public static void loadBitmapOntoImageView(final String url, final ImageView imageView) {
         if (imageView != null) {
+            final Context context = imageView.getContext();
             BlueshiftExecutor.getInstance().runOnWorkerThread(
                     new Runnable() {
                         @Override
