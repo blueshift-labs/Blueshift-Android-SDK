@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.support.annotation.WorkerThread;
 import android.util.LruCache;
 import android.widget.ImageView;
 
@@ -33,10 +34,28 @@ public class BlueshiftImageCache {
         return key != null ? "bsft_" + key : null;
     }
 
+    /**
+     * This method can load and return a bitmap object based on the URL provided.
+     *
+     * @param context valid {@link Context} object
+     * @param url     URL of the image
+     * @return {@link Bitmap} object or null based on image availability
+     */
+    @WorkerThread
     public static Bitmap getBitmap(Context context, String url) {
         return getScaledBitmap(context, url, 0, 0);
     }
 
+    /**
+     * This method can load and return a scaled bitmap based on the URL and dimensions provided.
+     *
+     * @param context   valid {@link Context} object
+     * @param url       URL of the image
+     * @param reqWidth  output width of the bitmap
+     * @param reqHeight output height of the bitmap
+     * @return {@link Bitmap} object or null based on image availability
+     */
+    @WorkerThread
     public static Bitmap getScaledBitmap(Context context, String url, int reqWidth, int reqHeight) {
         String key = md5(url);
         Bitmap bitmap = null;
@@ -67,6 +86,40 @@ public class BlueshiftImageCache {
         return bitmap;
     }
 
+    /**
+     * Helps you pre-load an image and keep it in memory for faster loading next time.
+     *
+     * @param context valid {@link Context} object
+     * @param url     URL of the image
+     */
+    @WorkerThread
+    public static void preload(Context context, String url) {
+        Bitmap bitmap = getBitmap(context, url);
+        String status = bitmap != null ? "success" : "failed";
+        BlueshiftLogger.d(TAG, "Preload " + status + " for url: " + url);
+    }
+
+    /**
+     * Helps you remove the image from both memory and disk
+     *
+     * @param context valid {@link Context} object
+     * @param url     URL of the image
+     */
+    @WorkerThread
+    public static void clean(Context context, String url) {
+        String key = md5(url);
+        if (key != null) {
+            BlueshiftLogger.d(TAG, "Removing image from memory: " + removeFromMemCache(key));
+            BlueshiftLogger.d(TAG, "Removing image from disk: " + removeFromDiskCache(context, key));
+        }
+    }
+
+    /**
+     * This method can asynchronously load an image and set it onto an ImageView.
+     *
+     * @param url       URL of the image
+     * @param imageView valid {@link ImageView} object
+     */
     public static void loadBitmapOntoImageView(final String url, final ImageView imageView) {
         if (imageView != null) {
             final Context context = imageView.getContext();
@@ -86,20 +139,6 @@ public class BlueshiftImageCache {
                         }
                     }
             );
-        }
-    }
-
-    public static void preload(Context context, String url) {
-        Bitmap bitmap = getBitmap(context, url);
-        String status = bitmap != null ? "success" : "failed";
-        BlueshiftLogger.d(TAG, "Preload " + status + " for url: " + url);
-    }
-
-    public static void clean(Context context, String url) {
-        String key = md5(url);
-        if (key != null) {
-            BlueshiftLogger.d(TAG, "Removing image from memory: " + removeFromMemCache(key));
-            BlueshiftLogger.d(TAG, "Removing image from disk: " + removeFromDiskCache(context, key));
         }
     }
 
