@@ -16,8 +16,8 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class BlueshiftImageLoader {
-    private static final String TAG = "ImageLoader";
+public class BlueshiftImageCache {
+    private static final String TAG = "ImageCache";
 
     private static final Object diskCacheLock = new Object();
     private static final int maxMemAvailable = (int) (Runtime.getRuntime().maxMemory() / 1024);
