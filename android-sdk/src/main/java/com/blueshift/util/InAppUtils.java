@@ -2,8 +2,6 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -19,8 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftExecutor;
-import com.blueshift.BlueshiftImgCache;
+import com.blueshift.BlueshiftImageLoader;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
@@ -35,9 +32,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -621,7 +616,7 @@ public class InAppUtils {
     public static void loadImageAsync(final ImageView imageView, final String path) {
         if (imageView != null && path != null && !path.equals("null")) {
             final Context context = imageView.getContext();
-            BlueshiftImgCache.loadBitmapOntoImageView(context, path, imageView);
+            BlueshiftImageLoader.loadBitmapOntoImageView(context, path, imageView);
         }
     }
 
