@@ -174,28 +174,9 @@ public class InAppManager {
         mActionCallback = callback;
     }
 
-    /**
-     * Creates a Handler with current looper.
-     *
-     * @param callback callback to invoke after API call
-     * @return Handler object to run the callback
-     */
-    private static Handler getCallbackHandler(InAppApiCallback callback) {
-        Handler handler = null;
-        if (callback != null) {
-            Looper looper = Looper.myLooper();
-            if (looper != null) {
-                handler = new Handler(looper);
-            }
-        }
-
-        return handler;
-    }
-
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
         boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         if (isEnabled) {
-            final Handler callbackHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
                     new Runnable() {
                         @Override
@@ -218,46 +199,31 @@ public class InAppManager {
                                     if (statusCode == 200) {
                                         handleInAppMessageAPIResponse(context, responseBody);
 
-                                        invokeApiSuccessCallback(callbackHandler, callback);
+                                        if (callback != null) {
+                                            callback.onSuccess();
+                                        }
                                     } else {
-                                        invokeApiFailureCallback(callbackHandler, callback, statusCode, responseBody);
+                                        if (callback != null) {
+                                            callback.onFailure(statusCode, responseBody);
+                                        }
                                     }
                                 } else {
-                                    invokeApiFailureCallback(callbackHandler, callback, 0, "Could not make the API call.");
+                                    if (callback != null) {
+                                        callback.onFailure(0, "Could not make the API call.");
+                                    }
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
 
-                                invokeApiFailureCallback(callbackHandler, callback, 0, e.getMessage());
+                                if (callback != null) {
+                                    callback.onFailure(0, e.getMessage());
+                                }
                             }
                         }
                     }
             );
         } else {
             BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not fetch in-app messages from API.");
-        }
-    }
-
-    private static void invokeApiSuccessCallback(Handler handler, final InAppApiCallback callback) {
-        if (handler != null && callback != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onSuccess();
-                }
-            });
-        }
-    }
-
-    private static void invokeApiFailureCallback(Handler handler, final InAppApiCallback callback,
-                                                 final int errorCode, final String errorMessage) {
-        if (handler != null && callback != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onFailure(errorCode, errorMessage);
-                }
-            });
         }
     }
 
