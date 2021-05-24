@@ -29,8 +29,10 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
             // The message is null if one of the following cases is true
             // 1. The parcelable failed to extract the message object
             // 2. The bundle does not have the message object
-            // in case of (1), remove the message object to avoid any possible crashes.
+            // in case of (1), remove the message object and carousel element object (if any)
+            // to avoid any possible crashes.
             removeMessage(savedInstanceState);
+            removeCarouselElement(savedInstanceState);
         }
 
         super.onCreate(savedInstanceState);
@@ -50,6 +52,13 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
         if (bundle != null && bundle.containsKey(RichPushConstants.EXTRA_MESSAGE)) {
             BlueshiftLogger.d(TAG, "Removing the message object to avoid crashes.");
             bundle.remove(RichPushConstants.EXTRA_MESSAGE);
+        }
+    }
+
+    private void removeCarouselElement(Bundle bundle) {
+        if (bundle != null && bundle.containsKey(RichPushConstants.EXTRA_CAROUSEL_ELEMENT)) {
+            BlueshiftLogger.d(TAG, "Removing the carousel element object to avoid crashes.");
+            bundle.remove(RichPushConstants.EXTRA_CAROUSEL_ELEMENT);
         }
     }
 
