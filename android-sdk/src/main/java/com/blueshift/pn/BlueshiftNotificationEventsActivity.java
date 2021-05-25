@@ -24,13 +24,9 @@ public class BlueshiftNotificationEventsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        Message message = Message.fromBundle(savedInstanceState);
-        if (message == null) {
-            // The message is null if one of the following cases is true
-            // 1. The parcelable failed to extract the message object
-            // 2. The bundle does not have the message object
-            // in case of (1), remove the message object and carousel element object (if any)
-            // to avoid any possible crashes.
+        // We're not supposed to have the Message or CarouselElement inside the savedInstanceState.
+        // If found, remove them inorder to avoid any crashes inside the super.onCreate call.
+        if (savedInstanceState != null) {
             removeMessage(savedInstanceState);
             removeCarouselElement(savedInstanceState);
         }
