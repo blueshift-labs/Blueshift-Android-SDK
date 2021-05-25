@@ -71,8 +71,9 @@ public class BlueshiftImageCache {
                     if (bitmap != null) {
                         addToMemCache(key, bitmap);
                         addToDiskCache(context, key, bitmap);
-                    } else {
                         BlueshiftLogger.d(TAG, "Loading image from network");
+                    } else {
+                        BlueshiftLogger.e(TAG, "Could not download the image!");
                     }
                 } else {
                     addToMemCache(key, bitmap);
