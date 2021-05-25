@@ -1,6 +1,11 @@
 package com.blueshift.rich_push;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.text.TextUtils;
+
+import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftLogger;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -13,6 +18,7 @@ import java.util.Map;
  * https://github.com/rahulrvp
  */
 public class Message implements Serializable {
+    private static final String TAG = "Message";
     public static final String EXTRA_MESSAGE = "message";
     public static final String EXTRA_BSFT_EXPERIMENT_UUID = "bsft_experiment_uuid";
     public static final String EXTRA_BSFT_USER_UUID = "bsft_user_uuid";
@@ -199,6 +205,24 @@ public class Message implements Serializable {
         map.put("notification_channel_description", notification_channel_description);
 
         return map;
+    }
+
+    public static Message fromIntent(Intent intent) {
+        return intent != null ? fromBundle(intent.getExtras()) : null;
+    }
+
+    public static Message fromBundle(Bundle bundle) {
+        Message message = null;
+
+        if (bundle != null && bundle.containsKey(RichPushConstants.EXTRA_MESSAGE)) {
+            try {
+                message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+
+        return message;
     }
 
     /**

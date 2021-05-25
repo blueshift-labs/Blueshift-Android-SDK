@@ -35,11 +35,7 @@ public class NotificationWorker extends IntentService {
 
         if (action == null) return;
 
-        Message message = null;
-        try {
-            message = (Message) intent.getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
-        } catch (Exception ignore) {
-        }
+        Message message = Message.fromIntent(intent);
 
         if (message == null) return;
 

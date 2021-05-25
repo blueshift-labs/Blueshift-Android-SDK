@@ -551,7 +551,7 @@ public class NotificationUtils {
      */
     public static boolean processNotificationClick(Context context, String action, Bundle bundle) {
         if (context != null && action != null && bundle != null) {
-            Message message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+            Message message = Message.fromBundle(bundle);
             if (message != null) {
                 try {
                     String deepLink = bundle.getString(RichPushConstants.EXTRA_DEEP_LINK_URL);

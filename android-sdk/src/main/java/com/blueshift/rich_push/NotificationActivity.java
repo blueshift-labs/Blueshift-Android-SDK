@@ -36,11 +36,7 @@ public class NotificationActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         mContext = this;
-
-        try {
-            mMessage = (Message) getIntent().getSerializableExtra(RichPushConstants.EXTRA_MESSAGE);
-        } catch (Exception ignore) {
-        }
+        mMessage = Message.fromIntent(getIntent());
 
         if (mMessage != null) {
             int theme = 0;
