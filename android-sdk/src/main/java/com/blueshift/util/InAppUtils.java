@@ -2,8 +2,6 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -19,7 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
@@ -34,9 +32,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -619,92 +615,8 @@ public class InAppUtils {
 
     public static void loadImageAsync(final ImageView imageView, final String path) {
         if (imageView != null && path != null && !path.equals("null")) {
-            final Context context = imageView.getContext();
-            BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Bitmap bitmap = loadFromDisk(context, path);
-                                if (bitmap == null) {
-                                    bitmap = loadFromNetwork(path);
-                                }
-
-                                if (bitmap != null) {
-                                    final Bitmap finalBitmap = bitmap;
-                                    BlueshiftExecutor.getInstance().runOnMainThread(
-                                            new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    try {
-                                                        imageView.setImageBitmap(finalBitmap);
-                                                    } catch (Exception e) {
-                                                        BlueshiftLogger.e(LOG_TAG, e);
-                                                    }
-                                                }
-                                            }
-                                    );
-                                } else {
-                                    BlueshiftLogger.e(LOG_TAG, "Could not load the image from " + path);
-                                }
-                            } catch (Exception e) {
-                                BlueshiftLogger.e(LOG_TAG, e);
-                            }
-                        }
-                    }
-            );
+            BlueshiftImageCache.loadBitmapOntoImageView(path, imageView);
         }
-    }
-
-    private static Bitmap loadFromDisk(Context context, String url) {
-        Bitmap bitmap = null;
-
-        try {
-            File imgFile = getCachedImageFile(context, url);
-            if (imgFile != null && imgFile.exists()) {
-                try {
-                    bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                } catch (Exception e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
-                }
-
-                if (bitmap != null) {
-                    BlueshiftLogger.d(LOG_TAG, "Using cached image. " + imgFile.getAbsolutePath());
-                }
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        return bitmap;
-    }
-
-    private static Bitmap loadFromNetwork(String url) {
-        Bitmap bitmap = null;
-        InputStream inputStream = null;
-        try {
-            if (!TextUtils.isEmpty(url)) {
-                inputStream = new URL(url).openStream();
-                bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
-
-                if (bitmap != null) {
-                    BlueshiftLogger.d(LOG_TAG, "Using remote image. " + url);
-                }
-            }
-        } catch (Exception e) {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (Exception ex) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        return bitmap;
     }
 
     public static JSONObject getActionFromName(InAppMessage inAppMessage, String actionName) {

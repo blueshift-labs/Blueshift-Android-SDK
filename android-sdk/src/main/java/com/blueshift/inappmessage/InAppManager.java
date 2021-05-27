@@ -25,6 +25,7 @@ import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftHttpManager;
 import com.blueshift.BlueshiftHttpRequest;
 import com.blueshift.BlueshiftHttpResponse;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
@@ -33,12 +34,9 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
-import com.blueshift.util.NetworkUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.io.File;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -364,9 +362,7 @@ public class InAppManager {
                     InAppMessageStore store = InAppMessageStore.getInstance(context);
                     if (store != null) {
                         boolean inserted = store.insert(inAppMessage);
-                        if (inserted) {
-                            InAppManager.cacheAssets(inAppMessage, context);
-                        } else {
+                        if (!inserted) {
                             BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
                         }
                     } else {
@@ -451,33 +447,38 @@ public class InAppManager {
         }
     }
 
-    private static void displayInAppMessage(final InAppMessage input) {
-        if (input != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mActivity != null) {
-                                boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
-                                if (isSuccess) {
-                                    mInApp = input;
-                                    markAsDisplayed(input);
-                                }
+    private static void displayInAppMessage(final InAppMessage inAppMessage) {
+        if (inAppMessage != null && mActivity != null) {
+            cacheAssets(inAppMessage, mActivity.getApplicationContext());
+            showInAppOnMainThread(inAppMessage);
+        } else {
+            BlueshiftLogger.e(LOG_TAG, "InApp message or mActivity is null!");
+        }
+    }
 
-                                if (isSuccess) {
-                                    BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
-                                } else {
-                                    BlueshiftLogger.e(LOG_TAG, "InApp message display failed!");
-                                }
-                            } else {
-                                BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
+    private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
+        BlueshiftExecutor.getInstance().runOnMainThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mActivity != null) {
+                            boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                            if (isSuccess) {
+                                mInApp = inAppMessage;
+                                markAsDisplayed(inAppMessage);
                             }
+
+                            if (isSuccess) {
+                                BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
+                            } else {
+                                BlueshiftLogger.e(LOG_TAG, "InApp message display failed!");
+                            }
+                        } else {
+                            BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
                         }
                     }
-            );
-        } else {
-            BlueshiftLogger.e(LOG_TAG, "InApp message is null!");
-        }
+                }
+        );
     }
 
     private static void markAsDisplayed(final InAppMessage input) {
@@ -861,24 +862,28 @@ public class InAppManager {
                 String bgImgNormal = inAppMessage.getTemplateStyle() != null
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgNormal)) deleteCachedImage(context, bgImgNormal);
+                if (!TextUtils.isEmpty(bgImgNormal)) {
+                    BlueshiftImageCache.clean(context, bgImgNormal);
+                }
+
                 // bg image: dark
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    deleteCachedImage(context, bgImgDark);
+                    BlueshiftImageCache.clean(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    deleteCachedImage(context, bannerImage);
+                    BlueshiftImageCache.clean(context, bannerImage);
                 }
+
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    deleteCachedImage(context, iconImage);
+                    BlueshiftImageCache.clean(context, iconImage);
                 }
             }
         }
@@ -914,54 +919,30 @@ public class InAppManager {
                 String bgImgNormal = inAppMessage.getTemplateStyle() != null
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgNormal)) cacheImage(context, bgImgNormal);
+                if (!TextUtils.isEmpty(bgImgNormal)) {
+                    BlueshiftImageCache.preload(context, bgImgNormal);
+                }
+
                 // bg image: dark
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    cacheImage(context, bgImgDark);
+                    BlueshiftImageCache.preload(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    cacheImage(context, bannerImage);
+                    BlueshiftImageCache.preload(context, bannerImage);
                 }
+
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    cacheImage(context, iconImage);
+                    BlueshiftImageCache.preload(context, iconImage);
                 }
             }
-        }
-    }
-
-    private static void deleteCachedImage(Context context, String url) {
-        if (context != null && url != null) {
-            File imgFile = InAppUtils.getCachedImageFile(context, url);
-            if (imgFile != null && imgFile.exists()) {
-                BlueshiftLogger.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
-                        + imgFile.getAbsolutePath());
-            }
-        }
-    }
-
-    private static void cacheImage(final Context context, final String url) {
-        final File file = InAppUtils.getCachedImageFile(context, url);
-
-        if (file != null) {
-            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        boolean success = NetworkUtils.downloadFile(url, file.getAbsolutePath());
-                        BlueshiftLogger.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
-                    } catch (Exception e) {
-                        BlueshiftLogger.e(LOG_TAG, e);
-                    }
-                }
-            });
         }
     }
 }
