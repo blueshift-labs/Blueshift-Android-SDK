@@ -4,18 +4,16 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.WebView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.blueshift.BlueshiftAttributesApp;
@@ -41,13 +39,37 @@ import org.json.JSONObject;
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
 
+    static class IAMDisplayConfig {
+        String screenName;
+        int templateWidth;
+        int templateHeight;
+        int templateMarginLeft;
+        int templateMarginTop;
+        int templateMarginRight;
+        int templateMarginBottom;
+
+        IAMDisplayConfig() {
+            reset();
+        }
+
+        void reset() {
+            screenName = null;
+            templateWidth = 0;
+            templateHeight = 0;
+            templateMarginLeft = 0;
+            templateMarginTop = 0;
+            templateMarginRight = 0;
+            templateMarginBottom = 0;
+        }
+    }
+
     @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
     private static Activity mActivity = null;
-    private static String mScreen = null;
     private static AlertDialog mDialog = null;
     private static InAppActionCallback mActionCallback = null;
     private static InAppMessage mInApp = null;
     private static String mInAppOngoingIn = null; // activity class name
+    private static final IAMDisplayConfig displayConfig = new IAMDisplayConfig();
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -73,7 +95,7 @@ public class InAppManager {
         }
 
         mActivity = activity;
-        mScreen = screenName;
+        displayConfig.screenName = screenName;
 
         // check if there is an ongoing in-app display (orientation change)
         // if found, display the cached in-app message.
@@ -117,7 +139,7 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
-        mScreen = null;
+        displayConfig.reset();
     }
 
     private static void displayCachedOngoingInApp() {
@@ -404,7 +426,7 @@ public class InAppManager {
                     public void run() {
                         InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
                         if (store != null) {
-                            InAppMessage input = store.getInAppMessage(mActivity, mScreen);
+                            InAppMessage input = store.getInAppMessage(mActivity, displayConfig.screenName);
 
                             if (input == null) {
                                 BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
@@ -450,10 +472,98 @@ public class InAppManager {
     private static void displayInAppMessage(final InAppMessage inAppMessage) {
         if (inAppMessage != null && mActivity != null) {
             cacheAssets(inAppMessage, mActivity.getApplicationContext());
+
+            prepareTemplateSize(mActivity, inAppMessage);
+            prepareTemplateMargins(mActivity, inAppMessage);
+
             showInAppOnMainThread(inAppMessage);
         } else {
             BlueshiftLogger.e(LOG_TAG, "InApp message or mActivity is null!");
         }
+    }
+
+    private static void prepareTemplateMargins(Context context, InAppMessage inAppMessage) {
+        Rect margins = inAppMessage.getTemplateMargin(context);
+        if (margins != null) {
+            displayConfig.templateMarginLeft = margins.left;
+            displayConfig.templateMarginTop = margins.top;
+            displayConfig.templateMarginRight = margins.right;
+            displayConfig.templateMarginBottom = margins.bottom;
+        }
+    }
+
+    private static void prepareTemplateSize(Context context, InAppMessage inAppMessage) {
+        int topMargin = (int) (24 * context.getResources().getDisplayMetrics().density);
+        BlueshiftLogger.d(LOG_TAG, "topMargin: " + topMargin);
+
+        double maxWidth = context.getResources().getDisplayMetrics().widthPixels;
+        double maxHeight = context.getResources().getDisplayMetrics().heightPixels - topMargin;
+
+        int width = 0, height = 0;
+
+        BlueshiftLogger.d(LOG_TAG, "Available size (maxWidth: " + maxWidth + ", maxHeight: " + maxHeight + ",)");
+
+        int widthPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.WIDTH, -1);
+        int heightPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+
+        BlueshiftLogger.d(LOG_TAG, "% (widthPercentage: " + widthPercentage + ", heightPercentage: " + heightPercentage + ",)");
+
+        if (widthPercentage < 0) {
+            // auto width
+            widthPercentage = 85;
+        }
+
+        maxWidth = maxWidth * widthPercentage / 100;
+
+        if (heightPercentage < 0) {
+            // auto height
+            heightPercentage = 85;
+        }
+
+        // custom height
+        maxHeight = maxHeight * heightPercentage / 100;
+
+        BlueshiftLogger.d(LOG_TAG, "Available size -new-  (maxWidth: " + maxWidth + ", maxHeight: " + maxHeight + ",)");
+
+        BlueshiftLogger.d(LOG_TAG, "% -new- (widthPercentage: " + widthPercentage + ", heightPercentage: " + heightPercentage + ",)");
+
+        String url = InAppUtils.getTemplateString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE);
+        if (url != null) {
+            Bitmap bitmap = BlueshiftImageCache.getBitmap(context, url);
+            if (bitmap != null) {
+                double iWidth = bitmap.getWidth();
+                double iHeight = bitmap.getHeight();
+
+                BlueshiftLogger.d(LOG_TAG, "Image (width: " + iWidth + ", height: " + iHeight + ",)");
+
+                if (iWidth < maxWidth && iHeight < maxHeight) {
+                    width = (int) iWidth;
+                    height = (int) iHeight;
+                } else {
+                    double ratio = iHeight / iWidth;
+
+                    BlueshiftLogger.d(LOG_TAG, "iHeight / iWidth : " + ratio);
+
+                    width = (int) maxWidth;
+                    height = (int) (maxWidth * ratio);
+
+                    if (height > maxHeight) {
+                        width = (int) (maxHeight / ratio);
+                        height = (int) maxHeight;
+                    }
+                }
+
+                BlueshiftLogger.d(LOG_TAG, "Size (width: " + width + ", height: " + height + ",)");
+            }
+        } else {
+            width = (int) ((maxWidth * widthPercentage) / 100);
+            height = (int) ((maxHeight * heightPercentage) / 100);
+
+            BlueshiftLogger.d(LOG_TAG, "Size (width: " + width + ", height: " + height + ",)");
+        }
+
+        displayConfig.templateWidth = width;
+        displayConfig.templateHeight = height;
     }
 
     private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
@@ -701,74 +811,21 @@ public class InAppManager {
         }
     }
 
-    private static void adjustDimensionsForModal(final ViewGroup rootView) {
-        if (rootView != null) {
-            rootView.post(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            int modalWidth = rootView.getMeasuredWidth();
-                            int modalHeight = rootView.getMeasuredHeight();
-
-                            // image background will be at position 0 if available
-                            View view = rootView.getChildAt(0);
-                            if (view instanceof ImageView) {
-                                // background image is present and it will fill the parent view
-                                // automatically. Now let's adjust the dimensions of the parent view
-                                // to match the dimensions of the dialog container.
-
-                                if (rootView.getChildCount() > 1) {
-                                    View contentView = rootView.getChildAt(1);
-                                    applyDimensionsToView(contentView, modalWidth, modalHeight);
-                                }
-                            } else if (view instanceof ViewGroup) {
-                                applyDimensionsToView(view, modalWidth, modalHeight);
-                            }
-                        }
-                    }
-            );
-        }
-    }
-
     private static View applyTemplateStyle(View view, InAppMessage inAppMessage) {
         Context context = view.getContext();
 
         // The root view of dialog can not accept margins. hence adding a wrapper
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                displayConfig.templateWidth, displayConfig.templateHeight
+        );
 
-        Rect margins = inAppMessage.getTemplateMargin(context);
-        if (margins != null) {
-            lp.leftMargin = CommonUtils.dpToPx(margins.left, context);
-            lp.topMargin = CommonUtils.dpToPx(margins.top, context);
-            lp.rightMargin = CommonUtils.dpToPx(margins.right, context);
-            lp.bottomMargin = CommonUtils.dpToPx(margins.bottom, context);
-        }
-
-        DisplayMetrics metrics = view.getResources().getDisplayMetrics();
-
-        float wPercentage = inAppMessage.getTemplateWidth(context);
-        if (wPercentage > 0) {
-            int horizontalMargin = (lp.leftMargin + lp.rightMargin);
-            lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargin);
-        } else {
-            lp.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
-
-        float hPercentage = inAppMessage.getTemplateHeight(context);
-        if (hPercentage > 0) {
-            int verticalMargin = lp.topMargin + lp.bottomMargin;
-            lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
-        } else {
-            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
+        lp.leftMargin = displayConfig.templateMarginLeft;
+        lp.topMargin = displayConfig.templateMarginTop;
+        lp.rightMargin = displayConfig.templateMarginRight;
+        lp.bottomMargin = displayConfig.templateMarginBottom;
 
         LinearLayout rootView = new LinearLayout(view.getContext());
         rootView.addView(view, lp);
-
-        if (InAppUtils.isModal(inAppMessage)) {
-            if (view instanceof ViewGroup) adjustDimensionsForModal((ViewGroup) view);
-        }
 
         return rootView;
     }
@@ -819,16 +876,7 @@ public class InAppManager {
                 if (window != null) {
                     window.setGravity(InAppUtils.getTemplateGravity(context, inAppMessage));
                     window.setDimAmount(dimAmount);
-
-                    int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-                    int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-
-                    if (InAppUtils.isTemplateFullScreen(context, inAppMessage)) {
-                        height = LinearLayout.LayoutParams.MATCH_PARENT;
-                        width = LinearLayout.LayoutParams.MATCH_PARENT;
-                    }
-
-                    window.setLayout(width, height);
+                    window.setLayout(displayConfig.templateWidth, displayConfig.templateHeight);
                 }
 
                 BlueshiftExecutor.getInstance().runOnDiskIOThread(
