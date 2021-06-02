@@ -2,6 +2,7 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -22,10 +23,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
-import com.blueshift.util.NetworkUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
