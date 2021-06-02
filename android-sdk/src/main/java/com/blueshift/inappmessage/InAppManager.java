@@ -12,6 +12,7 @@ import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
@@ -493,77 +494,77 @@ public class InAppManager {
     }
 
     private static void prepareTemplateSize(Context context, InAppMessage inAppMessage) {
+        // Calculate the space consumed by the status bar
         int topMargin = (int) (24 * context.getResources().getDisplayMetrics().density);
-        BlueshiftLogger.d(LOG_TAG, "topMargin: " + topMargin);
 
         double maxWidth = context.getResources().getDisplayMetrics().widthPixels;
         double maxHeight = context.getResources().getDisplayMetrics().heightPixels - topMargin;
 
-        int width = 0, height = 0;
+        int width, height;
 
-        BlueshiftLogger.d(LOG_TAG, "Available size (maxWidth: " + maxWidth + ", maxHeight: " + maxHeight + ",)");
-
+        // Read the width % and height % available in the payload
         int widthPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.WIDTH, -1);
         int heightPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
 
-        BlueshiftLogger.d(LOG_TAG, "% (widthPercentage: " + widthPercentage + ", heightPercentage: " + heightPercentage + ",)");
-
-        if (widthPercentage < 0) {
-            // auto width
-            widthPercentage = 85;
-        }
-
-        maxWidth = maxWidth * widthPercentage / 100;
-
-        if (heightPercentage < 0) {
-            // auto height
-            heightPercentage = 85;
-        }
-
-        // custom height
-        maxHeight = maxHeight * heightPercentage / 100;
-
-        BlueshiftLogger.d(LOG_TAG, "Available size -new-  (maxWidth: " + maxWidth + ", maxHeight: " + maxHeight + ",)");
-
-        BlueshiftLogger.d(LOG_TAG, "% -new- (widthPercentage: " + widthPercentage + ", heightPercentage: " + heightPercentage + ",)");
-
         String url = InAppUtils.getTemplateString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE);
-        if (url != null) {
-            Bitmap bitmap = BlueshiftImageCache.getBitmap(context, url);
-            if (bitmap != null) {
-                double iWidth = bitmap.getWidth();
-                double iHeight = bitmap.getHeight();
+        Bitmap bitmap;
+        if (url != null && (bitmap = BlueshiftImageCache.getBitmap(context, url)) != null) {
+            // we have a background image! The following code will set the width and height
+            // based on the aspect ratio of the image available. The width and height % provided
+            // in the payload will still be respected. The in-app will take maximum of that %
+            // of the screen to render itself.
 
-                BlueshiftLogger.d(LOG_TAG, "Image (width: " + iWidth + ", height: " + iHeight + ",)");
+            double iWidth = bitmap.getWidth();
+            double iHeight = bitmap.getHeight();
 
-                if (iWidth < maxWidth && iHeight < maxHeight) {
-                    width = (int) iWidth;
-                    height = (int) iHeight;
-                } else {
-                    double ratio = iHeight / iWidth;
+            if (widthPercentage < 0) {
+                // auto width, set the max width to 85% of the screen (15% margin)
+                widthPercentage = 85;
+            }
 
-                    BlueshiftLogger.d(LOG_TAG, "iHeight / iWidth : " + ratio);
+            // recalculate the maximum width available.
+            maxWidth = maxWidth * widthPercentage / 100;
 
-                    width = (int) maxWidth;
-                    height = (int) (maxWidth * ratio);
+            if (heightPercentage < 0) {
+                // auto height, set the max height to 85% of the screen (15% margin)
+                heightPercentage = 85;
+            }
 
-                    if (height > maxHeight) {
-                        width = (int) (maxHeight / ratio);
-                        height = (int) maxHeight;
-                    }
+            // recalculate the maximum height available.
+            maxHeight = maxHeight * heightPercentage / 100;
+
+            if (iWidth < maxWidth && iHeight < maxHeight) {
+                width = (int) iWidth;
+                height = (int) iHeight;
+            } else {
+                double ratio = iHeight / iWidth;
+
+                width = (int) maxWidth;
+                height = (int) (maxWidth * ratio);
+
+                if (height > maxHeight) {
+                    width = (int) (maxHeight / ratio);
+                    height = (int) maxHeight;
                 }
-
-                BlueshiftLogger.d(LOG_TAG, "Size (width: " + width + ", height: " + height + ",)");
             }
         } else {
-            width = (int) ((maxWidth * widthPercentage) / 100);
-            height = (int) ((maxHeight * heightPercentage) / 100);
+            if (widthPercentage < 0) {
+                width = ViewGroup.LayoutParams.WRAP_CONTENT;
+            } else {
+                width = (int) ((maxWidth * widthPercentage) / 100);
+            }
 
-            BlueshiftLogger.d(LOG_TAG, "Size (width: " + width + ", height: " + height + ",)");
+            if (heightPercentage < 0) {
+                height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            } else {
+                height = (int) ((maxHeight * heightPercentage) / 100);
+            }
         }
 
         displayConfig.templateWidth = width;
         displayConfig.templateHeight = height;
+
+        BlueshiftLogger.d(LOG_TAG, "Template size: w=" + width + "px, h=" + height + "px");
     }
 
     private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
@@ -804,14 +805,7 @@ public class InAppManager {
         }
     }
 
-    private static void applyDimensionsToView(View view, int width, int height) {
-        if (view != null && view.getLayoutParams() != null) {
-            view.getLayoutParams().width = width;
-            view.getLayoutParams().height = height;
-        }
-    }
-
-    private static View applyTemplateStyle(View view, InAppMessage inAppMessage) {
+    private static View applyTemplateStyle(View view) {
         Context context = view.getContext();
 
         // The root view of dialog can not accept margins. hence adding a wrapper
@@ -819,12 +813,18 @@ public class InAppManager {
                 displayConfig.templateWidth, displayConfig.templateHeight
         );
 
-        lp.leftMargin = displayConfig.templateMarginLeft;
-        lp.topMargin = displayConfig.templateMarginTop;
-        lp.rightMargin = displayConfig.templateMarginRight;
-        lp.bottomMargin = displayConfig.templateMarginBottom;
+        lp.leftMargin = CommonUtils.dpToPx(displayConfig.templateMarginLeft, context);
+        lp.topMargin = CommonUtils.dpToPx(displayConfig.templateMarginTop, context);
+        lp.rightMargin = CommonUtils.dpToPx(displayConfig.templateMarginRight, context);
+        lp.bottomMargin = CommonUtils.dpToPx(displayConfig.templateMarginBottom, context);
 
-        LinearLayout rootView = new LinearLayout(view.getContext());
+        BlueshiftLogger.d(LOG_TAG, "Template margin: ("
+                + lp.leftMargin + ", "
+                + lp.topMargin + ", "
+                + lp.rightMargin + ", "
+                + lp.bottomMargin + ")");
+
+        LinearLayout rootView = new LinearLayout(context);
         rootView.addView(view, lp);
 
         return rootView;
@@ -837,7 +837,7 @@ public class InAppManager {
                 final Context appContext = mActivity.getApplicationContext();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
-                builder.setView(applyTemplateStyle(content, inAppMessage));
+                builder.setView(applyTemplateStyle(content));
                 mDialog = builder.create();
 
                 boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
