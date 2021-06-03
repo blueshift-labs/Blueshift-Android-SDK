@@ -307,6 +307,29 @@ public class InAppUtils {
         return fallback;
     }
 
+    public static GradientDrawable getTemplateBackgroundDrawable(Context context, InAppMessage inAppMessage) {
+        GradientDrawable shape = new GradientDrawable();
+
+        try {
+            String colorVal = getTemplateString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR);
+            if (!validateColorString(colorVal)) {
+                colorVal = "#FFFFFF";
+            }
+
+            int color = Color.parseColor(colorVal);
+            shape.setColor(color);
+
+            int radius = getTemplateInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS, 0);
+            if (radius != 0) {
+                shape.setCornerRadius(radius);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return shape;
+    }
+
     public static double getTemplateBackgroundDimAmount(Context context, InAppMessage inAppMessage, double fallback) {
         return getTemplateDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
     }

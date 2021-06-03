@@ -2,7 +2,6 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -23,7 +22,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftConstants;
-import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
@@ -46,11 +44,15 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         this.inAppMessage = inAppMessage;
 
-        int bgColor = inAppMessage.getTemplateBackgroundColor(getContext());
-        if (bgColor != 0) {
-            setBackgroundColor(bgColor);
+        Drawable background = InAppUtils.getTemplateBackgroundDrawable(context, inAppMessage);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            setBackground(background);
         } else {
-            setBackgroundColor(Color.WHITE);
+            setBackgroundDrawable(background);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setClipToOutline(true);
         }
 
         addBackgroundImageView();
