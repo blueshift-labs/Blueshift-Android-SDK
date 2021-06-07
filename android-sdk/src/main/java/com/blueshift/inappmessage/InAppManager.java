@@ -486,10 +486,10 @@ public class InAppManager {
     private static void prepareTemplateMargins(Context context, InAppMessage inAppMessage) {
         Rect margins = inAppMessage.getTemplateMargin(context);
         if (margins != null) {
-            displayConfig.templateMarginLeft = margins.left;
-            displayConfig.templateMarginTop = margins.top;
-            displayConfig.templateMarginRight = margins.right;
-            displayConfig.templateMarginBottom = margins.bottom;
+            displayConfig.templateMarginLeft = CommonUtils.dpToPx(margins.left, context);
+            displayConfig.templateMarginTop = CommonUtils.dpToPx(margins.top, context);
+            displayConfig.templateMarginRight = CommonUtils.dpToPx(margins.right, context);
+            displayConfig.templateMarginBottom = CommonUtils.dpToPx(margins.bottom, context);
         }
     }
 
@@ -813,10 +813,14 @@ public class InAppManager {
                 displayConfig.templateWidth, displayConfig.templateHeight
         );
 
-        lp.leftMargin = CommonUtils.dpToPx(displayConfig.templateMarginLeft, context);
-        lp.topMargin = CommonUtils.dpToPx(displayConfig.templateMarginTop, context);
-        lp.rightMargin = CommonUtils.dpToPx(displayConfig.templateMarginRight, context);
-        lp.bottomMargin = CommonUtils.dpToPx(displayConfig.templateMarginBottom, context);
+        lp.leftMargin = displayConfig.templateMarginLeft;
+        lp.topMargin = displayConfig.templateMarginTop;
+        lp.rightMargin = displayConfig.templateMarginRight;
+        lp.bottomMargin = displayConfig.templateMarginBottom;
+
+        // Fix height and width based on the margins we should provide.
+        if (lp.width > 0) lp.width = lp.width - (lp.leftMargin + lp.rightMargin);
+        if (lp.height > 0) lp.height = lp.height - (lp.topMargin + lp.bottomMargin);
 
         BlueshiftLogger.d(LOG_TAG, "Template margin: ("
                 + lp.leftMargin + ", "
