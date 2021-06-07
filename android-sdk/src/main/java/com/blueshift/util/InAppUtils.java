@@ -765,7 +765,7 @@ public class InAppUtils {
         return shape;
     }
 
-    public static Drawable getActionBackgroundDrawable(JSONObject actionJson) {
+    public static Drawable getActionBackgroundDrawable(JSONObject actionJson, Context context) {
         GradientDrawable shape = new GradientDrawable();
 
         try {
@@ -775,7 +775,10 @@ public class InAppUtils {
             }
 
             int bgRadius = getActionBackgroundRadius(actionJson);
-            shape.setCornerRadius(bgRadius);
+            if (bgRadius != 0) {
+                int pxVal = CommonUtils.dpToPx(bgRadius, context);
+                shape.setCornerRadius(pxVal);
+            }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
@@ -916,13 +919,11 @@ public class InAppUtils {
             textView.setGravity(contentGravity);
 
             // BACKGROUND
-            Drawable background = InAppUtils.getActionBackgroundDrawable(actionJson);
-            if (background != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    textView.setBackground(background);
-                } else {
-                    textView.setBackgroundDrawable(background);
-                }
+            Drawable background = InAppUtils.getActionBackgroundDrawable(actionJson, textView.getContext());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                textView.setBackground(background);
+            } else {
+                textView.setBackgroundDrawable(background);
             }
 
             // PADDING
