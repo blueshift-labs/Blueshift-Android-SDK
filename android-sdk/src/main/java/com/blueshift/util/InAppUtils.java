@@ -504,7 +504,8 @@ public class InAppUtils {
 
             int radius = getContentBackgroundRadius(context, inAppMessage, contentName, 0);
             if (radius != 0) {
-                shape.setCornerRadius(radius);
+                int pxVal = CommonUtils.dpToPx(radius, context);
+                shape.setCornerRadius(pxVal);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
