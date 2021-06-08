@@ -39,6 +39,8 @@ import org.json.JSONObject;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
+    private static final int MAX_HEIGHT_PERCENTAGE = 85;
+    private static final int MAX_WIDTH_PERCENTAGE = 85;
 
     static class IAMDisplayConfig {
         String screenName;
@@ -519,7 +521,7 @@ public class InAppManager {
 
             if (widthPercentage < 0) {
                 // auto width, set the max width to 85% of the screen (15% margin)
-                widthPercentage = 85;
+                widthPercentage = MAX_WIDTH_PERCENTAGE;
             }
 
             // recalculate the maximum width available.
@@ -527,7 +529,7 @@ public class InAppManager {
 
             if (heightPercentage < 0) {
                 // auto height, set the max height to 85% of the screen (15% margin)
-                heightPercentage = 85;
+                heightPercentage = MAX_HEIGHT_PERCENTAGE;
             }
 
             // recalculate the maximum height available.
