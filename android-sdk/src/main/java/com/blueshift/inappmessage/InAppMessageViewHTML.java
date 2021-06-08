@@ -17,11 +17,12 @@ import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
-import com.blueshift.util.NetworkUtils;
+import com.blueshift.util.InAppUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class InAppMessageViewHTML extends InAppMessageView {
@@ -47,12 +48,28 @@ public class InAppMessageViewHTML extends InAppMessageView {
             webView.setWebViewClient(new InAppWebViewClient());
             webView.loadData(CommonUtils.getBase64(htmlContent), "text/html; charset=UTF-8", "base64");
 
-            webView.setLayoutParams(new ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+            int width = getWebViewDimension(inAppMessage, InAppConstants.WIDTH);
+            int height = getWebViewDimension(inAppMessage, InAppConstants.HEIGHT);
+
+            webView.setLayoutParams(new ViewGroup.LayoutParams(width, height));
 
             return webView;
         }
 
         return null;
+    }
+
+    /**
+     * Decides what should be the dimension of the {@link WebView} based on the availability
+     * of height and width.
+     *
+     * @param inAppMessage  valid {@link InAppMessage} object
+     * @param dimensionName mentions width or height needs to be retrieved
+     * @return MATCH_PARENT if a dimension is available, else use WRAP_CONTENT
+     */
+    private int getWebViewDimension(InAppMessage inAppMessage, String dimensionName) {
+        int width = InAppUtils.getTemplateInt(getContext(), inAppMessage, dimensionName, -1);
+        return width > 0 ? MATCH_PARENT : WRAP_CONTENT;
     }
 
     private void launchUri(Uri uri) {
