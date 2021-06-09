@@ -543,21 +543,6 @@ public abstract class InAppMessageView extends RelativeLayout {
         return textView;
     }
 
-    public ImageView getContentIconImageView(InAppMessage inAppMessage, String contentName) {
-        ImageView imageView = null;
-
-        if (inAppMessage != null && !TextUtils.isEmpty(contentName)) {
-            String imageUrl = inAppMessage.getContentString(contentName);
-
-            if (!TextUtils.isEmpty(imageUrl)) {
-                imageView = new ImageView(getContext());
-                InAppUtils.setContentImageView(imageView, inAppMessage, contentName);
-            }
-        }
-
-        return imageView;
-    }
-
     public ImageView getContentImageView(InAppMessage inAppMessage, String contentName) {
         ImageView imageView = null;
 
