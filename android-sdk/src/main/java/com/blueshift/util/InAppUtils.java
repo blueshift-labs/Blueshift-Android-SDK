@@ -819,32 +819,54 @@ public class InAppUtils {
         return getContentOrientation(context, inAppMessage, InAppConstants.ACTIONS);
     }
 
-    public static void setContentImageView(ImageView imageView, InAppMessage inAppMessage, String contentName) {
-        if (imageView != null && inAppMessage != null && !TextUtils.isEmpty(contentName)) {
-            Context context = imageView.getContext();
+    public static LinearLayout createContentIconView(Context context, InAppMessage inAppMessage, String contentName) {
+        String iconUrl = InAppUtils.getContentString(context, inAppMessage, contentName);
+        if (iconUrl == null || iconUrl.isEmpty()) return null;
 
-            // IMAGE
-            InAppUtils.loadImageAsync(imageView, inAppMessage.getContentString(contentName));
+        ImageView imageView = new ImageView(context);
 
-            // BACKGROUND
-            Drawable background = InAppUtils.getContentBackgroundDrawable(context, inAppMessage, contentName);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                imageView.setBackground(background);
-            } else {
-                imageView.setBackgroundDrawable(background);
-            }
+        // IMAGE VIEW
+        InAppUtils.loadImageAsync(imageView, inAppMessage.getContentString(contentName));
 
-            // PADDING (DEF: 4dp)
-            Rect padding = InAppUtils.getContentPadding(context, inAppMessage, contentName);
-            if (padding != null) {
-                imageView.setPadding(
-                        CommonUtils.dpToPx(padding.left, context),
-                        CommonUtils.dpToPx(padding.top, context),
-                        CommonUtils.dpToPx(padding.right, context),
-                        CommonUtils.dpToPx(padding.bottom, context)
-                );
-            }
+        // IMAGE BACKGROUND
+        // looks at "icon_image_background_color" and "icon_image_background_radius"
+        Drawable background = InAppUtils.getContentBackgroundDrawable(context, inAppMessage, contentName);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            imageView.setBackground(background);
+        } else {
+            imageView.setBackgroundDrawable(background);
         }
+
+        // IMAGE ROUND CORNERS
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            imageView.setClipToOutline(true);
+        }
+
+        // CONTAINER VIEW
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setGravity(Gravity.CENTER);
+
+        // CONTAINER BACKGROUND COLOR
+        // looks at "icon_image_background_color"
+        String color = InAppUtils.getContentBackgroundColor(context, inAppMessage, contentName);
+        if (InAppUtils.validateColorString(color)) {
+            linearLayout.setBackgroundColor(Color.parseColor(color));
+        }
+
+        // CONTAINER PADDING
+        Rect padding = InAppUtils.getContentPadding(context, inAppMessage, contentName);
+        if (padding != null) {
+            linearLayout.setPadding(
+                    CommonUtils.dpToPx(padding.left, context),
+                    CommonUtils.dpToPx(padding.top, context),
+                    CommonUtils.dpToPx(padding.right, context),
+                    CommonUtils.dpToPx(padding.bottom, context)
+            );
+        }
+
+        linearLayout.addView(imageView);
+
+        return linearLayout;
     }
 
     public static void setContentTextView(TextView textView, InAppMessage inAppMessage, String contentName) {
