@@ -1250,6 +1250,22 @@ public class Blueshift {
         }
     }
 
+    public void trackInAppMessageDismiss(InAppMessage inAppMessage, JSONObject extraJson) {
+        if (inAppMessage != null) {
+            // sending the element name to identify click
+            HashMap<String, Object> extras = new HashMap<>();
+            if (extraJson != null) {
+                Iterator<String> keys = extraJson.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    extras.put(key, extraJson.opt(key));
+                }
+            }
+
+            trackCampaignEventAsync(InAppConstants.EVENT_DISMISS, inAppMessage.getCampaignParamsMap(), extras);
+        }
+    }
+
     void trackUniversalLinks(Uri uri) {
         try {
             if (uri != null) {
