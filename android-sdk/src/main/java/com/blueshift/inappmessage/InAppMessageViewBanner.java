@@ -84,7 +84,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
                 playExitAnimation(-linearLayout.getWidth(), linearLayout, new Runnable() {
                     @Override
                     public void run() {
-                        onDismiss(inAppMessage, null);
+                        handleDismiss(inAppMessage, null);
                     }
                 });
             }
@@ -94,7 +94,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
                 playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
                     @Override
                     public void run() {
-                        onDismiss(inAppMessage, null);
+                        handleDismiss(inAppMessage, null);
                     }
                 });
             }

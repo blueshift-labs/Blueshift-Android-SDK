@@ -5,10 +5,13 @@ public class InAppConstants {
     // local constants
     public static final long IN_APP_INTERVAL = 60000; // (1000 * 60)ms, ie; 1 minute
 
+    public static final String DISMISS_URL = "blueshift://dismiss";
+
     // events
     public static final String EVENT_DELIVERED = "delivered";
     public static final String EVENT_OPEN = "open";
     public static final String EVENT_CLICK = "click";
+    public static final String EVENT_DISMISS = "dismiss";
     public static final String EVENT_EXTRA_ELEMENT = "element";
 
     // actions

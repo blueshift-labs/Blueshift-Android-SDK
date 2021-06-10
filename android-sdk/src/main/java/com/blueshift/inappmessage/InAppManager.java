@@ -732,8 +732,16 @@ public class InAppManager {
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                @Override
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeDismissButtonClick(inAppMessage, params);
+                }
+
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeDismissButtonClick(inAppMessage, params);
                 }
             };
 
@@ -746,8 +754,16 @@ public class InAppManager {
     private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                @Override
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeDismissButtonClick(inAppMessage, params);
+                }
+
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeDismissButtonClick(inAppMessage, params);
                 }
             };
 
@@ -761,8 +777,15 @@ public class InAppManager {
         if (context != null && inAppMessage != null) {
             InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                 @Override
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeDismissButtonClick(inAppMessage, params);
+                }
+
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeDismissButtonClick(inAppMessage, params);
                 }
             };
 
@@ -807,8 +830,6 @@ public class InAppManager {
         cleanUpOngoingInAppCache();
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
-        // log the click event
-        InAppUtils.invokeInAppClicked(appContext, inAppMessage, extras);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {

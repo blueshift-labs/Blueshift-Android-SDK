@@ -171,7 +171,7 @@ public class InAppMessageViewRating extends InAppMessageView {
         // open store
         openMarketApp();
 
-        onDismiss(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_RATE_APP));
+        handleClick(getInAppMessage(), getClickStatsJSONObject(InAppConstants.ACTION_RATE_APP));
     }
 
     private void logRatingToBlueshift() {

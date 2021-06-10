@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -1074,5 +1075,17 @@ public class InAppUtils {
         }
 
         Blueshift.getInstance(context).trackInAppMessageClick(inAppMessage, extras);
+    }
+
+    public static void invokeInAppDismiss(Context context, InAppMessage inAppMessage, JSONObject extras) {
+        Blueshift.getInstance(context).trackInAppMessageDismiss(inAppMessage, extras);
+    }
+
+    public static boolean isDismissURL(Uri uri) {
+        return uri != null && isDismissURL(uri.toString());
+    }
+
+    public static boolean isDismissURL(String url) {
+        return InAppConstants.DISMISS_URL.equals(url);
     }
 }
