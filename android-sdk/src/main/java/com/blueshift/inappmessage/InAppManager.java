@@ -17,6 +17,7 @@ import android.view.Window;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
@@ -39,8 +40,8 @@ import org.json.JSONObject;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
-    private static final int MAX_HEIGHT_PERCENTAGE = 85;
-    private static final int MAX_WIDTH_PERCENTAGE = 85;
+    private static final int MAX_HEIGHT_PERCENTAGE = 90;
+    private static final int MAX_WIDTH_PERCENTAGE = 90;
 
     static class IAMDisplayConfig {
         String screenName;
@@ -502,11 +503,15 @@ public class InAppManager {
         double maxWidth = context.getResources().getDisplayMetrics().widthPixels;
         double maxHeight = context.getResources().getDisplayMetrics().heightPixels - topMargin;
 
+        BlueshiftLogger.d(LOG_TAG, "Screen w= " + maxWidth + ", h= " + maxHeight);
+
         int width, height;
 
         // Read the width % and height % available in the payload
         int widthPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.WIDTH, -1);
         int heightPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+
+        BlueshiftLogger.d(LOG_TAG, "Template w= " + widthPercentage + " %, h= " + heightPercentage + " %");
 
         String url = InAppUtils.getTemplateString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE);
         Bitmap bitmap;
@@ -518,36 +523,92 @@ public class InAppManager {
 
             double iWidth = bitmap.getWidth();
             double iHeight = bitmap.getHeight();
+            double iRatio = iHeight / iWidth;
 
-            if (widthPercentage < 0) {
-                // auto width, set the max width to 85% of the screen (15% margin)
+            if (widthPercentage < 0 && heightPercentage < 0) {
+                // No dimension provided in the template. The in-app dimensions should be
+                // calculated based on the background image's dimensions and aspect ratio.
+
                 widthPercentage = MAX_WIDTH_PERCENTAGE;
-            }
-
-            // recalculate the maximum width available.
-            maxWidth = maxWidth * widthPercentage / 100;
-
-            if (heightPercentage < 0) {
-                // auto height, set the max height to 85% of the screen (15% margin)
                 heightPercentage = MAX_HEIGHT_PERCENTAGE;
-            }
 
-            // recalculate the maximum height available.
-            maxHeight = maxHeight * heightPercentage / 100;
+                maxWidth = (maxWidth * widthPercentage) / 100;
+                maxHeight = (maxHeight * heightPercentage) / 100;
 
-            if (iWidth < maxWidth && iHeight < maxHeight) {
-                width = (int) iWidth;
-                height = (int) iHeight;
-            } else {
-                double ratio = iHeight / iWidth;
+                int iWidthPx = CommonUtils.dpToPx((int) iWidth, context);
+                int iHeightPx = CommonUtils.dpToPx((int) iHeight, context);
 
-                width = (int) maxWidth;
-                height = (int) (maxWidth * ratio);
+                if (iWidthPx < maxWidth && iHeightPx < maxHeight) {
+                    width = iWidthPx;
+                    height = iHeightPx;
+                } else {
+                    width = (int) maxWidth;
+                    height = (int) (maxWidth * iRatio);
 
-                if (height > maxHeight) {
-                    width = (int) (maxHeight / ratio);
-                    height = (int) maxHeight;
+                    if (height > maxHeight) {
+                        width = (int) (maxHeight / iRatio);
+                        height = (int) maxHeight;
+                    }
                 }
+
+                BlueshiftLogger.d(LOG_TAG, "Automatic (FULL) maxW= " + maxWidth + "px, maxH= " + maxHeight + "px");
+                BlueshiftLogger.d(LOG_TAG, "Automatic (FULL) w= " + width + "px, h= " + height + "px");
+            } else {
+                // We have dimensions provided in the payload. Based on the provided values,
+                // and the background image and it's aspect ratio, we need to calculate the
+                // dimensions for the in-app messages.
+
+                // ** Backward compatible approach **
+                // If we have both height and width provided, we will respect the width and
+                // calculate the height to keep the aspect ratio.
+
+                if (widthPercentage > 0) {
+                    // when widthPercentage is more than zero there are two possible options for
+                    // heightPercentage.
+                    // a. heightPercentage can be -1 (automatic)
+                    // b. heightPercentage can be a positive value (ex; 80%)
+                    // in both these cases, we treat them as same. We will generate the height
+                    // regardless what is mentioned as heightPercentage.
+
+                    if (widthPercentage != 100) {
+                        // let's not add margin if the user wish to have 100% size
+                        maxHeight = (maxHeight * MAX_HEIGHT_PERCENTAGE) / 100;
+                    }
+
+                    maxWidth = (maxWidth * widthPercentage) / 100;
+
+                    width = (int) maxWidth;
+                    height = (int) (width * iRatio);
+
+                    if (height > maxHeight) {
+                        BlueshiftLogger.d(LOG_TAG, "Height overflow! Recalculate size.");
+
+                        width = (int) (maxHeight / iRatio);
+                        height = (int) maxHeight;
+                    }
+                } else {
+                    // We come here only when heightPercentage > 0 and widthPercentage = -1 (auto)
+                    // Now we need to calculate the width based on the image's aspect ration.
+                    maxHeight = (maxHeight * heightPercentage) / 100;
+
+                    if (heightPercentage != 100) {
+                        // let's not add margin if the user wish to have 100% size
+                        maxWidth = (maxWidth * MAX_WIDTH_PERCENTAGE) / 100;
+                    }
+
+                    height = (int) maxHeight;
+                    width = (int) (height / iRatio);
+
+                    if (width > maxWidth) {
+                        BlueshiftLogger.d(LOG_TAG, "Width overflow! Recalculate size.");
+
+                        width = (int) maxWidth;
+                        height = (int) (width * iRatio);
+                    }
+                }
+
+                BlueshiftLogger.d(LOG_TAG, "Automatic (SEMI) maxW= " + maxWidth + "px, maxH= " + maxHeight + "px");
+                BlueshiftLogger.d(LOG_TAG, "Automatic (SEMI) w= " + width + "px, h= " + height + "px");
             }
         } else {
             if (widthPercentage < 0) {
@@ -561,12 +622,12 @@ public class InAppManager {
             } else {
                 height = (int) ((maxHeight * heightPercentage) / 100);
             }
+
+            BlueshiftLogger.d(LOG_TAG, "Template size: w=" + width + "px, h=" + height + "px");
         }
 
         displayConfig.templateWidth = width;
         displayConfig.templateHeight = height;
-
-        BlueshiftLogger.d(LOG_TAG, "Template size: w=" + width + "px, h=" + height + "px");
     }
 
     private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
