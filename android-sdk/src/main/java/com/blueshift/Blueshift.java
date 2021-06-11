@@ -1349,6 +1349,9 @@ public class Blueshift {
             appendAnd(q);
             q.append(BlueshiftConstants.KEY_TIMESTAMP).append("=").append(CommonUtils.getCurrentUtcTimestamp());
 
+            appendAnd(q);
+            q.append(BlueshiftConstants.KEY_BROWSER_PLATFORM).append("=Android%20").append(Build.VERSION.RELEASE);
+
             if (extras != null && extras.size() > 0) {
                 String clickUrl = null;
                 Set<String> keys = extras.keySet();
