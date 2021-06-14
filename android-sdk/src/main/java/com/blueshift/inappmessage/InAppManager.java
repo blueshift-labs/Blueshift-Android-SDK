@@ -174,28 +174,9 @@ public class InAppManager {
         mActionCallback = callback;
     }
 
-    /**
-     * Creates a Handler with current looper.
-     *
-     * @param callback callback to invoke after API call
-     * @return Handler object to run the callback
-     */
-    private static Handler getCallbackHandler(InAppApiCallback callback) {
-        Handler handler = null;
-        if (callback != null) {
-            Looper looper = Looper.myLooper();
-            if (looper != null) {
-                handler = new Handler(looper);
-            }
-        }
-
-        return handler;
-    }
-
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
         boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         if (isEnabled) {
-            final Handler callbackHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
                     new Runnable() {
                         @Override
@@ -217,18 +198,16 @@ public class InAppManager {
 
                                     if (statusCode == 200) {
                                         handleInAppMessageAPIResponse(context, responseBody);
-
-                                        invokeApiSuccessCallback(callbackHandler, callback);
+                                        invokeApiSuccessCallback(callback);
                                     } else {
-                                        invokeApiFailureCallback(callbackHandler, callback, statusCode, responseBody);
+                                        invokeApiFailureCallback(callback, statusCode, responseBody);
                                     }
                                 } else {
-                                    invokeApiFailureCallback(callbackHandler, callback, 0, "Could not make the API call.");
+                                    invokeApiFailureCallback(callback, 0, "Could not make the API call.");
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
-
-                                invokeApiFailureCallback(callbackHandler, callback, 0, e.getMessage());
+                                invokeApiFailureCallback(callback, 0, e.getMessage());
                             }
                         }
                     }
@@ -238,9 +217,9 @@ public class InAppManager {
         }
     }
 
-    private static void invokeApiSuccessCallback(Handler handler, final InAppApiCallback callback) {
-        if (handler != null && callback != null) {
-            handler.post(new Runnable() {
+    private static void invokeApiSuccessCallback(final InAppApiCallback callback) {
+        if (callback != null) {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     callback.onSuccess();
@@ -249,13 +228,12 @@ public class InAppManager {
         }
     }
 
-    private static void invokeApiFailureCallback(Handler handler, final InAppApiCallback callback,
-                                                 final int errorCode, final String errorMessage) {
-        if (handler != null && callback != null) {
-            handler.post(new Runnable() {
+    private static void invokeApiFailureCallback(final InAppApiCallback callback, final int code, final String message) {
+        if (callback != null) {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
-                    callback.onFailure(errorCode, errorMessage);
+                    callback.onFailure(code, message);
                 }
             });
         }
