@@ -820,7 +820,8 @@ public class InAppUtils {
     }
 
     public static LinearLayout createContentIconView(Context context, InAppMessage inAppMessage, String contentName) {
-        String iconUrl = InAppUtils.getContentStyleString(context, inAppMessage, contentName);
+        // check if image URL is present, else return null to avoid showing icon view
+        String iconUrl = inAppMessage != null ? inAppMessage.getContentString(contentName) : null;
         if (iconUrl == null || iconUrl.isEmpty()) return null;
 
         ImageView imageView = new ImageView(context);
