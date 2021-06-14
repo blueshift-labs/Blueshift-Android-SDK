@@ -100,6 +100,7 @@ public class BlueshiftConstants {
     public static final String KEY_SUBSCRIPTION_START_DATE = "subscription_start_date";
     public static final String KEY_SUBSCRIPTION_STATUS = "subscription_status";
     public static final String KEY_TIMESTAMP = "timestamp";
+    public static final String KEY_BROWSER_PLATFORM = "browser_platform";
     public static final String KEY_SDK_VERSION = "bsft_sdk_version";
     public static final String KEY_CLICK_URL = "clk_url";
     public static final String KEY_CLICK_ELEMENT = "clk_elmt";
