@@ -198,32 +198,44 @@ public class InAppManager {
 
                                     if (statusCode == 200) {
                                         handleInAppMessageAPIResponse(context, responseBody);
-
-                                        if (callback != null) {
-                                            callback.onSuccess();
-                                        }
+                                        invokeApiSuccessCallback(callback);
                                     } else {
-                                        if (callback != null) {
-                                            callback.onFailure(statusCode, responseBody);
-                                        }
+                                        invokeApiFailureCallback(callback, statusCode, responseBody);
                                     }
                                 } else {
-                                    if (callback != null) {
-                                        callback.onFailure(0, "Could not make the API call.");
-                                    }
+                                    invokeApiFailureCallback(callback, 0, "Could not make the API call.");
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
-
-                                if (callback != null) {
-                                    callback.onFailure(0, e.getMessage());
-                                }
+                                invokeApiFailureCallback(callback, 0, e.getMessage());
                             }
                         }
                     }
             );
         } else {
             BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not fetch in-app messages from API.");
+        }
+    }
+
+    private static void invokeApiSuccessCallback(final InAppApiCallback callback) {
+        if (callback != null) {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onSuccess();
+                }
+            });
+        }
+    }
+
+    private static void invokeApiFailureCallback(final InAppApiCallback callback, final int code, final String message) {
+        if (callback != null) {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onFailure(code, message);
+                }
+            });
         }
     }
 
