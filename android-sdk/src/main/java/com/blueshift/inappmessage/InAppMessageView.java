@@ -72,7 +72,7 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     private void addBackgroundImageView() {
-        String url = InAppUtils.getTemplateString(
+        String url = InAppUtils.getTemplateStyleString(
                 getContext(), inAppMessage, InAppConstants.BACKGROUND_IMAGE);
         if (!TextUtils.isEmpty(url)) {
             ImageView imageView = new ImageView(getContext());

@@ -68,7 +68,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
      * @return MATCH_PARENT if a dimension is available, else use WRAP_CONTENT
      */
     private int getWebViewDimension(InAppMessage inAppMessage, String dimensionName) {
-        int width = InAppUtils.getTemplateInt(getContext(), inAppMessage, dimensionName, -1);
+        int width = InAppUtils.getTemplateStyleInt(getContext(), inAppMessage, dimensionName, -1);
         return width > 0 ? MATCH_PARENT : WRAP_CONTENT;
     }
 

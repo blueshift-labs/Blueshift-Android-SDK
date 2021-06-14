@@ -17,7 +17,6 @@ import android.view.Window;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 
-import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
@@ -508,12 +507,12 @@ public class InAppManager {
         int width, height;
 
         // Read the width % and height % available in the payload
-        int widthPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.WIDTH, -1);
-        int heightPercentage = InAppUtils.getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+        int widthPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.WIDTH, -1);
+        int heightPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
 
         BlueshiftLogger.d(LOG_TAG, "Template w= " + widthPercentage + " %, h= " + heightPercentage + " %");
 
-        String url = InAppUtils.getTemplateString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE);
+        String url = InAppUtils.getTemplateStyleString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE);
         Bitmap bitmap;
         if (url != null && (bitmap = BlueshiftImageCache.getBitmap(context, url)) != null) {
             // we have a background image! The following code will set the width and height
