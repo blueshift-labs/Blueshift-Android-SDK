@@ -637,14 +637,9 @@ public class InAppManager {
                         if (mActivity != null) {
                             boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
                             if (isSuccess) {
+                                BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
                                 mInApp = inAppMessage;
                                 markAsDisplayed(inAppMessage);
-                            }
-
-                            if (isSuccess) {
-                                BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
-                            } else {
-                                BlueshiftLogger.e(LOG_TAG, "InApp message display failed!");
                             }
                         } else {
                             BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
@@ -896,70 +891,79 @@ public class InAppManager {
         return rootView;
     }
 
+    private static boolean canDisplayInThisScreen(InAppMessage inAppMessage) {
+        String targetScreen = inAppMessage != null ? inAppMessage.getDisplayOn() : "";
+        return targetScreen.isEmpty() || targetScreen.equals(displayConfig.screenName);
+    }
+
     private static boolean buildAndShowAlertDialog(
             Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
         if (mActivity != null && !mActivity.isFinishing()) {
             if (mDialog == null || !mDialog.isShowing()) {
-                final Context appContext = mActivity.getApplicationContext();
+                if (canDisplayInThisScreen(inAppMessage)) {
+                    final Context appContext = mActivity.getApplicationContext();
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
-                builder.setView(applyTemplateStyle(content));
-                mDialog = builder.create();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
+                    builder.setView(applyTemplateStyle(content));
+                    mDialog = builder.create();
 
-                boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
-                mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
+                    boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
+                    mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
 
-                // dismiss happens when user interacts with the dialog
-                mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialogInterface) {
-                        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        InAppManager.clearCachedAssets(inAppMessage, appContext);
-                                        InAppManager.scheduleNextInAppMessage(appContext);
-                                        InAppManager.cleanUpOngoingInAppCache();
+                    // dismiss happens when user interacts with the dialog
+                    mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            InAppManager.clearCachedAssets(inAppMessage, appContext);
+                                            InAppManager.scheduleNextInAppMessage(appContext);
+                                            InAppManager.cleanUpOngoingInAppCache();
+                                        }
                                     }
-                                }
-                        );
-                    }
-                });
-
-                // cancel happens when it gets cancelled by actions like tap on outside,
-                // back button press or programmatically cancelling
-                mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialogInterface) {
-                        InAppManager.scheduleNextInAppMessage(appContext);
-                        InAppManager.cleanUpOngoingInAppCache();
-                    }
-                });
-
-                mDialog.show();
-
-                Window window = mDialog.getWindow();
-                if (window != null) {
-                    window.setGravity(InAppUtils.getTemplateGravity(context, inAppMessage));
-                    window.setDimAmount(dimAmount);
-                    window.setLayout(displayConfig.templateWidth, displayConfig.templateHeight);
-                }
-
-                BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                InAppManager.invokeOnInAppViewed(inAppMessage);
-                            }
+                            );
                         }
-                );
+                    });
 
-                return true;
+                    // cancel happens when it gets cancelled by actions like tap on outside,
+                    // back button press or programmatically cancelling
+                    mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            InAppManager.scheduleNextInAppMessage(appContext);
+                            InAppManager.cleanUpOngoingInAppCache();
+                        }
+                    });
+
+                    mDialog.show();
+
+                    Window window = mDialog.getWindow();
+                    if (window != null) {
+                        window.setGravity(InAppUtils.getTemplateGravity(context, inAppMessage));
+                        window.setDimAmount(dimAmount);
+                        window.setLayout(displayConfig.templateWidth, displayConfig.templateHeight);
+                    }
+
+                    BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    InAppManager.invokeOnInAppViewed(inAppMessage);
+                                }
+                            }
+                    );
+
+                    return true;
+                } else {
+                    BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: We're not in the targeted screen.");
+                }
             } else {
-                BlueshiftLogger.d(LOG_TAG, "Already an in-app is in display.");
+                BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: We have an in-app message in display.");
             }
         } else {
-            BlueshiftLogger.d(LOG_TAG, "App is not running in foreground.");
+            BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: We don't have the app running in foreground.");
         }
 
         return false;
