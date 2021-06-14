@@ -5,12 +5,12 @@ import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
+import com.blueshift.util.InAppUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,7 +42,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
             linearLayout.addView(iconTextView, lpIcon);
         }
 
-        ImageView iconImageView = getContentIconImageView(inAppMessage, InAppConstants.ICON_IMAGE);
+        ViewGroup iconImageView = InAppUtils.createContentIconView(getContext(), inAppMessage, InAppConstants.ICON_IMAGE);
         if (iconImageView != null) {
             linearLayout.addView(iconImageView, lpIcon);
         }
