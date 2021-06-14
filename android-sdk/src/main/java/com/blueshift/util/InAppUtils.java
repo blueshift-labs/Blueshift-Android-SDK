@@ -214,7 +214,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static String getContentString(Context context, InAppMessage inAppMessage, String contentName) {
+    public static String getContentStyleString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null) {
                 JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
@@ -228,7 +228,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getContentInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getContentStyleInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
@@ -241,7 +241,7 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static Rect getContentRect(Context context, InAppMessage inAppMessage, String contentName) {
+    public static Rect getContentStyleRect(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
@@ -254,7 +254,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static String getTemplateString(Context context, InAppMessage inAppMessage, String contentName) {
+    public static String getTemplateStyleString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -268,7 +268,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getTemplateInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getTemplateStyleInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -281,7 +281,7 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static double getTemplateDouble(Context context, InAppMessage inAppMessage, String contentName, double fallback) {
+    public static double getTemplateStyleDouble(Context context, InAppMessage inAppMessage, String contentName, double fallback) {
         try {
             if (inAppMessage != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -294,7 +294,7 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static boolean getTemplateBoolean(Context context, InAppMessage inAppMessage, String contentName, boolean fallback) {
+    public static boolean getTemplateStyleBoolean(Context context, InAppMessage inAppMessage, String contentName, boolean fallback) {
         try {
             if (inAppMessage != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -311,7 +311,7 @@ public class InAppUtils {
         GradientDrawable shape = new GradientDrawable();
 
         try {
-            String colorVal = getTemplateString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR);
+            String colorVal = getTemplateStyleString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR);
             if (!validateColorString(colorVal)) {
                 colorVal = "#FFFFFF";
             }
@@ -319,7 +319,7 @@ public class InAppUtils {
             int color = Color.parseColor(colorVal);
             shape.setColor(color);
 
-            int radius = getTemplateInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS, 0);
+            int radius = getTemplateStyleInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS, 0);
             if (radius != 0) {
                 int pxVal = CommonUtils.dpToPx(radius, context);
                 shape.setCornerRadius(pxVal);
@@ -332,12 +332,12 @@ public class InAppUtils {
     }
 
     public static double getTemplateBackgroundDimAmount(Context context, InAppMessage inAppMessage, double fallback) {
-        return getTemplateDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
+        return getTemplateStyleDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
     }
 
     private static JSONObject getCloseButtonJSONObject(Context context, InAppMessage inAppMessage) {
         try {
-            String closeButton = getTemplateString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
+            String closeButton = getTemplateStyleString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
             if (!TextUtils.isEmpty(closeButton)) {
                 return new JSONObject(closeButton);
             }
@@ -386,7 +386,7 @@ public class InAppUtils {
         boolean shouldShow = fallback;
 
         try {
-            String closeButton = getTemplateString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
+            String closeButton = getTemplateStyleString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
             if (!TextUtils.isEmpty(closeButton)) {
                 JSONObject closeButtonStyle = new JSONObject(closeButton);
                 if (closeButtonStyle.has(InAppConstants.CLOSE_BUTTON_SHOW)) {
@@ -435,7 +435,7 @@ public class InAppUtils {
         try {
             if (inAppMessage != null) {
                 boolean shouldCancel = isSlideIn(inAppMessage); // slide in is by default cancellable on touch outside
-                result = getTemplateBoolean(context, inAppMessage, InAppConstants.CANCEL_ON_TOUCH_OUTSIDE, shouldCancel);
+                result = getTemplateStyleBoolean(context, inAppMessage, InAppConstants.CANCEL_ON_TOUCH_OUTSIDE, shouldCancel);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -446,7 +446,7 @@ public class InAppUtils {
 
     public static int getContentOrientation(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            int orientation = getContentInt(context, inAppMessage, InAppConstants.ORIENTATION(contentName), LinearLayout.HORIZONTAL);
+            int orientation = getContentStyleInt(context, inAppMessage, InAppConstants.ORIENTATION(contentName), LinearLayout.HORIZONTAL);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
                 return orientation;
             }
@@ -460,7 +460,7 @@ public class InAppUtils {
     public static String getContentColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentString(context, inAppMessage, InAppConstants.COLOR(contentName));
+                return getContentStyleString(context, inAppMessage, InAppConstants.COLOR(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -472,7 +472,7 @@ public class InAppUtils {
     public static String getContentBackgroundColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR(contentName));
+                return getContentStyleString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -484,7 +484,7 @@ public class InAppUtils {
     public static int getContentBackgroundRadius(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS(contentName), fallback);
+                return getContentStyleInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS(contentName), fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -517,7 +517,7 @@ public class InAppUtils {
     public static int getContentSize(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentInt(context, inAppMessage, InAppConstants.SIZE(contentName), fallback);
+                return getContentStyleInt(context, inAppMessage, InAppConstants.SIZE(contentName), fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -559,7 +559,7 @@ public class InAppUtils {
     public static int getContentGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                String gravity = getContentString(context, inAppMessage, InAppConstants.GRAVITY(contentName));
+                String gravity = getContentStyleString(context, inAppMessage, InAppConstants.GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
         } catch (Exception e) {
@@ -572,7 +572,7 @@ public class InAppUtils {
     public static int getContentLayoutGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                String gravity = getContentString(context, inAppMessage, InAppConstants.LAYOUT_GRAVITY(contentName));
+                String gravity = getContentStyleString(context, inAppMessage, InAppConstants.LAYOUT_GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
         } catch (Exception e) {
@@ -585,7 +585,7 @@ public class InAppUtils {
     public static Rect getContentPadding(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentRect(context, inAppMessage, InAppConstants.PADDING(contentName));
+                return getContentStyleRect(context, inAppMessage, InAppConstants.PADDING(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -597,7 +597,7 @@ public class InAppUtils {
     public static Rect getContentMargin(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentRect(context, inAppMessage, InAppConstants.MARGIN(contentName));
+                return getContentStyleRect(context, inAppMessage, InAppConstants.MARGIN(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -610,7 +610,7 @@ public class InAppUtils {
         boolean isSet = false;
 
         try {
-            int height = getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+            int height = getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
             isSet = height > 0;
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -623,8 +623,8 @@ public class InAppUtils {
         boolean isFullscreen = false;
 
         try {
-            int width = getTemplateInt(context, inAppMessage, InAppConstants.WIDTH, -1);
-            int height = getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+            int width = getTemplateStyleInt(context, inAppMessage, InAppConstants.WIDTH, -1);
+            int height = getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
             isFullscreen = (width == 100) && (height == 100);
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -634,7 +634,7 @@ public class InAppUtils {
     }
 
     public static int getTemplateGravity(Context context, InAppMessage inAppMessage) {
-        String position = getTemplateString(context, inAppMessage, InAppConstants.POSITION);
+        String position = getTemplateStyleString(context, inAppMessage, InAppConstants.POSITION);
         return parseGravityString(position);
     }
 
@@ -820,7 +820,7 @@ public class InAppUtils {
     }
 
     public static LinearLayout createContentIconView(Context context, InAppMessage inAppMessage, String contentName) {
-        String iconUrl = InAppUtils.getContentString(context, inAppMessage, contentName);
+        String iconUrl = InAppUtils.getContentStyleString(context, inAppMessage, contentName);
         if (iconUrl == null || iconUrl.isEmpty()) return null;
 
         ImageView imageView = new ImageView(context);
