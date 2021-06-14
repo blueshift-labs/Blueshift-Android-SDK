@@ -228,7 +228,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public Rect getTemplateMargin(Context context) {
         try {
-            String json = InAppUtils.getTemplateString(context, this, InAppConstants.MARGIN);
+            String json = InAppUtils.getTemplateStyleString(context, this, InAppConstants.MARGIN);
             return new Gson().fromJson(json, Rect.class);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
@@ -239,7 +239,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public int getTemplateHeight(Context context) {
         try {
-            return InAppUtils.getTemplateInt(context, this, InAppConstants.HEIGHT, -1);
+            return InAppUtils.getTemplateStyleInt(context, this, InAppConstants.HEIGHT, -1);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -249,7 +249,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public int getTemplateWidth(Context context) {
         try {
-            return InAppUtils.getTemplateInt(context, this, InAppConstants.WIDTH, -1);
+            return InAppUtils.getTemplateStyleInt(context, this, InAppConstants.WIDTH, -1);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
@@ -259,7 +259,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public int getTemplateBackgroundColor(Context context) {
         try {
-            String color = InAppUtils.getTemplateString(context, this, InAppConstants.BACKGROUND_COLOR);
+            String color = InAppUtils.getTemplateStyleString(context, this, InAppConstants.BACKGROUND_COLOR);
             if (InAppUtils.validateColorString(color)) {
                 return Color.parseColor(color);
             }

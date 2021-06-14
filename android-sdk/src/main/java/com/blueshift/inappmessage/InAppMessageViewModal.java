@@ -23,7 +23,7 @@ public class InAppMessageViewModal extends InAppMessageView {
         boolean heightAvailable = InAppUtils.isHeightSet(
                 getContext(), inAppMessage);
 
-        String url = InAppUtils.getTemplateString(
+        String url = InAppUtils.getTemplateStyleString(
                 getContext(), inAppMessage, InAppConstants.BACKGROUND_IMAGE);
         boolean backgroundImageAvailable = url != null;
 
