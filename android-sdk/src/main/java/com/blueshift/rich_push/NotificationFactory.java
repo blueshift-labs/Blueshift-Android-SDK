@@ -86,25 +86,15 @@ public class NotificationFactory {
     @Deprecated
     private static void buildAndShowAlertDialog(final Context context, final Message message) {
         if (context != null && message != null) {
-            final Handler handler = BlueshiftExecutor.getInstance().getMyHandler();
-            if (handler != null) {
-                BlueshiftExecutor.getInstance().runOnWorkerThread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                final boolean appInForeground = isAppInForeground(context);
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        launchNotificationActivity(context, message, appInForeground);
-                                    }
-                                });
-                            }
+            BlueshiftExecutor.getInstance().runOnWorkerThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            final boolean appInForeground = isAppInForeground(context);
+                            launchNotificationActivity(context, message, appInForeground);
                         }
-                );
-            } else {
-                BlueshiftLogger.e(LOG_TAG, "No handler found.");
-            }
+                    }
+            );
         }
     }
 

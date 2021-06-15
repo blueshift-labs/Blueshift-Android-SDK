@@ -66,15 +66,4 @@ public class BlueshiftExecutor {
             uiHandler.post(runnable);
         }
     }
-
-    public Handler getMyHandler() {
-        Handler handler = null;
-        Looper looper = Looper.myLooper();
-
-        if (looper != null) {
-            handler = new Handler(looper);
-        }
-
-        return handler;
-    }
 }

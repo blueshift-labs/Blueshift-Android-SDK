@@ -2,8 +2,6 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -19,7 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
@@ -34,9 +32,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -218,7 +214,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static String getContentString(Context context, InAppMessage inAppMessage, String contentName) {
+    public static String getContentStyleString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null) {
                 JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
@@ -232,7 +228,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getContentInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getContentStyleInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
@@ -245,7 +241,7 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static Rect getContentRect(Context context, InAppMessage inAppMessage, String contentName) {
+    public static Rect getContentStyleRect(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject contentStyle = getContentStyle(context, inAppMessage, contentName);
@@ -258,7 +254,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static String getTemplateString(Context context, InAppMessage inAppMessage, String contentName) {
+    public static String getTemplateStyleString(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -272,7 +268,7 @@ public class InAppUtils {
         return null;
     }
 
-    public static int getTemplateInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
+    public static int getTemplateStyleInt(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -285,7 +281,7 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static double getTemplateDouble(Context context, InAppMessage inAppMessage, String contentName, double fallback) {
+    public static double getTemplateStyleDouble(Context context, InAppMessage inAppMessage, String contentName, double fallback) {
         try {
             if (inAppMessage != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -298,7 +294,7 @@ public class InAppUtils {
         return fallback;
     }
 
-    public static boolean getTemplateBoolean(Context context, InAppMessage inAppMessage, String contentName, boolean fallback) {
+    public static boolean getTemplateStyleBoolean(Context context, InAppMessage inAppMessage, String contentName, boolean fallback) {
         try {
             if (inAppMessage != null) {
                 JSONObject templateStyle = getTemplateStyle(context, inAppMessage, contentName);
@@ -311,13 +307,37 @@ public class InAppUtils {
         return fallback;
     }
 
+    public static GradientDrawable getTemplateBackgroundDrawable(Context context, InAppMessage inAppMessage) {
+        GradientDrawable shape = new GradientDrawable();
+
+        try {
+            String colorVal = getTemplateStyleString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR);
+            if (!validateColorString(colorVal)) {
+                colorVal = "#FFFFFF";
+            }
+
+            int color = Color.parseColor(colorVal);
+            shape.setColor(color);
+
+            int radius = getTemplateStyleInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS, 0);
+            if (radius != 0) {
+                int pxVal = CommonUtils.dpToPx(radius, context);
+                shape.setCornerRadius(pxVal);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return shape;
+    }
+
     public static double getTemplateBackgroundDimAmount(Context context, InAppMessage inAppMessage, double fallback) {
-        return getTemplateDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
+        return getTemplateStyleDouble(context, inAppMessage, InAppConstants.BACKGROUND_DIM_AMOUNT, fallback);
     }
 
     private static JSONObject getCloseButtonJSONObject(Context context, InAppMessage inAppMessage) {
         try {
-            String closeButton = getTemplateString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
+            String closeButton = getTemplateStyleString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
             if (!TextUtils.isEmpty(closeButton)) {
                 return new JSONObject(closeButton);
             }
@@ -366,7 +386,7 @@ public class InAppUtils {
         boolean shouldShow = fallback;
 
         try {
-            String closeButton = getTemplateString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
+            String closeButton = getTemplateStyleString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
             if (!TextUtils.isEmpty(closeButton)) {
                 JSONObject closeButtonStyle = new JSONObject(closeButton);
                 if (closeButtonStyle.has(InAppConstants.CLOSE_BUTTON_SHOW)) {
@@ -415,7 +435,7 @@ public class InAppUtils {
         try {
             if (inAppMessage != null) {
                 boolean shouldCancel = isSlideIn(inAppMessage); // slide in is by default cancellable on touch outside
-                result = getTemplateBoolean(context, inAppMessage, InAppConstants.CANCEL_ON_TOUCH_OUTSIDE, shouldCancel);
+                result = getTemplateStyleBoolean(context, inAppMessage, InAppConstants.CANCEL_ON_TOUCH_OUTSIDE, shouldCancel);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -426,7 +446,7 @@ public class InAppUtils {
 
     public static int getContentOrientation(Context context, InAppMessage inAppMessage, String contentName) {
         try {
-            int orientation = getContentInt(context, inAppMessage, InAppConstants.ORIENTATION(contentName), LinearLayout.HORIZONTAL);
+            int orientation = getContentStyleInt(context, inAppMessage, InAppConstants.ORIENTATION(contentName), LinearLayout.HORIZONTAL);
             if (orientation == LinearLayout.HORIZONTAL || orientation == LinearLayout.VERTICAL) {
                 return orientation;
             }
@@ -440,7 +460,7 @@ public class InAppUtils {
     public static String getContentColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentString(context, inAppMessage, InAppConstants.COLOR(contentName));
+                return getContentStyleString(context, inAppMessage, InAppConstants.COLOR(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -452,7 +472,7 @@ public class InAppUtils {
     public static String getContentBackgroundColor(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR(contentName));
+                return getContentStyleString(context, inAppMessage, InAppConstants.BACKGROUND_COLOR(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -464,7 +484,7 @@ public class InAppUtils {
     public static int getContentBackgroundRadius(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS(contentName), fallback);
+                return getContentStyleInt(context, inAppMessage, InAppConstants.BACKGROUND_RADIUS(contentName), fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -484,7 +504,8 @@ public class InAppUtils {
 
             int radius = getContentBackgroundRadius(context, inAppMessage, contentName, 0);
             if (radius != 0) {
-                shape.setCornerRadius(radius);
+                int pxVal = CommonUtils.dpToPx(radius, context);
+                shape.setCornerRadius(pxVal);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -496,7 +517,7 @@ public class InAppUtils {
     public static int getContentSize(Context context, InAppMessage inAppMessage, String contentName, int fallback) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentInt(context, inAppMessage, InAppConstants.SIZE(contentName), fallback);
+                return getContentStyleInt(context, inAppMessage, InAppConstants.SIZE(contentName), fallback);
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -538,7 +559,7 @@ public class InAppUtils {
     public static int getContentGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                String gravity = getContentString(context, inAppMessage, InAppConstants.GRAVITY(contentName));
+                String gravity = getContentStyleString(context, inAppMessage, InAppConstants.GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
         } catch (Exception e) {
@@ -551,7 +572,7 @@ public class InAppUtils {
     public static int getContentLayoutGravity(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                String gravity = getContentString(context, inAppMessage, InAppConstants.LAYOUT_GRAVITY(contentName));
+                String gravity = getContentStyleString(context, inAppMessage, InAppConstants.LAYOUT_GRAVITY(contentName));
                 return parseGravityString(gravity);
             }
         } catch (Exception e) {
@@ -564,7 +585,7 @@ public class InAppUtils {
     public static Rect getContentPadding(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentRect(context, inAppMessage, InAppConstants.PADDING(contentName));
+                return getContentStyleRect(context, inAppMessage, InAppConstants.PADDING(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -576,7 +597,7 @@ public class InAppUtils {
     public static Rect getContentMargin(Context context, InAppMessage inAppMessage, String contentName) {
         try {
             if (inAppMessage != null && contentName != null) {
-                return getContentRect(context, inAppMessage, InAppConstants.MARGIN(contentName));
+                return getContentStyleRect(context, inAppMessage, InAppConstants.MARGIN(contentName));
             }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -589,7 +610,7 @@ public class InAppUtils {
         boolean isSet = false;
 
         try {
-            int height = getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+            int height = getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
             isSet = height > 0;
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -602,8 +623,8 @@ public class InAppUtils {
         boolean isFullscreen = false;
 
         try {
-            int width = getTemplateInt(context, inAppMessage, InAppConstants.WIDTH, -1);
-            int height = getTemplateInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+            int width = getTemplateStyleInt(context, inAppMessage, InAppConstants.WIDTH, -1);
+            int height = getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
             isFullscreen = (width == 100) && (height == 100);
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
@@ -613,98 +634,14 @@ public class InAppUtils {
     }
 
     public static int getTemplateGravity(Context context, InAppMessage inAppMessage) {
-        String position = getTemplateString(context, inAppMessage, InAppConstants.POSITION);
+        String position = getTemplateStyleString(context, inAppMessage, InAppConstants.POSITION);
         return parseGravityString(position);
     }
 
     public static void loadImageAsync(final ImageView imageView, final String path) {
         if (imageView != null && path != null && !path.equals("null")) {
-            final Context context = imageView.getContext();
-            BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Bitmap bitmap = loadFromDisk(context, path);
-                                if (bitmap == null) {
-                                    bitmap = loadFromNetwork(path);
-                                }
-
-                                if (bitmap != null) {
-                                    final Bitmap finalBitmap = bitmap;
-                                    BlueshiftExecutor.getInstance().runOnMainThread(
-                                            new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    try {
-                                                        imageView.setImageBitmap(finalBitmap);
-                                                    } catch (Exception e) {
-                                                        BlueshiftLogger.e(LOG_TAG, e);
-                                                    }
-                                                }
-                                            }
-                                    );
-                                } else {
-                                    BlueshiftLogger.e(LOG_TAG, "Could not load the image from " + path);
-                                }
-                            } catch (Exception e) {
-                                BlueshiftLogger.e(LOG_TAG, e);
-                            }
-                        }
-                    }
-            );
+            BlueshiftImageCache.loadBitmapOntoImageView(path, imageView);
         }
-    }
-
-    private static Bitmap loadFromDisk(Context context, String url) {
-        Bitmap bitmap = null;
-
-        try {
-            File imgFile = getCachedImageFile(context, url);
-            if (imgFile != null && imgFile.exists()) {
-                try {
-                    bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                } catch (Exception e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
-                }
-
-                if (bitmap != null) {
-                    BlueshiftLogger.d(LOG_TAG, "Using cached image. " + imgFile.getAbsolutePath());
-                }
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        return bitmap;
-    }
-
-    private static Bitmap loadFromNetwork(String url) {
-        Bitmap bitmap = null;
-        InputStream inputStream = null;
-        try {
-            if (!TextUtils.isEmpty(url)) {
-                inputStream = new URL(url).openStream();
-                bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
-
-                if (bitmap != null) {
-                    BlueshiftLogger.d(LOG_TAG, "Using remote image. " + url);
-                }
-            }
-        } catch (Exception e) {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (Exception ex) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        return bitmap;
     }
 
     public static JSONObject getActionFromName(InAppMessage inAppMessage, String actionName) {
@@ -828,7 +765,7 @@ public class InAppUtils {
         return shape;
     }
 
-    public static Drawable getActionBackgroundDrawable(JSONObject actionJson) {
+    public static Drawable getActionBackgroundDrawable(JSONObject actionJson, Context context) {
         GradientDrawable shape = new GradientDrawable();
 
         try {
@@ -838,7 +775,10 @@ public class InAppUtils {
             }
 
             int bgRadius = getActionBackgroundRadius(actionJson);
-            shape.setCornerRadius(bgRadius);
+            if (bgRadius != 0) {
+                int pxVal = CommonUtils.dpToPx(bgRadius, context);
+                shape.setCornerRadius(pxVal);
+            }
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
@@ -879,32 +819,55 @@ public class InAppUtils {
         return getContentOrientation(context, inAppMessage, InAppConstants.ACTIONS);
     }
 
-    public static void setContentImageView(ImageView imageView, InAppMessage inAppMessage, String contentName) {
-        if (imageView != null && inAppMessage != null && !TextUtils.isEmpty(contentName)) {
-            Context context = imageView.getContext();
+    public static LinearLayout createContentIconView(Context context, InAppMessage inAppMessage, String contentName) {
+        // check if image URL is present, else return null to avoid showing icon view
+        String iconUrl = inAppMessage != null ? inAppMessage.getContentString(contentName) : null;
+        if (iconUrl == null || iconUrl.isEmpty()) return null;
 
-            // IMAGE
-            InAppUtils.loadImageAsync(imageView, inAppMessage.getContentString(contentName));
+        ImageView imageView = new ImageView(context);
 
-            // BACKGROUND
-            Drawable background = InAppUtils.getContentBackgroundDrawable(context, inAppMessage, contentName);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                imageView.setBackground(background);
-            } else {
-                imageView.setBackgroundDrawable(background);
-            }
+        // IMAGE VIEW
+        InAppUtils.loadImageAsync(imageView, inAppMessage.getContentString(contentName));
 
-            // PADDING (DEF: 4dp)
-            Rect padding = InAppUtils.getContentPadding(context, inAppMessage, contentName);
-            if (padding != null) {
-                imageView.setPadding(
-                        CommonUtils.dpToPx(padding.left, context),
-                        CommonUtils.dpToPx(padding.top, context),
-                        CommonUtils.dpToPx(padding.right, context),
-                        CommonUtils.dpToPx(padding.bottom, context)
-                );
-            }
+        // IMAGE BACKGROUND
+        // looks at "icon_image_background_color" and "icon_image_background_radius"
+        Drawable background = InAppUtils.getContentBackgroundDrawable(context, inAppMessage, contentName);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            imageView.setBackground(background);
+        } else {
+            imageView.setBackgroundDrawable(background);
         }
+
+        // IMAGE ROUND CORNERS
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            imageView.setClipToOutline(true);
+        }
+
+        // CONTAINER VIEW
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setGravity(Gravity.CENTER);
+
+        // CONTAINER BACKGROUND COLOR
+        // looks at "icon_image_background_color"
+        String color = InAppUtils.getContentBackgroundColor(context, inAppMessage, contentName);
+        if (InAppUtils.validateColorString(color)) {
+            linearLayout.setBackgroundColor(Color.parseColor(color));
+        }
+
+        // CONTAINER PADDING
+        Rect padding = InAppUtils.getContentPadding(context, inAppMessage, contentName);
+        if (padding != null) {
+            linearLayout.setPadding(
+                    CommonUtils.dpToPx(padding.left, context),
+                    CommonUtils.dpToPx(padding.top, context),
+                    CommonUtils.dpToPx(padding.right, context),
+                    CommonUtils.dpToPx(padding.bottom, context)
+            );
+        }
+
+        linearLayout.addView(imageView);
+
+        return linearLayout;
     }
 
     public static void setContentTextView(TextView textView, InAppMessage inAppMessage, String contentName) {
@@ -979,13 +942,11 @@ public class InAppUtils {
             textView.setGravity(contentGravity);
 
             // BACKGROUND
-            Drawable background = InAppUtils.getActionBackgroundDrawable(actionJson);
-            if (background != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    textView.setBackground(background);
-                } else {
-                    textView.setBackgroundDrawable(background);
-                }
+            Drawable background = InAppUtils.getActionBackgroundDrawable(actionJson, textView.getContext());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                textView.setBackground(background);
+            } else {
+                textView.setBackgroundDrawable(background);
             }
 
             // PADDING

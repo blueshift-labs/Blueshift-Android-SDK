@@ -408,27 +408,16 @@ class RequestDispatcher {
     }
 
     private void dispatchWithToken(final String deviceToken) {
-        final Handler handler = BlueshiftExecutor.getInstance().getMyHandler();
         invokeDispatchBegin();
-        if (handler != null) {
-            BlueshiftExecutor.getInstance().runOnNetworkThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            processRequest(deviceToken);
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    invokeDispatchComplete();
-                                }
-                            });
-                        }
+        BlueshiftExecutor.getInstance().runOnNetworkThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        processRequest(deviceToken);
+                        invokeDispatchComplete();
                     }
-            );
-        } else {
-            BlueshiftLogger.e(LOG_TAG, "Could not create Handler to process request.");
-            invokeDispatchComplete();
-        }
+                }
+        );
     }
 
     public interface Callback {

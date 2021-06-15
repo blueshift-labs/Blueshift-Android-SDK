@@ -4,18 +4,17 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.WebView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.blueshift.BlueshiftAttributesApp;
@@ -25,6 +24,7 @@ import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftHttpManager;
 import com.blueshift.BlueshiftHttpRequest;
 import com.blueshift.BlueshiftHttpResponse;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
@@ -33,23 +33,46 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
-import com.blueshift.util.NetworkUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
-
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
+    private static final int MAX_HEIGHT_PERCENTAGE = 90;
+    private static final int MAX_WIDTH_PERCENTAGE = 90;
+
+    static class IAMDisplayConfig {
+        String screenName;
+        int templateWidth;
+        int templateHeight;
+        int templateMarginLeft;
+        int templateMarginTop;
+        int templateMarginRight;
+        int templateMarginBottom;
+
+        IAMDisplayConfig() {
+            reset();
+        }
+
+        void reset() {
+            screenName = null;
+            templateWidth = 0;
+            templateHeight = 0;
+            templateMarginLeft = 0;
+            templateMarginTop = 0;
+            templateMarginRight = 0;
+            templateMarginBottom = 0;
+        }
+    }
 
     @SuppressLint("StaticFieldLeak") // cleanup happens when unregisterForInAppMessages() is called.
     private static Activity mActivity = null;
-    private static String mScreen = null;
     private static AlertDialog mDialog = null;
     private static InAppActionCallback mActionCallback = null;
     private static InAppMessage mInApp = null;
     private static String mInAppOngoingIn = null; // activity class name
+    private static final IAMDisplayConfig displayConfig = new IAMDisplayConfig();
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -75,7 +98,7 @@ public class InAppManager {
         }
 
         mActivity = activity;
-        mScreen = screenName;
+        displayConfig.screenName = screenName;
 
         // check if there is an ongoing in-app display (orientation change)
         // if found, display the cached in-app message.
@@ -119,7 +142,7 @@ public class InAppManager {
 
         mDialog = null;
         mActivity = null;
-        mScreen = null;
+        displayConfig.reset();
     }
 
     private static void displayCachedOngoingInApp() {
@@ -151,28 +174,9 @@ public class InAppManager {
         mActionCallback = callback;
     }
 
-    /**
-     * Creates a Handler with current looper.
-     *
-     * @param callback callback to invoke after API call
-     * @return Handler object to run the callback
-     */
-    private static Handler getCallbackHandler(InAppApiCallback callback) {
-        Handler handler = null;
-        if (callback != null) {
-            Looper looper = Looper.myLooper();
-            if (looper != null) {
-                handler = new Handler(looper);
-            }
-        }
-
-        return handler;
-    }
-
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
         boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         if (isEnabled) {
-            final Handler callbackHandler = getCallbackHandler(callback);
             BlueshiftExecutor.getInstance().runOnNetworkThread(
                     new Runnable() {
                         @Override
@@ -194,18 +198,16 @@ public class InAppManager {
 
                                     if (statusCode == 200) {
                                         handleInAppMessageAPIResponse(context, responseBody);
-
-                                        invokeApiSuccessCallback(callbackHandler, callback);
+                                        invokeApiSuccessCallback(callback);
                                     } else {
-                                        invokeApiFailureCallback(callbackHandler, callback, statusCode, responseBody);
+                                        invokeApiFailureCallback(callback, statusCode, responseBody);
                                     }
                                 } else {
-                                    invokeApiFailureCallback(callbackHandler, callback, 0, "Could not make the API call.");
+                                    invokeApiFailureCallback(callback, 0, "Could not make the API call.");
                                 }
                             } catch (Exception e) {
                                 BlueshiftLogger.e(LOG_TAG, e);
-
-                                invokeApiFailureCallback(callbackHandler, callback, 0, e.getMessage());
+                                invokeApiFailureCallback(callback, 0, e.getMessage());
                             }
                         }
                     }
@@ -215,9 +217,9 @@ public class InAppManager {
         }
     }
 
-    private static void invokeApiSuccessCallback(Handler handler, final InAppApiCallback callback) {
-        if (handler != null && callback != null) {
-            handler.post(new Runnable() {
+    private static void invokeApiSuccessCallback(final InAppApiCallback callback) {
+        if (callback != null) {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     callback.onSuccess();
@@ -226,13 +228,12 @@ public class InAppManager {
         }
     }
 
-    private static void invokeApiFailureCallback(Handler handler, final InAppApiCallback callback,
-                                                 final int errorCode, final String errorMessage) {
-        if (handler != null && callback != null) {
-            handler.post(new Runnable() {
+    private static void invokeApiFailureCallback(final InAppApiCallback callback, final int code, final String message) {
+        if (callback != null) {
+            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
-                    callback.onFailure(errorCode, errorMessage);
+                    callback.onFailure(code, message);
                 }
             });
         }
@@ -364,9 +365,7 @@ public class InAppManager {
                     InAppMessageStore store = InAppMessageStore.getInstance(context);
                     if (store != null) {
                         boolean inserted = store.insert(inAppMessage);
-                        if (inserted) {
-                            InAppManager.cacheAssets(inAppMessage, context);
-                        } else {
+                        if (!inserted) {
                             BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
                         }
                     } else {
@@ -408,7 +407,7 @@ public class InAppManager {
                     public void run() {
                         InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
                         if (store != null) {
-                            InAppMessage input = store.getInAppMessage(mActivity, mScreen);
+                            InAppMessage input = store.getInAppMessage(mActivity, displayConfig.screenName);
 
                             if (input == null) {
                                 BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
@@ -451,33 +450,183 @@ public class InAppManager {
         }
     }
 
-    private static void displayInAppMessage(final InAppMessage input) {
-        if (input != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mActivity != null) {
-                                boolean isSuccess = buildAndShowInAppMessage(mActivity, input);
-                                if (isSuccess) {
-                                    mInApp = input;
-                                    markAsDisplayed(input);
-                                }
+    private static void displayInAppMessage(final InAppMessage inAppMessage) {
+        if (inAppMessage != null && mActivity != null) {
+            cacheAssets(inAppMessage, mActivity.getApplicationContext());
 
-                                if (isSuccess) {
-                                    BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
-                                } else {
-                                    BlueshiftLogger.e(LOG_TAG, "InApp message display failed!");
-                                }
-                            } else {
-                                BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
+            prepareTemplateSize(mActivity, inAppMessage);
+            prepareTemplateMargins(mActivity, inAppMessage);
+
+            showInAppOnMainThread(inAppMessage);
+        } else {
+            BlueshiftLogger.e(LOG_TAG, "InApp message or mActivity is null!");
+        }
+    }
+
+    private static void prepareTemplateMargins(Context context, InAppMessage inAppMessage) {
+        Rect margins = inAppMessage.getTemplateMargin(context);
+        if (margins != null) {
+            displayConfig.templateMarginLeft = CommonUtils.dpToPx(margins.left, context);
+            displayConfig.templateMarginTop = CommonUtils.dpToPx(margins.top, context);
+            displayConfig.templateMarginRight = CommonUtils.dpToPx(margins.right, context);
+            displayConfig.templateMarginBottom = CommonUtils.dpToPx(margins.bottom, context);
+        }
+    }
+
+    private static void prepareTemplateSize(Context context, InAppMessage inAppMessage) {
+        if (context == null || inAppMessage == null) return;
+
+        // Calculate the space consumed by the status bar
+        int topMargin = (int) (24 * context.getResources().getDisplayMetrics().density);
+
+        double maxWidth = context.getResources().getDisplayMetrics().widthPixels;
+        double maxHeight = context.getResources().getDisplayMetrics().heightPixels - topMargin;
+
+        BlueshiftLogger.d(LOG_TAG, "Screen w= " + maxWidth + ", h= " + maxHeight);
+
+        int width, height;
+
+        // Read the width % and height % available in the payload
+        int widthPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.WIDTH, -1);
+        int heightPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1);
+
+        BlueshiftLogger.d(LOG_TAG, "Template w= " + widthPercentage + " %, h= " + heightPercentage + " %");
+
+        String url = InAppUtils.getTemplateStyleString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE);
+        Bitmap bitmap;
+        if (url != null && (bitmap = BlueshiftImageCache.getBitmap(context, url)) != null) {
+            // we have a background image! The following code will set the width and height
+            // based on the aspect ratio of the image available. The width and height % provided
+            // in the payload will still be respected. The in-app will take maximum of that %
+            // of the screen to render itself.
+
+            double iWidth = bitmap.getWidth();
+            double iHeight = bitmap.getHeight();
+            double iRatio = iHeight / iWidth;
+
+            if (widthPercentage < 0 && heightPercentage < 0) {
+                // No dimension provided in the template. The in-app dimensions should be
+                // calculated based on the background image's dimensions and aspect ratio.
+
+                widthPercentage = MAX_WIDTH_PERCENTAGE;
+                heightPercentage = MAX_HEIGHT_PERCENTAGE;
+
+                maxWidth = (maxWidth * widthPercentage) / 100;
+                maxHeight = (maxHeight * heightPercentage) / 100;
+
+                int iWidthPx = CommonUtils.dpToPx((int) iWidth, context);
+                int iHeightPx = CommonUtils.dpToPx((int) iHeight, context);
+
+                if (iWidthPx < maxWidth && iHeightPx < maxHeight) {
+                    width = iWidthPx;
+                    height = iHeightPx;
+                } else {
+                    width = (int) maxWidth;
+                    height = (int) (maxWidth * iRatio);
+
+                    if (height > maxHeight) {
+                        width = (int) (maxHeight / iRatio);
+                        height = (int) maxHeight;
+                    }
+                }
+
+                BlueshiftLogger.d(LOG_TAG, "Automatic (FULL) maxW= " + maxWidth + "px, maxH= " + maxHeight + "px");
+                BlueshiftLogger.d(LOG_TAG, "Automatic (FULL) w= " + width + "px, h= " + height + "px");
+            } else {
+                // We have dimensions provided in the payload. Based on the provided values,
+                // and the background image and it's aspect ratio, we need to calculate the
+                // dimensions for the in-app messages.
+
+                // ** Backward compatible approach **
+                // If we have both height and width provided, we will respect the width and
+                // calculate the height to keep the aspect ratio.
+
+                if (widthPercentage > 0) {
+                    // when widthPercentage is more than zero there are two possible options for
+                    // heightPercentage.
+                    // a. heightPercentage can be -1 (automatic)
+                    // b. heightPercentage can be a positive value (ex; 80%)
+                    // in both these cases, we treat them as same. We will generate the height
+                    // regardless what is mentioned as heightPercentage.
+
+                    if (widthPercentage != 100) {
+                        // let's not add margin if the user wish to have 100% size
+                        maxHeight = (maxHeight * MAX_HEIGHT_PERCENTAGE) / 100;
+                    }
+
+                    maxWidth = (maxWidth * widthPercentage) / 100;
+
+                    width = (int) maxWidth;
+                    height = (int) (width * iRatio);
+
+                    if (height > maxHeight) {
+                        BlueshiftLogger.d(LOG_TAG, "Height overflow! Recalculate size.");
+
+                        width = (int) (maxHeight / iRatio);
+                        height = (int) maxHeight;
+                    }
+                } else {
+                    // We come here only when heightPercentage > 0 and widthPercentage = -1 (auto)
+                    // Now we need to calculate the width based on the image's aspect ration.
+                    maxHeight = (maxHeight * heightPercentage) / 100;
+
+                    if (heightPercentage != 100) {
+                        // let's not add margin if the user wish to have 100% size
+                        maxWidth = (maxWidth * MAX_WIDTH_PERCENTAGE) / 100;
+                    }
+
+                    height = (int) maxHeight;
+                    width = (int) (height / iRatio);
+
+                    if (width > maxWidth) {
+                        BlueshiftLogger.d(LOG_TAG, "Width overflow! Recalculate size.");
+
+                        width = (int) maxWidth;
+                        height = (int) (width * iRatio);
+                    }
+                }
+
+                BlueshiftLogger.d(LOG_TAG, "Automatic (SEMI) maxW= " + maxWidth + "px, maxH= " + maxHeight + "px");
+                BlueshiftLogger.d(LOG_TAG, "Automatic (SEMI) w= " + width + "px, h= " + height + "px");
+            }
+        } else {
+            if (widthPercentage < 0) {
+                width = ViewGroup.LayoutParams.WRAP_CONTENT;
+            } else {
+                width = (int) ((maxWidth * widthPercentage) / 100);
+            }
+
+            if (heightPercentage < 0) {
+                height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            } else {
+                height = (int) ((maxHeight * heightPercentage) / 100);
+            }
+
+            BlueshiftLogger.d(LOG_TAG, "Template size: w=" + width + "px, h=" + height + "px");
+        }
+
+        displayConfig.templateWidth = width;
+        displayConfig.templateHeight = height;
+    }
+
+    private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
+        BlueshiftExecutor.getInstance().runOnMainThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mActivity != null) {
+                            boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                            if (isSuccess) {
+                                BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
+                                mInApp = inAppMessage;
+                                markAsDisplayed(inAppMessage);
                             }
+                        } else {
+                            BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
                         }
                     }
-            );
-        } else {
-            BlueshiftLogger.e(LOG_TAG, "InApp message is null!");
-        }
+                }
+        );
     }
 
     private static void markAsDisplayed(final InAppMessage input) {
@@ -693,158 +842,119 @@ public class InAppManager {
         }
     }
 
-    private static void applyDimensionsToView(View view, int width, int height) {
-        if (view != null && view.getLayoutParams() != null) {
-            view.getLayoutParams().width = width;
-            view.getLayoutParams().height = height;
-        }
-    }
-
-    private static void adjustDimensionsForModal(final ViewGroup rootView) {
-        if (rootView != null) {
-            rootView.post(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            int modalWidth = rootView.getMeasuredWidth();
-                            int modalHeight = rootView.getMeasuredHeight();
-
-                            // image background will be at position 0 if available
-                            View view = rootView.getChildAt(0);
-                            if (view instanceof ImageView) {
-                                // background image is present and it will fill the parent view
-                                // automatically. Now let's adjust the dimensions of the parent view
-                                // to match the dimensions of the dialog container.
-
-                                if (rootView.getChildCount() > 1) {
-                                    View contentView = rootView.getChildAt(1);
-                                    applyDimensionsToView(contentView, modalWidth, modalHeight);
-                                }
-                            } else if (view instanceof ViewGroup) {
-                                applyDimensionsToView(view, modalWidth, modalHeight);
-                            }
-                        }
-                    }
-            );
-        }
-    }
-
-    private static View applyTemplateStyle(View view, InAppMessage inAppMessage) {
+    private static View applyTemplateStyle(View view) {
         Context context = view.getContext();
 
         // The root view of dialog can not accept margins. hence adding a wrapper
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                displayConfig.templateWidth, displayConfig.templateHeight
+        );
 
-        Rect margins = inAppMessage.getTemplateMargin(context);
-        if (margins != null) {
-            lp.leftMargin = CommonUtils.dpToPx(margins.left, context);
-            lp.topMargin = CommonUtils.dpToPx(margins.top, context);
-            lp.rightMargin = CommonUtils.dpToPx(margins.right, context);
-            lp.bottomMargin = CommonUtils.dpToPx(margins.bottom, context);
-        }
+        lp.leftMargin = displayConfig.templateMarginLeft;
+        lp.topMargin = displayConfig.templateMarginTop;
+        lp.rightMargin = displayConfig.templateMarginRight;
+        lp.bottomMargin = displayConfig.templateMarginBottom;
 
-        DisplayMetrics metrics = view.getResources().getDisplayMetrics();
+        // Fix height and width based on the margins we should provide.
+        if (lp.width > 0) lp.width = lp.width - (lp.leftMargin + lp.rightMargin);
+        if (lp.height > 0) lp.height = lp.height - (lp.topMargin + lp.bottomMargin);
 
-        float wPercentage = inAppMessage.getTemplateWidth(context);
-        if (wPercentage > 0) {
-            int horizontalMargin = (lp.leftMargin + lp.rightMargin);
-            lp.width = (int) ((metrics.widthPixels * (wPercentage / 100)) - horizontalMargin);
-        } else {
-            lp.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
+        BlueshiftLogger.d(LOG_TAG, "Template margin: ("
+                + lp.leftMargin + ", "
+                + lp.topMargin + ", "
+                + lp.rightMargin + ", "
+                + lp.bottomMargin + ")");
 
-        float hPercentage = inAppMessage.getTemplateHeight(context);
-        if (hPercentage > 0) {
-            int verticalMargin = lp.topMargin + lp.bottomMargin;
-            lp.height = (int) ((metrics.heightPixels * (hPercentage / 100)) - verticalMargin);
-        } else {
-            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
-
-        LinearLayout rootView = new LinearLayout(view.getContext());
+        LinearLayout rootView = new LinearLayout(context);
         rootView.addView(view, lp);
 
-        if (InAppUtils.isModal(inAppMessage)) {
-            if (view instanceof ViewGroup) adjustDimensionsForModal((ViewGroup) view);
-        }
-
         return rootView;
+    }
+
+    private static boolean canDisplayInThisScreen(InAppMessage inAppMessage) {
+        String targetScreen = inAppMessage != null ? inAppMessage.getDisplayOn() : "";
+        return targetScreen.isEmpty() || targetScreen.equals(displayConfig.screenName);
     }
 
     private static boolean buildAndShowAlertDialog(
             Context context, final InAppMessage inAppMessage, final View content, final int theme, final float dimAmount) {
         if (mActivity != null && !mActivity.isFinishing()) {
             if (mDialog == null || !mDialog.isShowing()) {
-                final Context appContext = mActivity.getApplicationContext();
+                if (canDisplayInThisScreen(inAppMessage)) {
+                    final Context appContext = mActivity.getApplicationContext();
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
-                builder.setView(applyTemplateStyle(content, inAppMessage));
-                mDialog = builder.create();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
+                    builder.setView(applyTemplateStyle(content));
+                    mDialog = builder.create();
 
-                boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
-                mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
+                    boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
+                    mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
 
-                // dismiss happens when user interacts with the dialog
-                mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialogInterface) {
-                        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        InAppManager.clearCachedAssets(inAppMessage, appContext);
-                                        InAppManager.scheduleNextInAppMessage(appContext);
-                                        InAppManager.cleanUpOngoingInAppCache();
+                    // dismiss happens when user interacts with the dialog
+                    mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            InAppManager.clearCachedAssets(inAppMessage, appContext);
+                                            InAppManager.scheduleNextInAppMessage(appContext);
+                                            InAppManager.cleanUpOngoingInAppCache();
+                                        }
                                     }
-                                }
-                        );
-                    }
-                });
-
-                // cancel happens when it gets cancelled by actions like tap on outside,
-                // back button press or programmatically cancelling
-                mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialogInterface) {
-                        InAppManager.scheduleNextInAppMessage(appContext);
-                        InAppManager.cleanUpOngoingInAppCache();
-                    }
-                });
-
-                mDialog.show();
-
-                Window window = mDialog.getWindow();
-                if (window != null) {
-                    window.setGravity(InAppUtils.getTemplateGravity(context, inAppMessage));
-                    window.setDimAmount(dimAmount);
-
-                    int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-                    int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-
-                    if (InAppUtils.isTemplateFullScreen(context, inAppMessage)) {
-                        height = LinearLayout.LayoutParams.MATCH_PARENT;
-                        width = LinearLayout.LayoutParams.MATCH_PARENT;
-                    }
-
-                    window.setLayout(width, height);
-                }
-
-                BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                InAppManager.invokeOnInAppViewed(inAppMessage);
-                            }
+                            );
                         }
-                );
+                    });
 
-                return true;
+                    // cancel happens when it gets cancelled by actions like tap on outside,
+                    // back button press or programmatically cancelling
+                    mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            InAppManager.scheduleNextInAppMessage(appContext);
+                            InAppManager.cleanUpOngoingInAppCache();
+                        }
+                    });
+
+                    try {
+                        mDialog.show();
+                    } catch (Exception e) {
+                        BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: " + e.getMessage());
+
+                        if (mDialog != null && mDialog.isShowing()) {
+                            mDialog.dismiss();
+                        }
+
+                        mDialog = null;
+                        return false;
+                    }
+
+                    Window window = mDialog.getWindow();
+                    if (window != null) {
+                        window.setGravity(InAppUtils.getTemplateGravity(context, inAppMessage));
+                        window.setDimAmount(dimAmount);
+                        window.setLayout(displayConfig.templateWidth, displayConfig.templateHeight);
+                    }
+
+                    BlueshiftExecutor.getInstance().runOnDiskIOThread(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    InAppManager.invokeOnInAppViewed(inAppMessage);
+                                }
+                            }
+                    );
+
+                    return true;
+                } else {
+                    BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: We're not in the targeted screen.");
+                }
             } else {
-                BlueshiftLogger.d(LOG_TAG, "Already an in-app is in display.");
+                BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: We have an in-app message in display.");
             }
         } else {
-            BlueshiftLogger.d(LOG_TAG, "App is not running in foreground.");
+            BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: We don't have the app running in foreground.");
         }
 
         return false;
@@ -861,24 +971,28 @@ public class InAppManager {
                 String bgImgNormal = inAppMessage.getTemplateStyle() != null
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgNormal)) deleteCachedImage(context, bgImgNormal);
+                if (!TextUtils.isEmpty(bgImgNormal)) {
+                    BlueshiftImageCache.clean(context, bgImgNormal);
+                }
+
                 // bg image: dark
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    deleteCachedImage(context, bgImgDark);
+                    BlueshiftImageCache.clean(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    deleteCachedImage(context, bannerImage);
+                    BlueshiftImageCache.clean(context, bannerImage);
                 }
+
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    deleteCachedImage(context, iconImage);
+                    BlueshiftImageCache.clean(context, iconImage);
                 }
             }
         }
@@ -914,54 +1028,30 @@ public class InAppManager {
                 String bgImgNormal = inAppMessage.getTemplateStyle() != null
                         ? inAppMessage.getTemplateStyle().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
-                if (!TextUtils.isEmpty(bgImgNormal)) cacheImage(context, bgImgNormal);
+                if (!TextUtils.isEmpty(bgImgNormal)) {
+                    BlueshiftImageCache.preload(context, bgImgNormal);
+                }
+
                 // bg image: dark
                 String bgImgDark = inAppMessage.getTemplateStyleDark() != null
                         ? inAppMessage.getTemplateStyleDark().optString(InAppConstants.BACKGROUND_IMAGE)
                         : null;
                 if (bgImgDark != null && !bgImgDark.isEmpty() && !bgImgDark.equals(bgImgNormal)) {
-                    cacheImage(context, bgImgDark);
+                    BlueshiftImageCache.preload(context, bgImgDark);
                 }
 
                 // modal with banner
                 String bannerImage = inAppMessage.getContentString(InAppConstants.BANNER);
                 if (!TextUtils.isEmpty(bannerImage)) {
-                    cacheImage(context, bannerImage);
+                    BlueshiftImageCache.preload(context, bannerImage);
                 }
+
                 // icon image of slide-in
                 String iconImage = inAppMessage.getContentString(InAppConstants.ICON_IMAGE);
                 if (!TextUtils.isEmpty(iconImage)) {
-                    cacheImage(context, iconImage);
+                    BlueshiftImageCache.preload(context, iconImage);
                 }
             }
-        }
-    }
-
-    private static void deleteCachedImage(Context context, String url) {
-        if (context != null && url != null) {
-            File imgFile = InAppUtils.getCachedImageFile(context, url);
-            if (imgFile != null && imgFile.exists()) {
-                BlueshiftLogger.d(LOG_TAG, "Image delete " + (imgFile.delete() ? "success. " : "failed. ")
-                        + imgFile.getAbsolutePath());
-            }
-        }
-    }
-
-    private static void cacheImage(final Context context, final String url) {
-        final File file = InAppUtils.getCachedImageFile(context, url);
-
-        if (file != null) {
-            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        boolean success = NetworkUtils.downloadFile(url, file.getAbsolutePath());
-                        BlueshiftLogger.d(LOG_TAG, "Download " + (success ? "success!" : "failed!"));
-                    } catch (Exception e) {
-                        BlueshiftLogger.e(LOG_TAG, e);
-                    }
-                }
-            });
         }
     }
 }

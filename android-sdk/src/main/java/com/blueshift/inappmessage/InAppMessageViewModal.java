@@ -20,19 +20,24 @@ public class InAppMessageViewModal extends InAppMessageView {
 
     @Override
     public View getView(InAppMessage inAppMessage) {
-        boolean isHeightAvailable = InAppUtils.isHeightSet(getContext(), inAppMessage);
+        boolean heightAvailable = InAppUtils.isHeightSet(
+                getContext(), inAppMessage);
+
+        String url = InAppUtils.getTemplateStyleString(
+                getContext(), inAppMessage, InAppConstants.BACKGROUND_IMAGE);
+        boolean backgroundImageAvailable = url != null;
+
+        // Decide if we should fill the parent to push the buttons to the
+        // bottom of the modal based on the availability of bg image or height
+        boolean fillParent = heightAvailable || backgroundImageAvailable;
 
         LinearLayout rootView = new LinearLayout(getContext());
         rootView.setOrientation(LinearLayout.VERTICAL);
 
         int width = ViewGroup.LayoutParams.MATCH_PARENT;
-        int height = isHeightAvailable ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT;
+        int height = fillParent
+                ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT;
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(width, height);
-
-        if (InAppUtils.isTemplateFullScreen(getContext(), inAppMessage)) {
-            lp2.height = ViewGroup.LayoutParams.MATCH_PARENT;
-        }
-
         rootView.setLayoutParams(lp2);
 
         // banner
@@ -69,7 +74,7 @@ public class InAppMessageViewModal extends InAppMessageView {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // message view/placeholder should fill the modal.
-        if (isHeightAvailable) {
+        if (fillParent) {
             lpMsgView.height = 0;
             lpMsgView.weight = 1;
         }
@@ -79,7 +84,7 @@ public class InAppMessageViewModal extends InAppMessageView {
             lpMsgView.gravity = InAppUtils.getContentLayoutGravity(getContext(), inAppMessage, InAppConstants.MESSAGE);
             rootView.addView(messageTextView, lpMsgView);
         } else {
-            if (isHeightAvailable) {
+            if (fillParent) {
                 rootView.addView(new TextView(getContext()), lpMsgView);
             }
         }

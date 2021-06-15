@@ -25,7 +25,6 @@ import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
-import com.blueshift.util.NetworkUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,11 +44,15 @@ public abstract class InAppMessageView extends RelativeLayout {
 
         this.inAppMessage = inAppMessage;
 
-        int bgColor = inAppMessage.getTemplateBackgroundColor(getContext());
-        if (bgColor != 0) {
-            setBackgroundColor(bgColor);
+        Drawable background = InAppUtils.getTemplateBackgroundDrawable(context, inAppMessage);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            setBackground(background);
         } else {
-            setBackgroundColor(Color.WHITE);
+            setBackgroundDrawable(background);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setClipToOutline(true);
         }
 
         addBackgroundImageView();
@@ -69,7 +72,7 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     private void addBackgroundImageView() {
-        String url = InAppUtils.getTemplateString(
+        String url = InAppUtils.getTemplateStyleString(
                 getContext(), inAppMessage, InAppConstants.BACKGROUND_IMAGE);
         if (!TextUtils.isEmpty(url)) {
             ImageView imageView = new ImageView(getContext());
@@ -538,21 +541,6 @@ public abstract class InAppMessageView extends RelativeLayout {
         }
 
         return textView;
-    }
-
-    public ImageView getContentIconImageView(InAppMessage inAppMessage, String contentName) {
-        ImageView imageView = null;
-
-        if (inAppMessage != null && !TextUtils.isEmpty(contentName)) {
-            String imageUrl = inAppMessage.getContentString(contentName);
-
-            if (!TextUtils.isEmpty(imageUrl)) {
-                imageView = new ImageView(getContext());
-                InAppUtils.setContentImageView(imageView, inAppMessage, contentName);
-            }
-        }
-
-        return imageView;
     }
 
     public ImageView getContentImageView(InAppMessage inAppMessage, String contentName) {
