@@ -474,6 +474,8 @@ public class InAppManager {
     }
 
     private static void prepareTemplateSize(Context context, InAppMessage inAppMessage) {
+        if (context == null || inAppMessage == null) return;
+
         // Calculate the space consumed by the status bar
         int topMargin = (int) (24 * context.getResources().getDisplayMetrics().density);
 
@@ -915,7 +917,18 @@ public class InAppManager {
                         }
                     });
 
-                    mDialog.show();
+                    try {
+                        mDialog.show();
+                    } catch (Exception e) {
+                        BlueshiftLogger.w(LOG_TAG, "Skipping in-app message! Reason: " + e.getMessage());
+
+                        if (mDialog != null && mDialog.isShowing()) {
+                            mDialog.dismiss();
+                        }
+
+                        mDialog = null;
+                        return false;
+                    }
 
                     Window window = mDialog.getWindow();
                     if (window != null) {
