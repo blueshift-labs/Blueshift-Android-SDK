@@ -6,14 +6,6 @@
     <application>
 
         <activity
-            android:name=".rich_push.NotificationActivity"
-            android:configChanges="orientation|screenSize"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:taskAffinity=":BsftNotificationDialog"
-            android:theme="@style/TransparentActivity" />
-
-        <activity
             android:name=".pn.BlueshiftNotificationEventsActivity"
             android:configChanges="orientation|screenSize"
             android:theme="@style/TransparentActivity" />
