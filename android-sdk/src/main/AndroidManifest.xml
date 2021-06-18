@@ -40,23 +40,6 @@
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
 
-        <!--
-        Deprecation Note:
-        Starting from Android Q, the below service will not be working as we can not start activities
-        from background. So, it is marked as deprecated from the release for Android Q.
-        -->
-        <!--
-        <service
-            android:name=".pn.BlueshiftNotificationEventsService"
-            android:exported="false">
-
-            <intent-filter>
-                <action android:name="com.blueshift.NOTIFICATION_CLICK_EVENT" />
-            </intent-filter>
-
-        </service>
-        -->
-
         <receiver android:name=".rich_push.ScheduledPushReceiver">
             <intent-filter>
                 <action android:name="${applicationId}.ACTION_SCHEDULED_PUSH" />
