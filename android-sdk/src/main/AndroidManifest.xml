@@ -6,14 +6,6 @@
     <application>
 
         <activity
-            android:name=".rich_push.NotificationActivity"
-            android:configChanges="orientation|screenSize"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:taskAffinity=":BsftNotificationDialog"
-            android:theme="@style/TransparentActivity" />
-
-        <activity
             android:name=".pn.BlueshiftNotificationEventsActivity"
             android:configChanges="orientation|screenSize"
             android:theme="@style/TransparentActivity" />
@@ -47,23 +39,6 @@
         <service
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
-
-        <!--
-        Deprecation Note:
-        Starting from Android Q, the below service will not be working as we can not start activities
-        from background. So, it is marked as deprecated from the release for Android Q.
-        -->
-        <!--
-        <service
-            android:name=".pn.BlueshiftNotificationEventsService"
-            android:exported="false">
-
-            <intent-filter>
-                <action android:name="com.blueshift.NOTIFICATION_CLICK_EVENT" />
-            </intent-filter>
-
-        </service>
-        -->
 
         <receiver android:name=".rich_push.ScheduledPushReceiver">
             <intent-filter>
