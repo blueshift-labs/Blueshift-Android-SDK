@@ -21,7 +21,7 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftLogger;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.CommonUtils;
@@ -172,23 +172,14 @@ class CustomNotificationFactory {
                 }
 
                 CarouselElement[] elements = message.getCarouselElements();
-                if (currentIndex < elements.length) {
-                    CarouselElement element = elements[currentIndex];
-
-                    String imageFileName = NotificationUtils.getImageFileName(element.getImageUrl());
-                    Bitmap bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
-
-                    // if the image is null and we are creating the notification for the first time,
-                    // it means the cache is empty. so let's try downloading the images.
-                    if (bitmap == null && !isUpdating) {
-                        // image is unavailable. update the image cache.
-                        NotificationUtils.downloadCarouselImages(context, message);
-
-                        bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
-                        if (bitmap == null) {
-                            BlueshiftLogger.e(LOG_TAG, "Could not load image for carousel.");
-                        }
-                    }
+                CarouselElement element;
+                if (currentIndex < elements.length && (element = elements[currentIndex]) != null) {
+                    Bitmap bitmap = BlueshiftImageCache.getScaledBitmap(
+                            context,
+                            element.getImageUrl(),
+                            RichPushConstants.BIG_IMAGE_WIDTH,
+                            RichPushConstants.BIG_IMAGE_HEIGHT
+                    );
 
                     if (bitmap != null) {
                         contentView.setImageViewBitmap(R.id.big_picture, bitmap);
@@ -622,11 +613,14 @@ class CustomNotificationFactory {
                 CarouselElement[] elements = message.getCarouselElements();
                 if (elements != null) {
                     for (CarouselElement element : elements) {
-                        // Load image using remote URL.
-                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(
+                        if (element == null) continue;
+
+                        Bitmap bitmap = BlueshiftImageCache.getScaledBitmap(
+                                context,
                                 element.getImageUrl(),
                                 RichPushConstants.BIG_IMAGE_WIDTH,
-                                RichPushConstants.BIG_IMAGE_HEIGHT);
+                                RichPushConstants.BIG_IMAGE_HEIGHT
+                        );
 
                         if (bitmap == null) continue;
 
