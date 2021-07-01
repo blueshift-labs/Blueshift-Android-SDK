@@ -204,11 +204,15 @@ public class NotificationFactory {
                     }
                 }
 
-                notificationManager.notify(notificationId, builder.build());
-            }
+                try {
+                    notificationManager.notify(notificationId, builder.build());
 
-            // Tracking the notification display.
-            NotificationUtils.invokePushDelivered(context, message);
+                    // Acknowledge that we received and displayed the push message.
+                    NotificationUtils.invokePushDelivered(context, message);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
         }
     }
 
