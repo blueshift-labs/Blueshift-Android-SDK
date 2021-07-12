@@ -117,8 +117,6 @@ public class InAppManager {
      * @param activity valid Activity object.
      */
     public static void unregisterForInAppMessages(Activity activity) {
-        logScreen("UNREGISTER");
-
         // if unregister is called with old activity when new activity is started,
         // we need to skip this call. because the clean up would already been done
         // during the registration call.
@@ -132,6 +130,8 @@ public class InAppManager {
                 return;
             }
         }
+
+        logScreen("UNREGISTER");
 
         // unregistering when in-app is in display, I am assuming this will only happen if
         // you are moving to a new page with the in-app in display. or you are changing the
@@ -150,7 +150,7 @@ public class InAppManager {
     }
 
     private static void logScreen(String action) {
-        BlueshiftLogger.d(LOG_TAG, action + "\t{ screen: " + displayConfig.screenName + ", activity: " + activityClassCanonicalName(mActivity) + " }");
+        BlueshiftLogger.d(LOG_TAG, action + " { screen: " + displayConfig.screenName + ", activity: " + activityClassCanonicalName(mActivity) + " }");
     }
 
     private static String activityClassCanonicalName(Activity activity) {
