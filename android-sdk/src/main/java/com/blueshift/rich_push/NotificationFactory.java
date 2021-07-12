@@ -270,11 +270,20 @@ public class NotificationFactory {
                                 bcIntent.putExtra(Message.EXTRA_MESSAGE, messageJSON);
 
                                 if (timeToDisplay > now) {
-                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                                            context,
-                                            NotificationFactory.getRandomPIRequestCode(),
-                                            bcIntent,
-                                            PendingIntent.FLAG_ONE_SHOT);
+                                    PendingIntent pendingIntent;
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                                        pendingIntent = PendingIntent.getBroadcast(
+                                                context,
+                                                NotificationFactory.getRandomPIRequestCode(),
+                                                bcIntent,
+                                                PendingIntent.FLAG_IMMUTABLE);
+                                    } else {
+                                        pendingIntent = PendingIntent.getBroadcast(
+                                                context,
+                                                NotificationFactory.getRandomPIRequestCode(),
+                                                bcIntent,
+                                                PendingIntent.FLAG_ONE_SHOT);
+                                    }
 
                                     alarmManager.set(AlarmManager.RTC_WAKEUP, timeToDisplay, pendingIntent);
                                     BlueshiftLogger.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
@@ -344,7 +353,11 @@ public class NotificationFactory {
         taskStackBuilder.addNextIntent(intent);
 
         int reqCode = NotificationFactory.getRandomPIRequestCode();
-        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        }
     }
 
     // [END] PendingIntent builder methods.

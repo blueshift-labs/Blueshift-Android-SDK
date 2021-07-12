@@ -22,6 +22,7 @@ import android.widget.RemoteViews;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftImageCache;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.CommonUtils;
@@ -362,7 +363,7 @@ class CustomNotificationFactory {
 
                 int smallIconResId = configuration.getSmallIconResId();
                 if (smallIconResId != 0) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
                         // show small icon
                         contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
                         contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
@@ -681,8 +682,13 @@ class CustomNotificationFactory {
         intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
         intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
-        return PendingIntent.getService(context,
-                NotificationFactory.getRandomPIRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int code = NotificationFactory.getRandomPIRequestCode();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return PendingIntent.getService(context, code, intent, PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            return PendingIntent.getService(context, code, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
     }
 
     /**
@@ -715,7 +721,11 @@ class CustomNotificationFactory {
         taskStackBuilder.addNextIntent(intent);
 
         int reqCode = NotificationFactory.getRandomPIRequestCode();
-        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        }
     }
 
     /**
@@ -731,7 +741,11 @@ class CustomNotificationFactory {
 
         delIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
-        return PendingIntent.getService(context,
-                NotificationFactory.getRandomPIRequestCode(), delIntent, PendingIntent.FLAG_ONE_SHOT);
+        int reqCode = NotificationFactory.getRandomPIRequestCode();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return PendingIntent.getService(context, reqCode, delIntent, PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            return PendingIntent.getService(context, reqCode, delIntent, PendingIntent.FLAG_ONE_SHOT);
+        }
     }
 }

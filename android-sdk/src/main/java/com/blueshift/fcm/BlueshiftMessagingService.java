@@ -106,10 +106,16 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             /*
              * Create pending intent for notification click action
              */
-            PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                    NotificationFactory.getRandomPIRequestCode(),
-                    launcherIntent,
-                    PendingIntent.FLAG_ONE_SHOT);
+            PendingIntent pendingIntent;
+            int code = NotificationFactory.getRandomPIRequestCode();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                pendingIntent = PendingIntent.getActivity(
+                        this, code, launcherIntent, PendingIntent.FLAG_IMMUTABLE);
+            } else {
+                pendingIntent = PendingIntent.getActivity(
+                        this, code, launcherIntent, PendingIntent.FLAG_ONE_SHOT);
+            }
 
             /*
              * Create the notification title. User defined / app name / "Notification"
