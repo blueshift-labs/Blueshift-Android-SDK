@@ -8,6 +8,7 @@
         <activity
             android:name=".pn.BlueshiftNotificationEventsActivity"
             android:configChanges="orientation|screenSize"
+            android:exported="false"
             android:theme="@style/TransparentActivity" />
 
         <!--Events batching-->
@@ -40,14 +41,18 @@
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
 
-        <receiver android:name=".rich_push.ScheduledPushReceiver">
+        <receiver
+            android:name=".rich_push.ScheduledPushReceiver"
+            android:exported="false">
             <intent-filter>
                 <action android:name="${applicationId}.ACTION_SCHEDULED_PUSH" />
             </intent-filter>
         </receiver>
 
         <!-- NW Change: This broadcast receiver is added for Android API version 23 and below.-->
-        <receiver android:name=".receiver.NetworkChangeListener">
+        <receiver
+            android:name=".receiver.NetworkChangeListener"
+            android:exported="false">
             <intent-filter>
                 <action
                     android:name="android.net.conn.CONNECTIVITY_CHANGE"
