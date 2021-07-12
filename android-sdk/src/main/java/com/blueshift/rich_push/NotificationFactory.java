@@ -1,6 +1,5 @@
 package com.blueshift.rich_push;
 
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -12,20 +11,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.NotificationUtils;
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
@@ -151,25 +147,25 @@ public class NotificationFactory {
             }
 
             if (!TextUtils.isEmpty(message.getImageUrl())) {
-                try {
-                    URL imageURL = new URL(message.getImageUrl());
-                    Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
-                    if (bitmap != null) {
-                        NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
-                        bigPictureStyle.bigPicture(bitmap);
+                Bitmap bitmap = BlueshiftImageCache.getScaledBitmap(
+                        context,
+                        message.getImageUrl(),
+                        RichPushConstants.BIG_IMAGE_WIDTH,
+                        RichPushConstants.BIG_IMAGE_HEIGHT);
 
-                        if (!TextUtils.isEmpty(message.getBigContentTitle())) {
-                            bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
-                        }
+                if (bitmap != null) {
+                    NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
+                    bigPictureStyle.bigPicture(bitmap);
 
-                        if (!TextUtils.isEmpty(message.getBigContentSummaryText())) {
-                            bigPictureStyle.setSummaryText(message.getBigContentSummaryText());
-                        }
-
-                        builder.setStyle(bigPictureStyle);
+                    if (!TextUtils.isEmpty(message.getBigContentTitle())) {
+                        bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
                     }
-                } catch (IOException e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
+
+                    if (!TextUtils.isEmpty(message.getBigContentSummaryText())) {
+                        bigPictureStyle.setSummaryText(message.getBigContentSummaryText());
+                    }
+
+                    builder.setStyle(bigPictureStyle);
                 }
             } else {
                 // enable big text style
@@ -208,11 +204,15 @@ public class NotificationFactory {
                     }
                 }
 
-                notificationManager.notify(notificationId, builder.build());
-            }
+                try {
+                    notificationManager.notify(notificationId, builder.build());
 
-            // Tracking the notification display.
-            NotificationUtils.invokePushDelivered(context, message);
+                    // Acknowledge that we received and displayed the push message.
+                    NotificationUtils.invokePushDelivered(context, message);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
         }
     }
 

@@ -159,8 +159,12 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                     }
                 }
 
-                notificationManager.notify(
-                        NotificationFactory.getRandomPIRequestCode(), notificationBuilder.build());
+                try {
+                    int id = NotificationFactory.getRandomPIRequestCode();
+                    notificationManager.notify(id, notificationBuilder.build());
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
             }
 
             // TODO: 4/1/17 Decide on how to track this one.

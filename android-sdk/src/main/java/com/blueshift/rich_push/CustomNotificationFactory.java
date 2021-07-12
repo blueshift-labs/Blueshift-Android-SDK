@@ -86,10 +86,15 @@ class CustomNotificationFactory {
                         }
                     }
 
-                    manager.notify(notificationId, notification);
-                }
+                    try {
+                        manager.notify(notificationId, notification);
 
-                NotificationUtils.invokePushDelivered(context, message);
+                        // Acknowledge that we received and displayed the push message.
+                        NotificationUtils.invokePushDelivered(context, message);
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
+                }
             }
         }
     }
@@ -136,12 +141,14 @@ class CustomNotificationFactory {
                         }
                     }
 
-                    manager.notify(notificationId, notification);
-                }
+                    try {
+                        manager.notify(notificationId, notification);
 
-                if (!isUpdating) {
-                    // Tracking the notification display for the first time
-                    NotificationUtils.invokePushDelivered(context, message);
+                        // Acknowledge that we received and displayed the push message.
+                        if (!isUpdating) NotificationUtils.invokePushDelivered(context, message);
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
                 }
             }
         }
@@ -516,9 +523,9 @@ class CustomNotificationFactory {
                 contentView.setInt(R.id.notification_content_text, "setTextAppearance", textAppearance);
             } else {
                 *//*
-                 * We can not call textAppearance(Context, int) on RemoteView's TextViews.
-                 * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
-                 *//*
+             * We can not call textAppearance(Context, int) on RemoteView's TextViews.
+             * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
+             *//*
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
                 }
