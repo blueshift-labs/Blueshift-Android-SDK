@@ -80,7 +80,7 @@ public class InAppManager {
      * @param activity Valid Activity object.
      */
     public static void registerForInAppMessages(Activity activity) {
-        registerForInAppMessages(activity, null);
+        registerForInAppMessages(activity, activityClassCanonicalName(activity));
     }
 
     /**
@@ -98,7 +98,9 @@ public class InAppManager {
         }
 
         mActivity = activity;
-        displayConfig.screenName = screenName;
+        displayConfig.screenName = screenName != null ? screenName : activityClassCanonicalName(activity);
+
+        logScreen("REGISTER");
 
         // check if there is an ongoing in-app display (orientation change)
         // if found, display the cached in-app message.
@@ -115,6 +117,8 @@ public class InAppManager {
      * @param activity valid Activity object.
      */
     public static void unregisterForInAppMessages(Activity activity) {
+        logScreen("UNREGISTER");
+
         // if unregister is called with old activity when new activity is started,
         // we need to skip this call. because the clean up would already been done
         // during the registration call.
@@ -143,6 +147,14 @@ public class InAppManager {
         mDialog = null;
         mActivity = null;
         displayConfig.reset();
+    }
+
+    private static void logScreen(String action) {
+        BlueshiftLogger.d(LOG_TAG, action + "\t{ screen: " + displayConfig.screenName + ", activity: " + activityClassCanonicalName(mActivity) + " }");
+    }
+
+    private static String activityClassCanonicalName(Activity activity) {
+        return activity != null ? activity.getClass().getCanonicalName() : "";
     }
 
     private static void displayCachedOngoingInApp() {
