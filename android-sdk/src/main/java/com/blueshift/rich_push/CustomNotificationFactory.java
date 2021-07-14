@@ -22,6 +22,7 @@ import android.widget.RemoteViews;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftImageCache;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.CommonUtils;

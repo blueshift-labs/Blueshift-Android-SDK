@@ -318,7 +318,7 @@ public abstract class InAppMessageView extends RelativeLayout {
 
                     // validate the CTA URL and decide what action needs to be taken
                     String link = action.optString(InAppConstants.ANDROID_LINK);
-                    if (InAppUtils.isDismissURL(link)) {
+                    if (InAppUtils.isDismissUrl(link)) {
                         handleDismiss(getInAppMessage(), clickStats);
                     } else {
                         handleClick(getInAppMessage(), clickStats);
@@ -413,7 +413,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         try {
             if (action != null) {
                 String link = action.optString(InAppConstants.ANDROID_LINK);
-                if (!InAppUtils.isDismissURL(link) && !link.isEmpty()) {
+                if (!InAppUtils.isDismissUrl(link)) {
                     BlueshiftLogger.d(TAG, "deep-link: " + link);
 
                     JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);

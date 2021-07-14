@@ -73,11 +73,11 @@ public class InAppMessageViewHTML extends InAppMessageView {
     }
 
     private void launchUri(Uri uri) {
-        if (InAppUtils.isDismissURL(uri)) {
+        if (InAppUtils.isDismissUri(uri)) {
             handleDismiss(getInAppMessage(), null);
         } else {
             InAppActionCallback actionCallback = InAppManager.getActionCallback();
-            if (actionCallback != null && uri != null) {
+            if (actionCallback != null) {
                 String link = uri.toString();
 
                 JSONObject statsParams = getClickStatsJSONObject(null);
@@ -103,9 +103,9 @@ public class InAppMessageViewHTML extends InAppMessageView {
     }
 
     private void openUri(Uri uri) {
-        if (InAppUtils.isDismissURL(uri)) {
+        if (InAppUtils.isDismissUri(uri)) {
             handleDismiss(getInAppMessage(), null);
-        } else if (uri != null) {
+        } else {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(uri);
@@ -124,8 +124,6 @@ public class InAppMessageViewHTML extends InAppMessageView {
             }
 
             handleClick(getInAppMessage(), statsParams);
-        } else {
-            handleClick(getInAppMessage(), null);
         }
     }
 
