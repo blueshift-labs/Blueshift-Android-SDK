@@ -7,7 +7,7 @@
         android:id="@+id/notification_content_title"
         style="@style/TextAppearance.Compat.Notification.Title"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="28dp"
         android:layout_toStartOf="@id/icon_group"
         android:gravity="center_vertical" />
 
