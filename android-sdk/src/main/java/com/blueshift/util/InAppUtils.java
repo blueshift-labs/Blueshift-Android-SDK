@@ -1081,11 +1081,22 @@ public class InAppUtils {
         Blueshift.getInstance(context).trackInAppMessageDismiss(inAppMessage, extras);
     }
 
-    public static boolean isDismissURL(Uri uri) {
-        return uri != null && isDismissURL(uri.toString());
+    public static boolean isDismissUri(Uri uri) {
+        return uri == null || isDismissUrl(uri.toString());
     }
 
-    public static boolean isDismissURL(String url) {
+    public static boolean isDismissUrl(String url) {
+        return url == null
+                || url.isEmpty()
+                || isBlankURL(url)
+                || isBlueshiftDismissURL(url);
+    }
+
+    private static boolean isBlueshiftDismissURL(String url) {
         return InAppConstants.DISMISS_URL.equals(url);
+    }
+
+    private static boolean isBlankURL(String url) {
+        return InAppConstants.BLANK_URL.equals(url);
     }
 }
