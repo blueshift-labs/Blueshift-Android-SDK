@@ -810,8 +810,10 @@ public class InAppManager {
     private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeDismissButtonClick(inAppMessage, params);
                 }
             };
 

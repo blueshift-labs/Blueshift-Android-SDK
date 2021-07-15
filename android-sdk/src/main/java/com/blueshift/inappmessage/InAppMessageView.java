@@ -149,10 +149,6 @@ public abstract class InAppMessageView extends RelativeLayout {
         InAppUtils.invokeInAppClicked(getContext(), inAppMessage, params);
     }
 
-    public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-        BlueshiftLogger.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
-    }
-
     private Button getActionButtonBasic(JSONObject actionJson) {
         Button button = new Button(getContext());
 
