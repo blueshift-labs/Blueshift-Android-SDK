@@ -80,7 +80,7 @@ public class InAppManager {
      * @param activity Valid Activity object.
      */
     public static void registerForInAppMessages(Activity activity) {
-        registerForInAppMessages(activity, null);
+        registerForInAppMessages(activity, activityClassCanonicalName(activity));
     }
 
     /**
@@ -98,7 +98,9 @@ public class InAppManager {
         }
 
         mActivity = activity;
-        displayConfig.screenName = screenName;
+        displayConfig.screenName = screenName != null ? screenName : activityClassCanonicalName(activity);
+
+        logScreen("REGISTER");
 
         // check if there is an ongoing in-app display (orientation change)
         // if found, display the cached in-app message.
@@ -129,6 +131,8 @@ public class InAppManager {
             }
         }
 
+        logScreen("UNREGISTER");
+
         // unregistering when in-app is in display, I am assuming this will only happen if
         // you are moving to a new page with the in-app in display. or you are changing the
         // screen orientation and unregister got called automatically. for re-display, we
@@ -143,6 +147,14 @@ public class InAppManager {
         mDialog = null;
         mActivity = null;
         displayConfig.reset();
+    }
+
+    private static void logScreen(String action) {
+        BlueshiftLogger.d(LOG_TAG, action + " { screen: " + displayConfig.screenName + ", activity: " + activityClassCanonicalName(mActivity) + " }");
+    }
+
+    private static String activityClassCanonicalName(Activity activity) {
+        return activity != null ? activity.getClass().getCanonicalName() : "";
     }
 
     private static void displayCachedOngoingInApp() {
