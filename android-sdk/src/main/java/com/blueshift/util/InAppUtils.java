@@ -1078,6 +1078,18 @@ public class InAppUtils {
     }
 
     public static void invokeInAppDismiss(Context context, InAppMessage inAppMessage, JSONObject extras) {
+        Map<String, Object> map = inAppMessage != null ? inAppMessage.toMap() : null;
+
+        if (map != null && extras != null) {
+            BlueshiftJSONObject ex = new BlueshiftJSONObject();
+            ex.putAll(extras);
+            map.putAll(ex.toHasMap());
+        }
+
+        if (Blueshift.getBlueshiftInAppListener() != null) {
+            Blueshift.getBlueshiftInAppListener().onInAppClicked(map);
+        }
+
         Blueshift.getInstance(context).trackInAppMessageDismiss(inAppMessage, extras);
     }
 
