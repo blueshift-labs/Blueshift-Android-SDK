@@ -749,13 +749,13 @@ public class InAppManager {
                 @Override
                 public void handleClick(InAppMessage inAppMessage, JSONObject params) {
                     super.handleClick(inAppMessage, params);
-                    invokeDismissButtonClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
 
                 @Override
                 public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
                     super.handleDismiss(inAppMessage, params);
-                    invokeDismissButtonClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -771,13 +771,13 @@ public class InAppManager {
                 @Override
                 public void handleClick(InAppMessage inAppMessage, JSONObject params) {
                     super.handleClick(inAppMessage, params);
-                    invokeDismissButtonClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
 
                 @Override
                 public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
                     super.handleDismiss(inAppMessage, params);
-                    invokeDismissButtonClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -793,13 +793,13 @@ public class InAppManager {
                 @Override
                 public void handleClick(InAppMessage inAppMessage, JSONObject params) {
                     super.handleClick(inAppMessage, params);
-                    invokeDismissButtonClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
 
                 @Override
                 public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
                     super.handleDismiss(inAppMessage, params);
-                    invokeDismissButtonClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -813,9 +813,15 @@ public class InAppManager {
         if (context != null && inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
                 @Override
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
+                }
+
+                @Override
                 public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
                     super.handleDismiss(inAppMessage, params);
-                    invokeDismissButtonClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -835,7 +841,7 @@ public class InAppManager {
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft, dimAmount);
     }
 
-    private static void invokeDismissButtonClick(InAppMessage inAppMessage, JSONObject extras) {
+    private static void invokeCleanUp(InAppMessage inAppMessage, JSONObject extras) {
         // use app context to avoid leaks on this activity
         Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
         // reschedule next in-app here as the dialog callbacks are going to get removed in cleanup

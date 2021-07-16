@@ -194,11 +194,9 @@ public abstract class InAppMessageView extends RelativeLayout {
 
                 // add additional params for analytics
                 JSONObject statsParams = getClickStatsJSONObject(element);
-                if (!actionJson.isNull(InAppConstants.ANDROID_LINK)) {
-                    String androidLink = actionJson.optString(InAppConstants.ANDROID_LINK);
-                    if (!TextUtils.isEmpty(androidLink)) {
-                        statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, androidLink);
-                    }
+                String androidLink = actionJson.optString(InAppConstants.ANDROID_LINK);
+                if (!InAppUtils.isDismissUrl(androidLink)) {
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, androidLink);
                 }
 
                 if (InAppManager.getActionCallback() != null) {
@@ -314,12 +312,8 @@ public abstract class InAppMessageView extends RelativeLayout {
                     // open
                     open(action);
 
-                    String link = null;
-                    if (!action.isNull(InAppConstants.ANDROID_LINK)) {
-                        link = action.optString(InAppConstants.ANDROID_LINK);
-                    }
-
                     // validate the CTA URL and decide what action needs to be taken
+                    String link = action.optString(InAppConstants.ANDROID_LINK);
                     if (InAppUtils.isDismissUrl(link)) {
                         handleDismiss(getInAppMessage(), clickStats);
                     } else {

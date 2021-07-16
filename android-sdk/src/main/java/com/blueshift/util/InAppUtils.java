@@ -1088,6 +1088,7 @@ public class InAppUtils {
     public static boolean isDismissUrl(String url) {
         return url == null
                 || url.isEmpty()
+                || "null".equals(url)
                 || isBlankURL(url)
                 || isBlueshiftDismissUrl(url);
     }
