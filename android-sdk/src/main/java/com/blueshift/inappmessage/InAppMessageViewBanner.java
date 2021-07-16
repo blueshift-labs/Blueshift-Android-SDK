@@ -8,6 +8,7 @@ import android.view.ViewParent;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
@@ -84,7 +85,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
                 playExitAnimation(-linearLayout.getWidth(), linearLayout, new Runnable() {
                     @Override
                     public void run() {
-                        handleDismiss(inAppMessage, null);
+                        invokeDismiss(inAppMessage);
                     }
                 });
             }
@@ -94,7 +95,7 @@ public class InAppMessageViewBanner extends InAppMessageView {
                 playExitAnimation(linearLayout.getWidth(), linearLayout, new Runnable() {
                     @Override
                     public void run() {
-                        handleDismiss(inAppMessage, null);
+                        invokeDismiss(inAppMessage);
                     }
                 });
             }
@@ -116,6 +117,16 @@ public class InAppMessageViewBanner extends InAppMessageView {
         linearLayout.setMinimumHeight(dp48);
 
         return linearLayout;
+    }
+
+    private void invokeDismiss(InAppMessage inAppMessage) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put(BlueshiftConstants.KEY_CLICK_ELEMENT, InAppConstants.ACT_SWIPE);
+        } catch (JSONException ignored) {
+        }
+
+        handleDismiss(inAppMessage, json);
     }
 
     private void playExitAnimation(int translationX, View view, Runnable onAnimComplete) {

@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -35,6 +36,7 @@ import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class InAppManager {
@@ -872,6 +874,7 @@ public class InAppManager {
         if (mDialog != null && mDialog.isShowing()) {
             mDialog.setOnCancelListener(null);
             mDialog.setOnDismissListener(null);
+            mDialog.setOnKeyListener(null);
             mDialog.dismiss();
             mDialog = null;
         }
@@ -925,6 +928,27 @@ public class InAppManager {
                     boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
                     mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
 
+                    mDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                        @Override
+                        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                JSONObject json = new JSONObject();
+                                try {
+                                    json.put(
+                                            BlueshiftConstants.KEY_CLICK_ELEMENT,
+                                            InAppConstants.ACT_BACK);
+                                } catch (JSONException ignored) {
+                                }
+                                InAppUtils.invokeInAppDismiss(appContext, inAppMessage, json);
+
+                                dialog.dismiss();
+                                return true;
+                            }
+
+                            return false;
+                        }
+                    });
+
                     // dismiss happens when user interacts with the dialog
                     mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
@@ -947,8 +971,14 @@ public class InAppManager {
                     mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialogInterface) {
-                            InAppManager.scheduleNextInAppMessage(appContext);
-                            InAppManager.cleanUpOngoingInAppCache();
+                            JSONObject json = new JSONObject();
+                            try {
+                                json.put(
+                                        BlueshiftConstants.KEY_CLICK_ELEMENT,
+                                        InAppConstants.ACT_TAP_OUTSIDE);
+                            } catch (JSONException ignored) {
+                            }
+                            InAppUtils.invokeInAppDismiss(appContext, inAppMessage, json);
                         }
                     });
 

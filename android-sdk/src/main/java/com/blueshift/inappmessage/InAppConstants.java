@@ -7,6 +7,9 @@ public class InAppConstants {
 
     public static final String DISMISS_URL = "blueshift://dismiss";
     public static final String BLANK_URL = "about:blank#blocked";
+    public static final String ACT_BACK = "btn_back";
+    public static final String ACT_SWIPE = "swipe";
+    public static final String ACT_TAP_OUTSIDE = "tap_outside";
 
     // events
     public static final String EVENT_DELIVERED = "delivered";

@@ -1089,10 +1089,10 @@ public class InAppUtils {
         return url == null
                 || url.isEmpty()
                 || isBlankURL(url)
-                || isBlueshiftDismissURL(url);
+                || isBlueshiftDismissUrl(url);
     }
 
-    private static boolean isBlueshiftDismissURL(String url) {
+    public static boolean isBlueshiftDismissUrl(String url) {
         return InAppConstants.DISMISS_URL.equals(url);
     }
 

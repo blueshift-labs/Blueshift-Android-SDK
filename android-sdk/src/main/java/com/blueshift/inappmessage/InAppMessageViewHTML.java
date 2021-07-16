@@ -74,7 +74,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
     private void launchUri(Uri uri) {
         if (InAppUtils.isDismissUri(uri)) {
-            handleDismiss(getInAppMessage(), null);
+            invokeDismiss(uri);
         } else {
             InAppActionCallback actionCallback = InAppManager.getActionCallback();
             if (actionCallback != null) {
@@ -104,7 +104,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
     private void openUri(Uri uri) {
         if (InAppUtils.isDismissUri(uri)) {
-            handleDismiss(getInAppMessage(), null);
+            invokeDismiss(uri);
         } else {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -125,6 +125,20 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
             handleClick(getInAppMessage(), statsParams);
         }
+    }
+
+    private void invokeDismiss(Uri uri) {
+        JSONObject json = null;
+        String url = uri != null ? uri.toString() : "";
+        if (InAppUtils.isBlueshiftDismissUrl(url)) {
+            json = new JSONObject();
+            try {
+                json.put(BlueshiftConstants.KEY_CLICK_URL, url);
+            } catch (JSONException ignored) {
+            }
+        }
+
+        handleDismiss(getInAppMessage(), json);
     }
 
     private class InAppWebViewClient extends WebViewClient {
