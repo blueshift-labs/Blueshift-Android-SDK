@@ -109,6 +109,22 @@ class CustomNotificationFactory {
      */
     void createAndShowCarousel(Context context, Message message) {
         int notificationId = NotificationFactory.getRandomNotificationId();
+
+        if (message != null) {
+            CarouselElement[] elements = message.getCarouselElements();
+            if (elements != null) {
+                for (CarouselElement element : elements) {
+                    // preload scaled bitmaps
+                    BlueshiftImageCache.getScaledBitmap(
+                            context,
+                            element.getImageUrl(),
+                            RichPushConstants.BIG_IMAGE_WIDTH,
+                            RichPushConstants.BIG_IMAGE_HEIGHT
+                    );
+                }
+            }
+        }
+
         createAndShowCarousel(context, message, false, 0, notificationId);
     }
 
