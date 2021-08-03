@@ -1,6 +1,5 @@
 package com.blueshift.rich_push;
 
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -12,20 +11,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftExecutor;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.NotificationUtils;
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
@@ -53,7 +49,7 @@ public class NotificationFactory {
         if (context != null && message != null) {
             switch (message.getNotificationType()) {
                 case AlertDialog:
-                    buildAndShowAlertDialog(context, message);
+                    BlueshiftLogger.d(LOG_TAG, "\"alert\" push messages are deprecated. Use in-app notifications instead.");
                     break;
 
                 case Notification:
@@ -72,74 +68,6 @@ public class NotificationFactory {
                     BlueshiftLogger.e(LOG_TAG, "Unknown notification type");
             }
         }
-    }
-
-    /**
-     * This method is responsible for showing a popup dialog when receiving a push message with
-     * notification_type "alert".
-     *
-     * @param context context object
-     * @param message message object
-     * @deprecated This method is deprecated because Blueshift has deprecated the notification type
-     * "alert" that displays popup dialogs on receiving the push. Use in-app messages instead.
-     */
-    @Deprecated
-    private static void buildAndShowAlertDialog(final Context context, final Message message) {
-        if (context != null && message != null) {
-            BlueshiftExecutor.getInstance().runOnWorkerThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            final boolean appInForeground = isAppInForeground(context);
-                            launchNotificationActivity(context, message, appInForeground);
-                        }
-                    }
-            );
-        }
-    }
-
-    @Deprecated
-    private static void launchNotificationActivity(Context context, Message message, boolean appIsInForeground) {
-        if (context != null && message != null) {
-            Intent notificationIntent = new Intent(context, NotificationActivity.class);
-            notificationIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
-            notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            /*
-             * Clear the stack only if the app is in background / killed.
-             */
-            if (!appIsInForeground) {
-                notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            }
-
-            context.startActivity(notificationIntent);
-        }
-    }
-
-    private static boolean isAppInForeground(Context context) {
-        boolean isAppInForeground = false;
-
-        if (context != null) {
-            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            List<ActivityManager.RunningAppProcessInfo> appProcesses = null;
-            if (activityManager != null) {
-                appProcesses = activityManager.getRunningAppProcesses();
-            }
-            if (appProcesses != null) {
-                String packageName = context.getPackageName();
-                for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-                    if (appProcess != null
-                            && appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                            && appProcess.processName.equals(packageName)) {
-
-                        isAppInForeground = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return isAppInForeground;
     }
 
     private static void buildAndShowNotification(Context context, Message message) {
@@ -219,25 +147,25 @@ public class NotificationFactory {
             }
 
             if (!TextUtils.isEmpty(message.getImageUrl())) {
-                try {
-                    URL imageURL = new URL(message.getImageUrl());
-                    Bitmap bitmap = BitmapFactory.decodeStream(imageURL.openStream());
-                    if (bitmap != null) {
-                        NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
-                        bigPictureStyle.bigPicture(bitmap);
+                Bitmap bitmap = BlueshiftImageCache.getScaledBitmap(
+                        context,
+                        message.getImageUrl(),
+                        RichPushConstants.BIG_IMAGE_WIDTH,
+                        RichPushConstants.BIG_IMAGE_HEIGHT);
 
-                        if (!TextUtils.isEmpty(message.getBigContentTitle())) {
-                            bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
-                        }
+                if (bitmap != null) {
+                    NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
+                    bigPictureStyle.bigPicture(bitmap);
 
-                        if (!TextUtils.isEmpty(message.getBigContentSummaryText())) {
-                            bigPictureStyle.setSummaryText(message.getBigContentSummaryText());
-                        }
-
-                        builder.setStyle(bigPictureStyle);
+                    if (!TextUtils.isEmpty(message.getBigContentTitle())) {
+                        bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
                     }
-                } catch (IOException e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
+
+                    if (!TextUtils.isEmpty(message.getBigContentSummaryText())) {
+                        bigPictureStyle.setSummaryText(message.getBigContentSummaryText());
+                    }
+
+                    builder.setStyle(bigPictureStyle);
                 }
             } else {
                 // enable big text style
@@ -276,11 +204,15 @@ public class NotificationFactory {
                     }
                 }
 
-                notificationManager.notify(notificationId, builder.build());
-            }
+                try {
+                    notificationManager.notify(notificationId, builder.build());
 
-            // Tracking the notification display.
-            NotificationUtils.invokePushDelivered(context, message);
+                    // Acknowledge that we received and displayed the push message.
+                    NotificationUtils.invokePushDelivered(context, message);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
         }
     }
 

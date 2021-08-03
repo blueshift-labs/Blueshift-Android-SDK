@@ -61,8 +61,7 @@ public class BlueshiftImageCache {
         Bitmap bitmap = null;
 
         if (key != null) {
-            BlueshiftLogger.d(TAG, "Attempting to load image with url:" + url);
-
+            String source = "network";
             bitmap = getFromMemCache(key);
             if (bitmap == null) {
                 bitmap = getFromDiskCache(context, key);
@@ -71,17 +70,22 @@ public class BlueshiftImageCache {
                     if (bitmap != null) {
                         addToMemCache(key, bitmap);
                         addToDiskCache(context, key, bitmap);
-                        BlueshiftLogger.d(TAG, "Loading image from network");
                     } else {
-                        BlueshiftLogger.e(TAG, "Could not download the image!");
+                        BlueshiftLogger.w(TAG, "Image download error! url: " + url);
                     }
                 } else {
                     addToMemCache(key, bitmap);
-                    BlueshiftLogger.d(TAG, "Loading image from disk");
+                    source = "disk";
                 }
             } else {
-                BlueshiftLogger.d(TAG, "Loading image from RAM");
+                source = "memory";
             }
+
+            BlueshiftLogger.d(TAG, "Size: (" + reqWidth + "w, " + reqHeight + "h), " +
+                    "Source: " + source + ", " +
+                    "URL: " + url);
+        } else {
+            BlueshiftLogger.d(TAG, "Invalid url: " + url);
         }
 
         return bitmap;
@@ -110,8 +114,9 @@ public class BlueshiftImageCache {
     public static void clean(Context context, String url) {
         String key = md5(url);
         if (key != null) {
-            BlueshiftLogger.d(TAG, "Removing image from memory: " + removeFromMemCache(key));
-            BlueshiftLogger.d(TAG, "Removing image from disk: " + removeFromDiskCache(context, key));
+            String fromMemory = removeFromMemCache(key) ? "success" : "failed";
+            String fromDisk = removeFromDiskCache(context, key) ? "success" : "failed";
+            BlueshiftLogger.d(TAG, "Removing cached image from memory (" + fromMemory + ") and disk (" + fromDisk + "). URL: " + url);
         }
     }
 

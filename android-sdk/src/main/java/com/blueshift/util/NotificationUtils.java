@@ -20,6 +20,7 @@ import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.pn.BlueshiftNotificationEventsActivity;
@@ -59,100 +60,6 @@ public class NotificationUtils {
     }
 
     /**
-     * Downloads all carousel images and stores them inside app's private file location after compressing them.
-     *
-     * @param context valid context object
-     * @param message message object with valid carousel elements
-     */
-    public static void downloadCarouselImages(Context context, Message message) {
-        if (context != null && message != null) {
-            CarouselElement[] carouselElements = message.getCarouselElements();
-            if (carouselElements != null) {
-                for (CarouselElement element : carouselElements) {
-                    FileOutputStream fileOutputStream = null;
-                    try {
-                        if (element != null) {
-                            Bitmap bitmap = NotificationUtils.loadScaledBitmap(
-                                    element.getImageUrl(),
-                                    RichPushConstants.BIG_IMAGE_WIDTH,
-                                    RichPushConstants.BIG_IMAGE_HEIGHT);
-
-                            // save image
-                            String imageUrl = element.getImageUrl();
-                            String fileName = getImageFileName(imageUrl);
-
-                            if (!TextUtils.isEmpty(fileName)) {
-                                if (bitmap != null) {
-                                    fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
-                                    fileOutputStream.close();
-                                }
-                            }
-                        }
-                    } catch (IOException e) {
-                        BlueshiftLogger.e(LOG_TAG, e);
-                    } finally {
-                        if (fileOutputStream != null) {
-                            try {
-                                fileOutputStream.close();
-                            } catch (IOException e) {
-                                BlueshiftLogger.e(LOG_TAG, e);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Loads the image stored inside app's private file location
-     *
-     * @param context  valid context object
-     * @param fileName name of the image to be retrieved
-     * @return bitmap image with given filename (if exists)
-     */
-    public static Bitmap loadImageFromDisc(Context context, String fileName) {
-        Bitmap bitmap = null;
-
-        File imageFile = context.getFileStreamPath(fileName);
-        if (imageFile.exists()) {
-            InputStream inputStream = null;
-            try {
-                inputStream = context.openFileInput(fileName);
-                bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
-            } catch (FileNotFoundException e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            } catch (IOException e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            } finally {
-                if (inputStream != null) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) {
-                        BlueshiftLogger.e(LOG_TAG, e);
-                    }
-                }
-            }
-        }
-
-        return bitmap;
-    }
-
-    /**
-     * Remove file with given name from app's private files directory.
-     *
-     * @param context  valid context object
-     * @param fileName the name of the file to be removed.
-     */
-    public static void removeImageFromDisc(Context context, String fileName) {
-        if (context != null && !TextUtils.isEmpty(fileName)) {
-            context.deleteFile(fileName);
-        }
-    }
-
-    /**
      * Method to remove all carousel images cached.
      *
      * @param context valid context object
@@ -163,8 +70,9 @@ public class NotificationUtils {
             CarouselElement[] carouselElements = message.getCarouselElements();
             if (carouselElements != null && carouselElements.length > 0) {
                 for (CarouselElement element : carouselElements) {
-                    String fileName = getImageFileName(element.getImageUrl());
-                    removeImageFromDisc(context, fileName);
+                    if (element != null) {
+                        BlueshiftImageCache.clean(context, element.getImageUrl());
+                    }
                 }
             }
         }

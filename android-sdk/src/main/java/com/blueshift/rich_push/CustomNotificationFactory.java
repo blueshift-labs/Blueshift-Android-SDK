@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.model.Configuration;
@@ -86,10 +87,15 @@ class CustomNotificationFactory {
                         }
                     }
 
-                    manager.notify(notificationId, notification);
-                }
+                    try {
+                        manager.notify(notificationId, notification);
 
-                NotificationUtils.invokePushDelivered(context, message);
+                        // Acknowledge that we received and displayed the push message.
+                        NotificationUtils.invokePushDelivered(context, message);
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
+                }
             }
         }
     }
@@ -103,6 +109,22 @@ class CustomNotificationFactory {
      */
     void createAndShowCarousel(Context context, Message message) {
         int notificationId = NotificationFactory.getRandomNotificationId();
+
+        if (message != null) {
+            CarouselElement[] elements = message.getCarouselElements();
+            if (elements != null) {
+                for (CarouselElement element : elements) {
+                    // preload scaled bitmaps
+                    BlueshiftImageCache.getScaledBitmap(
+                            context,
+                            element.getImageUrl(),
+                            RichPushConstants.BIG_IMAGE_WIDTH,
+                            RichPushConstants.BIG_IMAGE_HEIGHT
+                    );
+                }
+            }
+        }
+
         createAndShowCarousel(context, message, false, 0, notificationId);
     }
 
@@ -136,12 +158,14 @@ class CustomNotificationFactory {
                         }
                     }
 
-                    manager.notify(notificationId, notification);
-                }
+                    try {
+                        manager.notify(notificationId, notification);
 
-                if (!isUpdating) {
-                    // Tracking the notification display for the first time
-                    NotificationUtils.invokePushDelivered(context, message);
+                        // Acknowledge that we received and displayed the push message.
+                        if (!isUpdating) NotificationUtils.invokePushDelivered(context, message);
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
                 }
             }
         }
@@ -172,23 +196,14 @@ class CustomNotificationFactory {
                 }
 
                 CarouselElement[] elements = message.getCarouselElements();
-                if (currentIndex < elements.length) {
-                    CarouselElement element = elements[currentIndex];
-
-                    String imageFileName = NotificationUtils.getImageFileName(element.getImageUrl());
-                    Bitmap bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
-
-                    // if the image is null and we are creating the notification for the first time,
-                    // it means the cache is empty. so let's try downloading the images.
-                    if (bitmap == null && !isUpdating) {
-                        // image is unavailable. update the image cache.
-                        NotificationUtils.downloadCarouselImages(context, message);
-
-                        bitmap = NotificationUtils.loadImageFromDisc(context, imageFileName);
-                        if (bitmap == null) {
-                            BlueshiftLogger.e(LOG_TAG, "Could not load image for carousel.");
-                        }
-                    }
+                CarouselElement element;
+                if (currentIndex < elements.length && (element = elements[currentIndex]) != null) {
+                    Bitmap bitmap = BlueshiftImageCache.getScaledBitmap(
+                            context,
+                            element.getImageUrl(),
+                            RichPushConstants.BIG_IMAGE_WIDTH,
+                            RichPushConstants.BIG_IMAGE_HEIGHT
+                    );
 
                     if (bitmap != null) {
                         contentView.setImageViewBitmap(R.id.big_picture, bitmap);
@@ -525,9 +540,9 @@ class CustomNotificationFactory {
                 contentView.setInt(R.id.notification_content_text, "setTextAppearance", textAppearance);
             } else {
                 *//*
-                 * We can not call textAppearance(Context, int) on RemoteView's TextViews.
-                 * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
-                 *//*
+             * We can not call textAppearance(Context, int) on RemoteView's TextViews.
+             * Hence using static text sizes. 12sp for smaller text and 14sp for bigger ones.
+             *//*
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     contentView.setTextViewTextSize(R.id.notification_content_text, TypedValue.COMPLEX_UNIT_SP, textSize);
                 }
@@ -622,11 +637,14 @@ class CustomNotificationFactory {
                 CarouselElement[] elements = message.getCarouselElements();
                 if (elements != null) {
                     for (CarouselElement element : elements) {
-                        // Load image using remote URL.
-                        Bitmap bitmap = NotificationUtils.loadScaledBitmap(
+                        if (element == null) continue;
+
+                        Bitmap bitmap = BlueshiftImageCache.getScaledBitmap(
+                                context,
                                 element.getImageUrl(),
                                 RichPushConstants.BIG_IMAGE_WIDTH,
-                                RichPushConstants.BIG_IMAGE_HEIGHT);
+                                RichPushConstants.BIG_IMAGE_HEIGHT
+                        );
 
                         if (bitmap == null) continue;
 

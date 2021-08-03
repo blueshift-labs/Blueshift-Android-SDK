@@ -6,16 +6,9 @@
     <application>
 
         <activity
-            android:name=".rich_push.NotificationActivity"
-            android:configChanges="orientation|screenSize"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:taskAffinity=":BsftNotificationDialog"
-            android:theme="@style/TransparentActivity" />
-
-        <activity
             android:name=".pn.BlueshiftNotificationEventsActivity"
             android:configChanges="orientation|screenSize"
+            android:exported="false"
             android:theme="@style/TransparentActivity" />
 
         <!--Events batching-->
@@ -48,31 +41,18 @@
             android:name=".rich_push.NotificationWorker"
             android:exported="false" />
 
-        <!--
-        Deprecation Note:
-        Starting from Android Q, the below service will not be working as we can not start activities
-        from background. So, it is marked as deprecated from the release for Android Q.
-        -->
-        <!--
-        <service
-            android:name=".pn.BlueshiftNotificationEventsService"
+        <receiver
+            android:name=".rich_push.ScheduledPushReceiver"
             android:exported="false">
-
-            <intent-filter>
-                <action android:name="com.blueshift.NOTIFICATION_CLICK_EVENT" />
-            </intent-filter>
-
-        </service>
-        -->
-
-        <receiver android:name=".rich_push.ScheduledPushReceiver">
             <intent-filter>
                 <action android:name="${applicationId}.ACTION_SCHEDULED_PUSH" />
             </intent-filter>
         </receiver>
 
         <!-- NW Change: This broadcast receiver is added for Android API version 23 and below.-->
-        <receiver android:name=".receiver.NetworkChangeListener">
+        <receiver
+            android:name=".receiver.NetworkChangeListener"
+            android:exported="false">
             <intent-filter>
                 <action
                     android:name="android.net.conn.CONNECTIVITY_CHANGE"
