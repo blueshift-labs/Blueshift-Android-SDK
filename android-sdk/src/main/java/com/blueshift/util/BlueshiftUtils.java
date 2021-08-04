@@ -2,9 +2,10 @@ package com.blueshift.util;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.WorkerThread;
-import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
+
+import androidx.annotation.WorkerThread;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;

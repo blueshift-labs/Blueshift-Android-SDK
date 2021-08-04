@@ -4,9 +4,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
-import android.support.annotation.WorkerThread;
 import android.util.LruCache;
 import android.widget.ImageView;
+
+import androidx.annotation.WorkerThread;
 
 import java.io.File;
 import java.io.FileNotFoundException;

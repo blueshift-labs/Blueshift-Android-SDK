@@ -1,5 +1,5 @@
 ## Blueshift Android SDK
-[![Maven Central](https://img.shields.io/maven-central/v/com.blueshift/android-sdk.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.blueshift%22%20AND%20a:%22android-sdk%22)
+[![Maven Central](https://img.shields.io/maven-central/v/com.blueshift/android-sdk-x.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.blueshift%22%20AND%20a:%22android-sdk-x%22)
 
 Get started [here](https://developer.blueshift.com/docs/about-blueshifts-android-sdk)
 

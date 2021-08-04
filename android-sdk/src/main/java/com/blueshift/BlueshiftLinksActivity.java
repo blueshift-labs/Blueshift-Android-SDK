@@ -2,7 +2,7 @@ package com.blueshift;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * This Activity is expected to receive the deep-links intended to be received
