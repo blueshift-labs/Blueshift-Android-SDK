@@ -115,7 +115,7 @@ class CustomNotificationFactory {
             if (elements != null) {
                 for (CarouselElement element : elements) {
                     // preload scaled bitmaps
-                    BlueshiftImageCache.getScaledBitmap(
+                    BlueshiftImageCache.preloadScaled(
                             context,
                             element.getImageUrl(),
                             RichPushConstants.BIG_IMAGE_WIDTH,
