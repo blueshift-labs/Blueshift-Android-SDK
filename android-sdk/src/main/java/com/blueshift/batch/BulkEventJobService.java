@@ -28,10 +28,13 @@ public class BulkEventJobService extends JobService {
     }
 
     private void doBackgroundWork(JobParameters jobParameters) {
-        BlueshiftLogger.d(TAG, "Job started.");
-        Context appContext = getApplicationContext();
-        BulkEventManager.enqueueBulkEvents(appContext);
-        BlueshiftLogger.d(TAG, "Job completed.");
+        try {
+            BlueshiftLogger.d(TAG, "Job started.");
+            Context appContext = getApplicationContext();
+            BulkEventManager.enqueueBulkEvents(appContext);
+            BlueshiftLogger.d(TAG, "Job completed.");
+        } catch (Exception ignore) {
+        }
 
         // this is a periodic job, we don't need the job scheduler to
         // reschedule this with available backoff policy. hence passing
