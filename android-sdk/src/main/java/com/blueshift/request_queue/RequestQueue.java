@@ -18,8 +18,8 @@ import com.blueshift.util.NetworkUtils;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 26/2/15 @ 3:07 PM
- *         https://github.com/rahulrvp
+ * Created on 26/2/15 @ 3:07 PM
+ * https://github.com/rahulrvp
  */
 public class RequestQueue {
     public static final int DEFAULT_RETRY_COUNT = 3;
@@ -40,7 +40,7 @@ public class RequestQueue {
                     if (isJobPending) return; // the job is already scheduled, skip the below code.
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        JobScheduler jobScheduler
+                        final JobScheduler jobScheduler
                                 = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
                         if (jobScheduler != null) {
@@ -56,16 +56,21 @@ public class RequestQueue {
                                 builder.setRequiresBatteryNotLow(true);
                             }
 
-                            JobInfo jobInfo = builder.build();
+                            final JobInfo jobInfo = builder.build();
 
-                            if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
-                                BlueshiftLogger.i(LOG_TAG, "Successfully scheduled request queue " +
-                                        "sync job on network change");
-                            } else {
-                                // for some reason job scheduling failed. log this.
-                                BlueshiftLogger.w(LOG_TAG, "Could not schedule request queue sync " +
-                                        "job on network change");
-                            }
+                            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
+                                        BlueshiftLogger.i(LOG_TAG, "Successfully scheduled request queue " +
+                                                "sync job on network change");
+                                    } else {
+                                        // for some reason job scheduling failed. log this.
+                                        BlueshiftLogger.w(LOG_TAG, "Could not schedule request queue sync " +
+                                                "job on network change");
+                                    }
+                                }
+                            });
                         }
                     }
                 }
