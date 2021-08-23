@@ -2,6 +2,7 @@ package com.blueshift.util;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
@@ -26,14 +28,11 @@ import com.blueshift.model.Configuration;
 import com.blueshift.pn.BlueshiftNotificationEventsActivity;
 import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.rich_push.RichPushConstants;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -591,5 +590,39 @@ public class NotificationUtils {
         HashMap<String, Object> clickAttr = new HashMap<>();
         if (clickUrl != null) clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
         Blueshift.getInstance(context).trackNotificationClick(message, clickAttr);
+    }
+
+    public static List<NotificationCompat.Action> getActions(Context context, Message message) {
+        List<NotificationCompat.Action> actionList = null;
+        if (context != null && message != null && message.hasActions()) {
+            actionList = new ArrayList<>();
+            List<Map<String, Object>> actionItems = message.getActions();
+            int count = Math.min(actionItems.size(), 3);
+
+            for (int i = 0; i < count; i++) {
+                Map<String, Object> act = actionItems.get(i);
+                String title = message.getActionTitle(act);
+                String deepLink = message.getActionDeeplinkUrl(act);
+
+                Intent openIntent = getOpenAppIntent(context, message);
+                openIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, deepLink);
+
+                int flags = PendingIntent.FLAG_ONE_SHOT;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    flags |= PendingIntent.FLAG_IMMUTABLE;
+                }
+
+                PendingIntent pi = PendingIntent.getActivity(
+                        context,
+                        NotificationFactory.getRandomPIRequestCode(),
+                        openIntent,
+                        flags);
+
+                NotificationCompat.Action action = new NotificationCompat.Action(0, title, pi);
+
+                actionList.add(action);
+            }
+        }
+        return actionList;
     }
 }

@@ -193,6 +193,13 @@ public class NotificationFactory {
                 }
             }
 
+            List<NotificationCompat.Action> actions = NotificationUtils.getActions(context, message);
+            if (actions != null) {
+                for (NotificationCompat.Action action : actions) {
+                    builder.addAction(action);
+                }
+            }
+
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 

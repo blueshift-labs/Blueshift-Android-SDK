@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 
 import java.io.Serializable;
@@ -25,6 +24,9 @@ public class Message implements Serializable {
     public static final String EXTRA_BSFT_TRANSACTIONAL_UUID = "bsft_transaction_uuid";
     public static final String EXTRA_BSFT_MESSAGE_UUID = "bsft_message_uuid";
     public static final String EXTRA_BSFT_SEED_LIST_SEND = "bsft_seed_list_send";
+
+    private static final String ACTION_TITLE = "title";
+    private static final String ACTION_DEEPLINK_URL = "deep_link_url";
 
     /**
      * Following are the campaign uuids. They come outside the 'message' object in push message.
@@ -171,6 +173,9 @@ public class Message implements Serializable {
     private String notification_channel_id;
     private String notification_channel_name;
     private String notification_channel_description;
+
+    // Actions
+    private List<Map<String, Object>> actions;
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -439,5 +444,33 @@ public class Message implements Serializable {
 
     public String getNotificationChannelDescription() {
         return notification_channel_description;
+    }
+
+    public List<Map<String, Object>> getActions() {
+        return actions;
+    }
+
+    public boolean hasActions() {
+        return actions != null && actions.size() > 0;
+    }
+
+    public String getActionTitle(Map<String, Object> action) {
+        Object title = null;
+
+        if (action != null && action.containsKey(ACTION_TITLE)) {
+            title = action.get(ACTION_TITLE);
+        }
+
+        return title instanceof String ? String.valueOf(title) : null;
+    }
+
+    public String getActionDeeplinkUrl(Map<String, Object> action) {
+        Object deepLink = null;
+
+        if (action != null && action.containsKey(ACTION_DEEPLINK_URL)) {
+            deepLink = action.get(ACTION_DEEPLINK_URL);
+        }
+
+        return deepLink instanceof String ? String.valueOf(deepLink) : null;
     }
 }
