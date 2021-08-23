@@ -592,7 +592,7 @@ public class NotificationUtils {
         Blueshift.getInstance(context).trackNotificationClick(message, clickAttr);
     }
 
-    public static List<NotificationCompat.Action> getActions(Context context, Message message) {
+    public static List<NotificationCompat.Action> getActions(Context context, Message message, int notificationId) {
         List<NotificationCompat.Action> actionList = null;
         if (context != null && message != null && message.hasActions()) {
             actionList = new ArrayList<>();
@@ -604,21 +604,8 @@ public class NotificationUtils {
                 String title = message.getActionTitle(act);
                 String deepLink = message.getActionDeeplinkUrl(act);
 
-                Intent openIntent = getOpenAppIntent(context, message);
-                openIntent.putExtra(RichPushConstants.EXTRA_DEEP_LINK_URL, deepLink);
-
-                int flags = PendingIntent.FLAG_ONE_SHOT;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    flags |= PendingIntent.FLAG_IMMUTABLE;
-                }
-
-                PendingIntent pi = PendingIntent.getActivity(
-                        context,
-                        NotificationFactory.getRandomPIRequestCode(),
-                        openIntent,
-                        flags);
-
-                NotificationCompat.Action action = new NotificationCompat.Action(0, title, pi);
+                PendingIntent openIntent = NotificationFactory.getNotificationActionPendingIntent(context, message, deepLink, notificationId);
+                NotificationCompat.Action action = new NotificationCompat.Action(0, title, openIntent);
 
                 actionList.add(action);
             }

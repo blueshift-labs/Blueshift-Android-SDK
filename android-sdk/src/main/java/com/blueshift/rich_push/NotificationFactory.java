@@ -193,7 +193,7 @@ public class NotificationFactory {
                 }
             }
 
-            List<NotificationCompat.Action> actions = NotificationUtils.getActions(context, message);
+            List<NotificationCompat.Action> actions = NotificationUtils.getActions(context, message, notificationId);
             if (actions != null) {
                 for (NotificationCompat.Action action : actions) {
                     builder.addAction(action);
@@ -354,6 +354,30 @@ public class NotificationFactory {
         int reqCode = NotificationFactory.getRandomPIRequestCode();
         return taskStackBuilder.getPendingIntent(
                 reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
+    }
+
+    public static PendingIntent getNotificationActionPendingIntent(Context context, Message message, String deepLink, int notificationId) {
+        String action = RichPushConstants.ACTION_OPEN_APP(context);
+
+        // set extra params
+        Bundle bundle = new Bundle();
+        bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
+
+        if (message != null) {
+            bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
+
+            if (deepLink != null) {
+                bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, deepLink);
+            }
+        }
+
+        // get the activity to handle clicks (user defined or sdk defined
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
+        TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
+        taskStackBuilder.addNextIntent(intent);
+
+        int reqCode = NotificationFactory.getRandomPIRequestCode();
+        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
     }
 
     // [END] PendingIntent builder methods.
