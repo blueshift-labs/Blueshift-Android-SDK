@@ -26,6 +26,7 @@ import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.pn.BlueshiftNotificationEventsActivity;
+import com.blueshift.rich_push.Action;
 import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.NotificationFactory;
@@ -596,18 +597,27 @@ public class NotificationUtils {
         List<NotificationCompat.Action> actionList = null;
         if (context != null && message != null && message.hasActions()) {
             actionList = new ArrayList<>();
-            List<Map<String, Object>> actionItems = message.getActions();
-            int count = Math.min(actionItems.size(), 3);
 
-            for (int i = 0; i < count; i++) {
-                Map<String, Object> act = actionItems.get(i);
-                String title = message.getActionTitle(act);
-                String deepLink = message.getActionDeeplinkUrl(act);
+            List<Action> actionItems = message.getActions();
+            if (actionItems != null) {
+                // Android supports max 3 actions on a notification.
+                // https://developer.android.com/training/notify-user/build-notification#Actions
+                int count = Math.min(actionItems.size(), 3);
 
-                PendingIntent openIntent = NotificationFactory.getNotificationActionPendingIntent(context, message, deepLink, notificationId);
-                NotificationCompat.Action action = new NotificationCompat.Action(0, title, openIntent);
+                for (int i = 0; i < count; i++) {
+                    Action act = actionItems.get(i);
+                    if (act != null) {
+                        PendingIntent pendingIntent =
+                                NotificationFactory.getNotificationActionPendingIntent(
+                                        context, message, act.getDeepLink(), notificationId);
 
-                actionList.add(action);
+                        NotificationCompat.Action action =
+                                new NotificationCompat.Action(
+                                        0, act.getTitle(), pendingIntent);
+
+                        actionList.add(action);
+                    }
+                }
             }
         }
         return actionList;

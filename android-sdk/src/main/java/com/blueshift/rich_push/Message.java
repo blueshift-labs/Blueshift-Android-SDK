@@ -175,7 +175,7 @@ public class Message implements Serializable {
     private String notification_channel_description;
 
     // Actions
-    private List<Map<String, Object>> actions;
+    private List<Action> actions;
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -446,31 +446,11 @@ public class Message implements Serializable {
         return notification_channel_description;
     }
 
-    public List<Map<String, Object>> getActions() {
+    public List<Action> getActions() {
         return actions;
     }
 
     public boolean hasActions() {
         return actions != null && actions.size() > 0;
-    }
-
-    public String getActionTitle(Map<String, Object> action) {
-        Object title = null;
-
-        if (action != null && action.containsKey(ACTION_TITLE)) {
-            title = action.get(ACTION_TITLE);
-        }
-
-        return title instanceof String ? String.valueOf(title) : null;
-    }
-
-    public String getActionDeeplinkUrl(Map<String, Object> action) {
-        Object deepLink = null;
-
-        if (action != null && action.containsKey(ACTION_DEEPLINK_URL)) {
-            deepLink = action.get(ACTION_DEEPLINK_URL);
-        }
-
-        return deepLink instanceof String ? String.valueOf(deepLink) : null;
     }
 }

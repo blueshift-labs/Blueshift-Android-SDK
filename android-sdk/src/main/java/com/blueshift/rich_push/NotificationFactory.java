@@ -193,7 +193,9 @@ public class NotificationFactory {
                 }
             }
 
-            List<NotificationCompat.Action> actions = NotificationUtils.getActions(context, message, notificationId);
+            List<NotificationCompat.Action> actions =
+                    NotificationUtils.getActions(context, message, notificationId);
+
             if (actions != null) {
                 for (NotificationCompat.Action action : actions) {
                     builder.addAction(action);
