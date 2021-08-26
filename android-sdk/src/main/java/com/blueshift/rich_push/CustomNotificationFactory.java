@@ -698,8 +698,9 @@ class CustomNotificationFactory {
         intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
         intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
-        return PendingIntent.getService(context,
-                NotificationFactory.getRandomPIRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int code = NotificationFactory.getRandomPIRequestCode();
+
+        return PendingIntent.getService(context, code, intent, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
     }
 
     /**
@@ -732,7 +733,7 @@ class CustomNotificationFactory {
         taskStackBuilder.addNextIntent(intent);
 
         int reqCode = NotificationFactory.getRandomPIRequestCode();
-        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        return taskStackBuilder.getPendingIntent(reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
 
     /**
@@ -748,7 +749,7 @@ class CustomNotificationFactory {
 
         delIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
-        return PendingIntent.getService(context,
-                NotificationFactory.getRandomPIRequestCode(), delIntent, PendingIntent.FLAG_ONE_SHOT);
+        int reqCode = NotificationFactory.getRandomPIRequestCode();
+        return PendingIntent.getService(context, reqCode, delIntent, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
 }
