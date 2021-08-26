@@ -89,7 +89,7 @@ public class BulkEventManager {
 
     private static PendingIntent getAlarmPendingIntent(Context context, int flag) {
         Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-        return PendingIntent.getBroadcast(context, 0, alarmIntent, flag);
+        return PendingIntent.getBroadcast(context, 0, alarmIntent, CommonUtils.appendImmutableFlag(flag));
     }
 
     private static void startAlarmManager(Context context) {

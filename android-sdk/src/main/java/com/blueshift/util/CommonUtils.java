@@ -1,10 +1,12 @@
 package com.blueshift.util;
 
+import android.app.PendingIntent;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Base64;
 import android.util.TypedValue;
 
@@ -99,5 +101,20 @@ public class CommonUtils {
         SimpleDateFormat sdf = new SimpleDateFormat(formatString, Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(new Date());
+    }
+
+    /**
+     * This method will append the IMMUTABLE flag to the provided input flag
+     * This is required by the Android 12 (S) update to create pending intents.
+     *
+     * @param input flags
+     * @return input flag or flag appended with IMMUTABLE flag
+     */
+    public static int appendImmutableFlag(int input) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return input | PendingIntent.FLAG_IMMUTABLE;
+        }
+
+        return input;
     }
 }
