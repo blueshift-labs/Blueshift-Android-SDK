@@ -19,6 +19,7 @@ import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.NotificationUtils;
 import com.google.gson.Gson;
 
@@ -274,7 +275,7 @@ public class NotificationFactory {
                                             context,
                                             NotificationFactory.getRandomPIRequestCode(),
                                             bcIntent,
-                                            PendingIntent.FLAG_ONE_SHOT);
+                                            CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
 
                                     alarmManager.set(AlarmManager.RTC_WAKEUP, timeToDisplay, pendingIntent);
                                     BlueshiftLogger.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
@@ -344,7 +345,8 @@ public class NotificationFactory {
         taskStackBuilder.addNextIntent(intent);
 
         int reqCode = NotificationFactory.getRandomPIRequestCode();
-        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        return taskStackBuilder.getPendingIntent(
+                reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
 
     // [END] PendingIntent builder methods.

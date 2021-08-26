@@ -27,6 +27,7 @@ import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -106,10 +107,9 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
             /*
              * Create pending intent for notification click action
              */
-            PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                    NotificationFactory.getRandomPIRequestCode(),
-                    launcherIntent,
-                    PendingIntent.FLAG_ONE_SHOT);
+            int code = NotificationFactory.getRandomPIRequestCode();
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    this, code, launcherIntent, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
 
             /*
              * Create the notification title. User defined / app name / "Notification"
