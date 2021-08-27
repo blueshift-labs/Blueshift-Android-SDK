@@ -6,12 +6,11 @@ import android.text.TextUtils;
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
-import com.blueshift.util.DeviceUtils;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 19/2/15 @ 1:01 PM
- *         https://github.com/rahulrvp
+ * Created on 19/2/15 @ 1:01 PM
+ * https://github.com/rahulrvp
  */
 public class Configuration {
     // common
@@ -19,14 +18,18 @@ public class Configuration {
     private String apiKey;
 
     // deep linking
+    @Deprecated
     private Class productPage;
+    @Deprecated
     private Class cartPage;
+    @Deprecated
     private Class offerDisplayPage;
 
     // bulk event
     private long batchInterval;
 
     // notifications
+    @Deprecated
     private int dialogTheme;
     private int smallIconResId;
     private int largeIconResId;
@@ -92,18 +95,38 @@ public class Configuration {
         this.appIcon = appIcon;
     }
 
+    /**
+     * @deprecated Category based deep-linking is deprecated. Instead, please use customisable
+     * action buttons. Email us at support@blueshift.com for more details.
+     */
+    @Deprecated
     public Class getProductPage() {
         return productPage;
     }
 
+    /**
+     * @deprecated Category based deep-linking is deprecated. Instead, please use customisable
+     * action buttons. Email us at support@blueshift.com for more details.
+     */
+    @Deprecated
     public void setProductPage(Class productPage) {
         this.productPage = productPage;
     }
 
+    /**
+     * @deprecated Category based deep-linking is deprecated. Instead, please use customisable
+     * action buttons. Email us at support@blueshift.com for more details.
+     */
+    @Deprecated
     public Class getCartPage() {
         return cartPage;
     }
 
+    /**
+     * @deprecated Category based deep-linking is deprecated. Instead, please use customisable
+     * action buttons. Email us at support@blueshift.com for more details.
+     */
+    @Deprecated
     public void setCartPage(Class cartPage) {
         this.cartPage = cartPage;
     }
@@ -116,10 +139,20 @@ public class Configuration {
         this.apiKey = apiKey;
     }
 
+    /**
+     * @deprecated Category based deep-linking is deprecated. Instead, please use customisable
+     * action buttons. Email us at support@blueshift.com for more details.
+     */
+    @Deprecated
     public Class getOfferDisplayPage() {
         return offerDisplayPage;
     }
 
+    /**
+     * @deprecated Category based deep-linking is deprecated. Instead, please use customisable
+     * action buttons. Email us at support@blueshift.com for more details.
+     */
+    @Deprecated
     public void setOfferDisplayPage(Class offerDisplayPage) {
         this.offerDisplayPage = offerDisplayPage;
     }
@@ -138,6 +171,10 @@ public class Configuration {
         this.batchInterval = batchInterval;
     }
 
+    /**
+     * @deprecated Dialog notifications are deprecated. Use in-app messages instead.
+     */
+    @Deprecated
     public int getDialogTheme() {
         return dialogTheme;
     }
@@ -147,7 +184,9 @@ public class Configuration {
      * Default value is `Theme.AppCompat.Dialog.Alert`
      *
      * @param dialogTheme user define theme's reference id
+     * @deprecated Dialog notifications are deprecated. Use in-app messages instead.
      */
+    @Deprecated
     public void setDialogTheme(int dialogTheme) {
         this.dialogTheme = dialogTheme;
     }
@@ -236,7 +275,7 @@ public class Configuration {
     /**
      * This enables/disables the app_open event firing when app is started based on the boolean
      * value supplied in enableAutoAppOpen.
-     *
+     * <p>
      * By default the automatic firing of app_open is disabled.
      *
      * @param enableAutoAppOpen boolean value that enable/disable auto app open firing.
