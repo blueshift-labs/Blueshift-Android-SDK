@@ -4,13 +4,13 @@ import java.io.Serializable;
 
 public class Action implements Serializable {
     private String title;
-    private String deepLink;
+    private String deep_link_url;
 
     public String getTitle() {
         return title;
     }
 
-    public String getDeepLink() {
-        return deepLink;
+    public String getDeepLinkUrl() {
+        return deep_link_url;
     }
 }

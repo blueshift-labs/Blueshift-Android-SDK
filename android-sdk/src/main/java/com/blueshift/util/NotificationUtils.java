@@ -609,7 +609,7 @@ public class NotificationUtils {
                     if (act != null) {
                         PendingIntent pendingIntent =
                                 NotificationFactory.getNotificationActionPendingIntent(
-                                        context, message, act.getDeepLink(), notificationId);
+                                        context, message, act.getDeepLinkUrl(), notificationId);
 
                         NotificationCompat.Action action =
                                 new NotificationCompat.Action(
