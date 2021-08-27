@@ -368,11 +368,11 @@ public class NotificationFactory {
 
         if (message != null) {
             bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
+        }
 
-            if (pushAction != null) {
-                bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, pushAction.getDeepLinkUrl());
-                bundle.putString(BlueshiftConstants.KEY_CLICK_ELEMENT, pushAction.getTitle());
-            }
+        if (pushAction != null) {
+            bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, pushAction.getDeepLinkUrl());
+            bundle.putString(BlueshiftConstants.KEY_CLICK_ELEMENT, pushAction.getTitle());
         }
 
         // get the activity to handle clicks (user defined or sdk defined
