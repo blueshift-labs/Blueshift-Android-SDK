@@ -1379,6 +1379,9 @@ public class Blueshift {
 
             String paramsUrl = q.toString();
             if (!TextUtils.isEmpty(paramsUrl)) {
+                // replace whitespace with %20 to avoid URL damage.
+                paramsUrl = paramsUrl.replace(" ", "%20");
+
                 String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + paramsUrl;
 
                 Request request = new Request();

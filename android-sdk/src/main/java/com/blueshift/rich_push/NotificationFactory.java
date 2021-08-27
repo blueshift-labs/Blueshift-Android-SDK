@@ -16,6 +16,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
@@ -358,7 +359,7 @@ public class NotificationFactory {
                 reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
 
-    public static PendingIntent getNotificationActionPendingIntent(Context context, Message message, String deepLink, int notificationId) {
+    public static PendingIntent getNotificationActionPendingIntent(Context context, Message message, Action pushAction, int notificationId) {
         String action = RichPushConstants.ACTION_OPEN_APP(context);
 
         // set extra params
@@ -368,8 +369,9 @@ public class NotificationFactory {
         if (message != null) {
             bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
 
-            if (deepLink != null) {
-                bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, deepLink);
+            if (pushAction != null) {
+                bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, pushAction.getDeepLinkUrl());
+                bundle.putString(BlueshiftConstants.KEY_CLICK_ELEMENT, pushAction.getTitle());
             }
         }
 

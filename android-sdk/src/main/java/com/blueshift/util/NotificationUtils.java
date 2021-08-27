@@ -463,9 +463,14 @@ public class NotificationUtils {
             if (message != null) {
                 try {
                     String deepLink = bundle.getString(RichPushConstants.EXTRA_DEEP_LINK_URL);
+                    String clickElement = bundle.getString(BlueshiftConstants.KEY_CLICK_ELEMENT);
+
+                    Map<String, Object> extras = new HashMap<>();
+                    extras.put(BlueshiftConstants.KEY_CLICK_URL, deepLink);
+                    extras.put(BlueshiftConstants.KEY_CLICK_ELEMENT, clickElement);
 
                     // mark 'click'
-                    NotificationUtils.invokePushClicked(context, message, deepLink);
+                    NotificationUtils.invokePushClicked(context, message, extras);
 
                     Intent intent = null;
 
@@ -576,11 +581,11 @@ public class NotificationUtils {
      * @param context valid {@link Context} object
      * @param message valid {@link Message} object
      */
-    public static void invokePushClicked(Context context, Message message, String clickUrl) {
+    public static void invokePushClicked(Context context, Message message, Map<String, Object> extras) {
         if (Blueshift.getBlueshiftPushListener() != null && message != null) {
             Map<String, Object> attr = message.toMap();
-            if (attr != null && clickUrl != null) {
-                attr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+            if (attr != null && extras != null) {
+                attr.putAll(extras);
             }
 
             if (Blueshift.getBlueshiftPushListener() != null) {
@@ -588,8 +593,7 @@ public class NotificationUtils {
             }
         }
 
-        HashMap<String, Object> clickAttr = new HashMap<>();
-        if (clickUrl != null) clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+        HashMap<String, Object> clickAttr = extras != null ? new HashMap<>(extras) : null;
         Blueshift.getInstance(context).trackNotificationClick(message, clickAttr);
     }
 
@@ -609,7 +613,7 @@ public class NotificationUtils {
                     if (act != null) {
                         PendingIntent pendingIntent =
                                 NotificationFactory.getNotificationActionPendingIntent(
-                                        context, message, act.getDeepLinkUrl(), notificationId);
+                                        context, message, act, notificationId);
 
                         NotificationCompat.Action action =
                                 new NotificationCompat.Action(
