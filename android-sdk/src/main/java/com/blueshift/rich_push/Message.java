@@ -25,9 +25,6 @@ public class Message implements Serializable {
     public static final String EXTRA_BSFT_MESSAGE_UUID = "bsft_message_uuid";
     public static final String EXTRA_BSFT_SEED_LIST_SEND = "bsft_seed_list_send";
 
-    private static final String ACTION_TITLE = "title";
-    private static final String ACTION_DEEPLINK_URL = "deep_link_url";
-
     /**
      * Following are the campaign uuids. They come outside the 'message' object in push message.
      * We have added them inside this class to avoid major code change and to use them conveniently
