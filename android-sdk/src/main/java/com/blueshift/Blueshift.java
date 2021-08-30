@@ -62,6 +62,7 @@ public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
     private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
     private static final HashMap<String, Object> sAppParams = new HashMap<>();
+    private static final String UTF8_SPACE = "%20";
 
     private Context mContext;
     private static Configuration mConfiguration;
@@ -1350,7 +1351,7 @@ public class Blueshift {
             q.append(BlueshiftConstants.KEY_TIMESTAMP).append("=").append(CommonUtils.getCurrentUtcTimestamp());
 
             appendAnd(q);
-            q.append(BlueshiftConstants.KEY_BROWSER_PLATFORM).append("=Android%20").append(Build.VERSION.RELEASE);
+            q.append(BlueshiftConstants.KEY_BROWSER_PLATFORM).append("=Android").append(UTF8_SPACE).append(Build.VERSION.RELEASE);
 
             if (extras != null && extras.size() > 0) {
                 String clickUrl = null;
@@ -1380,7 +1381,7 @@ public class Blueshift {
             String paramsUrl = q.toString();
             if (!TextUtils.isEmpty(paramsUrl)) {
                 // replace whitespace with %20 to avoid URL damage.
-                paramsUrl = paramsUrl.replace(" ", "%20");
+                paramsUrl = paramsUrl.replace(" ", UTF8_SPACE);
 
                 String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + paramsUrl;
 
