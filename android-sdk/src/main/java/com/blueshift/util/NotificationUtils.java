@@ -518,8 +518,6 @@ public class NotificationUtils {
                         notificationManager.cancel(notificationID);
                     }
 
-                    context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
-
                     // click was handled by Blueshift SDK
                     return true;
                 } catch (Exception e) {
