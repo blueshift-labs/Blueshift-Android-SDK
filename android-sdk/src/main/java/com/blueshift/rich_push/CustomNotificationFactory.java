@@ -189,6 +189,12 @@ class CustomNotificationFactory {
             if (message != null && message.getCarouselLength() > 0) {
                 contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    // round corners for the expanded view for Android 12 and higher
+                    contentView.setInt(R.id.bsft_expanded_notification_s, "setBackgroundResource", R.drawable.bsft_rounded_corner_background);
+                    contentView.setBoolean(R.id.bsft_expanded_notification_s, "setClipToOutline", true);
+                }
+
                 // show next and prev buttons only when we have more than 1 carousel element
                 if (message.getCarouselLength() > 1) {
                     contentView.setViewVisibility(R.id.next_button, View.VISIBLE);
@@ -379,7 +385,7 @@ class CustomNotificationFactory {
 
                 int smallIconResId = configuration.getSmallIconResId();
                 if (smallIconResId != 0) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
                         // show small icon
                         contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
                         contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
@@ -626,6 +632,12 @@ class CustomNotificationFactory {
 
                 // show the container to host ViewFlipper.
                 contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    // round corners for the expanded view for Android 12 and higher
+                    contentView.setInt(R.id.bsft_expanded_notification_s, "setBackgroundResource", R.drawable.bsft_rounded_corner_background);
+                    contentView.setBoolean(R.id.bsft_expanded_notification_s, "setClipToOutline", true);
+                }
 
                 // load basic notification contents.
                 setBasicNotificationData(context, message, contentView, true);
