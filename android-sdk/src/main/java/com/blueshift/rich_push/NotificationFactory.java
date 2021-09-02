@@ -16,6 +16,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
@@ -193,6 +194,15 @@ public class NotificationFactory {
                 }
             }
 
+            List<NotificationCompat.Action> actions =
+                    NotificationUtils.getActions(context, message, notificationId);
+
+            if (actions != null) {
+                for (NotificationCompat.Action action : actions) {
+                    builder.addAction(action);
+                }
+            }
+
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -337,6 +347,32 @@ public class NotificationFactory {
             if (message.isDeepLinkingEnabled()) {
                 bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, message.getDeepLinkUrl());
             }
+        }
+
+        // get the activity to handle clicks (user defined or sdk defined
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
+        TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
+        taskStackBuilder.addNextIntent(intent);
+
+        int reqCode = NotificationFactory.getRandomPIRequestCode();
+        return taskStackBuilder.getPendingIntent(
+                reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
+    }
+
+    public static PendingIntent getNotificationActionPendingIntent(Context context, Message message, Action pushAction, int notificationId) {
+        String action = RichPushConstants.ACTION_OPEN_APP(context);
+
+        // set extra params
+        Bundle bundle = new Bundle();
+        bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
+
+        if (message != null) {
+            bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
+        }
+
+        if (pushAction != null) {
+            bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, pushAction.getDeepLinkUrl());
+            bundle.putString(BlueshiftConstants.KEY_CLICK_ELEMENT, pushAction.getTitle());
         }
 
         // get the activity to handle clicks (user defined or sdk defined
