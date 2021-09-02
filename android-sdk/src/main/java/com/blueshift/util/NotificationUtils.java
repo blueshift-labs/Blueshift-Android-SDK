@@ -2,6 +2,7 @@ package com.blueshift.util;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
 
 import android.text.TextUtils;
@@ -25,16 +27,14 @@ import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.blueshift.pn.BlueshiftNotificationEventsActivity;
+import com.blueshift.rich_push.Action;
 import com.blueshift.rich_push.CarouselElement;
 import com.blueshift.rich_push.Message;
+import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.rich_push.RichPushConstants;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -464,9 +464,14 @@ public class NotificationUtils {
             if (message != null) {
                 try {
                     String deepLink = bundle.getString(RichPushConstants.EXTRA_DEEP_LINK_URL);
+                    String clickElement = bundle.getString(BlueshiftConstants.KEY_CLICK_ELEMENT);
+
+                    Map<String, Object> extras = new HashMap<>();
+                    extras.put(BlueshiftConstants.KEY_CLICK_URL, deepLink);
+                    extras.put(BlueshiftConstants.KEY_CLICK_ELEMENT, clickElement);
 
                     // mark 'click'
-                    NotificationUtils.invokePushClicked(context, message, deepLink);
+                    NotificationUtils.invokePushClicked(context, message, extras);
 
                     Intent intent = null;
 
@@ -577,11 +582,11 @@ public class NotificationUtils {
      * @param context valid {@link Context} object
      * @param message valid {@link Message} object
      */
-    public static void invokePushClicked(Context context, Message message, String clickUrl) {
+    public static void invokePushClicked(Context context, Message message, Map<String, Object> extras) {
         if (Blueshift.getBlueshiftPushListener() != null && message != null) {
             Map<String, Object> attr = message.toMap();
-            if (attr != null && clickUrl != null) {
-                attr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+            if (attr != null && extras != null) {
+                attr.putAll(extras);
             }
 
             if (Blueshift.getBlueshiftPushListener() != null) {
@@ -589,8 +594,37 @@ public class NotificationUtils {
             }
         }
 
-        HashMap<String, Object> clickAttr = new HashMap<>();
-        if (clickUrl != null) clickAttr.put(BlueshiftConstants.KEY_CLICK_URL, clickUrl);
+        HashMap<String, Object> clickAttr = extras != null ? new HashMap<>(extras) : null;
         Blueshift.getInstance(context).trackNotificationClick(message, clickAttr);
+    }
+
+    public static List<NotificationCompat.Action> getActions(Context context, Message message, int notificationId) {
+        List<NotificationCompat.Action> actionList = null;
+        if (context != null && message != null && message.hasActions()) {
+            actionList = new ArrayList<>();
+
+            List<Action> actionItems = message.getActions();
+            if (actionItems != null) {
+                // Android supports max 3 actions on a notification.
+                // https://developer.android.com/training/notify-user/build-notification#Actions
+                int count = Math.min(actionItems.size(), 3);
+
+                for (int i = 0; i < count; i++) {
+                    Action act = actionItems.get(i);
+                    if (act != null) {
+                        PendingIntent pendingIntent =
+                                NotificationFactory.getNotificationActionPendingIntent(
+                                        context, message, act, notificationId);
+
+                        NotificationCompat.Action action =
+                                new NotificationCompat.Action(
+                                        0, act.getTitle(), pendingIntent);
+
+                        actionList.add(action);
+                    }
+                }
+            }
+        }
+        return actionList;
     }
 }

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 
 import java.io.Serializable;
@@ -171,6 +170,9 @@ public class Message implements Serializable {
     private String notification_channel_id;
     private String notification_channel_name;
     private String notification_channel_description;
+
+    // Actions
+    private List<Action> actions;
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -439,5 +441,13 @@ public class Message implements Serializable {
 
     public String getNotificationChannelDescription() {
         return notification_channel_description;
+    }
+
+    public List<Action> getActions() {
+        return actions;
+    }
+
+    public boolean hasActions() {
+        return actions != null && actions.size() > 0;
     }
 }
