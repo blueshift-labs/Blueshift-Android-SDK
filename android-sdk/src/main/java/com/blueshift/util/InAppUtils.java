@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import androidx.core.content.ContextCompat;
 import android.text.TextUtils;
@@ -1074,5 +1075,41 @@ public class InAppUtils {
         }
 
         Blueshift.getInstance(context).trackInAppMessageClick(inAppMessage, extras);
+    }
+
+    public static void invokeInAppDismiss(Context context, InAppMessage inAppMessage, JSONObject extras) {
+        Map<String, Object> map = inAppMessage != null ? inAppMessage.toMap() : null;
+
+        if (map != null && extras != null) {
+            BlueshiftJSONObject ex = new BlueshiftJSONObject();
+            ex.putAll(extras);
+            map.putAll(ex.toHasMap());
+        }
+
+        if (Blueshift.getBlueshiftInAppListener() != null) {
+            Blueshift.getBlueshiftInAppListener().onInAppClicked(map);
+        }
+
+        Blueshift.getInstance(context).trackInAppMessageDismiss(inAppMessage, extras);
+    }
+
+    public static boolean isDismissUri(Uri uri) {
+        return uri == null || isDismissUrl(uri.toString());
+    }
+
+    public static boolean isDismissUrl(String url) {
+        return url == null
+                || url.isEmpty()
+                || "null".equals(url)
+                || isBlankURL(url)
+                || isBlueshiftDismissUrl(url);
+    }
+
+    public static boolean isBlueshiftDismissUrl(String url) {
+        return InAppConstants.DISMISS_URL.equals(url);
+    }
+
+    private static boolean isBlankURL(String url) {
+        return InAppConstants.BLANK_URL.equals(url);
     }
 }

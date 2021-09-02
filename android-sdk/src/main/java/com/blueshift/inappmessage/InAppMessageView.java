@@ -114,7 +114,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         closeButtonView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                onDismiss(inAppMessage, getClickStatsJSONObject(InAppConstants.BTN_CLOSE));
+                handleDismiss(inAppMessage, getClickStatsJSONObject(InAppConstants.BTN_CLOSE));
             }
         });
 
@@ -137,8 +137,16 @@ public abstract class InAppMessageView extends RelativeLayout {
         return statsParams;
     }
 
-    public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-        BlueshiftLogger.d(TAG, "Dismiss invoked on InAppMessage: " + (inAppMessage != null ? inAppMessage.toString() : "null"));
+    public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+        BlueshiftLogger.d(TAG, "handleDismiss: " + inAppMessage.getMessageUuid());
+        // track dismiss
+        InAppUtils.invokeInAppDismiss(getContext(), inAppMessage, params);
+    }
+
+    public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+        BlueshiftLogger.d(TAG, "handleClick: " + inAppMessage.getMessageUuid());
+        // track click
+        InAppUtils.invokeInAppClicked(getContext(), inAppMessage, params);
     }
 
     private Button getActionButtonBasic(JSONObject actionJson) {
@@ -187,7 +195,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 // add additional params for analytics
                 JSONObject statsParams = getClickStatsJSONObject(element);
                 String androidLink = actionJson.optString(InAppConstants.ANDROID_LINK);
-                if (!TextUtils.isEmpty(androidLink)) {
+                if (!InAppUtils.isDismissUrl(androidLink)) {
                     statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, androidLink);
                 }
 
@@ -269,10 +277,11 @@ public abstract class InAppMessageView extends RelativeLayout {
             @Override
             public void onClick(View view) {
                 InAppActionCallback callback = InAppManager.getActionCallback();
-                if (callback != null) callback.onAction(actionName, actionObject);
+                if (callback != null) {
+                    callback.onAction(actionName, actionObject);
+                }
 
-                // dismiss dialog
-                onDismiss(getInAppMessage(), clickStats);
+                handleClick(getInAppMessage(), clickStats);
             }
         };
     }
@@ -285,7 +294,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 @Override
                 public void onClick(View view) {
                     // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    handleDismiss(getInAppMessage(), clickStats);
                 }
             };
         }
@@ -303,8 +312,13 @@ public abstract class InAppMessageView extends RelativeLayout {
                     // open
                     open(action);
 
-                    // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    // validate the CTA URL and decide what action needs to be taken
+                    String link = action.optString(InAppConstants.ANDROID_LINK);
+                    if (InAppUtils.isDismissUrl(link)) {
+                        handleDismiss(getInAppMessage(), clickStats);
+                    } else {
+                        handleClick(getInAppMessage(), clickStats);
+                    }
                 }
             };
         }
@@ -323,7 +337,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                     shareText(action);
 
                     // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    handleClick(getInAppMessage(), clickStats);
                 }
             };
         }
@@ -342,7 +356,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                     rateAppInGooglePlayStore(action);
 
                     // dismiss dialog
-                    onDismiss(getInAppMessage(), clickStats);
+                    handleClick(getInAppMessage(), clickStats);
                 }
             };
         }
@@ -395,7 +409,7 @@ public abstract class InAppMessageView extends RelativeLayout {
         try {
             if (action != null) {
                 String link = action.optString(InAppConstants.ANDROID_LINK);
-                if (!TextUtils.isEmpty(link)) {
+                if (!InAppUtils.isDismissUrl(link)) {
                     BlueshiftLogger.d(TAG, "deep-link: " + link);
 
                     JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);
