@@ -381,7 +381,8 @@ public class NotificationFactory {
         taskStackBuilder.addNextIntent(intent);
 
         int reqCode = NotificationFactory.getRandomPIRequestCode();
-        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        return taskStackBuilder.getPendingIntent(
+                reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
 
     // [END] PendingIntent builder methods.
