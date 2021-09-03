@@ -89,7 +89,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     protected String getString(Cursor cursor, String fieldName) {
         if (cursor != null && fieldName != null) {
             int i = cursor.getColumnIndex(fieldName);
-            if (i >= 0) cursor.getString(i);
+            if (i >= 0) return cursor.getString(i);
         }
 
         return null;
