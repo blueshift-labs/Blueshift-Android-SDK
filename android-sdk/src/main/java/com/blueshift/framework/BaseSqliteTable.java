@@ -70,7 +70,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     protected long getLong(Cursor cursor, String fieldName) {
         if (cursor != null && fieldName != null) {
             int i = cursor.getColumnIndex(fieldName);
-            if (i >= 0) cursor.getLong(i);
+            if (i >= 0) return cursor.getLong(i);
         }
 
         return 0;
@@ -79,7 +79,7 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
     protected int getInt(Cursor cursor, String fieldName) {
         if (cursor != null && fieldName != null) {
             int i = cursor.getColumnIndex(fieldName);
-            if (i >= 0) cursor.getInt(i);
+            if (i >= 0) return cursor.getInt(i);
         }
 
         return 0;
