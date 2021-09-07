@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
@@ -189,11 +190,7 @@ class CustomNotificationFactory {
             if (message != null && message.getCarouselLength() > 0) {
                 contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    // round corners for the expanded view for Android 12 and higher
-                    contentView.setInt(R.id.bsft_expanded_notification_s, "setBackgroundResource", R.drawable.bsft_rounded_corner_background);
-                    contentView.setBoolean(R.id.bsft_expanded_notification_s, "setClipToOutline", true);
-                }
+                applyAndroid12UiChanges(contentView, context);
 
                 // show next and prev buttons only when we have more than 1 carousel element
                 if (message.getCarouselLength() > 1) {
@@ -249,6 +246,27 @@ class CustomNotificationFactory {
         }
 
         return contentView;
+    }
+
+    /**
+     * This method is responsible for making the notification look good in Android 12.
+     *
+     * @param contentView the root content view
+     * @param context     context object
+     */
+    private void applyAndroid12UiChanges(RemoteViews contentView, Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // round corners for the expanded view for Android 12 and higher
+            contentView.setInt(R.id.bsft_expanded_notification_s, "setBackgroundResource", R.drawable.bsft_rounded_corner_background);
+            contentView.setBoolean(R.id.bsft_expanded_notification_s, "setClipToOutline", true);
+
+            // apply margin for the apps that are not targeting android 12
+            ApplicationInfo info = context.getApplicationInfo();
+            if (info.targetSdkVersion < Build.VERSION_CODES.S) {
+                int dp16 = CommonUtils.dpToPx(16, context);
+                contentView.setViewPadding(R.id.bsft_custom_notification_container, dp16, dp16, dp16, dp16);
+            }
+        }
     }
 
     private RemoteViews getOverlayView(Context context, CarouselElement element) {
@@ -633,11 +651,7 @@ class CustomNotificationFactory {
                 // show the container to host ViewFlipper.
                 contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    // round corners for the expanded view for Android 12 and higher
-                    contentView.setInt(R.id.bsft_expanded_notification_s, "setBackgroundResource", R.drawable.bsft_rounded_corner_background);
-                    contentView.setBoolean(R.id.bsft_expanded_notification_s, "setClipToOutline", true);
-                }
+                applyAndroid12UiChanges(contentView, context);
 
                 // load basic notification contents.
                 setBasicNotificationData(context, message, contentView, true);
