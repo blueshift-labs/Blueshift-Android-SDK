@@ -17,8 +17,8 @@ import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 24/8/16 @ 3:07 PM
- *         https://github.com/rahulrvp
+ * Created on 24/8/16 @ 3:07 PM
+ * https://github.com/rahulrvp
  */
 public class EventsTable extends BaseSqliteTable<Event> {
 
@@ -55,9 +55,9 @@ public class EventsTable extends BaseSqliteTable<Event> {
 
         try {
             if (isValidCursor(cursor)) {
-                event.setId(cursor.getLong(cursor.getColumnIndex(FIELD_ID)));
+                event.setId(getLong(cursor, FIELD_ID));
 
-                String json = cursor.getString(cursor.getColumnIndex(FIELD_EVENT_PARAMS_JSON));
+                String json = getString(cursor, FIELD_EVENT_PARAMS_JSON);
                 HashMap<String, Object> paramsMap = new HashMap<>();
                 if (!TextUtils.isEmpty(json)) {
                     Type type = new TypeToken<HashMap<String, Object>>() {
