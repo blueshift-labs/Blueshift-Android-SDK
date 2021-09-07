@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
+
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.batch.EventsTable;
@@ -64,6 +66,34 @@ public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE " + FailedEventsTable.TABLE_NAME);
 
         onCreate(db);
+    }
+
+    protected long getLong(Cursor cursor, String fieldName) {
+        if (cursor != null && fieldName != null) {
+            int i = cursor.getColumnIndex(fieldName);
+            if (i >= 0) return cursor.getLong(i);
+        }
+
+        return 0;
+    }
+
+    protected int getInt(Cursor cursor, String fieldName) {
+        if (cursor != null && fieldName != null) {
+            int i = cursor.getColumnIndex(fieldName);
+            if (i >= 0) return cursor.getInt(i);
+        }
+
+        return 0;
+    }
+
+    @Nullable
+    protected String getString(Cursor cursor, String fieldName) {
+        if (cursor != null && fieldName != null) {
+            int i = cursor.getColumnIndex(fieldName);
+            if (i >= 0) return cursor.getString(i);
+        }
+
+        return null;
     }
 
     /**

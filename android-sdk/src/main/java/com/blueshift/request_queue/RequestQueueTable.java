@@ -14,8 +14,8 @@ import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 26/5/15 @ 3:07 PM
- *         https://github.com/rahulrvp
+ * Created on 26/5/15 @ 3:07 PM
+ * https://github.com/rahulrvp
  */
 public class RequestQueueTable extends BaseSqliteTable<Request> {
     private static final String LOG_TAG = RequestQueueTable.class.getSimpleName();
@@ -60,15 +60,15 @@ public class RequestQueueTable extends BaseSqliteTable<Request> {
 
         try {
             if (isValidCursor(cursor)) {
-                request.setId(cursor.getLong(cursor.getColumnIndex(FIELD_REQUEST_ID)));
-                request.setUrl(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_URL)));
-                request.setMethod(Method.valueOf(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_METHOD))));
-                request.setFilePath(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_FILE_PATH)));
-                request.setParamJson(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_PARAMS_JSON)));
-                request.setRequestType(cursor.getString(cursor.getColumnIndex(FIELD_REQUEST_TYPE)));
-                request.setUrlParams(cursor.getString(cursor.getColumnIndex(FIELD_URL_PARAMS)));
-                request.setPendingRetryCount(cursor.getInt(cursor.getColumnIndex(FIELD_PENDING_RETRY_COUNT)));
-                request.setNextRetryTime(cursor.getLong(cursor.getColumnIndex(FIELD_NEXT_RETRY_TIME)));
+                request.setId(getLong(cursor, FIELD_REQUEST_ID));
+                request.setUrl(getString(cursor, FIELD_REQUEST_URL));
+                request.setMethod(Method.valueOf(getString(cursor, FIELD_REQUEST_METHOD)));
+                request.setFilePath(getString(cursor, FIELD_REQUEST_FILE_PATH));
+                request.setParamJson(getString(cursor, FIELD_REQUEST_PARAMS_JSON));
+                request.setRequestType(getString(cursor, FIELD_REQUEST_TYPE));
+                request.setUrlParams(getString(cursor, FIELD_URL_PARAMS));
+                request.setPendingRetryCount(getInt(cursor, FIELD_PENDING_RETRY_COUNT));
+                request.setNextRetryTime(getLong(cursor, FIELD_NEXT_RETRY_TIME));
             }
         } catch (Exception e) {
             request = null;

@@ -65,11 +65,18 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
     }
 
     protected long getLong(Cursor cursor, String fieldName) {
-        return cursor.getLong(cursor.getColumnIndex(fieldName));
+        int index = cursor.getColumnIndex(fieldName);
+        if (index >= 0) return cursor.getLong(index);
+
+        return 0;
     }
 
+    @Nullable
     protected String getString(Cursor cursor, String fieldName) {
-        return cursor.getString(cursor.getColumnIndex(fieldName));
+        int index = cursor.getColumnIndex(fieldName);
+        if (index >= 0) return cursor.getString(index);
+
+        return null;
     }
 
     public boolean insert(T t) {
