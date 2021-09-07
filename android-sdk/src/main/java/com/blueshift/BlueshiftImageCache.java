@@ -61,7 +61,8 @@ public class BlueshiftImageCache {
         Bitmap bitmap = null;
 
         if (key != null) {
-            String source = "network";
+            BlueshiftLogger.d(TAG, "Bitmap requested. Dimension: " + reqWidth + "w " + reqHeight + "h, URL: " + url);
+
             bitmap = getFromMemCache(key);
             if (bitmap == null) {
                 bitmap = getFromDiskCache(context, key);
@@ -71,21 +72,15 @@ public class BlueshiftImageCache {
                         addToMemCache(key, bitmap);
                         addToDiskCache(context, key, bitmap);
                     } else {
-                        BlueshiftLogger.w(TAG, "Image download error! url: " + url);
+                        BlueshiftLogger.w(TAG, "Could not download the image from URL: " + url);
                     }
                 } else {
                     addToMemCache(key, bitmap);
-                    source = "disk";
+                    BlueshiftLogger.d(TAG, "Bitmap provided. Source: disk, URL: " + url);
                 }
             } else {
-                source = "memory";
+                BlueshiftLogger.d(TAG, "Bitmap provided. Source: memory, URL: " + url);
             }
-
-            BlueshiftLogger.d(TAG, "Size: (" + reqWidth + "w, " + reqHeight + "h), " +
-                    "Source: " + source + ", " +
-                    "URL: " + url);
-        } else {
-            BlueshiftLogger.d(TAG, "Invalid url: " + url);
         }
 
         return bitmap;
@@ -99,9 +94,23 @@ public class BlueshiftImageCache {
      */
     @WorkerThread
     public static void preload(Context context, String url) {
-        Bitmap bitmap = getBitmap(context, url);
-        String status = bitmap != null ? "success" : "failed";
-        BlueshiftLogger.d(TAG, "Preload " + status + " for url: " + url);
+        preloadScaled(context, url, 0, 0);
+    }
+
+    /**
+     * Helps you pre-load an image and keep it in memory for faster loading next time.
+     *
+     * @param context   valid {@link Context} object
+     * @param url       URL of the image
+     * @param reqWidth  output width of the bitmap
+     * @param reqHeight output height of the bitmap
+     */
+    @WorkerThread
+    public static void preloadScaled(Context context, String url, int reqWidth, int reqHeight) {
+        Bitmap bitmap = getScaledBitmap(context, url, reqWidth, reqHeight);
+        if (bitmap != null) {
+            BlueshiftLogger.d(TAG, "Preloaded image with URL: " + url);
+        }
     }
 
     /**
@@ -149,7 +158,10 @@ public class BlueshiftImageCache {
     }
 
     private static String md5(String s) {
-        if (s == null) return null;
+        if (s == null || "null".equals(s) || s.isEmpty()) {
+            BlueshiftLogger.w(TAG, "Invalid image URL: \"" + s + "\"");
+            return null;
+        }
 
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -261,17 +273,14 @@ public class BlueshiftImageCache {
             if (reqWidth == 0) reqWidth = options.outWidth;
             if (reqHeight == 0) reqHeight = options.outHeight;
 
-            BlueshiftLogger.d(TAG, "reqWidth: " + reqWidth + ", reqHeight: " + reqHeight);
-
             options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
 
             options.inJustDecodeBounds = false;
 
             Bitmap raw = BitmapFactory.decodeStream(new URL(url).openStream(), new Rect(), options);
             if (raw != null) {
-                BlueshiftLogger.d(TAG, "Bitmap (" +
-                        "size: " + (raw.getByteCount() / 1024f) / 1024f + " MB\t" +
-                        "url: " + url + ")");
+                float size = (raw.getByteCount() / 1024f) / 1024f;
+                BlueshiftLogger.d(TAG, "Bitmap provided. Source: network, Dimension: " + reqWidth + "w " + reqHeight + "h, Size: " + size + " MB, URL: " + url);
                 return raw;
             }
         } catch (Exception e) {

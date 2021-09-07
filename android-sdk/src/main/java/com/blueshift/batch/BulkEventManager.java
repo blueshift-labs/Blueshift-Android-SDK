@@ -13,6 +13,7 @@ import android.support.annotation.RequiresApi;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
@@ -27,8 +28,8 @@ import java.util.HashMap;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 25/8/16 @ 3:05 PM
- *         https://github.com/rahulrvp
+ * Created on 25/8/16 @ 3:05 PM
+ * https://github.com/rahulrvp
  */
 public class BulkEventManager {
 
@@ -62,13 +63,23 @@ public class BulkEventManager {
                         builder.setRequiresBatteryNotLow(true);
                     }
 
-                    JobScheduler jobScheduler =
+                    final JobScheduler jobScheduler =
                             (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
-                    if (jobScheduler != null
-                            && jobScheduler.schedule(builder.build()) == JobScheduler.RESULT_SUCCESS) {
-                        BlueshiftLogger.d(LOG_TAG, "Bulk event job scheduled.");
-                    }
+                    final JobInfo jobInfo = builder.build();
+
+                    BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (jobScheduler != null && JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
+                                BlueshiftLogger.d(LOG_TAG, "Bulk event job scheduled.");
+                            } else {
+                                // for some reason job scheduling failed. log this.
+                                BlueshiftLogger.d(LOG_TAG, "Bulk event job scheduling failed.");
+                            }
+                        }
+                    });
+
                 }
             }
         } catch (Exception e) {
@@ -78,7 +89,7 @@ public class BulkEventManager {
 
     private static PendingIntent getAlarmPendingIntent(Context context, int flag) {
         Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-        return PendingIntent.getBroadcast(context, 0, alarmIntent, flag);
+        return PendingIntent.getBroadcast(context, 0, alarmIntent, CommonUtils.appendImmutableFlag(flag));
     }
 
     private static void startAlarmManager(Context context) {

@@ -62,6 +62,7 @@ public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
     private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
     private static final HashMap<String, Object> sAppParams = new HashMap<>();
+    private static final String UTF8_SPACE = "%20";
 
     private Context mContext;
     private static Configuration mConfiguration;
@@ -1249,6 +1250,22 @@ public class Blueshift {
         }
     }
 
+    public void trackInAppMessageDismiss(InAppMessage inAppMessage, JSONObject extraJson) {
+        if (inAppMessage != null) {
+            // sending the element name to identify click
+            HashMap<String, Object> extras = new HashMap<>();
+            if (extraJson != null) {
+                Iterator<String> keys = extraJson.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    extras.put(key, extraJson.opt(key));
+                }
+            }
+
+            trackCampaignEventAsync(InAppConstants.EVENT_DISMISS, inAppMessage.getCampaignParamsMap(), extras);
+        }
+    }
+
     void trackUniversalLinks(Uri uri) {
         try {
             if (uri != null) {
@@ -1350,7 +1367,7 @@ public class Blueshift {
             q.append(BlueshiftConstants.KEY_TIMESTAMP).append("=").append(CommonUtils.getCurrentUtcTimestamp());
 
             appendAnd(q);
-            q.append(BlueshiftConstants.KEY_BROWSER_PLATFORM).append("=Android%20").append(Build.VERSION.RELEASE);
+            q.append(BlueshiftConstants.KEY_BROWSER_PLATFORM).append("=Android").append(UTF8_SPACE).append(Build.VERSION.RELEASE);
 
             if (extras != null && extras.size() > 0) {
                 String clickUrl = null;
@@ -1379,6 +1396,9 @@ public class Blueshift {
 
             String paramsUrl = q.toString();
             if (!TextUtils.isEmpty(paramsUrl)) {
+                // replace whitespace with %20 to avoid URL damage.
+                paramsUrl = paramsUrl.replace(" ", UTF8_SPACE);
+
                 String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + paramsUrl;
 
                 Request request = new Request();

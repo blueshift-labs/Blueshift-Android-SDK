@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.support.annotation.WorkerThread;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -35,6 +36,7 @@ import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class InAppManager {
@@ -744,8 +746,16 @@ public class InAppManager {
     private static boolean buildAndShowCenterPopupInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewModal inAppMessageViewModal = new InAppMessageViewModal(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                @Override
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
+                }
+
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -758,8 +768,16 @@ public class InAppManager {
     private static boolean buildAndShowRatingInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewRating inAppMessageViewRating = new InAppMessageViewRating(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                @Override
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
+                }
+
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -773,8 +791,15 @@ public class InAppManager {
         if (context != null && inAppMessage != null) {
             InAppMessageViewHTML inAppMessageViewHTML = new InAppMessageViewHTML(context, inAppMessage) {
                 @Override
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
+                }
+
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -787,8 +812,16 @@ public class InAppManager {
     private static boolean buildAndShowSlidingBannerInAppMessage(Context context, InAppMessage inAppMessage) {
         if (context != null && inAppMessage != null) {
             InAppMessageViewBanner inAppMessageViewBanner = new InAppMessageViewBanner(context, inAppMessage) {
-                public void onDismiss(InAppMessage inAppMessage, JSONObject extras) {
-                    invokeDismissButtonClick(inAppMessage, extras);
+                @Override
+                public void handleClick(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleClick(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
+                }
+
+                @Override
+                public void handleDismiss(InAppMessage inAppMessage, JSONObject params) {
+                    super.handleDismiss(inAppMessage, params);
+                    invokeCleanUp(inAppMessage, params);
                 }
             };
 
@@ -808,7 +841,7 @@ public class InAppManager {
         return buildAndShowAlertDialog(context, inAppMessage, customView, R.style.inAppSlideFromLeft, dimAmount);
     }
 
-    private static void invokeDismissButtonClick(InAppMessage inAppMessage, JSONObject extras) {
+    private static void invokeCleanUp(InAppMessage inAppMessage, JSONObject extras) {
         // use app context to avoid leaks on this activity
         Context appContext = mActivity != null ? mActivity.getApplicationContext() : null;
         // reschedule next in-app here as the dialog callbacks are going to get removed in cleanup
@@ -819,8 +852,6 @@ public class InAppManager {
         cleanUpOngoingInAppCache();
         // dismiss the dialog and cleanup memory
         dismissAndCleanupDialog();
-        // log the click event
-        InAppUtils.invokeInAppClicked(appContext, inAppMessage, extras);
     }
 
     private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
@@ -849,6 +880,7 @@ public class InAppManager {
         if (mDialog != null && mDialog.isShowing()) {
             mDialog.setOnCancelListener(null);
             mDialog.setOnDismissListener(null);
+            mDialog.setOnKeyListener(null);
             mDialog.dismiss();
             mDialog = null;
         }
@@ -902,6 +934,27 @@ public class InAppManager {
                     boolean cancelOnTouchOutside = InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage);
                     mDialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
 
+                    mDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                        @Override
+                        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                JSONObject json = new JSONObject();
+                                try {
+                                    json.put(
+                                            BlueshiftConstants.KEY_CLICK_ELEMENT,
+                                            InAppConstants.ACT_BACK);
+                                } catch (JSONException ignored) {
+                                }
+                                InAppUtils.invokeInAppDismiss(appContext, inAppMessage, json);
+
+                                dialog.dismiss();
+                                return true;
+                            }
+
+                            return false;
+                        }
+                    });
+
                     // dismiss happens when user interacts with the dialog
                     mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
@@ -924,8 +977,14 @@ public class InAppManager {
                     mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialogInterface) {
-                            InAppManager.scheduleNextInAppMessage(appContext);
-                            InAppManager.cleanUpOngoingInAppCache();
+                            JSONObject json = new JSONObject();
+                            try {
+                                json.put(
+                                        BlueshiftConstants.KEY_CLICK_ELEMENT,
+                                        InAppConstants.ACT_TAP_OUTSIDE);
+                            } catch (JSONException ignored) {
+                            }
+                            InAppUtils.invokeInAppDismiss(appContext, inAppMessage, json);
                         }
                     });
 

@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
@@ -115,7 +116,7 @@ class CustomNotificationFactory {
             if (elements != null) {
                 for (CarouselElement element : elements) {
                     // preload scaled bitmaps
-                    BlueshiftImageCache.getScaledBitmap(
+                    BlueshiftImageCache.preloadScaled(
                             context,
                             element.getImageUrl(),
                             RichPushConstants.BIG_IMAGE_WIDTH,
@@ -189,6 +190,8 @@ class CustomNotificationFactory {
             if (message != null && message.getCarouselLength() > 0) {
                 contentView.setViewVisibility(R.id.big_picture, View.VISIBLE);
 
+                applyAndroid12UiChanges(contentView, context);
+
                 // show next and prev buttons only when we have more than 1 carousel element
                 if (message.getCarouselLength() > 1) {
                     contentView.setViewVisibility(R.id.next_button, View.VISIBLE);
@@ -243,6 +246,27 @@ class CustomNotificationFactory {
         }
 
         return contentView;
+    }
+
+    /**
+     * This method is responsible for making the notification look good in Android 12.
+     *
+     * @param contentView the root content view
+     * @param context     context object
+     */
+    private void applyAndroid12UiChanges(RemoteViews contentView, Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // round corners for the expanded view for Android 12 and higher
+            contentView.setInt(R.id.bsft_expanded_notification_s, "setBackgroundResource", R.drawable.bsft_rounded_corner_background);
+            contentView.setBoolean(R.id.bsft_expanded_notification_s, "setClipToOutline", true);
+
+            // apply margin for the apps that are not targeting android 12
+            ApplicationInfo info = context.getApplicationInfo();
+            if (info.targetSdkVersion < Build.VERSION_CODES.S) {
+                int dp16 = CommonUtils.dpToPx(16, context);
+                contentView.setViewPadding(R.id.bsft_custom_notification_container, dp16, dp16, dp16, dp16);
+            }
+        }
     }
 
     private RemoteViews getOverlayView(Context context, CarouselElement element) {
@@ -379,7 +403,7 @@ class CustomNotificationFactory {
 
                 int smallIconResId = configuration.getSmallIconResId();
                 if (smallIconResId != 0) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
                         // show small icon
                         contentView.setViewVisibility(R.id.notification_small_icon, View.VISIBLE);
                         contentView.setImageViewResource(R.id.notification_small_icon, smallIconResId);
@@ -627,6 +651,8 @@ class CustomNotificationFactory {
                 // show the container to host ViewFlipper.
                 contentView.setViewVisibility(R.id.animated_carousel_view, View.VISIBLE);
 
+                applyAndroid12UiChanges(contentView, context);
+
                 // load basic notification contents.
                 setBasicNotificationData(context, message, contentView, true);
 
@@ -698,8 +724,9 @@ class CustomNotificationFactory {
         intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
         intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
-        return PendingIntent.getService(context,
-                NotificationFactory.getRandomPIRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int code = NotificationFactory.getRandomPIRequestCode();
+
+        return PendingIntent.getService(context, code, intent, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
     }
 
     /**
@@ -732,7 +759,7 @@ class CustomNotificationFactory {
         taskStackBuilder.addNextIntent(intent);
 
         int reqCode = NotificationFactory.getRandomPIRequestCode();
-        return taskStackBuilder.getPendingIntent(reqCode, PendingIntent.FLAG_ONE_SHOT);
+        return taskStackBuilder.getPendingIntent(reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
 
     /**
@@ -748,7 +775,7 @@ class CustomNotificationFactory {
 
         delIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
 
-        return PendingIntent.getService(context,
-                NotificationFactory.getRandomPIRequestCode(), delIntent, PendingIntent.FLAG_ONE_SHOT);
+        int reqCode = NotificationFactory.getRandomPIRequestCode();
+        return PendingIntent.getService(context, reqCode, delIntent, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
 }

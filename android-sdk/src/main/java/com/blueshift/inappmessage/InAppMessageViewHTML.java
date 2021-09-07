@@ -73,33 +73,39 @@ public class InAppMessageViewHTML extends InAppMessageView {
     }
 
     private void launchUri(Uri uri) {
-        InAppActionCallback actionCallback = InAppManager.getActionCallback();
-        if (actionCallback != null && uri != null) {
-            String link = uri.toString();
-
-            JSONObject statsParams = getClickStatsJSONObject(null);
-            try {
-                if (!TextUtils.isEmpty(link)) {
-                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
-                }
-            } catch (JSONException ignore) {
-            }
-
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put(InAppConstants.ANDROID_LINK, link);
-            } catch (JSONException ignored) {
-            }
-            actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
-
-            onDismiss(getInAppMessage(), statsParams);
+        if (InAppUtils.isDismissUri(uri)) {
+            invokeDismiss(uri);
         } else {
-            openUri(uri);
+            InAppActionCallback actionCallback = InAppManager.getActionCallback();
+            if (actionCallback != null) {
+                String link = uri.toString();
+
+                JSONObject statsParams = getClickStatsJSONObject(null);
+                try {
+                    if (!TextUtils.isEmpty(link)) {
+                        statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
+                    }
+                } catch (JSONException ignore) {
+                }
+
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put(InAppConstants.ANDROID_LINK, link);
+                } catch (JSONException ignored) {
+                }
+                actionCallback.onAction(InAppConstants.ACTION_OPEN, jsonObject);
+
+                handleClick(getInAppMessage(), statsParams);
+            } else {
+                openUri(uri);
+            }
         }
     }
 
     private void openUri(Uri uri) {
-        if (uri != null) {
+        if (InAppUtils.isDismissUri(uri)) {
+            invokeDismiss(uri);
+        } else {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(uri);
@@ -117,10 +123,22 @@ public class InAppMessageViewHTML extends InAppMessageView {
             } catch (JSONException ignored) {
             }
 
-            onDismiss(getInAppMessage(), statsParams);
-        } else {
-            onDismiss(getInAppMessage(), null);
+            handleClick(getInAppMessage(), statsParams);
         }
+    }
+
+    private void invokeDismiss(Uri uri) {
+        JSONObject json = null;
+        String url = uri != null ? uri.toString() : "";
+        if (InAppUtils.isBlueshiftDismissUrl(url)) {
+            json = new JSONObject();
+            try {
+                json.put(BlueshiftConstants.KEY_CLICK_URL, url);
+            } catch (JSONException ignored) {
+            }
+        }
+
+        handleDismiss(getInAppMessage(), json);
     }
 
     private class InAppWebViewClient extends WebViewClient {
@@ -132,8 +150,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                     launchUri(uri);
                 }
             } catch (Exception e) {
-                BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(null));
+                handleClick(getInAppMessage(), getClickStatsJSONObject(null));
             }
 
             return true;
@@ -145,8 +162,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
                 Uri uri = Uri.parse(url);
                 launchUri(uri);
             } catch (Exception e) {
-                BlueshiftLogger.e(TAG, e);
-                onDismiss(getInAppMessage(), getClickStatsJSONObject(null));
+                handleClick(getInAppMessage(), getClickStatsJSONObject(null));
             }
 
             return true;

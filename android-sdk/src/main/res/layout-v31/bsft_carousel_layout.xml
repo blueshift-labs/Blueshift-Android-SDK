@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bsft_custom_notification_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+        android:id="@+id/basic_notification_s"
+        layout="@layout/bsft_notification_basic_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <RelativeLayout
+        android:id="@+id/bsft_expanded_notification_s"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bsft_notification_big_pic_height"
+        android:layout_below="@id/basic_notification_s"
+        android:layout_marginTop="8dp">
+
+        <ImageView
+            android:id="@+id/big_picture"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/bsft_notification_big_picture"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/animated_carousel_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/prev_button"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@color/bsft_notification_carousel_button_background"
+            android:contentDescription="@string/bsft_notification_carousel_prev_button"
+            android:src="@drawable/bsft_notification_carousel_previous"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/next_button"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@color/bsft_notification_carousel_button_background"
+            android:contentDescription="@string/bsft_notification_carousel_next_button"
+            android:src="@drawable/bsft_notification_carousel_next"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/carousel_overlay_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="40dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginEnd="40dp"
+            android:layout_marginRight="40dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>
