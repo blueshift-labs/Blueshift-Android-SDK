@@ -1,11 +1,15 @@
 package com.blueshift.model;
 
 import android.app.AlarmManager;
+import android.support.annotation.StringDef;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * @author Rahul Raveendran V P
@@ -13,6 +17,17 @@ import com.blueshift.inappmessage.InAppConstants;
  * https://github.com/rahulrvp
  */
 public class Configuration {
+    public static final String REGION_US = "us";
+    public static final String REGION_EU = "eu";
+
+    // Define the list of accepted constants and declare the NavigationMode annotation
+    @Retention(RetentionPolicy.SOURCE)
+    @StringDef({REGION_US, REGION_EU})
+    public @interface BlueshiftRegion {
+    }
+
+    private String region;
+
     // common
     private int appIcon;
     private String apiKey;
@@ -59,6 +74,9 @@ public class Configuration {
     private String customDeviceId;
 
     public Configuration() {
+        // Setting default region to the US.
+        region = REGION_EU;
+
         // In-App Messaging
         inAppEnabled = false;
         inAppEnableJavascript = false;
@@ -85,6 +103,15 @@ public class Configuration {
         // The default value is 86400 seconds (24 hours). When set to 0, an app_open
         // event will be fired on each app restart.
         autoAppOpenInterval = 86400;
+    }
+
+    @BlueshiftRegion
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(@BlueshiftRegion String region) {
+        this.region = region;
     }
 
     public int getAppIcon() {

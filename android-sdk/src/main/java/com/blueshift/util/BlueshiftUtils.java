@@ -66,6 +66,11 @@ public class BlueshiftUtils {
         return null;
     }
 
+    public static String getBlueshiftRegion(Context context) {
+        Configuration configuration = getConfiguration(context);
+        return configuration != null ? configuration.getRegion() : Configuration.REGION_US;
+    }
+
     /**
      * Checks the config object provided during SDK initialisation to see automatic app_open event
      * firing is enabled.

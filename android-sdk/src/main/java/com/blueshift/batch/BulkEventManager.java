@@ -227,7 +227,7 @@ public class BulkEventManager {
             // Creating the request object.
             Request request = new Request();
             request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-            request.setUrl(BlueshiftConstants.BULK_EVENT_API_URL);
+            request.setUrl(BlueshiftConstants.BULK_EVENT_API_URL(context));
             request.setMethod(Method.POST);
             request.setParamJson(new Gson().toJson(bulkEvent));
 

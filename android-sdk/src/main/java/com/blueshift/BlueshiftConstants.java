@@ -1,9 +1,14 @@
 package com.blueshift;
 
+import android.content.Context;
+
+import com.blueshift.model.Configuration;
+import com.blueshift.util.BlueshiftUtils;
+
 /**
  * @author Rahul Raveendran V P
- *         Created on 4/3/15 @ 3:02 PM
- *         https://github.com/rahulrvp
+ * Created on 4/3/15 @ 3:02 PM
+ * https://github.com/rahulrvp
  */
 @SuppressWarnings("WeakerAccess")
 public class BlueshiftConstants {
@@ -11,13 +16,33 @@ public class BlueshiftConstants {
     /**
      * URLs for server communication
      */
-    public static final String BASE_URL = "https://api.getblueshift.com";
-    public static final String TRACK_API_URL = BASE_URL + "/track";
-    public static final String LIVE_CONTENT_API_URL = BASE_URL + "/live";
-    public static final String V1_API_URL = BASE_URL + "/api/v1";
-    public static final String EVENT_API_URL = V1_API_URL + "/event";
-    public static final String BULK_EVENT_API_URL = V1_API_URL + "/bulkevents";
-    public static final String IN_APP_API_URL = BASE_URL + "/inapp/msg";
+    public static final String BASE_URL_US = "https://api.getblueshift.com";
+    public static final String BASE_URL_EU = "https://api.eu.getblueshift.com";
+
+    public static String BASE_URL(Context context) {
+        String region = BlueshiftUtils.getBlueshiftRegion(context);
+        return Configuration.REGION_EU.equals(region) ? BASE_URL_EU : BASE_URL_US;
+    }
+
+    public static String TRACK_API_URL(Context context) {
+        return BASE_URL(context) + "/track";
+    }
+
+    public static String EVENT_API_URL(Context context) {
+        return BASE_URL(context) + "/api/v1/event";
+    }
+
+    public static String BULK_EVENT_API_URL(Context context) {
+        return BASE_URL(context) + "/api/v1/bulkevents";
+    }
+
+    public static String IN_APP_API_URL(Context context) {
+        return BASE_URL(context) + "/inapp/msg";
+    }
+
+    public static String LIVE_CONTENT_API_URL(Context context) {
+        return BASE_URL(context) + "/live";
+    }
 
     /**
      * Event names sent to Blueshift server
@@ -113,7 +138,7 @@ public class BlueshiftConstants {
     // live content
     public static final String KEY_SLOT = "slot";
     public static final String KEY_API_KEY = "api_key";
-    public static final String KEY_USER  = "user";
+    public static final String KEY_USER = "user";
     public static final String KEY_CONTEXT = "context";
 
     // in-app message
