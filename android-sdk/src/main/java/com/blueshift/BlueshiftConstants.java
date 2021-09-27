@@ -2,7 +2,6 @@ package com.blueshift;
 
 import android.content.Context;
 
-import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 
 /**
@@ -20,8 +19,8 @@ public class BlueshiftConstants {
     public static final String BASE_URL_EU = "https://api.eu.getblueshift.com";
 
     public static String BASE_URL(Context context) {
-        String region = BlueshiftUtils.getBlueshiftRegion(context);
-        return Configuration.REGION_EU.equals(region) ? BASE_URL_EU : BASE_URL_US;
+        BlueshiftRegion region = BlueshiftUtils.getBlueshiftRegion(context);
+        return BlueshiftRegion.EU == region ? BASE_URL_EU : BASE_URL_US;
     }
 
     public static String TRACK_API_URL(Context context) {

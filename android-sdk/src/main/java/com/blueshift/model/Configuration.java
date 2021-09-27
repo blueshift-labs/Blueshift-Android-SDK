@@ -1,15 +1,12 @@
 package com.blueshift.model;
 
 import android.app.AlarmManager;
-import android.support.annotation.StringDef;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.BlueshiftRegion;
 import com.blueshift.inappmessage.InAppConstants;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 
 /**
  * @author Rahul Raveendran V P
@@ -17,16 +14,8 @@ import java.lang.annotation.RetentionPolicy;
  * https://github.com/rahulrvp
  */
 public class Configuration {
-    public static final String REGION_US = "us";
-    public static final String REGION_EU = "eu";
-
-    // Define the list of accepted constants and declare the NavigationMode annotation
-    @Retention(RetentionPolicy.SOURCE)
-    @StringDef({REGION_US, REGION_EU})
-    public @interface BlueshiftRegion {
-    }
-
-    private String region;
+    // The datacenter region in which Blueshift stores the data.
+    private BlueshiftRegion region;
 
     // common
     private int appIcon;
@@ -75,7 +64,7 @@ public class Configuration {
 
     public Configuration() {
         // Setting default region to the US.
-        region = REGION_EU;
+        region = BlueshiftRegion.US;
 
         // In-App Messaging
         inAppEnabled = false;
@@ -105,21 +94,20 @@ public class Configuration {
         autoAppOpenInterval = 86400;
     }
 
-    @BlueshiftRegion
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(@BlueshiftRegion String region) {
-        this.region = region;
-    }
-
     public int getAppIcon() {
         return appIcon;
     }
 
     public void setAppIcon(int appIcon) {
         this.appIcon = appIcon;
+    }
+
+    public BlueshiftRegion getRegion() {
+        return region;
+    }
+
+    public void setRegion(BlueshiftRegion region) {
+        this.region = region;
     }
 
     /**
