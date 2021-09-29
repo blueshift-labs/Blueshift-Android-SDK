@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.blueshift.BlueshiftLogger;
+import com.google.gson.Gson;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -217,14 +218,36 @@ public class Message implements Serializable {
         Message message = null;
 
         if (bundle != null && bundle.containsKey(RichPushConstants.EXTRA_MESSAGE)) {
-            try {
-                message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
-            } catch (Exception e) {
-                BlueshiftLogger.e(TAG, e);
+            Object object = bundle.get(RichPushConstants.EXTRA_MESSAGE);
+            if (object instanceof String) {
+                message = Message.fromJson((String) object);
+            } else if (object instanceof Message) {
+                message = (Message) object;
+            } else {
+                BlueshiftLogger.w(TAG, "Unknown type of message found.");
             }
         }
 
         return message;
+    }
+
+    private static Message fromJson(String json) {
+        if (json != null) {
+            try {
+                return new Gson().fromJson(json, Message.class);
+            } catch (Exception ignore) {
+            }
+        }
+
+        return null;
+    }
+
+    public String toJson() {
+        try {
+            return new Gson().toJson(this, Message.class);
+        } catch (Exception ignore) {
+            return null;
+        }
     }
 
     /**

@@ -721,8 +721,10 @@ class CustomNotificationFactory {
         intent.setAction(NotificationWorker.ACTION_CAROUSEL_IMG_CHANGE);
 
         intent.putExtra(RichPushConstants.EXTRA_CAROUSEL_INDEX, targetIndex);
-        intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
         intent.putExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
+        if (message != null) {
+            intent.putExtra(RichPushConstants.EXTRA_MESSAGE, message.toJson());
+        }
 
         int code = NotificationFactory.getRandomPIRequestCode();
 
@@ -744,8 +746,10 @@ class CustomNotificationFactory {
 
         Bundle bundle = new Bundle();
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
-        bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
         bundle.putSerializable(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element);
+        if (message != null) {
+            bundle.putString(RichPushConstants.EXTRA_MESSAGE, message.toJson());
+        }
 
         if (element.isDeepLinkingEnabled()) {
             bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
@@ -773,7 +777,9 @@ class CustomNotificationFactory {
         Intent delIntent = new Intent(context, NotificationWorker.class);
         delIntent.setAction(NotificationWorker.ACTION_NOTIFICATION_DELETE);
 
-        delIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message);
+        if (message != null) {
+            delIntent.putExtra(RichPushConstants.EXTRA_MESSAGE, message.toJson());
+        }
 
         int reqCode = NotificationFactory.getRandomPIRequestCode();
         return PendingIntent.getService(context, reqCode, delIntent, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
