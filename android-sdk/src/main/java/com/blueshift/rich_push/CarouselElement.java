@@ -1,6 +1,11 @@
 package com.blueshift.rich_push;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.text.TextUtils;
+
+import com.blueshift.BlueshiftLogger;
+import com.google.gson.Gson;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -9,10 +14,12 @@ import java.util.HashMap;
  * This model represents the carousel element in carousel type notifications.
  *
  * @author Rahul Raveendran V P
- *         Created on 16/9/16 @ 3:03 PM
- *         https://github.com/rahulrvp
+ * Created on 16/9/16 @ 3:03 PM
+ * https://github.com/rahulrvp
  */
 public class CarouselElement implements Serializable {
+    private static final String TAG = "CarouselElement";
+
     /**
      * CarouselElementText to be shown on the carousel element
      */
@@ -54,7 +61,43 @@ public class CarouselElement implements Serializable {
     /**
      * Optional additional parameters the developer can send.
      */
-    private HashMap data;
+    private HashMap<String, Object> data;
+
+    public static CarouselElement fromIntent(Intent intent) {
+        return intent != null ? fromBundle(intent.getExtras()) : null;
+    }
+
+    public static CarouselElement fromBundle(Bundle bundle) {
+        CarouselElement carouselElement = null;
+
+        if (bundle != null && bundle.containsKey(RichPushConstants.EXTRA_CAROUSEL_ELEMENT)) {
+            Object object = bundle.get(RichPushConstants.EXTRA_CAROUSEL_ELEMENT);
+            if (object instanceof String) {
+                carouselElement = fromJson((String) object);
+            } else if (object instanceof CarouselElement) {
+                carouselElement = (CarouselElement) object;
+            } else {
+                BlueshiftLogger.w(TAG, "Unknown type of carousel element");
+            }
+        }
+
+        return carouselElement;
+    }
+
+    private static CarouselElement fromJson(String json) {
+        if (json != null) {
+            try {
+                return new Gson().fromJson(json, CarouselElement.class);
+            } catch (Exception ignored) {
+            }
+        }
+
+        return null;
+    }
+
+    public String toJson() {
+        return new Gson().toJson(this, CarouselElement.class);
+    }
 
     public String getImageUrl() {
         return image_url;
@@ -68,7 +111,7 @@ public class CarouselElement implements Serializable {
         return deep_link_url;
     }
 
-    public HashMap getData() {
+    public HashMap<String, Object> getData() {
         return data;
     }
 
