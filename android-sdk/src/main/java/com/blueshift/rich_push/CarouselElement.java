@@ -63,10 +63,22 @@ public class CarouselElement implements Serializable {
      */
     private HashMap<String, Object> data;
 
+    /**
+     * Helper method to extract {@link CarouselElement} object from the Intent.
+     *
+     * @param intent {@link Intent} object.
+     * @return {@link CarouselElement} object, if found inside the intent. Else, null.
+     */
     public static CarouselElement fromIntent(Intent intent) {
         return intent != null ? fromBundle(intent.getExtras()) : null;
     }
 
+    /**
+     * Helper method to extract {@link CarouselElement} object from the Bundle.
+     *
+     * @param bundle {@link Bundle} object.
+     * @return {@link CarouselElement} object, if found inside the bundle. Else, null.
+     */
     public static CarouselElement fromBundle(Bundle bundle) {
         CarouselElement carouselElement = null;
 
@@ -96,7 +108,11 @@ public class CarouselElement implements Serializable {
     }
 
     public String toJson() {
-        return new Gson().toJson(this, CarouselElement.class);
+        try {
+            return new Gson().toJson(this, CarouselElement.class);
+        } catch (Exception ignore) {
+            return null;
+        }
     }
 
     public String getImageUrl() {

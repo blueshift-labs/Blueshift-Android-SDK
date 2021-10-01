@@ -210,10 +210,22 @@ public class Message implements Serializable {
         return map;
     }
 
+    /**
+     * Helper method to extract {@link Message} object from Intent.
+     *
+     * @param intent {@link Intent} object.
+     * @return {@link Message} object, if found in the Intent. Else, null.
+     */
     public static Message fromIntent(Intent intent) {
         return intent != null ? fromBundle(intent.getExtras()) : null;
     }
 
+    /**
+     * Helper method to extract {@link Message} object from Bundle.
+     *
+     * @param bundle {@link Bundle} object.
+     * @return {@link Message} object, if found in the Bundle. Else, null.
+     */
     public static Message fromBundle(Bundle bundle) {
         Message message = null;
 
