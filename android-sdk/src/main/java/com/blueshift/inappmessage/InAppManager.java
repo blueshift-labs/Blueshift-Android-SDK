@@ -201,7 +201,7 @@ public class InAppManager {
 
                                 if (apiKey != null && requestBody != null) {
                                     BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
-                                            .setUrl(BlueshiftConstants.IN_APP_API_URL)
+                                            .setUrl(BlueshiftConstants.IN_APP_API_URL(context))
                                             .setMethod(BlueshiftHttpRequest.Method.POST)
                                             .addBasicAuth(apiKey, "")
                                             .setReqBodyJson(requestBody);
