@@ -342,7 +342,7 @@ public class NotificationFactory {
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
         if (message != null) {
-            bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
+            bundle.putString(RichPushConstants.EXTRA_MESSAGE, message.toJson());
 
             if (message.isDeepLinkingEnabled()) {
                 bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, message.getDeepLinkUrl());
@@ -367,7 +367,7 @@ public class NotificationFactory {
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
         if (message != null) {
-            bundle.putSerializable(RichPushConstants.EXTRA_MESSAGE, message);
+            bundle.putString(RichPushConstants.EXTRA_MESSAGE, message.toJson());
         }
 
         if (pushAction != null) {
