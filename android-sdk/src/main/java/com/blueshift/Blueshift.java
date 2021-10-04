@@ -631,7 +631,7 @@ public class Blueshift {
                 // Creating the request object.
                 Request request = new Request();
                 request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                request.setUrl(BlueshiftConstants.EVENT_API_URL);
+                request.setUrl(BlueshiftConstants.EVENT_API_URL(mContext));
                 request.setMethod(Method.POST);
                 request.setParamJson(new Gson().toJson(map));
 
@@ -1286,7 +1286,7 @@ public class Blueshift {
                         }
                     }
 
-                    String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + builder.toString();
+                    String reqUrl = BlueshiftConstants.TRACK_API_URL(mContext) + "?" + builder.toString();
 
                     final Request request = new Request();
                     request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
@@ -1399,7 +1399,7 @@ public class Blueshift {
                 // replace whitespace with %20 to avoid URL damage.
                 paramsUrl = paramsUrl.replace(" ", UTF8_SPACE);
 
-                String reqUrl = BlueshiftConstants.TRACK_API_URL + "?" + paramsUrl;
+                String reqUrl = BlueshiftConstants.TRACK_API_URL(mContext) + "?" + paramsUrl;
 
                 Request request = new Request();
                 request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
@@ -1585,7 +1585,7 @@ public class Blueshift {
         }
 
         BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
-                .setUrl(BlueshiftConstants.LIVE_CONTENT_API_URL)
+                .setUrl(BlueshiftConstants.LIVE_CONTENT_API_URL(context))
                 .setMethod(BlueshiftHttpRequest.Method.POST)
                 .setReqBodyJson(reqParams)
                 .build();

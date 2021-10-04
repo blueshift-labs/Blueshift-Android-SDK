@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.BlueshiftRegion;
 import com.blueshift.inappmessage.InAppConstants;
 
 /**
@@ -13,6 +14,9 @@ import com.blueshift.inappmessage.InAppConstants;
  * https://github.com/rahulrvp
  */
 public class Configuration {
+    // The datacenter region in which Blueshift stores the data.
+    private BlueshiftRegion region;
+
     // common
     private int appIcon;
     private String apiKey;
@@ -59,6 +63,9 @@ public class Configuration {
     private String customDeviceId;
 
     public Configuration() {
+        // Setting default region to the US.
+        region = BlueshiftRegion.US;
+
         // In-App Messaging
         inAppEnabled = false;
         inAppEnableJavascript = false;
@@ -93,6 +100,14 @@ public class Configuration {
 
     public void setAppIcon(int appIcon) {
         this.appIcon = appIcon;
+    }
+
+    public BlueshiftRegion getRegion() {
+        return region;
+    }
+
+    public void setRegion(BlueshiftRegion region) {
+        this.region = region;
     }
 
     /**

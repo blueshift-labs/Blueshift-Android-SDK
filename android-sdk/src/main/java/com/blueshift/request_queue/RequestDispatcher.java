@@ -178,7 +178,7 @@ class RequestDispatcher {
         if (mRequest != null) {
             try {
                 String url = mRequest.getUrl();
-                if (BlueshiftConstants.BULK_EVENT_API_URL.equals(url)) {
+                if (BlueshiftConstants.BULK_EVENT_API_URL(mContext).equals(url)) {
                     // when bulk event is being updated, we need to add token in all child events
                     String payload = mRequest.getParamJson();
                     if (!TextUtils.isEmpty(payload)) {
@@ -367,7 +367,7 @@ class RequestDispatcher {
             // check if it is a failed high priority event.
             String api = mRequest.getUrl();
 
-            if (BlueshiftConstants.EVENT_API_URL.equals(api)) {
+            if (BlueshiftConstants.EVENT_API_URL(mContext).equals(api)) {
                 // this is a case where request sent to non-bulk events api fails.
                 String paramsJson = mRequest.getParamJson();
 
