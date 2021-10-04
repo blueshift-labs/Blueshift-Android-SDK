@@ -11,6 +11,7 @@ import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAppPreferences;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.BlueshiftRegion;
 import com.blueshift.BuildConfig;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
@@ -64,6 +65,17 @@ public class BlueshiftUtils {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the region specified in the configuration during SDK initialization.
+     *
+     * @param context {@link Context} object to get the Blueshift instance.
+     * @return the region enum (default is the US)
+     */
+    public static BlueshiftRegion getBlueshiftRegion(Context context) {
+        Configuration config = getConfiguration(context);
+        return config != null ? config.getRegion() : BlueshiftRegion.US;
     }
 
     /**
