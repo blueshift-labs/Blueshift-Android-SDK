@@ -1139,6 +1139,11 @@ public class Blueshift {
         }
     }
 
+    /**
+     * @since 3.2.5
+     * @deprecated The delivered event sent by the SDK is deprecated.
+     */
+    @Deprecated
     public void trackNotificationView(Message message) {
         if (message != null) {
             if (message.getBsftSeedListSend()) {
@@ -1151,20 +1156,25 @@ public class Blueshift {
         }
     }
 
+    /**
+     * @since 3.2.5
+     * @deprecated The delivered event sent by the SDK is deprecated.
+     */
+    @Deprecated
     public void trackNotificationView(String notificationId) {
         trackNotificationView(notificationId, null);
     }
 
+    /**
+     * @since 3.2.5
+     * @deprecated The delivered event sent by the SDK is deprecated.
+     */
+    @Deprecated
     @SuppressWarnings("WeakerAccess")
     public void trackNotificationView(String notificationId, HashMap<String, Object> params) {
-        HashMap<String, Object> eventParams = new HashMap<>();
-        eventParams.put(Message.EXTRA_BSFT_MESSAGE_UUID, notificationId);
-
-        if (params != null) {
-            eventParams.putAll(params);
-        }
-
-        trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_DELIVERED, eventParams, null);
+        // The delivered event sent by the SDK was a read-receipt/acknowledgement.
+        // Blueshift will now provide the actual delivery stats based on the FCM's response.
+        BlueshiftLogger.w(LOG_TAG, "delivered event is deprecated. Skipping the event.");
     }
 
     public void trackNotificationClick(Message message, HashMap<String, Object> extras) {
