@@ -1141,7 +1141,8 @@ public class Blueshift {
 
     /**
      * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated.
+     * @deprecated The delivered event sent by the SDK is deprecated.The SDK will no longer send the
+     * delivered event for push notifications, and this method will be removed in a future release.
      */
     @Deprecated
     public void trackNotificationView(Message message) {
@@ -1149,6 +1150,7 @@ public class Blueshift {
             if (message.getBsftSeedListSend()) {
                 BlueshiftLogger.d(LOG_TAG, "Seed List Send. Event skipped: " + BlueshiftConstants.EVENT_PUSH_DELIVERED);
             } else {
+                //noinspection deprecation
                 trackNotificationView(message.getId(), message.getCampaignAttr());
             }
         } else {
@@ -1158,16 +1160,19 @@ public class Blueshift {
 
     /**
      * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated.
+     * @deprecated The delivered event sent by the SDK is deprecated.The SDK will no longer send the
+     * delivered event for push notifications, and this method will be removed in a future release.
      */
     @Deprecated
     public void trackNotificationView(String notificationId) {
+        //noinspection deprecation
         trackNotificationView(notificationId, null);
     }
 
     /**
      * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated.
+     * @deprecated The delivered event sent by the SDK is deprecated.The SDK will no longer send the
+     * delivered event for push notifications, and this method will be removed in a future release.
      */
     @Deprecated
     @SuppressWarnings("WeakerAccess")
