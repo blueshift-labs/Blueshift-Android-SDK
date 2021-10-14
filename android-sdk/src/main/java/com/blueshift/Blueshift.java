@@ -1141,7 +1141,7 @@ public class Blueshift {
 
     /**
      * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated.The SDK will no longer send the
+     * @deprecated The delivered event sent by the SDK is deprecated. The SDK will no longer send the
      * delivered event for push notifications, and this method will be removed in a future release.
      */
     @Deprecated
@@ -1160,7 +1160,7 @@ public class Blueshift {
 
     /**
      * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated.The SDK will no longer send the
+     * @deprecated The delivered event sent by the SDK is deprecated. The SDK will no longer send the
      * delivered event for push notifications, and this method will be removed in a future release.
      */
     @Deprecated
@@ -1171,14 +1171,14 @@ public class Blueshift {
 
     /**
      * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated.The SDK will no longer send the
+     * @deprecated The delivered event sent by the SDK is deprecated. The SDK will no longer send the
      * delivered event for push notifications, and this method will be removed in a future release.
      */
     @Deprecated
     @SuppressWarnings("WeakerAccess")
     public void trackNotificationView(String notificationId, HashMap<String, Object> params) {
         // The delivered event sent by the SDK was a read-receipt/acknowledgement.
-        // Blueshift will now provide the actual delivery stats based on the FCM's response.
+        // Blueshift will now provide the push delivery stats based on the FCM's response.
         BlueshiftLogger.w(LOG_TAG, "delivered event is deprecated. Skipping the event.");
     }
 
