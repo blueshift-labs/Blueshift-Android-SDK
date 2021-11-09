@@ -41,8 +41,6 @@ import com.blueshift.util.NetworkUtils;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
@@ -60,7 +58,6 @@ import java.util.Set;
  */
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
-    private static final HashMap<String, Object> sDeviceParams = new HashMap<>();
     private static final HashMap<String, Object> sAppParams = new HashMap<>();
     private static final String UTF8_SPACE = "%20";
 
@@ -246,68 +243,6 @@ public class Blueshift {
         BlueShiftPreference.resetDeviceID(mContext);
     }
 
-    /**
-     * This method will read latest device token from firebase and will
-     * update inside mDeviceParams.
-     */
-    private void updateFCMToken() {
-        try {
-            updateFCMTokenAsync();
-        } catch (Exception e) {
-            // tickets#8919 reported an issue with fcm token fetch. this is the
-            // fix for the same. we are manually calling initializeApp and trying
-            // to get token again.
-            FirebaseApp.initializeApp(mContext);
-            // try one more time.
-            try {
-                updateFCMTokenAsync();
-            } catch (Exception ex) {
-                BlueshiftLogger.e(LOG_TAG, ex);
-            }
-        }
-    }
-
-    private static void updateFCMTokenAsync() {
-        Task<InstanceIdResult> result = FirebaseInstanceId.getInstance().getInstanceId();
-        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                try {
-                    String token = instanceIdResult.getToken();
-                    updateDeviceToken(token);
-                } catch (Exception e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Updates the sDeviceParams with new device token
-     *
-     * @param deviceToken device token for sending push message
-     */
-    public static void updateDeviceToken(String deviceToken) {
-        synchronized (sDeviceParams) {
-            if (deviceToken != null) {
-                sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TOKEN, deviceToken);
-            }
-        }
-    }
-
-    /**
-     * Updates the sDeviceParams with device id
-     *
-     * @param deviceId device id as String
-     */
-    private static void updateDeviceId(String deviceId) {
-        synchronized (sDeviceParams) {
-            if (!TextUtils.isEmpty(deviceId)) {
-                sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_IDENTIFIER, deviceId);
-            }
-        }
-    }
-
     public static boolean hasPermission(Context context, String permission) {
         boolean status = false;
 
@@ -345,72 +280,6 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void getLiveContentByCustomerId(@NonNull String slot, HashMap<String, Object> liveContentContext, LiveContentCallback callback) {
         fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
-    }
-
-    /**
-     * This method creates a hash map with all device parameters filled in.
-     *
-     * @return params: hash-map with device parameters filled in.
-     */
-    private HashMap<String, Object> getDeviceParams() {
-        synchronized (sDeviceParams) {
-            return new HashMap<>(sDeviceParams);
-        }
-    }
-
-    /**
-     * This method initializes the sDeviceParams hash map with device related information.
-     */
-    private void initializeDeviceParams() {
-        synchronized (sDeviceParams) {
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_TYPE, "android");
-            sDeviceParams.put(BlueshiftConstants.KEY_DEVICE_MANUFACTURER, Build.MANUFACTURER);
-            sDeviceParams.put(BlueshiftConstants.KEY_OS_NAME, "Android " + Build.VERSION.RELEASE);
-
-            String simOperatorName = DeviceUtils.getSIMOperatorName(mContext);
-            if (simOperatorName != null) {
-                sDeviceParams.put(BlueshiftConstants.KEY_NETWORK_CARRIER, simOperatorName);
-            }
-        }
-
-        updateDeviceIdAsync(mContext);
-        updateAndroidAdId(mContext);
-        updateFirebaseInstanceId(mContext);
-
-        if (mConfiguration != null && mConfiguration.isPushEnabled()) {
-            updateFCMToken();
-        }
-    }
-
-    private void updateFirebaseInstanceId(Context context) {
-        try {
-            updateFirebaseInstanceId();
-        } catch (Exception e) {
-            // tickets#8919 reported an issue with fcm token fetch. this is the
-            // fix for the same. we are manually calling initializeApp and trying
-            // to get token again.
-            FirebaseApp.initializeApp(context);
-            try {
-                updateFirebaseInstanceId();
-            } catch (Exception ex) {
-                BlueshiftLogger.e(LOG_TAG, ex);
-            }
-        }
-    }
-
-    private void updateFirebaseInstanceId() {
-        String instanceId = FirebaseInstanceId.getInstance().getId();
-        setFirebaseInstanceId(instanceId);
-    }
-
-    private void setFirebaseInstanceId(String instanceId) {
-        try {
-            synchronized (sDeviceParams) {
-                sDeviceParams.put(BlueshiftConstants.KEY_FIREBASE_INSTANCE_ID, instanceId);
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
     }
 
     private void initAppInfo(Context context) {
@@ -471,8 +340,6 @@ public class Blueshift {
 
         // set app icon as notification icon if not set
         initAppIcon(mContext);
-        // Collecting device specific params.
-        initializeDeviceParams();
         // Collect app details
         initAppInfo(mContext);
         // Sync the http request queue.
@@ -1437,47 +1304,6 @@ public class Blueshift {
         } else {
             BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
         }
-    }
-
-    private void updateAndroidAdId(final Context context) {
-        BlueshiftExecutor.getInstance().runOnNetworkThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        String adId = DeviceUtils.getAdvertisingId(context);
-                        updateAndroidAdId(adId);
-                    }
-                }
-        );
-    }
-
-    private void updateAndroidAdId(String adId) {
-        synchronized (sDeviceParams) {
-            if (adId != null) {
-                sDeviceParams.put(BlueshiftConstants.KEY_ADVERTISING_ID, adId);
-            }
-        }
-    }
-
-    private void updateDeviceIdAsync(final Context context) {
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            String deviceId = DeviceUtils.getDeviceId(context);
-                            if (TextUtils.isEmpty(deviceId)) {
-                                BlueshiftLogger.e(LOG_TAG, "device_id: not available.");
-                            } else {
-                                BlueshiftLogger.d(LOG_TAG, "device_id: " + deviceId);
-                                updateDeviceId(deviceId);
-                            }
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
-                        }
-                    }
-                }
-        );
     }
 
     private String fetchLiveContentFromAPI(

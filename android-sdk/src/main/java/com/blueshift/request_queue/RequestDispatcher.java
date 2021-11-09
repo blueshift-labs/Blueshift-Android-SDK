@@ -1,9 +1,9 @@
 package com.blueshift.request_queue;
 
 import android.content.Context;
-import android.os.Handler;
-import androidx.annotation.NonNull;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
 
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.Blueshift;
@@ -22,11 +22,10 @@ import com.blueshift.model.Configuration;
 import com.blueshift.model.UserInfo;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.installations.FirebaseInstallations;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -96,20 +95,19 @@ class RequestDispatcher {
     }
 
     private void getLatestFCMTokenAndDispatch() {
-        Task<InstanceIdResult> result = FirebaseInstanceId.getInstance().getInstanceId();
-        result.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                try {
-                    String latestToken = instanceIdResult.getToken();
-                    dispatchWithToken(latestToken);
-                } catch (Exception e) {
-                    // Possible error on Firebase initialization. Send event without token.
-                    dispatchWithoutPushToken();
-                    BlueshiftLogger.e(LOG_TAG, e);
-                }
-            }
-        });
+        FirebaseInstallations.getInstance().getId()
+                .addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String token) {
+                        dispatchWithToken(token);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        dispatchWithoutPushToken();
+                    }
+                });
     }
 
     /**
