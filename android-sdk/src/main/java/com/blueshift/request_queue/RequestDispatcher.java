@@ -25,7 +25,7 @@ import com.blueshift.util.DeviceUtils;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.installations.FirebaseInstallations;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -95,8 +95,8 @@ class RequestDispatcher {
     }
 
     private void getLatestFCMTokenAndDispatch() {
-        FirebaseInstallations.getInstance().getId()
-                .addOnSuccessListener(new OnSuccessListener<String>() {
+        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(
+                new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String token) {
                         dispatchWithToken(token);
