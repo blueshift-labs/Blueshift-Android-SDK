@@ -95,19 +95,25 @@ class RequestDispatcher {
     }
 
     private void getLatestFCMTokenAndDispatch() {
-        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(
-                new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String token) {
-                        dispatchWithToken(token);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        dispatchWithoutPushToken();
-                    }
-                });
+        try {
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String token) {
+                            dispatchWithToken(token);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            BlueshiftLogger.w(LOG_TAG, e.getMessage());
+                            dispatchWithoutPushToken();
+                        }
+                    });
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+            dispatchWithoutPushToken();
+        }
     }
 
     /**

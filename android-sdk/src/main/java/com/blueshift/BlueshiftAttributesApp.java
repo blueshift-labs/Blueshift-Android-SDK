@@ -9,6 +9,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -16,6 +17,7 @@ import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.PermissionUtils;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.installations.FirebaseInstallations;
@@ -187,35 +189,55 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void setFirebaseInstanceIdAsDeviceId() {
-        FirebaseInstallations.getInstance().getId().addOnSuccessListener(
-                new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String instanceId) {
-                        if (instanceId == null || instanceId.isEmpty()) {
-                            BlueshiftLogger.w(TAG, "Instance id not available.");
-                        } else {
-                            setDeviceId(instanceId);
-                        }
-                    }
-                });
-    }
-
-    private void setFirebaseInstanceIdPackageNameAsDeviceId(Context context) {
-        if (context != null) {
-            final String pkgName = context.getPackageName();
-            FirebaseInstallations.getInstance().getId().addOnSuccessListener(
-                    new OnSuccessListener<String>() {
+        try {
+            FirebaseInstallations.getInstance().getId()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
                         @Override
                         public void onSuccess(String instanceId) {
                             if (instanceId == null || instanceId.isEmpty()) {
                                 BlueshiftLogger.w(TAG, "Instance id not available.");
                             } else {
-                                String deviceId = instanceId + ":" + pkgName;
-                                // Instance ID and package name combo.
-                                setDeviceId(deviceId);
+                                setDeviceId(instanceId);
                             }
                         }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            BlueshiftLogger.w(TAG, e.getMessage());
+                        }
                     });
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+    }
+
+    private void setFirebaseInstanceIdPackageNameAsDeviceId(Context context) {
+        if (context != null) {
+            try {
+                final String pkgName = context.getPackageName();
+                FirebaseInstallations.getInstance().getId()
+                        .addOnSuccessListener(new OnSuccessListener<String>() {
+                            @Override
+                            public void onSuccess(String instanceId) {
+                                if (instanceId == null || instanceId.isEmpty()) {
+                                    BlueshiftLogger.w(TAG, "Instance id not available.");
+                                } else {
+                                    String deviceId = instanceId + ":" + pkgName;
+                                    // Instance ID and package name combo.
+                                    setDeviceId(deviceId);
+                                }
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                BlueshiftLogger.w(TAG, e.getMessage());
+                            }
+                        });
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
         }
     }
 
@@ -284,7 +306,7 @@ public class BlueshiftAttributesApp extends JSONObject {
             try {
                 return instance.getString(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
             } catch (JSONException e) {
-                BlueshiftLogger.e(TAG, e);
+                BlueshiftLogger.w(TAG, "device_id is not ready yet. Try again later.");
             }
         }
 
@@ -339,13 +361,23 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addFirebaseToken() {
-        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(
-                new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String token) {
-                        setFirebaseToken(token);
-                    }
-                });
+        try {
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String token) {
+                            setFirebaseToken(token);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            BlueshiftLogger.w(TAG, e.getMessage());
+                        }
+                    });
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
     }
 
     private void setFirebaseToken(String firebaseToken) {
@@ -363,7 +395,7 @@ public class BlueshiftAttributesApp extends JSONObject {
             try {
                 return instance.getString(BlueshiftConstants.KEY_DEVICE_TOKEN);
             } catch (JSONException e) {
-                BlueshiftLogger.e(TAG, e);
+                BlueshiftLogger.w(TAG, "device_token is not ready yet. Try again later.");
             }
         }
 
@@ -388,13 +420,23 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addFirebaseInstanceId() {
-        FirebaseInstallations.getInstance().getId().addOnSuccessListener(
-                new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String instanceId) {
-                        setFirebaseInstanceId(instanceId);
-                    }
-                });
+        try {
+            FirebaseInstallations.getInstance().getId()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String instanceId) {
+                            setFirebaseInstanceId(instanceId);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            BlueshiftLogger.w(TAG, e.getMessage());
+                        }
+                    });
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
     }
 
     private void setFirebaseInstanceId(String instanceId) {
@@ -522,8 +564,9 @@ public class BlueshiftAttributesApp extends JSONObject {
         }
 
         try {
-            String deviceId = DeviceUtils.getDeviceId(context);
-            setDeviceId(deviceId);
+            // this call will sync and get the latest device id and store it in the instance
+            // however this is not synchronous. so we might not get the value immediately.
+            addDeviceId(context);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
