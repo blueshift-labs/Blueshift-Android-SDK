@@ -11,8 +11,10 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.core.app.NotificationCompat;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
@@ -28,7 +30,6 @@ import com.blueshift.rich_push.Message;
 import com.blueshift.rich_push.NotificationFactory;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
-import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NotificationUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -390,23 +391,14 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     }
 
     @Override
-    public void onNewToken(String newToken) {
-        BlueshiftLogger.d(LOG_TAG, "FCM token: " + newToken);
+    public void onNewToken(@NonNull String newToken) {
+        BlueshiftLogger.d(LOG_TAG, "onNewToken: " + newToken);
 
-        Blueshift.updateDeviceToken(newToken);
         BlueshiftAttributesApp.getInstance().updateFirebaseToken(newToken);
-        callIdentify();
-    }
 
-    /**
-     * We are calling an identify here to make sure that the change in
-     * device token is notified to the blueshift servers.
-     */
-    private void callIdentify() {
-        String deviceId = DeviceUtils.getDeviceId(this);
-        Blueshift
-                .getInstance(this)
-                .identifyUserByDeviceId(deviceId, null, false);
+        // We are calling an identify here to make sure that the change in
+        // device token is notified to the blueshift servers.
+        Blueshift.getInstance(this).identifyUser(null, false);
     }
 
     /**

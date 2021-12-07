@@ -9,17 +9,19 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.PermissionUtils;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.installations.FirebaseInstallations;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -153,15 +155,140 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addDeviceId(final Context context) {
-        BlueshiftExecutor.getInstance().runOnNetworkThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        String deviceId = DeviceUtils.getDeviceId(context);
-                        setDeviceId(deviceId);
-                    }
+        Configuration configuration = BlueshiftUtils.getConfiguration(context);
+        if (configuration != null && configuration.getDeviceIdSource() != null) {
+            switch (configuration.getDeviceIdSource()) {
+                case INSTANCE_ID:
+                    setFirebaseInstanceIdAsDeviceId();
+                    break;
+
+                case INSTANCE_ID_PKG_NAME:
+                    setFirebaseInstanceIdPackageNameAsDeviceId(context);
+                    break;
+
+                case ADVERTISING_ID_PKG_NAME:
+                    setAdvertisingIdPackageNameAsDeviceId(context);
+                    break;
+
+                case GUID:
+                    setGUIDAsDeviceId(context);
+                    break;
+
+                case CUSTOM:
+                    setCustomStringAsDeviceId(context);
+                    break;
+
+                default:
+                    // DEFAULT value is Android Ad ID
+                    setAdvertisingIdAsDeviceId(context);
+            }
+        } else {
+            // DEFAULT value is Android Ad ID
+            setAdvertisingIdAsDeviceId(context);
+        }
+    }
+
+    private void setFirebaseInstanceIdAsDeviceId() {
+        try {
+            FirebaseInstallations.getInstance().getId()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String instanceId) {
+                            if (instanceId == null || instanceId.isEmpty()) {
+                                BlueshiftLogger.w(TAG, "Instance id not available.");
+                            } else {
+                                setDeviceId(instanceId);
+                            }
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            BlueshiftLogger.w(TAG, e.getMessage());
+                        }
+                    });
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+    }
+
+    private void setFirebaseInstanceIdPackageNameAsDeviceId(Context context) {
+        if (context != null) {
+            try {
+                final String pkgName = context.getPackageName();
+                FirebaseInstallations.getInstance().getId()
+                        .addOnSuccessListener(new OnSuccessListener<String>() {
+                            @Override
+                            public void onSuccess(String instanceId) {
+                                if (instanceId == null || instanceId.isEmpty()) {
+                                    BlueshiftLogger.w(TAG, "Instance id not available.");
+                                } else {
+                                    String deviceId = instanceId + ":" + pkgName;
+                                    // Instance ID and package name combo.
+                                    setDeviceId(deviceId);
+                                }
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                BlueshiftLogger.w(TAG, e.getMessage());
+                            }
+                        });
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+    }
+
+    private void setAdvertisingIdAsDeviceId(Context context) {
+        try {
+            if (context != null) {
+                String advertisingId = DeviceUtils.getAdvertisingId(context);
+                if (advertisingId == null || advertisingId.isEmpty()) {
+                    BlueshiftLogger.w(TAG, "Advertising id not available.");
+                } else {
+                    setDeviceId(advertisingId);
                 }
-        );
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+    }
+
+    private void setAdvertisingIdPackageNameAsDeviceId(Context context) {
+        try {
+            if (context != null) {
+                String advertisingId = DeviceUtils.getAdvertisingId(context);
+                if (advertisingId == null || advertisingId.isEmpty()) {
+                    BlueshiftLogger.w(TAG, "Advertising id not available.");
+                } else {
+                    String deviceId = advertisingId + ":" + context.getPackageName();
+                    setDeviceId(deviceId);
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+    }
+
+    private void setGUIDAsDeviceId(Context context) {
+        String guid = BlueShiftPreference.getDeviceID(context);
+        if (guid == null || guid.isEmpty()) {
+            BlueshiftLogger.w(TAG, "GUID id not available.");
+        } else {
+            setDeviceId(guid);
+        }
+    }
+
+    private void setCustomStringAsDeviceId(Context context) {
+        Configuration configuration = BlueshiftUtils.getConfiguration(context);
+        String deviceId = configuration != null ? configuration.getCustomDeviceId() : null;
+        if (deviceId == null || deviceId.isEmpty()) {
+            BlueshiftLogger.w(TAG, "Custom device id is not provided in the configuration.");
+        } else {
+            setDeviceId(deviceId);
+        }
     }
 
     private void setDeviceId(String deviceId) {
@@ -172,6 +299,18 @@ public class BlueshiftAttributesApp extends JSONObject {
                 BlueshiftLogger.e(TAG, e);
             }
         }
+    }
+
+    public String getCachedDeviceId() {
+        synchronized (instance) {
+            try {
+                return instance.getString(BlueshiftConstants.KEY_DEVICE_IDENTIFIER);
+            } catch (JSONException e) {
+                BlueshiftLogger.w(TAG, "device_id is not ready yet. Try again later.");
+            }
+        }
+
+        return null;
     }
 
     private void addDeviceLocation(Context context) {
@@ -222,14 +361,23 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addFirebaseToken() {
-        Task<InstanceIdResult> task = FirebaseInstanceId.getInstance().getInstanceId();
-        task.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                String deviceToken = instanceIdResult.getToken();
-                setFirebaseToken(deviceToken);
-            }
-        });
+        try {
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String token) {
+                            setFirebaseToken(token);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            BlueshiftLogger.w(TAG, e.getMessage());
+                        }
+                    });
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
     }
 
     private void setFirebaseToken(String firebaseToken) {
@@ -240,6 +388,18 @@ public class BlueshiftAttributesApp extends JSONObject {
                 BlueshiftLogger.e(TAG, e);
             }
         }
+    }
+
+    public String getCachedFirebaseToken() {
+        synchronized (instance) {
+            try {
+                return instance.getString(BlueshiftConstants.KEY_DEVICE_TOKEN);
+            } catch (JSONException e) {
+                BlueshiftLogger.w(TAG, "device_token is not ready yet. Try again later.");
+            }
+        }
+
+        return null;
     }
 
     private void addFirebaseInstanceId(Context context) {
@@ -260,8 +420,23 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addFirebaseInstanceId() {
-        String instanceId = FirebaseInstanceId.getInstance().getId();
-        setFirebaseInstanceId(instanceId);
+        try {
+            FirebaseInstallations.getInstance().getId()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String instanceId) {
+                            setFirebaseInstanceId(instanceId);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            BlueshiftLogger.w(TAG, e.getMessage());
+                        }
+                    });
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
     }
 
     private void setFirebaseInstanceId(String instanceId) {
@@ -389,8 +564,9 @@ public class BlueshiftAttributesApp extends JSONObject {
         }
 
         try {
-            String deviceId = DeviceUtils.getDeviceId(context);
-            setDeviceId(deviceId);
+            // this call will sync and get the latest device id and store it in the instance
+            // however this is not synchronous. so we might not get the value immediately.
+            addDeviceId(context);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
