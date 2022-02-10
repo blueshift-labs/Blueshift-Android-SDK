@@ -430,6 +430,11 @@ public class InAppUtils {
         return result;
     }
 
+    public static boolean shouldEnableBackgroundActions(Context context, InAppMessage inAppMessage) {
+        // todo: match the implementation with the iOS SDK
+        return false;
+    }
+
     public static boolean shouldCancelOnTouchOutside(Context context, InAppMessage inAppMessage) {
         boolean result = false;
 
