@@ -47,6 +47,9 @@ public class Configuration {
     private int networkChangeListenerJobId;
     private int bulkEventsJobId;
 
+    // push
+    private boolean pushAppLinksEnabled;
+
     // in app message
     private long inAppInterval;
     private boolean inAppEnableJavascript;
@@ -75,6 +78,7 @@ public class Configuration {
 
         // Push Messaging
         pushEnabled = true;
+        pushAppLinksEnabled = false;
 
         // Default device_id: FID:package_name
         deviceIdSource = Blueshift.DeviceIdSource.INSTANCE_ID_PKG_NAME;
@@ -92,6 +96,14 @@ public class Configuration {
         // The default value is 86400 seconds (24 hours). When set to 0, an app_open
         // event will be fired on each app restart.
         autoAppOpenInterval = 86400;
+    }
+
+    public boolean isPushAppLinksEnabled() {
+        return pushAppLinksEnabled;
+    }
+
+    public void setPushAppLinksEnabled(boolean pushAppLinksEnabled) {
+        this.pushAppLinksEnabled = pushAppLinksEnabled;
     }
 
     public int getAppIcon() {
