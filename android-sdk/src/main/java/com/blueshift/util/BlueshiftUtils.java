@@ -128,6 +128,22 @@ public class BlueshiftUtils {
     }
 
     /**
+     * Checks the config object provided during SDK initialization to see if applinks from push
+     * click is enabled.
+     *
+     * @param context valid {@link Context} object
+     * @return true if enabled, false otherwise
+     */
+    public static boolean isPushAppLinksEnabled(Context context) {
+        Configuration configuration = getConfiguration(context);
+        if (configuration != null) {
+            return configuration.isPushAppLinksEnabled();
+        }
+
+        return false;
+    }
+
+    /**
      * Checks the config object provided during SDK initialisation to see if in-app is enabled.
      *
      * @param context valid {@link Context} object
