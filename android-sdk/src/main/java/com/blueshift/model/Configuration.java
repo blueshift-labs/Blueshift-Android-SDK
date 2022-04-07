@@ -76,8 +76,8 @@ public class Configuration {
         // Push Messaging
         pushEnabled = true;
 
-        // Default device_id: Android Ad Id
-        deviceIdSource = Blueshift.DeviceIdSource.ADVERTISING_ID;
+        // Default device_id: FID:package_name
+        deviceIdSource = Blueshift.DeviceIdSource.INSTANCE_ID_PKG_NAME;
 
         // Default bulk event interval: 30min
         batchInterval = AlarmManager.INTERVAL_HALF_HOUR;

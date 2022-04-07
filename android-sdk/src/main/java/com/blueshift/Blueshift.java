@@ -68,7 +68,34 @@ public class Blueshift {
     private static BlueshiftInAppListener blueshiftInAppListener;
 
     public enum DeviceIdSource {
-        ADVERTISING_ID, INSTANCE_ID, GUID, ADVERTISING_ID_PKG_NAME, INSTANCE_ID_PKG_NAME, CUSTOM
+        /**
+         * @deprecated According to <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">this documentation</a>,
+         * starting April 1st, 2022, Android Advertising ID may become a string of 0s if the user
+         * opts out of Ad personalisation. Blueshift SDK is changing its default device_id source
+         * from ADVERTISING_ID to INSTANCE_ID_PKG_NAME. So, even if you are explicitly setting the
+         * device_id source as ADVERTISING_ID or ADVERTISING_ID_PKG_NAME, the SDK will start using
+         * the INSTANCE_ID_PKG_NAME option as its device_id source when you upgrade to v3.2.6 or above.
+         * <p>
+         * For assistance, reach out to your CSM or send us an email to support@blueshift.com.
+         */
+        @Deprecated
+        ADVERTISING_ID,
+        INSTANCE_ID,
+        GUID,
+        /**
+         * @deprecated According to <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">this documentation</a>,
+         * starting April 1st, 2022, Android Advertising ID may become a string of 0s if the user
+         * opts out of Ad personalisation. Blueshift SDK is changing its default device_id source
+         * from ADVERTISING_ID to INSTANCE_ID_PKG_NAME. So, even if you are explicitly setting the
+         * device_id source as ADVERTISING_ID or ADVERTISING_ID_PKG_NAME, the SDK will start using
+         * the INSTANCE_ID_PKG_NAME option as its device_id source when you upgrade to v3.2.6 or above.
+         * <p>
+         * For assistance, reach out to your CSM or send us an email to support@blueshift.com.
+         */
+        @Deprecated
+        ADVERTISING_ID_PKG_NAME,
+        INSTANCE_ID_PKG_NAME,
+        CUSTOM
     }
 
     private Blueshift(Context context) {

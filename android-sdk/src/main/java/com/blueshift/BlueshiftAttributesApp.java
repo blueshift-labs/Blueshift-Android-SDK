@@ -162,14 +162,6 @@ public class BlueshiftAttributesApp extends JSONObject {
                     setFirebaseInstanceIdAsDeviceId();
                     break;
 
-                case INSTANCE_ID_PKG_NAME:
-                    setFirebaseInstanceIdPackageNameAsDeviceId(context);
-                    break;
-
-                case ADVERTISING_ID_PKG_NAME:
-                    setAdvertisingIdPackageNameAsDeviceId(context);
-                    break;
-
                 case GUID:
                     setGUIDAsDeviceId(context);
                     break;
@@ -179,12 +171,12 @@ public class BlueshiftAttributesApp extends JSONObject {
                     break;
 
                 default:
-                    // DEFAULT value is Android Ad ID
-                    setAdvertisingIdAsDeviceId(context);
+                    // DEFAULT value is FID:package_name
+                    setFirebaseInstanceIdPackageNameAsDeviceId(context);
             }
         } else {
-            // DEFAULT value is Android Ad ID
-            setAdvertisingIdAsDeviceId(context);
+            // DEFAULT value is FID:package_name
+            setFirebaseInstanceIdPackageNameAsDeviceId(context);
         }
     }
 
