@@ -9,9 +9,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import android.text.TextUtils;
 
 import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
@@ -38,9 +39,6 @@ import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NetworkUtils;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
@@ -68,7 +66,40 @@ public class Blueshift {
     private static BlueshiftInAppListener blueshiftInAppListener;
 
     public enum DeviceIdSource {
-        ADVERTISING_ID, INSTANCE_ID, GUID, ADVERTISING_ID_PKG_NAME, INSTANCE_ID_PKG_NAME, CUSTOM
+        /**
+         * @since 3.2.6
+         * @deprecated Starting SDK version 3.2.6, we are deprecating the device id sources
+         * “Android Advertising ID” and “Android Advertising ID:Package Name” owing to the changes
+         * Google introduced to the <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">Advertising ID</a>
+         * collection starting April 1st, 2022.
+         * <p>
+         * “Firebase Instance ID:Package Name” would be the new default device id source for the SDK,
+         * even if the app has explicitly specified the device id source as “Android Advertising ID”
+         * or “Android Advertising ID:Package Name”.
+         * <p>
+         * For assistance, reach out to your CSM or send us an email to support@blueshift.com.
+         */
+        @Deprecated
+        ADVERTISING_ID,
+        INSTANCE_ID,
+        GUID,
+        /**
+         * @since 3.2.6
+         * @deprecated Starting SDK version 3.2.6, we are deprecating the device id sources
+         * “Android Advertising ID” and “Android Advertising ID:Package Name” owing to the changes
+         * Google introduced to the <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">Advertising ID</a>
+         * collection starting April 1st, 2022.
+         * <p>
+         * “Firebase Instance ID:Package Name” would be the new default device id source for the SDK,
+         * even if the app has explicitly specified the device id source as “Android Advertising ID”
+         * or “Android Advertising ID:Package Name”.
+         * <p>
+         * For assistance, reach out to your CSM or send us an email to support@blueshift.com.
+         */
+        @Deprecated
+        ADVERTISING_ID_PKG_NAME,
+        INSTANCE_ID_PKG_NAME,
+        CUSTOM
     }
 
     private Blueshift(Context context) {
