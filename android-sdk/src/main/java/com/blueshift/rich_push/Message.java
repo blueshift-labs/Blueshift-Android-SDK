@@ -231,7 +231,6 @@ public class Message implements Serializable {
 
         if (bundle != null) {
             try {
-                bundle.remove(RichPushConstants.EXTRA_MESSAGE);
                 String json = bundle.getString(RichPushConstants.EXTRA_MESSAGE);
                 if (json != null && !json.isEmpty()) {
                     message = Message.fromJson(json);
