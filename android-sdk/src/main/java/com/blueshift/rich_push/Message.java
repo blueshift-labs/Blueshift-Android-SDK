@@ -229,14 +229,25 @@ public class Message implements Serializable {
     public static Message fromBundle(Bundle bundle) {
         Message message = null;
 
-        if (bundle != null && bundle.containsKey(RichPushConstants.EXTRA_MESSAGE)) {
-            Object object = bundle.get(RichPushConstants.EXTRA_MESSAGE);
-            if (object instanceof String) {
-                message = Message.fromJson((String) object);
-            } else if (object instanceof Message) {
-                message = (Message) object;
-            } else {
-                BlueshiftLogger.w(TAG, "Unknown type of message found.");
+        if (bundle != null) {
+            try {
+                bundle.remove(RichPushConstants.EXTRA_MESSAGE);
+                String json = bundle.getString(RichPushConstants.EXTRA_MESSAGE);
+                if (json != null && !json.isEmpty()) {
+                    message = Message.fromJson(json);
+                    BlueshiftLogger.d(TAG, "Reading message as JSON. Message is " + (message == null ? "null" : "available."));
+                } else {
+                    message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+                    BlueshiftLogger.d(TAG, "Reading message as Serializable. Message is " + (message == null ? "null" : "available."));
+                }
+            } catch (Exception ignore) {
+                try {
+                    // Fallback to legacy message object reading technique.
+                    message = (Message) bundle.getSerializable(RichPushConstants.EXTRA_MESSAGE);
+                    BlueshiftLogger.d(TAG, "Reading message as Serializable (catch). Message is " + (message == null ? "null" : "available."));
+                } catch (Exception e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
             }
         }
 
