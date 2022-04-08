@@ -72,11 +72,15 @@ public class Blueshift {
 
     public enum DeviceIdSource {
         /**
-         * @deprecated According to <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">this documentation</a>,
-         * starting April 1st, 2022, Android Advertising ID may become a string of 0s if the user
-         * opts out of Ad personalisation. Blueshift SDK is changing its default device_id source
-         * from ADVERTISING_ID to INSTANCE_ID_PKG_NAME. If you are explicitly setting the device_id
-         * source as ADVERTISING_ID or ADVERTISING_ID_PKG_NAME, you must change it to INSTANCE_ID_PKG_NAME.
+         * @since 3.2.6
+         * @deprecated Starting SDK version 3.2.6, we are deprecating the device id sources
+         * “Android Advertising ID” and “Android Advertising ID:Package Name” owing to the changes
+         * Google introduced to the <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">Advertising ID</a>
+         * collection starting April 1st, 2022.
+         * <p>
+         * “Firebase Instance ID:Package Name” would be the new default device id source for the SDK,
+         * even if the app has explicitly specified the device id source as “Android Advertising ID”
+         * or “Android Advertising ID:Package Name”.
          * <p>
          * For assistance, reach out to your CSM or send us an email to support@blueshift.com.
          */
@@ -85,11 +89,15 @@ public class Blueshift {
         INSTANCE_ID,
         GUID,
         /**
-         * @deprecated According to <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">this documentation</a>,
-         * starting April 1st, 2022, Android Advertising ID may become a string of 0s if the user
-         * opts out of Ad personalisation. Blueshift SDK is changing its default device_id source
-         * from ADVERTISING_ID to INSTANCE_ID_PKG_NAME. If you are explicitly setting the device_id
-         * source as ADVERTISING_ID or ADVERTISING_ID_PKG_NAME, you must change it to INSTANCE_ID_PKG_NAME.
+         * @since 3.2.6
+         * @deprecated Starting SDK version 3.2.6, we are deprecating the device id sources
+         * “Android Advertising ID” and “Android Advertising ID:Package Name” owing to the changes
+         * Google introduced to the <a href="https://support.google.com/googleplay/android-developer/answer/6048248?hl=en">Advertising ID</a>
+         * collection starting April 1st, 2022.
+         * <p>
+         * “Firebase Instance ID:Package Name” would be the new default device id source for the SDK,
+         * even if the app has explicitly specified the device id source as “Android Advertising ID”
+         * or “Android Advertising ID:Package Name”.
          * <p>
          * For assistance, reach out to your CSM or send us an email to support@blueshift.com.
          */
