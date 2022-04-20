@@ -431,8 +431,17 @@ public class InAppUtils {
     }
 
     public static boolean shouldEnableBackgroundActions(Context context, InAppMessage inAppMessage) {
-        // todo: match the implementation with the iOS SDK
-        return false;
+        boolean result = false;
+
+        try {
+            if (inAppMessage != null) {
+                result = getTemplateStyleBoolean(context, inAppMessage, InAppConstants.ENABLE_BACKGROUND_ACTION, false);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        return result;
     }
 
     public static boolean shouldCancelOnTouchOutside(Context context, InAppMessage inAppMessage) {
