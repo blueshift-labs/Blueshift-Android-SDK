@@ -23,6 +23,7 @@ import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppMessage;
+import com.blueshift.inappmessage.InAppMessageIconFont;
 import com.blueshift.inappmessage.InAppTemplate;
 import com.google.gson.Gson;
 
@@ -339,7 +340,7 @@ public class InAppUtils {
     private static JSONObject getCloseButtonJSONObject(Context context, InAppMessage inAppMessage) {
         try {
             String closeButton = getTemplateStyleString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
-            if (!TextUtils.isEmpty(closeButton)) {
+            if (closeButton != null && !closeButton.isEmpty()) {
                 return new JSONObject(closeButton);
             }
         } catch (JSONException e) {
@@ -347,6 +348,88 @@ public class InAppUtils {
         }
 
         return null;
+    }
+
+    public static TextView getCloseButtonIconTextView(Context context, InAppMessage inAppMessage, int iconHeight) {
+        TextView closeButtonView = new TextView(context);
+        closeButtonView.setGravity(Gravity.CENTER);
+
+        InAppMessageIconFont.getInstance(context).apply(closeButtonView);
+
+        JSONObject closeButton = getCloseButtonJSONObject(context, inAppMessage);
+        if (closeButton != null) {
+            // ICON TEXT
+            String glyph = "\uF00D"; // default icon glyph
+            try {
+                glyph = closeButton.getString(InAppConstants.TEXT);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            // in case backend fails to set the value, reset to default.
+            if (glyph.isEmpty()) glyph = "\uF00D";
+
+            closeButtonView.setText(glyph);
+
+            // ICON TEXT SIZE
+            int textSize = 0;
+            try {
+                textSize = closeButton.getInt(InAppConstants.TEXT_SIZE);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            if (textSize > 0) {
+                closeButtonView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
+            }
+
+            // ICON TEXT COLOR
+            String colorString = "#ffffff"; // default icon color
+            try {
+                colorString = closeButton.getString(InAppConstants.TEXT_COLOR);
+            } catch (JSONException e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            closeButtonView.setTextColor(Color.parseColor(colorString));
+        } else {
+            closeButtonView.setText("\uF00D");
+            closeButtonView.setTextColor(Color.parseColor("#ffffff"));
+        }
+
+        // ICON BACKGROUND
+        GradientDrawable background = new GradientDrawable();
+        try {
+            int side = CommonUtils.dpToPx(iconHeight, context);
+            int radius = side / 2;
+
+            background.setSize(side, side);
+
+            float bgRadius = radius;
+
+            String bgColor = getStringFromJSONObject(closeButton, InAppConstants.BACKGROUND_COLOR);
+            double dpVal = getDoubleFromJSONObject(closeButton, InAppConstants.BACKGROUND_RADIUS, 0);
+            if (dpVal > 0) {
+                bgRadius = CommonUtils.dpToPx((int) dpVal, context);
+            }
+
+            if (!validateColorString(bgColor)) {
+                bgColor = "#3f3f44";
+            }
+
+            background.setColor(Color.parseColor(bgColor));
+            background.setCornerRadius(bgRadius);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            closeButtonView.setBackground(background);
+        } else {
+            closeButtonView.setBackgroundDrawable(background);
+        }
+
+        return closeButtonView;
     }
 
     public static GradientDrawable getCloseButtonBackground(Context context, InAppMessage inAppMessage, int size) {
@@ -388,7 +471,7 @@ public class InAppUtils {
 
         try {
             String closeButton = getTemplateStyleString(context, inAppMessage, InAppConstants.CLOSE_BUTTON);
-            if (!TextUtils.isEmpty(closeButton)) {
+            if (closeButton != null && !closeButton.isEmpty()) {
                 JSONObject closeButtonStyle = new JSONObject(closeButton);
                 if (closeButtonStyle.has(InAppConstants.CLOSE_BUTTON_SHOW)) {
                     shouldShow = closeButtonStyle.optBoolean(InAppConstants.CLOSE_BUTTON_SHOW);
