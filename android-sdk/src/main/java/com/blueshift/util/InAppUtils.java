@@ -351,6 +351,10 @@ public class InAppUtils {
     }
 
     public static TextView getCloseButtonIconTextView(Context context, InAppMessage inAppMessage, int iconHeight) {
+        String defaultText = "\uF00D";
+        String defaultColor = "#ffffff";
+        String defaultBgColor = "#3f3f44";
+
         TextView closeButtonView = new TextView(context);
         closeButtonView.setGravity(Gravity.CENTER);
 
@@ -359,42 +363,29 @@ public class InAppUtils {
         JSONObject closeButton = getCloseButtonJSONObject(context, inAppMessage);
         if (closeButton != null) {
             // ICON TEXT
-            String glyph = "\uF00D"; // default icon glyph
-            try {
-                glyph = closeButton.getString(InAppConstants.TEXT);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(LOG_TAG, e);
+            String glyph = getStringFromJSONObject(closeButton, InAppConstants.TEXT);
+            if (glyph == null || glyph.isEmpty()) {
+                closeButtonView.setText(defaultText);
+            } else {
+                closeButtonView.setText(glyph);
             }
-
-            // in case backend fails to set the value, reset to default.
-            if (glyph.isEmpty()) glyph = "\uF00D";
-
-            closeButtonView.setText(glyph);
 
             // ICON TEXT SIZE
-            int textSize = 0;
-            try {
-                textSize = closeButton.getInt(InAppConstants.TEXT_SIZE);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-
+            int textSize = getIntFromJSONObject(closeButton, InAppConstants.TEXT_SIZE, 0);
             if (textSize > 0) {
                 closeButtonView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
             }
 
             // ICON TEXT COLOR
-            String colorString = "#ffffff"; // default icon color
-            try {
-                colorString = closeButton.getString(InAppConstants.TEXT_COLOR);
-            } catch (JSONException e) {
-                BlueshiftLogger.e(LOG_TAG, e);
+            String colorString = getStringFromJSONObject(closeButton, InAppConstants.TEXT_COLOR);
+            if (validateColorString(colorString)) {
+                closeButtonView.setTextColor(Color.parseColor(colorString));
+            } else {
+                closeButtonView.setTextColor(Color.parseColor(defaultColor));
             }
-
-            closeButtonView.setTextColor(Color.parseColor(colorString));
         } else {
-            closeButtonView.setText("\uF00D");
-            closeButtonView.setTextColor(Color.parseColor("#ffffff"));
+            closeButtonView.setText(defaultText);
+            closeButtonView.setTextColor(Color.parseColor(defaultColor));
         }
 
         // ICON BACKGROUND
@@ -405,19 +396,16 @@ public class InAppUtils {
 
             background.setSize(side, side);
 
-            float bgRadius = radius;
-
             String bgColor = getStringFromJSONObject(closeButton, InAppConstants.BACKGROUND_COLOR);
+            if (validateColorString(bgColor)) {
+                background.setColor(Color.parseColor(bgColor));
+            } else {
+                background.setColor(Color.parseColor(defaultBgColor));
+            }
+
+            float bgRadius = radius;
             double dpVal = getDoubleFromJSONObject(closeButton, InAppConstants.BACKGROUND_RADIUS, 0);
-            if (dpVal > 0) {
-                bgRadius = CommonUtils.dpToPx((int) dpVal, context);
-            }
-
-            if (!validateColorString(bgColor)) {
-                bgColor = "#3f3f44";
-            }
-
-            background.setColor(Color.parseColor(bgColor));
+            if (dpVal > 0) bgRadius = CommonUtils.dpToPx((int) dpVal, context);
             background.setCornerRadius(bgRadius);
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
