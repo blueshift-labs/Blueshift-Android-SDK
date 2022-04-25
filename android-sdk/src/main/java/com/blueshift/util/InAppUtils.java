@@ -351,9 +351,10 @@ public class InAppUtils {
     }
 
     public static TextView getCloseButtonIconTextView(Context context, InAppMessage inAppMessage, int iconHeight) {
+        int defaultTextSize = 22;
         String defaultText = "\uF00D";
         String defaultColor = "#ffffff";
-        String defaultBgColor = "#3f3f44";
+        String defaultBgColor = "#00ffffff";
 
         TextView closeButtonView = new TextView(context);
         closeButtonView.setGravity(Gravity.CENTER);
@@ -371,10 +372,8 @@ public class InAppUtils {
             }
 
             // ICON TEXT SIZE
-            int textSize = getIntFromJSONObject(closeButton, InAppConstants.TEXT_SIZE, 0);
-            if (textSize > 0) {
-                closeButtonView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
-            }
+            int textSize = getIntFromJSONObject(closeButton, InAppConstants.TEXT_SIZE, defaultTextSize);
+            closeButtonView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
 
             // ICON TEXT COLOR
             String colorString = getStringFromJSONObject(closeButton, InAppConstants.TEXT_COLOR);
