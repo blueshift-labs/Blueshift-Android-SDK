@@ -474,55 +474,28 @@ public class NotificationUtils {
 
                     if (BlueshiftUtils.isPushAppLinksEnabled(activity)) {
                         launchUrl(activity, deepLink, clickElement);
-                        return true;
-                    }
+                    } else {
+                        Intent intent = buildIntentFromAction(activity, message, action);
+                        if (intent == null) return false; // if intent is null, abort here.
 
-                    Intent intent = null;
+                        // add complete bundle to the intent.
+                        intent.putExtras(bundle);
 
-                    if (!TextUtils.isEmpty(action)) {
-                        if (action.equals(RichPushConstants.ACTION_OPEN_APP(activity))) {
-                            intent = NotificationUtils.getOpenAppIntent(activity, message);
-                        } else if (action.equals(RichPushConstants.ACTION_VIEW(activity))) {
-                            intent = NotificationUtils.getViewProductActivityIntent(activity, message);
-                        } else if (action.equals(RichPushConstants.ACTION_BUY(activity))) {
-                            intent = NotificationUtils.getAddToCartActivityIntent(activity, message);
-                        } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(activity))) {
-                            intent = NotificationUtils.getViewCartActivityIntent(activity, message);
-                        } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(activity))) {
-                            intent = NotificationUtils.getViewOffersActivityIntent(activity, message);
+                        try {
+                            // add deep link URL to the intent's data as well.
+                            if (deepLink != null) intent.setData(Uri.parse(deepLink));
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
                         }
+
+                        activity.startActivity(intent);
                     }
-
-                    if (intent == null) {
-                        // make sure the app is opened even if no category deep-links are available
-                        intent = NotificationUtils.getOpenAppIntent(activity, message);
-                    }
-
-                    // add complete bundle to the intent.
-                    intent.putExtras(bundle);
-
-                    try {
-                        // add deep link URL to the intent's data as well.
-                        if (deepLink != null) intent.setData(Uri.parse(deepLink));
-                    } catch (Exception e) {
-                        BlueshiftLogger.e(LOG_TAG, e);
-                    }
-
-                    activity.startActivity(intent);
 
                     // mark 'app_open'
                     Blueshift.getInstance(activity).trackNotificationPageOpen(message, false);
 
                     // remove cached images(if any) for this notification
                     NotificationUtils.removeCachedCarouselImages(activity, message);
-
-                    // remove notification from tray
-                    NotificationManager notificationManager =
-                            (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-                    if (notificationManager != null) {
-                        int notificationID = intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0);
-                        notificationManager.cancel(notificationID);
-                    }
 
                     // click was handled by Blueshift SDK
                     return true;
@@ -539,6 +512,28 @@ public class NotificationUtils {
 
         // click was not handled by Blueshift SDK
         return false;
+    }
+
+    private static Intent buildIntentFromAction(Activity activity, Message message, String action) {
+        Intent intent = null;
+
+        if (!TextUtils.isEmpty(action)) {
+            if (action.equals(RichPushConstants.ACTION_OPEN_APP(activity))) {
+                intent = NotificationUtils.getOpenAppIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_VIEW(activity))) {
+                intent = NotificationUtils.getViewProductActivityIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_BUY(activity))) {
+                intent = NotificationUtils.getAddToCartActivityIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(activity))) {
+                intent = NotificationUtils.getViewCartActivityIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(activity))) {
+                intent = NotificationUtils.getViewOffersActivityIntent(activity, message);
+            }
+        }
+
+        if (intent == null) intent = NotificationUtils.getOpenAppIntent(activity, message);
+
+        return intent;
     }
 
     private static void launchUrl(Activity activity, String url, String clickElement) {
