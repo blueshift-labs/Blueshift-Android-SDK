@@ -395,18 +395,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
 
         Blueshift.updateDeviceToken(newToken);
         BlueshiftAttributesApp.getInstance().updateFirebaseToken(newToken);
-        callIdentify();
-    }
-
-    /**
-     * We are calling an identify here to make sure that the change in
-     * device token is notified to the blueshift servers.
-     */
-    private void callIdentify() {
-        String deviceId = DeviceUtils.getDeviceId(this);
-        Blueshift
-                .getInstance(this)
-                .identifyUserByDeviceId(deviceId, null, false);
+        Blueshift.getInstance(this).identifyUser(null, false);
     }
 
     /**
