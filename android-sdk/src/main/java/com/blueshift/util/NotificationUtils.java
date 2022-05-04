@@ -1,5 +1,6 @@
 package com.blueshift.util;
 
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -17,7 +18,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
@@ -452,13 +452,13 @@ public class NotificationUtils {
      * This method is being called by the sdk from the {@link BlueshiftNotificationEventsActivity}
      * The host app can make use of this method if they would like to override the clicks on push msg.
      *
-     * @param context valid context object
-     * @param action  action from the intent
-     * @param bundle  bundle inside the intent
+     * @param activity valid activity object
+     * @param action   action from the intent
+     * @param bundle   bundle inside the intent
      * @return true: if the click was handled by the sdk, false: if the click was not handled by the sdk.
      */
-    public static boolean processNotificationClick(Context context, String action, Bundle bundle) {
-        if (context != null && action != null && bundle != null) {
+    public static boolean processNotificationClick(Activity activity, String action, Bundle bundle) {
+        if (activity != null && action != null && bundle != null) {
             Message message = Message.fromBundle(bundle);
             if (message != null) {
                 try {
@@ -470,58 +470,32 @@ public class NotificationUtils {
                     extras.put(BlueshiftConstants.KEY_CLICK_ELEMENT, clickElement);
 
                     // mark 'click'
-                    NotificationUtils.invokePushClicked(context, message, extras);
+                    NotificationUtils.invokePushClicked(activity, message, extras);
 
-                    Intent intent = null;
+                    if (BlueshiftUtils.isPushAppLinksEnabled(activity)) {
+                        launchUrl(activity, deepLink, clickElement);
+                    } else {
+                        Intent intent = buildIntentFromAction(activity, message, action);
+                        if (intent == null) return false; // if intent is null, abort here.
 
-                    if (!TextUtils.isEmpty(action)) {
-                        if (action.equals(RichPushConstants.ACTION_OPEN_APP(context))) {
-                            intent = NotificationUtils.getOpenAppIntent(context, message);
-                        } else if (action.equals(RichPushConstants.ACTION_VIEW(context))) {
-                            intent = NotificationUtils.getViewProductActivityIntent(context, message);
-                        } else if (action.equals(RichPushConstants.ACTION_BUY(context))) {
-                            intent = NotificationUtils.getAddToCartActivityIntent(context, message);
-                        } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(context))) {
-                            intent = NotificationUtils.getViewCartActivityIntent(context, message);
-                        } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(context))) {
-                            intent = NotificationUtils.getViewOffersActivityIntent(context, message);
+                        // add complete bundle to the intent.
+                        intent.putExtras(bundle);
+
+                        try {
+                            // add deep link URL to the intent's data as well.
+                            if (deepLink != null) intent.setData(Uri.parse(deepLink));
+                        } catch (Exception e) {
+                            BlueshiftLogger.e(LOG_TAG, e);
                         }
+
+                        activity.startActivity(intent);
                     }
-
-                    if (intent == null) {
-                        // make sure the app is opened even if no category deep-links are available
-                        intent = NotificationUtils.getOpenAppIntent(context, message);
-                    }
-
-                    // add complete bundle to the intent.
-                    intent.putExtras(bundle);
-
-                    try {
-                        // add deep link URL to the intent's data as well.
-                        if (deepLink != null) intent.setData(Uri.parse(deepLink));
-                    } catch (Exception e) {
-                        BlueshiftLogger.e(LOG_TAG, e);
-                    }
-
-                    // Note: This will create a new task and launch the app with the corresponding
-                    // activity. As per the docs, the dev should add parent activity to all the
-                    // activities registered in the manifest in order to get the back stack working
-                    // doc: https://developer.android.com/training/notify-user/navigation#DirectEntry
-                    TaskStackBuilder.create(context).addNextIntentWithParentStack(intent).startActivities();
 
                     // mark 'app_open'
-                    Blueshift.getInstance(context).trackNotificationPageOpen(message, false);
+                    Blueshift.getInstance(activity).trackNotificationPageOpen(message, false);
 
                     // remove cached images(if any) for this notification
-                    NotificationUtils.removeCachedCarouselImages(context, message);
-
-                    // remove notification from tray
-                    NotificationManager notificationManager =
-                            (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                    if (notificationManager != null) {
-                        int notificationID = intent.getIntExtra(RichPushConstants.EXTRA_NOTIFICATION_ID, 0);
-                        notificationManager.cancel(notificationID);
-                    }
+                    NotificationUtils.removeCachedCarouselImages(activity, message);
 
                     // click was handled by Blueshift SDK
                     return true;
@@ -533,25 +507,69 @@ public class NotificationUtils {
             }
         } else {
             BlueshiftLogger.d(LOG_TAG, "processNotificationClick: Invalid arguments " +
-                    "(context: " + context + ", action: " + action + ", bundle: " + bundle + ").");
+                    "(activity: " + activity + ", action: " + action + ", bundle: " + bundle + ").");
         }
 
         // click was not handled by Blueshift SDK
         return false;
     }
 
+    private static Intent buildIntentFromAction(Activity activity, Message message, String action) {
+        Intent intent = null;
+
+        if (!TextUtils.isEmpty(action)) {
+            if (action.equals(RichPushConstants.ACTION_OPEN_APP(activity))) {
+                intent = NotificationUtils.getOpenAppIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_VIEW(activity))) {
+                intent = NotificationUtils.getViewProductActivityIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_BUY(activity))) {
+                intent = NotificationUtils.getAddToCartActivityIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_OPEN_CART(activity))) {
+                intent = NotificationUtils.getViewCartActivityIntent(activity, message);
+            } else if (action.equals(RichPushConstants.ACTION_OPEN_OFFER_PAGE(activity))) {
+                intent = NotificationUtils.getViewOffersActivityIntent(activity, message);
+            }
+        }
+
+        if (intent == null) intent = NotificationUtils.getOpenAppIntent(activity, message);
+
+        return intent;
+    }
+
+    private static void launchUrl(Activity activity, String url, String clickElement) {
+        if (activity != null) {
+            if (url == null || url.isEmpty()) {
+                BlueshiftLogger.w(LOG_TAG, "PN: No url available.");
+            } else {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(url));
+                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                    intent.putExtra(BlueshiftConstants.KEY_CLICK_URL, url);
+                    intent.putExtra(BlueshiftConstants.KEY_CLICK_ELEMENT, clickElement);
+                    activity.startActivity(intent);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            }
+        } else {
+            BlueshiftLogger.w(LOG_TAG, "PN: Can't launch url. Activity is null.");
+        }
+    }
+
     /**
-     * Simplified version of processNotificationClick(context, action, bundle)
+     * Simplified version of processNotificationClick(activity, action, bundle)
      *
-     * @param context valid context object
-     * @param intent  valid intent
+     * @param activity valid activity object
+     * @param intent   valid intent
      */
-    public static boolean processNotificationClick(Context context, Intent intent) {
-        if (context != null && intent != null) {
-            return processNotificationClick(context, intent.getAction(), intent.getExtras());
+    public static boolean processNotificationClick(Activity activity, Intent intent) {
+        if (activity != null && intent != null) {
+            return processNotificationClick(activity, intent.getAction(), intent.getExtras());
         } else {
             BlueshiftLogger.d(LOG_TAG, "processNotificationClick: Invalid arguments " +
-                    "(context: " + context + ", intent: " + intent + ").");
+                    "(activity: " + activity + ", intent: " + intent + ").");
             return false;
         }
     }
