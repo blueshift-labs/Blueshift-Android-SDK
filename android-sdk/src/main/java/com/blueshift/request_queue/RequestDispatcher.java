@@ -254,8 +254,7 @@ class RequestDispatcher {
     }
 
     private void identify(Context context) {
-        String deviceId = DeviceUtils.getDeviceId(context);
-        Blueshift.getInstance(context).identifyUserByDeviceId(deviceId, null, false);
+        Blueshift.getInstance(context).identifyUser(null, false);
     }
 
     /**
