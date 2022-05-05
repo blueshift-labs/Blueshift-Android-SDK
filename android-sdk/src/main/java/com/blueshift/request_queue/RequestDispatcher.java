@@ -1,7 +1,6 @@
 package com.blueshift.request_queue;
 
 import android.content.Context;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -250,8 +249,7 @@ class RequestDispatcher {
     }
 
     private void identify(Context context) {
-        String deviceId = DeviceUtils.getDeviceId(context);
-        Blueshift.getInstance(context).identifyUserByDeviceId(deviceId, null, false);
+        Blueshift.getInstance(context).identifyUser(null, false);
     }
 
     /**

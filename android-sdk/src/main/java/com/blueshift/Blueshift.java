@@ -432,8 +432,14 @@ public class Blueshift {
     }
 
     private void updateFirebaseInstanceId() {
-        String instanceId = FirebaseInstanceId.getInstance().getId();
-        setFirebaseInstanceId(instanceId);
+        Task<InstanceIdResult> resultTask = FirebaseInstanceId.getInstance().getInstanceId();
+        resultTask.addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                String instanceId = instanceIdResult.getId();
+                setFirebaseInstanceId(instanceId);
+            }
+        });
     }
 
     private void setFirebaseInstanceId(String instanceId) {

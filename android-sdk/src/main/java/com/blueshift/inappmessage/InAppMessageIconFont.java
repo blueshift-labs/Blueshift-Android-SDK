@@ -17,15 +17,20 @@ public class InAppMessageIconFont {
     private static Typeface sFontAwesomeFont = null;
     private static InAppMessageIconFont sInstance = null;
 
-    private InAppMessageIconFont(Context context) {
+    private InAppMessageIconFont(final Context context) {
         try {
             if (context != null) {
-                File fontFile = getFontFile(context);
-                if (fontFile.exists()) {
-                    sFontAwesomeFont = Typeface.createFromFile(fontFile);
-                } else {
-                    updateFont(context);
-                }
+                BlueshiftExecutor.getInstance().runOnWorkerThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        File fontFile = getFontFile(context);
+                        if (fontFile.exists()) {
+                            sFontAwesomeFont = Typeface.createFromFile(fontFile);
+                        } else {
+                            updateFont(context);
+                        }
+                    }
+                });
             }
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
