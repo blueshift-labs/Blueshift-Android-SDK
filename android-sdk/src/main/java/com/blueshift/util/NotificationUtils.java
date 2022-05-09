@@ -494,6 +494,13 @@ public class NotificationUtils {
                     // mark 'app_open'
                     Blueshift.getInstance(activity).trackNotificationPageOpen(message, false);
 
+                    // remove notification from tray (this is needed for carousel push notifications)
+                    NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+                    if (notificationManager != null) {
+                        int notificationID = bundle.getInt(RichPushConstants.EXTRA_NOTIFICATION_ID, 0);
+                        notificationManager.cancel(notificationID);
+                    }
+
                     // remove cached images(if any) for this notification
                     NotificationUtils.removeCachedCarouselImages(activity, message);
 
