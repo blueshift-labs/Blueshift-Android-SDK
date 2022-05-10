@@ -16,9 +16,10 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
@@ -493,6 +494,13 @@ public class NotificationUtils {
 
                     // mark 'app_open'
                     Blueshift.getInstance(activity).trackNotificationPageOpen(message, false);
+
+                    // remove notification from tray (this is needed for carousel push notifications)
+                    NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+                    if (notificationManager != null) {
+                        int notificationID = bundle.getInt(RichPushConstants.EXTRA_NOTIFICATION_ID, 0);
+                        notificationManager.cancel(notificationID);
+                    }
 
                     // remove cached images(if any) for this notification
                     NotificationUtils.removeCachedCarouselImages(activity, message);
