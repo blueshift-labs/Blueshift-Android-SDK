@@ -2,6 +2,7 @@ package com.blueshift;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -217,6 +218,18 @@ public class Blueshift {
         if (cu != null) map.putAll(cu.toHashMap());
 
         Blueshift.getInstance(context).identifyUser(map, false);
+    }
+
+    /**
+     * This method can ask for push notification permission on behalf of an app. Call this method
+     * from an activity and lister for activity results to see if the permission was grated.
+     *
+     * @param activity instance of the host Activity
+     */
+    public static void requestPushNotificationPermission(Activity activity) {
+        if (activity != null) {
+            activity.startActivity(new Intent(activity, BlueshiftPermissionsActivity.class));
+        }
     }
 
     public static BlueshiftPushListener getBlueshiftPushListener() {
