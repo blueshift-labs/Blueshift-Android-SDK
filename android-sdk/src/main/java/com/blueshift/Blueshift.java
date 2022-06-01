@@ -228,17 +228,22 @@ public class Blueshift {
     /**
      * Reset the device_id by replacing the old value with a freshly generated value.
      * <p>
-     * Note: This only works for the device_id source GUID. This will not reset other device_ids,
+     * Note: This only works for the device_id source, GUID. This will not reset other device_ids.
      *
      * @param context Valid {@link Context} object
      */
-    public static void resetDeviceId(Context context) {
+    public static void resetDeviceId(final Context context) {
         Configuration config = BlueshiftUtils.getConfiguration(context);
         if (config != null && config.getDeviceIdSource() == DeviceIdSource.GUID) {
-            // reset device id.
-            BlueShiftPreference.resetDeviceID(context);
-            // fire identify event.
-            Blueshift.getInstance(context).identifyUser(null, false);
+            BlueshiftExecutor.getInstance().runOnWorkerThread(new Runnable() {
+                @Override
+                public void run() {
+                    // reset device id.
+                    BlueShiftPreference.resetDeviceID(context);
+                    // fire identify event.
+                    Blueshift.getInstance(context).identifyUser(null, false);
+                }
+            });
         } else {
             BlueshiftLogger.d(LOG_TAG, "Device ID reset is only applicable to GUID device ID source.");
         }
