@@ -17,31 +17,36 @@ public class InAppMessageIconFont {
     private static Typeface sFontAwesomeFont = null;
     private static InAppMessageIconFont sInstance = null;
 
-    private InAppMessageIconFont(final Context context) {
-        try {
-            if (context != null) {
-                BlueshiftExecutor.getInstance().runOnWorkerThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        File fontFile = getFontFile(context);
-                        if (fontFile.exists()) {
-                            sFontAwesomeFont = Typeface.createFromFile(fontFile);
-                        } else {
-                            updateFont(context);
+    private void initializeFontFile(final Context context) {
+        if (context != null && sFontAwesomeFont == null) {
+            BlueshiftExecutor
+                    .getInstance()
+                    .runOnWorkerThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            File fontFile = getFontFile(context);
+                            if (fontFile.exists()) {
+                                try {                     sFontAwesomeFont = Typeface.createFromFile(fontFile);
+                                } catch (Exception e) {
+                                    // the file is corrupted, try downloading the font again
+                                    BlueshiftLogger.w(TAG, "Font file is corrupted. Delete: " + fontFile.delete());
+                                    updateFont(context);
+                                }
+                            } else {
+                                updateFont(context);
+                            }
                         }
-                    }
-                });
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
+                    });
         }
     }
 
     public static InAppMessageIconFont getInstance(Context context) {
         synchronized (_LOCK) {
             if (sInstance == null) {
-                sInstance = new InAppMessageIconFont(context);
+                sInstance = new InAppMessageIconFont();
             }
+
+            sInstance.initializeFontFile(context);
 
             return sInstance;
         }
