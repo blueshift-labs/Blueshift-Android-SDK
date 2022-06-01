@@ -26,7 +26,8 @@ public class InAppMessageIconFont {
                         public void run() {
                             File fontFile = getFontFile(context);
                             if (fontFile.exists()) {
-                                try {                     sFontAwesomeFont = Typeface.createFromFile(fontFile);
+                                try {
+                                    sFontAwesomeFont = Typeface.createFromFile(fontFile);
                                 } catch (Exception e) {
                                     // the file is corrupted, try downloading the font again
                                     BlueshiftLogger.w(TAG, "Font file is corrupted. Delete: " + fontFile.delete());
