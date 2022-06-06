@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'com.blueshift'
     PUBLISH_ARTIFACT_ID = 'android-sdk'
-    PUBLISH_VERSION = '3.2.7'
+    PUBLISH_VERSION = '3.2.8-beta.0'
 }
 
 android {
@@ -35,7 +35,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:26.1.0'
 
     // for JSON parsing
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.8.9'
 
     // for FCM (using the last versions that supports com.android.support libs)
     //noinspection GradleDependency
