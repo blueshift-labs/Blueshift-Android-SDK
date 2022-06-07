@@ -1140,9 +1140,11 @@ public class Blueshift {
     }
 
     /**
-     * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated. The SDK will no longer send the
-     * delivered event for push notifications, and this method will be removed in a future release.
+     * @since 3.2.8
+     * @deprecated The delivered event sent by the SDK is deprecated. Blueshift now computes the
+     * push delivery stats based on the response received from FCM. <a href="https://blueshift.com/library/product-update/release-21-11-1/#definition">Know more</a>
+     * <p>
+     * This method will be removed from the SDK in a future release.
      */
     @Deprecated
     public void trackNotificationView(Message message) {
@@ -1159,9 +1161,11 @@ public class Blueshift {
     }
 
     /**
-     * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated. The SDK will no longer send the
-     * delivered event for push notifications, and this method will be removed in a future release.
+     * @since 3.2.8
+     * @deprecated The delivered event sent by the SDK is deprecated. Blueshift now computes the
+     * push delivery stats based on the response received from FCM. <a href="https://blueshift.com/library/product-update/release-21-11-1/#definition">Know more</a>
+     * <p>
+     * This method will be removed from the SDK in a future release.
      */
     @Deprecated
     public void trackNotificationView(String notificationId) {
@@ -1170,9 +1174,11 @@ public class Blueshift {
     }
 
     /**
-     * @since 3.2.5
-     * @deprecated The delivered event sent by the SDK is deprecated. The SDK will no longer send the
-     * delivered event for push notifications, and this method will be removed in a future release.
+     * @since 3.2.8
+     * @deprecated The delivered event sent by the SDK is deprecated. Blueshift now computes the
+     * push delivery stats based on the response received from FCM. <a href="https://blueshift.com/library/product-update/release-21-11-1/#definition">Know more</a>
+     * <p>
+     * This method will be removed from the SDK in a future release.
      */
     @Deprecated
     @SuppressWarnings("WeakerAccess")
