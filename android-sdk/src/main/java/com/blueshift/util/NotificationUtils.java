@@ -596,8 +596,6 @@ public class NotificationUtils {
                 Blueshift.getBlueshiftPushListener().onPushDelivered(attr);
             }
         }
-
-        Blueshift.getInstance(context).trackNotificationView(message);
     }
 
     /**
