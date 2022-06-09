@@ -221,14 +221,15 @@ public class Blueshift {
     }
 
     /**
-     * This method can ask for push notification permission on behalf of an app. Call this method
-     * from an activity and lister for activity results to see if the permission was grated.
+     * This is a helper method to ask for push notification permission when running in Android 13.
+     * <p>
+     * Make sure your app is targeting Android 13 (API 33) and have added the permission in the AndroidManifest.xml file.
      *
-     * @param activity instance of the host Activity
+     * @param context Your app's context for launching the permission dialog.
      */
-    public static void requestPushNotificationPermission(Activity activity) {
-        if (activity != null) {
-            activity.startActivity(new Intent(activity, BlueshiftPermissionsActivity.class));
+    public static void requestPushNotificationPermission(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            BlueshiftPermissionsActivity.launchForPushNotificationPermission(context);
         }
     }
 
