@@ -6,6 +6,7 @@ public class InAppConstants {
     public static final long IN_APP_INTERVAL = 60000; // (1000 * 60)ms, ie; 1 minute
 
     public static final String DISMISS_URL = "blueshift://dismiss";
+    public static final String PN_PERMISSION_URL = "blueshift://ask-pn-permission";
     public static final String BLANK_URL = "about:blank#blocked";
     public static final String ACT_BACK = "btn_back";
     public static final String ACT_SWIPE = "swipe";

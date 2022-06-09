@@ -1,5 +1,8 @@
 package com.blueshift.inappmessage;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +17,7 @@ import android.webkit.WebViewClient;
 
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.BlueshiftPermissionsActivity;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
@@ -21,9 +25,6 @@ import com.blueshift.util.InAppUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class InAppMessageViewHTML extends InAppMessageView {
     private static final String TAG = InAppMessageViewHTML.class.getSimpleName();
@@ -75,6 +76,19 @@ public class InAppMessageViewHTML extends InAppMessageView {
     private void launchUri(Uri uri) {
         if (InAppUtils.isDismissUri(uri)) {
             invokeDismiss(uri);
+        } else if (InAppUtils.isAskPNPermissionUri(uri)) {
+            askPNPermission();
+
+            JSONObject statsParams = getClickStatsJSONObject(null);
+            try {
+                String link = uri.toString();
+                if (!TextUtils.isEmpty(link)) {
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
+                }
+            } catch (JSONException ignored) {
+            }
+
+            handleClick(getInAppMessage(), statsParams);
         } else {
             InAppActionCallback actionCallback = InAppManager.getActionCallback();
             if (actionCallback != null) {
@@ -105,6 +119,19 @@ public class InAppMessageViewHTML extends InAppMessageView {
     private void openUri(Uri uri) {
         if (InAppUtils.isDismissUri(uri)) {
             invokeDismiss(uri);
+        } else if (InAppUtils.isAskPNPermissionUri(uri)) {
+            askPNPermission();
+
+            JSONObject statsParams = getClickStatsJSONObject(null);
+            try {
+                String link = uri.toString();
+                if (!TextUtils.isEmpty(link)) {
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
+                }
+            } catch (JSONException ignored) {
+            }
+
+            handleClick(getInAppMessage(), statsParams);
         } else {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -125,6 +152,10 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
             handleClick(getInAppMessage(), statsParams);
         }
+    }
+
+    private void askPNPermission() {
+        getContext().startActivity(new Intent(getContext(), BlueshiftPermissionsActivity.class));
     }
 
     private void invokeDismiss(Uri uri) {
