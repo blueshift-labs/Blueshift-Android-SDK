@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 
@@ -1007,6 +1008,11 @@ public class InAppManager {
                         window.setGravity(InAppUtils.getTemplateGravity(context, inAppMessage));
                         window.setDimAmount(dimAmount);
                         window.setLayout(displayConfig.templateWidth, displayConfig.templateHeight);
+
+                        if (InAppUtils.shouldEnableBackgroundActions(context, inAppMessage)) {
+                            window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                        }
                     }
 
                     BlueshiftExecutor.getInstance().runOnDiskIOThread(
