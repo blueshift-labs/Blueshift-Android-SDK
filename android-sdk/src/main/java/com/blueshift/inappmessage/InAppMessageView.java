@@ -23,9 +23,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.BlueshiftPermissionsActivity;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 
@@ -417,7 +417,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                 if (InAppUtils.isDismissUrl(link)) {
                     BlueshiftLogger.d(TAG, "");
                 } else if (InAppUtils.isAskPNPermissionUri(Uri.parse(link))) {
-                    getContext().startActivity(new Intent(getContext(), BlueshiftPermissionsActivity.class));
+                    Blueshift.requestPushNotificationPermission(getContext());
                 } else {
                     JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);
                     Bundle bundle = null;

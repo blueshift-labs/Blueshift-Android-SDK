@@ -15,9 +15,9 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
-import com.blueshift.BlueshiftPermissionsActivity;
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
@@ -155,7 +155,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
     }
 
     private void askPNPermission() {
-        getContext().startActivity(new Intent(getContext(), BlueshiftPermissionsActivity.class));
+        Blueshift.requestPushNotificationPermission(getContext());
     }
 
     private void invokeDismiss(Uri uri) {
