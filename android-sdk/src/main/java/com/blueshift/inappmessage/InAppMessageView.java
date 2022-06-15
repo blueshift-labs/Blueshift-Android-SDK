@@ -87,12 +87,12 @@ public abstract class InAppMessageView extends RelativeLayout {
 
     private void addCloseButton(final InAppMessage inAppMessage) {
         // default text/font size for icon is 20 SP
-        // default size of the icon text view is 24 DP (4 DP padding on all sides)
-        int iconHeight = InAppUtils.getCloseButtonIconTextSize(getContext(), inAppMessage) + 4; // 4dp padding
+        // default size of the icon text view is 28 DP (8 DP padding on all sides)
+        int iconHeight = InAppUtils.getCloseButtonIconTextSize(getContext(), inAppMessage) + 8; // 8dp padding
         TextView closeButtonView = InAppUtils.getCloseButtonIconTextView(getContext(), inAppMessage, iconHeight);
 
-        int icHeightInDP = CommonUtils.dpToPx(iconHeight, getContext());
-        LayoutParams lp = new LayoutParams(icHeightInDP, icHeightInDP);
+        int dpSize = CommonUtils.dpToPx(iconHeight, getContext());
+        LayoutParams lp = new LayoutParams(dpSize, dpSize);
 
         int dp8 = CommonUtils.dpToPx(8, getContext());
         lp.setMargins(0, dp8, dp8, 0);
