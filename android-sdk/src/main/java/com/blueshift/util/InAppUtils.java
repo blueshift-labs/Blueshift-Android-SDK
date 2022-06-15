@@ -350,11 +350,15 @@ public class InAppUtils {
         return null;
     }
 
+    public static int getCloseButtonIconTextSize(Context context, InAppMessage inAppMessage) {
+        JSONObject closeButton = getCloseButtonJSONObject(context, inAppMessage);
+        return getIntFromJSONObject(closeButton, InAppConstants.TEXT_SIZE, 20);
+    }
+
     public static TextView getCloseButtonIconTextView(Context context, InAppMessage inAppMessage, int iconHeight) {
-        int defaultTextSize = 22;
         String defaultText = "\uF00D";
         String defaultColor = "#ffffff";
-        String defaultBgColor = "#00ffffff";
+        String defaultBgColor = "#3f3f44";
 
         TextView closeButtonView = new TextView(context);
         closeButtonView.setGravity(Gravity.CENTER);
@@ -372,7 +376,7 @@ public class InAppUtils {
             }
 
             // ICON TEXT SIZE
-            int textSize = getIntFromJSONObject(closeButton, InAppConstants.TEXT_SIZE, defaultTextSize);
+            int textSize = getCloseButtonIconTextSize(context, inAppMessage);
             closeButtonView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize);
 
             // ICON TEXT COLOR
