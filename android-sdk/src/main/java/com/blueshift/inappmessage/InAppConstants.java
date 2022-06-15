@@ -47,6 +47,8 @@ public class InAppConstants {
     public static final String FULLSCREEN = "fullscreen";
 
     public static final String TEXT = "text";
+    public static final String TEXT_COLOR = "text_color";
+    public static final String TEXT_SIZE = "text_size";
     public static final String ACTIONS = "actions";
     public static final String ACTION_TYPE = "type";
     public static final String HTML = "html";
