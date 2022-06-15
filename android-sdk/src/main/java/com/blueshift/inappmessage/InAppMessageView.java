@@ -2,10 +2,8 @@ package com.blueshift.inappmessage;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -88,22 +86,13 @@ public abstract class InAppMessageView extends RelativeLayout {
     }
 
     private void addCloseButton(final InAppMessage inAppMessage) {
-        TextView closeButtonView = new TextView(getContext());
-        InAppMessageIconFont.getInstance(getContext()).apply(closeButtonView);
-        closeButtonView.setText("\uF00D");
-        closeButtonView.setTextColor(Color.parseColor("#ffffff"));
-        closeButtonView.setGravity(Gravity.CENTER);
+        // default text/font size for icon is 20 SP
+        // default size of the icon text view is 28 DP (8 DP padding on all sides)
+        int iconHeight = InAppUtils.getCloseButtonIconTextSize(getContext(), inAppMessage) + 8; // 8dp padding
+        TextView closeButtonView = InAppUtils.getCloseButtonIconTextView(getContext(), inAppMessage, iconHeight);
 
-        int dp24 = CommonUtils.dpToPx(24, getContext());
-
-        GradientDrawable background = InAppUtils.getCloseButtonBackground(getContext(), inAppMessage, dp24);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            closeButtonView.setBackground(background);
-        } else {
-            closeButtonView.setBackgroundDrawable(background);
-        }
-
-        LayoutParams lp = new LayoutParams(dp24, dp24);
+        int dpSize = CommonUtils.dpToPx(iconHeight, getContext());
+        LayoutParams lp = new LayoutParams(dpSize, dpSize);
 
         int dp8 = CommonUtils.dpToPx(8, getContext());
         lp.setMargins(0, dp8, dp8, 0);
