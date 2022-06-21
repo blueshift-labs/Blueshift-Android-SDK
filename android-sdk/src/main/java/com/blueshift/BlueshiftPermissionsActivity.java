@@ -80,12 +80,20 @@ public class BlueshiftPermissionsActivity extends Activity {
             switch (grantResult) {
                 case PackageManager.PERMISSION_GRANTED:
                     BlueshiftLogger.d(TAG, permission + " - GRANTED.");
+                    Blueshift.getInstance(getApplicationContext()).identifyUser(null, false);
                     break;
                 case PackageManager.PERMISSION_DENIED:
                     if (shouldShowRequestPermissionRationale(permission)) {
                         BlueshiftLogger.d(TAG, permission + " - DENIED once.");
                         BlueShiftPreference.incrementPermissionDenialCount(this, permission);
                     }
+                    /*
+                     * The notification permission is denied by default. The runtime permission
+                     * request popup is only available for the app to get the permission. It is
+                     * not possible to show the same popup to revoke the permission. The revoke
+                     * happens only when we do it using the settings page. Hence we do not want
+                     * to fire an identify when the push permission is denied (or ignored).
+                     */
                     break;
                 default:
                     BlueshiftLogger.e(TAG, "Unhandled grant result: " + grantResult);
@@ -122,6 +130,12 @@ public class BlueshiftPermissionsActivity extends Activity {
                                 done();
                             }
                         })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        done();
+                    }
+                })
                 .show();
     }
 
