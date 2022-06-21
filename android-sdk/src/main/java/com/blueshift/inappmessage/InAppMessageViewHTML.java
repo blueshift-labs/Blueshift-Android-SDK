@@ -77,18 +77,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
         if (InAppUtils.isDismissUri(uri)) {
             invokeDismiss(uri);
         } else if (InAppUtils.isAskPNPermissionUri(uri)) {
-            askPNPermission();
-
-            JSONObject statsParams = getClickStatsJSONObject(null);
-            try {
-                String link = uri.toString();
-                if (!TextUtils.isEmpty(link)) {
-                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
-                }
-            } catch (JSONException ignored) {
-            }
-
-            handleClick(getInAppMessage(), statsParams);
+            invokeNotificationPermissionReq(uri);
         } else {
             InAppActionCallback actionCallback = InAppManager.getActionCallback();
             if (actionCallback != null) {
@@ -120,18 +109,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
         if (InAppUtils.isDismissUri(uri)) {
             invokeDismiss(uri);
         } else if (InAppUtils.isAskPNPermissionUri(uri)) {
-            askPNPermission();
-
-            JSONObject statsParams = getClickStatsJSONObject(null);
-            try {
-                String link = uri.toString();
-                if (!TextUtils.isEmpty(link)) {
-                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, link);
-                }
-            } catch (JSONException ignored) {
-            }
-
-            handleClick(getInAppMessage(), statsParams);
+            invokeNotificationPermissionReq(uri);
         } else {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -154,8 +132,21 @@ public class InAppMessageViewHTML extends InAppMessageView {
         }
     }
 
-    private void askPNPermission() {
+    private void invokeNotificationPermissionReq(Uri uri) {
         Blueshift.requestPushNotificationPermission(getContext());
+
+        JSONObject statsParams = getClickStatsJSONObject(null);
+        try {
+            if (uri != null) {
+                String url = uri.toString();
+                if (!TextUtils.isEmpty(url)) {
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, url);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        handleClick(getInAppMessage(), statsParams);
     }
 
     private void invokeDismiss(Uri uri) {
