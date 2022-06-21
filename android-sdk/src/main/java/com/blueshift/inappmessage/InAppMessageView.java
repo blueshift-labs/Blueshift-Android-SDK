@@ -412,10 +412,10 @@ public abstract class InAppMessageView extends RelativeLayout {
         try {
             if (action != null) {
                 String link = action.optString(InAppConstants.ANDROID_LINK);
-                BlueshiftLogger.d(TAG, "deep-link: " + link);
+                BlueshiftLogger.d(TAG, "android_link: " + link);
 
                 if (InAppUtils.isDismissUrl(link)) {
-                    BlueshiftLogger.d(TAG, "");
+                    BlueshiftLogger.d(TAG, "Dismiss URL detected.");
                 } else if (InAppUtils.isAskPNPermissionUri(Uri.parse(link))) {
                     Blueshift.requestPushNotificationPermission(getContext());
                 } else {
