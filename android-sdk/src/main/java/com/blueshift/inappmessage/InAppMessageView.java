@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -19,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.util.CommonUtils;
@@ -398,9 +400,13 @@ public abstract class InAppMessageView extends RelativeLayout {
         try {
             if (action != null) {
                 String link = action.optString(InAppConstants.ANDROID_LINK);
-                if (!InAppUtils.isDismissUrl(link)) {
-                    BlueshiftLogger.d(TAG, "deep-link: " + link);
+                BlueshiftLogger.d(TAG, "android_link: " + link);
 
+                if (InAppUtils.isDismissUrl(link)) {
+                    BlueshiftLogger.d(TAG, "Dismiss URL detected.");
+                } else if (InAppUtils.isAskPNPermissionUri(Uri.parse(link))) {
+                    Blueshift.requestPushNotificationPermission(getContext());
+                } else {
                     JSONObject extras = action.optJSONObject(InAppConstants.EXTRAS);
                     Bundle bundle = null;
                     if (extras != null) {
