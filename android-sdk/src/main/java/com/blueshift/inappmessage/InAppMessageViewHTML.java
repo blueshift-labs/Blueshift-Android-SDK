@@ -1,5 +1,8 @@
 package com.blueshift.inappmessage;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +15,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
@@ -21,9 +25,6 @@ import com.blueshift.util.InAppUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class InAppMessageViewHTML extends InAppMessageView {
     private static final String TAG = InAppMessageViewHTML.class.getSimpleName();
@@ -75,6 +76,8 @@ public class InAppMessageViewHTML extends InAppMessageView {
     private void launchUri(Uri uri) {
         if (InAppUtils.isDismissUri(uri)) {
             invokeDismiss(uri);
+        } else if (InAppUtils.isAskPNPermissionUri(uri)) {
+            invokeNotificationPermissionReq(uri);
         } else {
             InAppActionCallback actionCallback = InAppManager.getActionCallback();
             if (actionCallback != null) {
@@ -105,6 +108,8 @@ public class InAppMessageViewHTML extends InAppMessageView {
     private void openUri(Uri uri) {
         if (InAppUtils.isDismissUri(uri)) {
             invokeDismiss(uri);
+        } else if (InAppUtils.isAskPNPermissionUri(uri)) {
+            invokeNotificationPermissionReq(uri);
         } else {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -125,6 +130,23 @@ public class InAppMessageViewHTML extends InAppMessageView {
 
             handleClick(getInAppMessage(), statsParams);
         }
+    }
+
+    private void invokeNotificationPermissionReq(Uri uri) {
+        Blueshift.requestPushNotificationPermission(getContext());
+
+        JSONObject statsParams = getClickStatsJSONObject(null);
+        try {
+            if (uri != null) {
+                String url = uri.toString();
+                if (!TextUtils.isEmpty(url)) {
+                    statsParams.putOpt(BlueshiftConstants.KEY_CLICK_URL, url);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        handleClick(getInAppMessage(), statsParams);
     }
 
     private void invokeDismiss(Uri uri) {

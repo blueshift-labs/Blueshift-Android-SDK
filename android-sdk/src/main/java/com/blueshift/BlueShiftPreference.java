@@ -1,12 +1,11 @@
 package com.blueshift;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationManagerCompat;
-
-import android.text.TextUtils;
 
 import java.util.UUID;
 
@@ -27,6 +26,31 @@ public class BlueShiftPreference {
     private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
 
     private static final String TAG = "BlueShiftPreference";
+
+    static void incrementPermissionDenialCount(Context context, String permission) {
+        try {
+            SharedPreferences preferences = getBlueshiftPreferences(context);
+            if (preferences != null) {
+                int count = preferences.getInt(permission, 0);
+                preferences.edit().putInt(permission, count + 1).apply();
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+    }
+
+    static int getPermissionDenialCount(Context context, String permission) {
+        try {
+            SharedPreferences preferences = getBlueshiftPreferences(context);
+            if (preferences != null) {
+                return preferences.getInt(permission, 0);
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        return 0;
+    }
 
     static void resetDeviceID(Context context) {
         try {
