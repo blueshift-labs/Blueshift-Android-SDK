@@ -3,15 +3,15 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'com.blueshift'
     PUBLISH_ARTIFACT_ID = 'android-sdk'
-    PUBLISH_VERSION = '3.2.8-beta.0'
+    PUBLISH_VERSION = '3.2.8-beta.2'
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 31
+        targetSdkVersion 33
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 

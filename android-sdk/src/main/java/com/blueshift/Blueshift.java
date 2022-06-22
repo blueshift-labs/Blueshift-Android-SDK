@@ -2,6 +2,7 @@ package com.blueshift;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -246,6 +247,19 @@ public class Blueshift {
             });
         } else {
             BlueshiftLogger.d(LOG_TAG, "Device ID reset is only applicable to GUID device ID source.");
+        }
+    }
+
+    /**
+     * This is a helper method to ask for push notification permission when running in Android 13.
+     * <p>
+     * Make sure your app is targeting Android 13 (API 33) and have added the permission in the AndroidManifest.xml file.
+     *
+     * @param context Your app's context for launching the permission dialog.
+     */
+    public static void requestPushNotificationPermission(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            BlueshiftPermissionsActivity.launchForPushNotificationPermission(context);
         }
     }
 
