@@ -9,4 +9,8 @@
     <string name="bsft_notification_carousel_image">Carousel image</string>
     <string name="bsft_notification_dot">&#8226;</string>
     <string name="bsft_in_app_rating_submit">Submit</string>
+    <string name="bsft_push_permission_popup_message">You have denied the notification permission request twice. Please go to settings to enable it.</string>
+    <string name="bsft_push_permission_popup_title">Notification Permission</string>
+    <string name="bsft_push_permission_popup_ignore">Ignore</string>
+    <string name="bsft_push_permission_popup_settings">Settings</string>
 </resources>

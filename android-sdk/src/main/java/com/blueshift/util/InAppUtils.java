@@ -1181,6 +1181,10 @@ public class InAppUtils {
         Blueshift.getInstance(context).trackInAppMessageDismiss(inAppMessage, extras);
     }
 
+    public static boolean isAskPNPermissionUri(Uri uri) {
+        return uri != null && InAppConstants.PN_PERMISSION_URL.equals(uri.toString());
+    }
+
     public static boolean isDismissUri(Uri uri) {
         return uri == null || isDismissUrl(uri.toString());
     }
