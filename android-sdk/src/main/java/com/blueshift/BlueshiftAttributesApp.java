@@ -23,6 +23,8 @@ import com.google.firebase.iid.InstanceIdResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Locale;
+
 public class BlueshiftAttributesApp extends JSONObject {
     private static final String TAG = "ApplicationAttributes";
     private static final BlueshiftAttributesApp instance = new BlueshiftAttributesApp();
@@ -101,8 +103,44 @@ public class BlueshiftAttributesApp extends JSONObject {
         addDeviceAdId(context);
         addDeviceLocation(context);
         addAdTrackingStatus(context);
+        addDeviceCountryCode();
+        addDeviceLanguageCode();
 
         runPermissionChecksAndLogAsync(context);
+    }
+
+    private void addDeviceCountryCode() {
+        String countryCode = Locale.getDefault().getCountry();
+        setDeviceCountryCode(countryCode);
+    }
+
+    private void setDeviceCountryCode(String countryCode) {
+        synchronized (instance) {
+            if (countryCode != null) {
+                try {
+                    instance.put(BlueshiftConstants.KEY_COUNTRY_CODE, countryCode);
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            }
+        }
+    }
+
+    private void addDeviceLanguageCode() {
+        String languageCode = Locale.getDefault().getLanguage();
+        setDeviceLanguageCode(languageCode);
+    }
+
+    private void setDeviceLanguageCode(String languageCode) {
+        synchronized (instance) {
+            if (languageCode != null) {
+                try {
+                    instance.put(BlueshiftConstants.KEY_LANGUAGE_CODE, languageCode);
+                } catch (JSONException e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            }
+        }
     }
 
     private void addDeviceAdId(final Context context) {
@@ -375,6 +413,18 @@ public class BlueshiftAttributesApp extends JSONObject {
      */
     @WorkerThread
     public BlueshiftAttributesApp sync(Context context) {
+        try {
+            addDeviceCountryCode();
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
+        try {
+            addDeviceLanguageCode();
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
+        }
+
         try {
             addDeviceLocation(context);
         } catch (Exception e) {

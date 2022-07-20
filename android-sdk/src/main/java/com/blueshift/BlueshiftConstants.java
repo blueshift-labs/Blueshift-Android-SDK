@@ -87,6 +87,8 @@ public class BlueshiftConstants {
     public static final String KEY_NETWORK_CARRIER = "network_carrier";
     public static final String KEY_LATITUDE = "latitude";
     public static final String KEY_LONGITUDE = "longitude";
+    public static final String KEY_COUNTRY_CODE = "country_code";
+    public static final String KEY_LANGUAGE_CODE = "language_code";
 
     // User
     public static final String KEY_EMAIL = "email";
