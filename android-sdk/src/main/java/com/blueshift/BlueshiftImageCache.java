@@ -164,7 +164,7 @@ public class BlueshiftImageCache {
         }
 
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA256");
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.update(s.getBytes());
             byte[] messageDigest = digest.digest();
 

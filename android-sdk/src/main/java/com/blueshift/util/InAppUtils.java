@@ -1088,7 +1088,7 @@ public class InAppUtils {
 
         if (!TextUtils.isEmpty(url)) {
             try {
-                MessageDigest digest = MessageDigest.getInstance("SHA256");
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 digest.update(url.getBytes());
                 byte[] byteArray = digest.digest();
 
