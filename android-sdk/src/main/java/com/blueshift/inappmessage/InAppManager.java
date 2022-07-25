@@ -374,13 +374,13 @@ public class InAppManager {
             BlueshiftLogger.d(LOG_TAG, "In-app message received. Message UUID: " + (inAppMessage != null ? inAppMessage.getMessageUuid() : null));
 
             if (inAppMessage != null) {
-                InAppUtils.invokeInAppDelivered(context, inAppMessage);
-
                 if (!inAppMessage.isExpired()) {
                     InAppMessageStore store = InAppMessageStore.getInstance(context);
                     if (store != null) {
                         boolean inserted = store.insert(inAppMessage);
-                        if (!inserted) {
+                        if (inserted) {
+                            InAppUtils.invokeInAppDelivered(context, inAppMessage);
+                        } else {
                             BlueshiftLogger.d(LOG_TAG, "Possible duplicate in-app received. Skipping! Message UUID: " + inAppMessage.getMessageUuid());
                         }
                     } else {
