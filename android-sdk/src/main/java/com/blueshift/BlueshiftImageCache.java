@@ -57,7 +57,7 @@ public class BlueshiftImageCache {
      */
     @WorkerThread
     public static Bitmap getScaledBitmap(Context context, String url, int reqWidth, int reqHeight) {
-        String key = md5(url);
+        String key = hash(url);
         Bitmap bitmap = null;
 
         if (key != null) {
@@ -121,7 +121,7 @@ public class BlueshiftImageCache {
      */
     @WorkerThread
     public static void clean(Context context, String url) {
-        String key = md5(url);
+        String key = hash(url);
         if (key != null) {
             String fromMemory = removeFromMemCache(key) ? "success" : "failed";
             String fromDisk = removeFromDiskCache(context, key) ? "success" : "failed";
@@ -157,14 +157,14 @@ public class BlueshiftImageCache {
         }
     }
 
-    private static String md5(String s) {
+    private static String hash(String s) {
         if (s == null || "null".equals(s) || s.isEmpty()) {
             BlueshiftLogger.w(TAG, "Invalid image URL: \"" + s + "\"");
             return null;
         }
 
         try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.update(s.getBytes());
             byte[] messageDigest = digest.digest();
 
