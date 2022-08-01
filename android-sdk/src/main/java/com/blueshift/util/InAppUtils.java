@@ -1055,7 +1055,7 @@ public class InAppUtils {
     public static File getCachedImageFile(Context context, String url) {
         File imageCacheDir = getImageCacheDir(context);
         if (imageCacheDir != null && imageCacheDir.exists()) {
-            String fileName = getCachedImageFileName(url);
+            String fileName = hash(url);
             File imgFile = new File(imageCacheDir, fileName);
             BlueshiftLogger.d(LOG_TAG, "Image file name. Remote: " + url + ", Local: " + imgFile.getAbsolutePath());
             return imgFile;
@@ -1083,28 +1083,28 @@ public class InAppUtils {
         return imagesDir;
     }
 
-    private static String getCachedImageFileName(String url) {
-        String md5Hash = "";
+    private static String hash(String url) {
+        String hashVal = "";
 
         if (!TextUtils.isEmpty(url)) {
             try {
-                MessageDigest md5 = MessageDigest.getInstance("MD5");
-                md5.update(url.getBytes());
-                byte[] byteArray = md5.digest();
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                digest.update(url.getBytes());
+                byte[] byteArray = digest.digest();
 
                 StringBuilder sb = new StringBuilder();
                 for (byte data : byteArray) {
                     sb.append(Integer.toString((data & 0xff) + 0x100, 16).substring(1));
                 }
 
-                md5Hash = sb.toString();
+                hashVal = sb.toString();
 
             } catch (NoSuchAlgorithmException e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
         }
 
-        return md5Hash;
+        return hashVal;
     }
 
     public static long timestampToEpochSeconds(String srcTimestamp) {
