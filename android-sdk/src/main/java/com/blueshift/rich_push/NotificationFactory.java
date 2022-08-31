@@ -12,9 +12,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
-import android.text.TextUtils;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
@@ -51,10 +52,6 @@ public class NotificationFactory {
     public static void handleMessage(final Context context, final Message message) {
         if (context != null && message != null) {
             switch (message.getNotificationType()) {
-                case AlertDialog:
-                    BlueshiftLogger.d(LOG_TAG, "\"alert\" push messages are deprecated. Use in-app notifications instead.");
-                    break;
-
                 case Notification:
                     buildAndShowNotification(context, message);
                     break;
@@ -104,41 +101,8 @@ public class NotificationFactory {
                     }
                 }
 
-                // pending intent that opens the app using MAIN activity.
                 PendingIntent openAppPendingIntent = getOpenAppPendingIntent(context, message, notificationId);
-
-                switch (message.getCategory()) {
-                    case Buy:
-                        PendingIntent viewPendingIntent = getViewActionPendingIntent(context, message, notificationId);
-                        builder.addAction(0, "View", viewPendingIntent);
-
-                        PendingIntent buyPendingIntent = getBuyActionPendingIntent(context, message, notificationId);
-                        builder.addAction(0, "Buy", buyPendingIntent);
-
-                        builder.setContentIntent(openAppPendingIntent);
-
-                        break;
-
-                    case ViewCart:
-                        PendingIntent openCartPendingIntent = getOpenCartPendingIntent(context, message, notificationId);
-                        builder.addAction(0, "Open Cart", openCartPendingIntent);
-
-                        builder.setContentIntent(openAppPendingIntent);
-
-                        break;
-
-                    case Promotion:
-                        PendingIntent openPromoPendingIntent = getOpenPromotionPendingIntent(context, message, notificationId);
-                        builder.setContentIntent(openPromoPendingIntent);
-
-                        break;
-
-                    default:
-                        /*
-                         * Default action is to open app and send all details as extra inside intent
-                         */
-                        builder.setContentIntent(openAppPendingIntent);
-                }
+                builder.setContentIntent(openAppPendingIntent);
             }
 
             builder.setContentTitle(message.getContentTitle());
@@ -309,30 +273,8 @@ public class NotificationFactory {
         }
     }
 
-    // [BEGIN] PendingIntent builder methods.
-
-    private static PendingIntent getBuyActionPendingIntent(Context context, Message message, int notificationId) {
-        String action = RichPushConstants.ACTION_BUY(context);
-        return getNotificationClickPendingIntent(action, context, message, notificationId);
-    }
-
-    private static PendingIntent getViewActionPendingIntent(Context context, Message message, int notificationId) {
-        String action = RichPushConstants.ACTION_VIEW(context);
-        return getNotificationClickPendingIntent(action, context, message, notificationId);
-    }
-
-    private static PendingIntent getOpenCartPendingIntent(Context context, Message message, int notificationId) {
-        String action = RichPushConstants.ACTION_OPEN_CART(context);
-        return getNotificationClickPendingIntent(action, context, message, notificationId);
-    }
-
     private static PendingIntent getOpenAppPendingIntent(Context context, Message message, int notificationId) {
         String action = RichPushConstants.ACTION_OPEN_APP(context);
-        return getNotificationClickPendingIntent(action, context, message, notificationId);
-    }
-
-    private static PendingIntent getOpenPromotionPendingIntent(Context context, Message message, int notificationId) {
-        String action = RichPushConstants.ACTION_OPEN_OFFER_PAGE(context);
         return getNotificationClickPendingIntent(action, context, message, notificationId);
     }
 
@@ -390,6 +332,4 @@ public class NotificationFactory {
         return taskStackBuilder.getPendingIntent(
                 reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
     }
-
-    // [END] PendingIntent builder methods.
 }
