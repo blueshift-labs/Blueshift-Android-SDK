@@ -216,6 +216,17 @@ public class NotificationUtils {
      * Checks for the activity responsible for handling notification clicks based on the action.
      *
      * @param context context object to create intent
+     * @param extras  extra params as bundle
+     * @return Intent object to launch activity.
+     */
+    public static Intent getNotificationEventsActivity(Context context, Bundle extras) {
+        return getNotificationEventsActivity(context, null, extras);
+    }
+
+    /**
+     * Checks for the activity responsible for handling notification clicks based on the action.
+     *
+     * @param context context object to create intent
      * @param action  action string
      * @param extras  extra params as bundle
      * @return Intent object to launch activity.
@@ -361,7 +372,7 @@ public class NotificationUtils {
      * @return true: if the click was handled by the sdk, false: if the click was not handled by the sdk.
      */
     public static boolean processNotificationClick(Activity activity, String action, Bundle bundle) {
-        if (activity != null && action != null && bundle != null) {
+        if (activity != null && bundle != null) {
             Message message = Message.fromBundle(bundle);
             if (message != null) {
                 try {
@@ -378,7 +389,7 @@ public class NotificationUtils {
                     if (BlueshiftUtils.isPushAppLinksEnabled(activity)) {
                         launchUrl(activity, deepLink, clickElement);
                     } else {
-                        Intent intent = buildIntentFromAction(activity, message, action);
+                        Intent intent = NotificationUtils.getOpenAppIntent(activity, message);
                         if (intent == null) return false; // if intent is null, abort here.
 
                         // add complete bundle to the intent.
@@ -417,15 +428,11 @@ public class NotificationUtils {
             }
         } else {
             BlueshiftLogger.d(LOG_TAG, "processNotificationClick: Invalid arguments " +
-                    "(activity: " + activity + ", action: " + action + ", bundle: " + bundle + ").");
+                    "(activity: " + activity + ", bundle: " + bundle + ").");
         }
 
         // click was not handled by Blueshift SDK
         return false;
-    }
-
-    private static Intent buildIntentFromAction(Activity activity, Message message, String action) {
-        return NotificationUtils.getOpenAppIntent(activity, message);
     }
 
     private static void launchUrl(Activity activity, String url, String clickElement) {

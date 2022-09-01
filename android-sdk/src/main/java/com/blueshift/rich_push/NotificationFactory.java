@@ -279,12 +279,6 @@ public class NotificationFactory {
     }
 
     static PendingIntent getNotificationClickPendingIntent(String action, Context context, Message message, int notificationId) {
-        // if deep link url is available, despite the fact that we have a category based action,
-        // we will use the open app action to launch app and pass the deep link url to it.
-        if (TextUtils.isEmpty(action) || (message != null && message.isDeepLinkingEnabled())) {
-            action = RichPushConstants.ACTION_OPEN_APP(context);
-        }
-
         // set extra params
         Bundle bundle = new Bundle();
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
@@ -298,7 +292,7 @@ public class NotificationFactory {
         }
 
         // get the activity to handle clicks (user defined or sdk defined
-        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, bundle);
         TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
         taskStackBuilder.addNextIntent(intent);
 
@@ -308,8 +302,6 @@ public class NotificationFactory {
     }
 
     public static PendingIntent getNotificationActionPendingIntent(Context context, Message message, Action pushAction, int notificationId) {
-        String action = RichPushConstants.ACTION_OPEN_APP(context);
-
         // set extra params
         Bundle bundle = new Bundle();
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
@@ -324,7 +316,7 @@ public class NotificationFactory {
         }
 
         // get the activity to handle clicks (user defined or sdk defined
-        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, bundle);
         TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
         taskStackBuilder.addNextIntent(intent);
 
