@@ -15,6 +15,8 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
+        consumerProguardFiles 'blueshift-rules.pro'
+
         buildConfigField 'String', 'SDK_VERSION', "\"$PUBLISH_VERSION\""
     }
     buildTypes {
