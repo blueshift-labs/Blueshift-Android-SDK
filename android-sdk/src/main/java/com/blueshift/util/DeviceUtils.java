@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.net.Inet4Address;
@@ -104,47 +103,11 @@ public class DeviceUtils {
     }
 
     public static String getAdvertisingId(Context context) {
-        String advertisingId = null;
-
-        try {
-            AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
-            if (info != null) {
-                advertisingId = info.getId();
-            }
-
-            if (isLimitAdTrackingEnabled(context)) {
-                BlueshiftLogger.w(LOG_TAG, "Limit-Ad-Tracking is enabled by the user.");
-            }
-        } catch (Exception e) {
-            BlueshiftLogger.e(LOG_TAG, e);
-        }
-
-        return advertisingId;
+        return BlueshiftAdIdProvider.getInstance(context).getId();
     }
 
     public static boolean isLimitAdTrackingEnabled(Context context) {
-        boolean status = true; // by default the opt-out is turned ON
-
-        AdvertisingIdClient.Info info = getAdvertisingIdClientInfo(context);
-        if (info != null) {
-            status = info.isLimitAdTrackingEnabled();
-        }
-
-        return status;
-    }
-
-    private static AdvertisingIdClient.Info getAdvertisingIdClientInfo(Context context) {
-        AdvertisingIdClient.Info info = null;
-
-        if (context != null) {
-            try {
-                info = AdvertisingIdClient.getAdvertisingIdInfo(context);
-            } catch (Exception e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-        }
-
-        return info;
+        return BlueshiftAdIdProvider.getInstance(context).isLimitAdTrackingEnabled();
     }
 
     public static String getIP4Address() {
