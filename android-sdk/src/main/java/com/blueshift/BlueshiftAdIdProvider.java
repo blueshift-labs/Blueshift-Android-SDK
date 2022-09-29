@@ -1,6 +1,7 @@
 package com.blueshift;
 
 import android.content.Context;
+import android.support.annotation.WorkerThread;
 
 import java.lang.reflect.Method;
 
@@ -37,10 +38,12 @@ public class BlueshiftAdIdProvider {
     }
 
     /**
-     * Returns the advertising id if available.
+     * Returns the advertising id if available. This method must be called from a worker thread.
+     * Calling this method from UI/main thread can cause exceptions.
      *
      * @return advertising id, when it is available. else null.
      */
+    @WorkerThread
     public String getId() {
         String adId = null;
 
