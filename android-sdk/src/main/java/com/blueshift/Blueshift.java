@@ -2,7 +2,6 @@ package com.blueshift;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -1543,7 +1542,7 @@ public class Blueshift {
                 new Runnable() {
                     @Override
                     public void run() {
-                        String adId = DeviceUtils.getAdvertisingId(context);
+                        String adId = BlueshiftAdIdProvider.getInstance(context).getId();
                         updateAndroidAdId(adId);
                     }
                 }

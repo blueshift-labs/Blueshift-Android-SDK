@@ -110,7 +110,7 @@ public class BlueshiftAttributesApp extends JSONObject {
                 new Runnable() {
                     @Override
                     public void run() {
-                        String adId = DeviceUtils.getAdvertisingId(context);
+                        String adId = BlueshiftAdIdProvider.getInstance(context).getId();
                         setDeviceAdId(adId);
                     }
                 }
@@ -134,7 +134,7 @@ public class BlueshiftAttributesApp extends JSONObject {
                 new Runnable() {
                     @Override
                     public void run() {
-                        boolean isEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+                        boolean isEnabled = BlueshiftAdIdProvider.getInstance(context).isLimitAdTrackingEnabled();
                         setAdTrackingStatus(isEnabled);
                     }
                 }
@@ -401,14 +401,14 @@ public class BlueshiftAttributesApp extends JSONObject {
         }
 
         try {
-            String adId = DeviceUtils.getAdvertisingId(context);
+            String adId = BlueshiftAdIdProvider.getInstance(context).getId();
             setDeviceAdId(adId);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
 
         try {
-            boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+            boolean isAdEnabled = BlueshiftAdIdProvider.getInstance(context).isLimitAdTrackingEnabled();
             setAdTrackingStatus(isAdEnabled);
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);

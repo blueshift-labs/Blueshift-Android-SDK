@@ -55,17 +55,28 @@ public class BlueshiftLogger {
         }
     }
 
+    public static void w(String tag, Exception e) {
+        if (sLogLevel >= WARNING) {
+            w(tag, getStacktrace(e));
+        }
+    }
+
     public static void e(String tag, Exception e) {
         if (sLogLevel >= ERROR) {
-            if (e != null) {
-                StringWriter stringWriter = new StringWriter();
-                PrintWriter printWriter = new PrintWriter(stringWriter);
-                e.printStackTrace(printWriter);
-                String stackTrace = stringWriter.toString();
-                e(tag, stackTrace);
-            } else {
-                e(tag, "Unknown error!");
-            }
+            e(tag, getStacktrace(e));
         }
+    }
+
+    private static String getStacktrace(Exception e) {
+        String stacktrace = "Unknown error";
+
+        if (e != null) {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(stringWriter);
+            e.printStackTrace(printWriter);
+            stacktrace = stringWriter.toString();
+        }
+
+        return stacktrace;
     }
 }

@@ -102,14 +102,6 @@ public class DeviceUtils {
         return deviceId;
     }
 
-    public static String getAdvertisingId(Context context) {
-        return BlueshiftAdIdProvider.getInstance(context).getId();
-    }
-
-    public static boolean isLimitAdTrackingEnabled(Context context) {
-        return BlueshiftAdIdProvider.getInstance(context).isLimitAdTrackingEnabled();
-    }
-
     public static String getIP4Address() {
         try {
             Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
