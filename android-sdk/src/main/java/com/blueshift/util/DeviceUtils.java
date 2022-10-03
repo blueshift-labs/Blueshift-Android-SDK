@@ -9,6 +9,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
 import com.blueshift.BlueShiftPreference;
+import com.blueshift.BlueshiftAdIdProvider;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.model.Configuration;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -86,6 +87,14 @@ public class DeviceUtils {
         }
 
         return deviceId;
+    }
+
+    public static String getAdvertisingId(Context context) {
+        return BlueshiftAdIdProvider.getInstance(context).getId();
+    }
+
+    public static boolean isLimitAdTrackingEnabled(Context context) {
+        return BlueshiftAdIdProvider.getInstance(context).isLimitAdTrackingEnabled();
     }
 
     private static String iidPkgNameCombo(Context context) {

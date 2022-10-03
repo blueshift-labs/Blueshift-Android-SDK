@@ -1542,7 +1542,7 @@ public class Blueshift {
                 new Runnable() {
                     @Override
                     public void run() {
-                        String adId = BlueshiftAdIdProvider.getInstance(context).getId();
+                        String adId = DeviceUtils.getAdvertisingId(context);
                         updateAndroidAdId(adId);
                     }
                 }
