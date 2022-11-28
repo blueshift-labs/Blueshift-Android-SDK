@@ -725,7 +725,7 @@ public class InAppManager {
         return result;
     }
 
-    private static boolean buildAndShowInAppMessage(Context context, InAppMessage inAppMessage) {
+    public static boolean buildAndShowInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppTemplate inAppTemplate = inAppMessage.getTemplate();
             if (inAppTemplate != null) {

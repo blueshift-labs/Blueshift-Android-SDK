@@ -13,4 +13,9 @@
     <string name="bsft_push_permission_popup_title">Notification Permission</string>
     <string name="bsft_push_permission_popup_ignore">Ignore</string>
     <string name="bsft_push_permission_popup_settings">Settings</string>
+    <string name="bsft_inbox_placeholder_title">Blueshift 💙</string>
+    <string name="bsft_inbox_placeholder_details">Blueshift inbox message is here.</string>
+    <string name="bsft_inbox_placeholder_date">20 May 2022</string>
+    <string name="bsft_inbox_unread_indicator">Inbox unread indicator</string>
+    <string name="bsft_inbox_icon">Inbox icon</string>
 </resources>
