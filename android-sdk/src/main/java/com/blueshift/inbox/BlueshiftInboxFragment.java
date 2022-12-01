@@ -27,7 +27,7 @@ public class BlueshiftInboxFragment extends Fragment {
     private BlueshiftInboxComparator mInboxComparator = new DefaultInboxComparator();
     private BlueshiftInboxFilter mInboxFilter = new DefaultInboxFilter();
     private BlueshiftInboxDateFormatter mInboxDateFormatter = new DefaultInboxDateFormatter();
-    private BlueshiftInboxAdapter.ViewHolderOptions mViewHolderOptions = null;
+    private BlueshiftInboxAdapterExtension<Object> mInboxAdapterExtension = new DefaultInboxAdapterExtension();
     private final BlueshiftInboxStore mInboxStore = new BlueshiftInboxStoreSQLite();
     private final BlueshiftInboxAdapter.EventListener mAdapterEventListener = new AdapterEventListener();
 
@@ -46,7 +46,7 @@ public class BlueshiftInboxFragment extends Fragment {
         if (view instanceof RecyclerView) {
             RecyclerView recyclerView = (RecyclerView) view;
 
-            BlueshiftInboxAdapter inboxAdapter = new BlueshiftInboxAdapter(mInboxStore.getMessages(), mInboxListItemView, mInboxFilter, mInboxComparator, mInboxDateFormatter, mAdapterEventListener, mViewHolderOptions);
+            BlueshiftInboxAdapter inboxAdapter = new BlueshiftInboxAdapter(mInboxStore.getMessages(), mInboxListItemView, mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
             LinearLayoutManager layoutManager = new LinearLayoutManager(recyclerView.getContext());
             recyclerView.setLayoutManager(layoutManager);
             recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation()));
@@ -74,8 +74,8 @@ public class BlueshiftInboxFragment extends Fragment {
         mInboxDateFormatter = dateFormatter;
     }
 
-    public void setViewHolderOptions(@NonNull BlueshiftInboxAdapter.ViewHolderOptions options) {
-        mViewHolderOptions = options;
+    public void setInboxAdapterExtension(BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension) {
+        mInboxAdapterExtension = inboxAdapterExtension;
     }
 
     private class AdapterEventListener implements BlueshiftInboxAdapter.EventListener {
@@ -96,25 +96,42 @@ public class BlueshiftInboxFragment extends Fragment {
         }
     }
 
-    static class DefaultInboxComparator implements BlueshiftInboxComparator {
+    private static class DefaultInboxComparator implements BlueshiftInboxComparator {
         @Override
         public int compare(BlueshiftInboxMessage message1, BlueshiftInboxMessage message2) {
             return -message1.mCreatedAt.compareTo(message2.mCreatedAt);
         }
     }
 
-    static class DefaultInboxFilter implements BlueshiftInboxFilter {
+    private static class DefaultInboxFilter implements BlueshiftInboxFilter {
         @Override
         public boolean filter(BlueshiftInboxMessage message) {
             return true;
         }
     }
 
-    static class DefaultInboxDateFormatter implements BlueshiftInboxDateFormatter {
+    private static class DefaultInboxDateFormatter implements BlueshiftInboxDateFormatter {
         @NonNull
         @Override
         public String format(Date date) {
             return SimpleDateFormat.getDateInstance().format(date);
+        }
+    }
+
+    private static class DefaultInboxAdapterExtension implements BlueshiftInboxAdapterExtension<Object> {
+        @Override
+        public void onCreateViewHolder(@NonNull BlueshiftInboxAdapter.ViewHolder viewHolder, int viewType) {
+
+        }
+
+        @Override
+        public Object onCreateViewHolderExtension(@NonNull View itemView, int viewType) {
+            return null;
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull BlueshiftInboxAdapter.ViewHolder holder, @Nullable Object viewHolderExtension, BlueshiftInboxMessage message) {
+
         }
     }
 }

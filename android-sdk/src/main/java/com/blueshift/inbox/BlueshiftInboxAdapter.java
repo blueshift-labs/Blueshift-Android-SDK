@@ -1,5 +1,6 @@
 package com.blueshift.inbox;
 
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.view.LayoutInflater;
@@ -32,7 +33,7 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
     private final BlueshiftInboxFilter mInboxFilter;
     private final BlueshiftInboxComparator mInboxComparator;
     private final BlueshiftInboxDateFormatter mInboxDateFormatter;
-    private final ViewHolderOptions mViewHolderOptions;
+    private final BlueshiftInboxAdapterExtension<Object> mInboxAdapterExtension;
     private final EventListener mListener;
     private final List<InboxItem> dataSet = new ArrayList<>();
 
@@ -42,13 +43,13 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         void onMessageDelete(BlueshiftInboxMessage message);
     }
 
-    BlueshiftInboxAdapter(List<BlueshiftInboxMessage> messages, @LayoutRes int listItemLayoutResourceId, @NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, @Nullable EventListener eventListener, @NonNull ViewHolderOptions options) {
+    BlueshiftInboxAdapter(List<BlueshiftInboxMessage> messages, @LayoutRes int listItemLayoutResourceId, @NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @Nullable EventListener eventListener) {
         mListItemLayoutResourceId = listItemLayoutResourceId;
         mInboxFilter = inboxFilter;
         mInboxComparator = inboxComparator;
         mInboxDateFormatter = inboxDateFormatter;
+        mInboxAdapterExtension = inboxAdapterExtension;
         mListener = eventListener;
-        mViewHolderOptions = options;
 
         updateMessages(messages);
     }
@@ -72,7 +73,9 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(mListItemLayoutResourceId, parent, false);
-        return new ViewHolder(view, mViewHolderOptions);
+        ViewHolder viewHolder = new ViewHolder(view, mInboxAdapterExtension.onCreateViewHolderExtension(view, viewType));
+        mInboxAdapterExtension.onCreateViewHolder(viewHolder, viewType);
+        return viewHolder;
     }
 
     @Override
@@ -81,16 +84,16 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             final InboxItem inboxItem = dataSet.get(position);
 
             if (inboxItem != null) {
-                setText(holder.title, inboxItem.title);
-                setText(holder.details, inboxItem.details);
+                setText(holder.titleTextView, inboxItem.title);
+                setText(holder.detailsTextView, inboxItem.details);
 
                 String dateString = inboxItem.date != null ? mInboxDateFormatter.format(inboxItem.date) : "";
-                setText(holder.date, dateString);
+                setText(holder.dateTextView, dateString);
 
-                setImage(holder.icon, inboxItem.imageUrl);
+                setImage(holder.iconImageView, inboxItem.imageUrl);
 
-                if (holder.unreadIndicator != null) {
-                    holder.unreadIndicator.setVisibility(inboxItem.isRead ? View.INVISIBLE : View.VISIBLE);
+                if (holder.unreadIndicatorImageView != null) {
+                    holder.unreadIndicatorImageView.setVisibility(inboxItem.isRead ? View.INVISIBLE : View.VISIBLE);
                 }
 
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -101,6 +104,8 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
                         }
                     }
                 });
+
+                mInboxAdapterExtension.onBindViewHolder(holder, holder.viewHolderExtension, inboxItem.message);
             }
         }
     }
@@ -130,99 +135,66 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         return dataSet.size();
     }
 
-    public static class ViewHolderOptions {
-        @ColorInt
-        private final int titleTextColor;
-        @ColorInt
-        private final int detailsTextColor;
-        @ColorInt
-        private final int dateTextColor;
-        @ColorInt
-        private final int unreadIndicatorColor;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        private final @Nullable TextView titleTextView;
+        private final @Nullable TextView detailsTextView;
+        private final @Nullable TextView dateTextView;
+        private final @Nullable ImageView iconImageView;
+        private final @Nullable ImageView unreadIndicatorImageView;
+        private final @Nullable Object viewHolderExtension;
 
-        ViewHolderOptions(int titleTextColor, int detailsTextColor, int dateTextColor, int unreadIndicatorColor) {
-            this.titleTextColor = titleTextColor;
-            this.detailsTextColor = detailsTextColor;
-            this.dateTextColor = dateTextColor;
-            this.unreadIndicatorColor = unreadIndicatorColor;
-        }
-
-        public static class Builder {
-            @ColorInt
-            private int titleTextColor;
-            @ColorInt
-            private int detailsTextColor;
-            @ColorInt
-            private int dateTextColor;
-            @ColorInt
-            private int unreadIndicatorColor;
-
-            public Builder setTitleTextColor(int titleTextColor) {
-                this.titleTextColor = titleTextColor;
-                return this;
-            }
-
-            public Builder setDetailsTextColor(int detailsTextColor) {
-                this.detailsTextColor = detailsTextColor;
-                return this;
-            }
-
-            public Builder setDateTextColor(int dateTextColor) {
-                this.dateTextColor = dateTextColor;
-                return this;
-            }
-
-            public Builder setUnreadIndicatorColor(int unreadIndicatorColor) {
-                this.unreadIndicatorColor = unreadIndicatorColor;
-                return this;
-            }
-
-            public ViewHolderOptions build() {
-                return new ViewHolderOptions(titleTextColor, detailsTextColor, dateTextColor, unreadIndicatorColor);
-            }
-        }
-    }
-
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        private final @Nullable TextView title;
-        private final @Nullable TextView details;
-        private final @Nullable TextView date;
-        private final @Nullable ImageView icon;
-        private final @Nullable ImageView unreadIndicator;
-
-        public ViewHolder(@NonNull View itemView, ViewHolderOptions options) {
+        public ViewHolder(@NonNull View itemView, @Nullable Object viewHolderExtension) {
             super(itemView);
 
-            title = itemView.findViewById(R.id.bsft_inbox_title);
-            details = itemView.findViewById(R.id.bsft_inbox_details);
-            date = itemView.findViewById(R.id.bsft_inbox_date);
-            icon = itemView.findViewById(R.id.bsft_inbox_icon);
-            unreadIndicator = itemView.findViewById(R.id.bsft_inbox_unread_indicator);
+            titleTextView = itemView.findViewById(R.id.bsft_inbox_title);
+            detailsTextView = itemView.findViewById(R.id.bsft_inbox_details);
+            dateTextView = itemView.findViewById(R.id.bsft_inbox_date);
+            iconImageView = itemView.findViewById(R.id.bsft_inbox_icon);
+            unreadIndicatorImageView = itemView.findViewById(R.id.bsft_inbox_unread_indicator);
 
             // enable rounded corners for icon image
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                if (icon != null) icon.setClipToOutline(true);
+                if (iconImageView != null) iconImageView.setClipToOutline(true);
             }
 
-            if (options != null) {
-                if (title != null && options.titleTextColor != 0) {
-                    title.setTextColor(options.titleTextColor);
-                }
-                if (details != null && options.detailsTextColor != 0) {
-                    details.setTextColor(options.detailsTextColor);
-                }
-                if (date != null && options.dateTextColor != 0) {
-                    date.setTextColor(options.dateTextColor);
-                }
-                if (unreadIndicator != null && options.unreadIndicatorColor != 0) {
-                    int dp16 = CommonUtils.dpToPx(16, unreadIndicator.getContext());
-                    GradientDrawable gradientDrawable = new GradientDrawable();
-                    gradientDrawable.setShape(GradientDrawable.OVAL);
-                    gradientDrawable.setSize(dp16, dp16);
-                    gradientDrawable.setColor(options.unreadIndicatorColor);
-                    unreadIndicator.setImageDrawable(gradientDrawable);
-                }
+            this.viewHolderExtension = viewHolderExtension;
+        }
+
+        public void setTitleTextViewColor(@ColorInt int color) {
+            if (titleTextView != null) {
+                titleTextView.setTextColor(color);
             }
+        }
+
+        public void setDetailsTextViewColor(@ColorInt int color) {
+            if (detailsTextView != null) {
+                detailsTextView.setTextColor(color);
+            }
+        }
+
+        public void setDateTextViewColor(@ColorInt int color) {
+            if (dateTextView != null) {
+                dateTextView.setTextColor(color);
+            }
+        }
+
+        public void setUnreadIndicatorColor(@ColorInt int color) {
+            if (unreadIndicatorImageView != null) {
+                int dp16 = CommonUtils.dpToPx(16, unreadIndicatorImageView.getContext());
+                GradientDrawable gradientDrawable = new GradientDrawable();
+                gradientDrawable.setShape(GradientDrawable.OVAL);
+                gradientDrawable.setSize(dp16, dp16);
+                gradientDrawable.setColor(color);
+                unreadIndicatorImageView.setImageDrawable(gradientDrawable);
+            }
+        }
+
+        public void setBackgroundDrawable(Drawable drawable) {
+            itemView.setBackgroundDrawable(drawable);
+        }
+
+        public void setBackgroundColor(@ColorInt int color) {
+            itemView.setBackgroundColor(color);
         }
     }
 
