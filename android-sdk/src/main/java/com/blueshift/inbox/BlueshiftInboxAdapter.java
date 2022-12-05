@@ -110,7 +110,7 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         }
     }
 
-    void setText(TextView textView, String text) {
+    private void setText(TextView textView, String text) {
         if (textView != null) {
             if (text == null || text.isEmpty()) {
                 textView.setText("");
@@ -120,7 +120,7 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         }
     }
 
-    void setImage(ImageView imageView, String url) {
+    private void setImage(ImageView imageView, String url) {
         if (imageView != null) {
             if (url == null || url.isEmpty()) {
                 imageView.setImageBitmap(null);
@@ -153,31 +153,35 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             unreadIndicatorImageView = itemView.findViewById(R.id.bsft_inbox_unread_indicator);
 
             // enable rounded corners for icon image
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                if (iconImageView != null) iconImageView.setClipToOutline(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && iconImageView != null) {
+                iconImageView.setClipToOutline(true);
             }
 
             this.viewHolderExtension = viewHolderExtension;
         }
 
+        @SuppressWarnings("unused")
         public void setTitleTextViewColor(@ColorInt int color) {
             if (titleTextView != null) {
                 titleTextView.setTextColor(color);
             }
         }
 
+        @SuppressWarnings("unused")
         public void setDetailsTextViewColor(@ColorInt int color) {
             if (detailsTextView != null) {
                 detailsTextView.setTextColor(color);
             }
         }
 
+        @SuppressWarnings("unused")
         public void setDateTextViewColor(@ColorInt int color) {
             if (dateTextView != null) {
                 dateTextView.setTextColor(color);
             }
         }
 
+        @SuppressWarnings("unused")
         public void setUnreadIndicatorColor(@ColorInt int color) {
             if (unreadIndicatorImageView != null) {
                 int dp16 = CommonUtils.dpToPx(16, unreadIndicatorImageView.getContext());
@@ -189,10 +193,12 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             }
         }
 
+        @SuppressWarnings("unused")
         public void setBackgroundDrawable(Drawable drawable) {
             itemView.setBackgroundDrawable(drawable);
         }
 
+        @SuppressWarnings("unused")
         public void setBackgroundColor(@ColorInt int color) {
             itemView.setBackgroundColor(color);
         }
