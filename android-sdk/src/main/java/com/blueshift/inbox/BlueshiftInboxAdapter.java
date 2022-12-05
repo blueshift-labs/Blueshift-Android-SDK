@@ -160,6 +160,11 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             this.viewHolderExtension = viewHolderExtension;
         }
 
+        /**
+         * Set the color of the title text in the list item.
+         *
+         * @param color color int value
+         */
         @SuppressWarnings("unused")
         public void setTitleTextViewColor(@ColorInt int color) {
             if (titleTextView != null) {
@@ -167,6 +172,11 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             }
         }
 
+        /**
+         * Set the color of the details text in the list item.
+         *
+         * @param color color int value
+         */
         @SuppressWarnings("unused")
         public void setDetailsTextViewColor(@ColorInt int color) {
             if (detailsTextView != null) {
@@ -174,6 +184,11 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             }
         }
 
+        /**
+         * Set the color of the date text in the list item.
+         *
+         * @param color color int value
+         */
         @SuppressWarnings("unused")
         public void setDateTextViewColor(@ColorInt int color) {
             if (dateTextView != null) {
@@ -181,6 +196,11 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             }
         }
 
+        /**
+         * Set the color of the unread message indicator in the list item.
+         *
+         * @param color color int value
+         */
         @SuppressWarnings("unused")
         public void setUnreadIndicatorColor(@ColorInt int color) {
             if (unreadIndicatorImageView != null) {
@@ -193,11 +213,21 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
             }
         }
 
+        /**
+         * Set the background of list item
+         *
+         * @param drawable drawable to be used as list item's background
+         */
         @SuppressWarnings("unused")
         public void setBackgroundDrawable(Drawable drawable) {
             itemView.setBackgroundDrawable(drawable);
         }
 
+        /**
+         * Set the background color of list item
+         *
+         * @param color int value of the color to be used as list item's background
+         */
         @SuppressWarnings("unused")
         public void setBackgroundColor(@ColorInt int color) {
             itemView.setBackgroundColor(color);
