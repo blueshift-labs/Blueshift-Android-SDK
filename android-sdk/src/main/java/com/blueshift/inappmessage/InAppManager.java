@@ -8,9 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
-
-import androidx.annotation.WorkerThread;
-import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -19,6 +16,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
+
+import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.AlertDialog;
 
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;

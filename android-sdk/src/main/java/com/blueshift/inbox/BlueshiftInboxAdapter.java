@@ -43,30 +43,36 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         void onMessageDelete(BlueshiftInboxMessage message);
     }
 
-    BlueshiftInboxAdapter(List<BlueshiftInboxMessage> messages, @LayoutRes int listItemLayoutResourceId, @NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @Nullable EventListener eventListener) {
+    BlueshiftInboxAdapter(@LayoutRes int listItemLayoutResourceId, @NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @Nullable EventListener eventListener) {
         mListItemLayoutResourceId = listItemLayoutResourceId;
         mInboxFilter = inboxFilter;
         mInboxComparator = inboxComparator;
         mInboxDateFormatter = inboxDateFormatter;
         mInboxAdapterExtension = inboxAdapterExtension;
         mListener = eventListener;
-
-        updateMessages(messages);
     }
 
-    public void updateMessages(@NonNull List<BlueshiftInboxMessage> messages) {
+    public void setMessages(@NonNull List<BlueshiftInboxMessage> messages) {
         Collections.sort(messages, mInboxComparator);
+
+        // todo: fix this
+        dataSet.clear();
 
         for (BlueshiftInboxMessage message : messages) {
             if (mInboxFilter.filter(message)) {
                 dataSet.add(new InboxItem(message));
             }
         }
+
+        // todo: optimise this call
+        notifyDataSetChanged();
     }
 
     void removeMessage(int index) {
-        mListener.onMessageDelete(dataSet.remove(index).message);
-        notifyItemChanged(index);
+        BlueshiftInboxMessage message = dataSet.remove(index).message;
+        notifyItemRemoved(index);
+
+        if (mListener != null) mListener.onMessageDelete(message);
     }
 
     @NonNull
@@ -93,7 +99,8 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
                 setImage(holder.iconImageView, inboxItem.imageUrl);
 
                 if (holder.unreadIndicatorImageView != null) {
-                    holder.unreadIndicatorImageView.setVisibility(inboxItem.isRead ? View.INVISIBLE : View.VISIBLE);
+                    int visibility = inboxItem.status == BlueshiftInboxMessage.Status.UNREAD ? View.VISIBLE : View.INVISIBLE;
+                    holder.unreadIndicatorImageView.setVisibility(visibility);
                 }
 
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -239,14 +246,14 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         private String details;
         private String imageUrl;
         private final Date date;
-        private final boolean isRead;
+        private final BlueshiftInboxMessage.Status status;
         private final BlueshiftInboxMessage message;
 
         InboxItem(BlueshiftInboxMessage message) {
-            this.date = message.mCreatedAt;
-            this.isRead = message.mIsRead;
+            this.date = message.createdAt;
+            this.status = message.status;
 
-            JSONObject inbox = message.mData.optJSONObject("inbox");
+            JSONObject inbox = message.data.optJSONObject("inbox");
             if (inbox != null) {
                 this.title = inbox.optString("title");
                 this.details = inbox.optString("details");

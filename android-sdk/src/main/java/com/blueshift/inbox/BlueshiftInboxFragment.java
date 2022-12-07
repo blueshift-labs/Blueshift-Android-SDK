@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.blueshift.Blueshift;
 import com.blueshift.R;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -28,14 +29,33 @@ public class BlueshiftInboxFragment extends Fragment {
     private BlueshiftInboxFilter mInboxFilter = new DefaultInboxFilter();
     private BlueshiftInboxDateFormatter mInboxDateFormatter = new DefaultInboxDateFormatter();
     private BlueshiftInboxAdapterExtension<Object> mInboxAdapterExtension = new DefaultInboxAdapterExtension();
-    private final BlueshiftInboxStore mInboxStore = new BlueshiftInboxStoreSQLite();
+    private BlueshiftInboxStore mInboxStore = null;
     private final BlueshiftInboxAdapter.EventListener mAdapterEventListener = new AdapterEventListener();
+    private BlueshiftInboxAdapter mInboxAdapter;
 
     BlueshiftInboxFragment() {
     }
 
     public static BlueshiftInboxFragment newInstance() {
         return new BlueshiftInboxFragment();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mInboxStore = BlueshiftInboxStoreSQLite.getInstance(getContext());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Blueshift.getInstance(getContext()).registerForInAppMessages(getActivity(), "blueshift_inbox");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Blueshift.getInstance(getContext()).unregisterForInAppMessages(getActivity());
     }
 
     @Nullable
@@ -46,16 +66,24 @@ public class BlueshiftInboxFragment extends Fragment {
         if (view instanceof RecyclerView) {
             RecyclerView recyclerView = (RecyclerView) view;
 
-            BlueshiftInboxAdapter inboxAdapter = new BlueshiftInboxAdapter(mInboxStore.getMessages(), mInboxListItemView, mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
+            mInboxAdapter = new BlueshiftInboxAdapter(mInboxListItemView, mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
             LinearLayoutManager layoutManager = new LinearLayoutManager(recyclerView.getContext());
             recyclerView.setLayoutManager(layoutManager);
             recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation()));
-            recyclerView.setAdapter(inboxAdapter);
+            recyclerView.setAdapter(mInboxAdapter);
 
-            new ItemTouchHelper(new BlueshiftInboxTouchHelper(recyclerView.getContext(), inboxAdapter)).attachToRecyclerView(recyclerView);
+            new ItemTouchHelper(new BlueshiftInboxTouchHelper(recyclerView.getContext(), mInboxAdapter)).attachToRecyclerView(recyclerView);
+
+            refreshInboxList();
         }
 
         return view;
+    }
+
+    public void refreshInboxList() {
+        if (mInboxAdapter != null && mInboxStore != null) {
+            mInboxAdapter.setMessages(mInboxStore.getMessages());
+        }
     }
 
     public void setInboxListItemView(@LayoutRes int layout) {
@@ -82,24 +110,28 @@ public class BlueshiftInboxFragment extends Fragment {
         @Override
         public void onMessageClick(BlueshiftInboxMessage message) {
             if (getActivity() != null) {
-                InAppMessage inAppMessage = InAppMessage.getInstance(message.mData);
+                InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
                 InAppManager.buildAndShowInAppMessage(getActivity(), inAppMessage);
             }
 
-            // todo: Mark as clicked or opened.
+            message.status = BlueshiftInboxMessage.Status.READ;
             mInboxStore.updateMessage(message);
+
+            refreshInboxList();
         }
 
         @Override
         public void onMessageDelete(BlueshiftInboxMessage message) {
             mInboxStore.removeMessage(message);
+
+            refreshInboxList();
         }
     }
 
     private static class DefaultInboxComparator implements BlueshiftInboxComparator {
         @Override
         public int compare(BlueshiftInboxMessage message1, BlueshiftInboxMessage message2) {
-            return -message1.mCreatedAt.compareTo(message2.mCreatedAt);
+            return -message1.createdAt.compareTo(message2.createdAt);
         }
     }
 

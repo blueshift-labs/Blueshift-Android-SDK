@@ -5,7 +5,6 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 
@@ -14,8 +13,6 @@ public class BlueshiftInboxActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bsft_inbox_activity);
-
-        Blueshift.getInstance(this).registerForInAppMessages(this);
 
         BlueshiftLogger.d("BlueshiftInboxActivity", "Activity started");
         if (savedInstanceState == null) {
