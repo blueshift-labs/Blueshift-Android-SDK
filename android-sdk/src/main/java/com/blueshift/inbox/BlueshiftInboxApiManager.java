@@ -22,20 +22,148 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BlueshiftInboxApiManager {
+    private static final String TAG = "InboxApiManager";
 
     @WorkerThread
     @NonNull
     public static List<BlueshiftInboxMessageStatus> getMessageStatuses(@NonNull final Context context) {
+//        String deviceId = DeviceUtils.getDeviceId(context);
+//        if (deviceId == null || deviceId.isEmpty()) {
+//            BlueshiftLogger.d(TAG, "device_id is not available. try again later.");
+//        } else {
+//            String apiKey = BlueshiftUtils.getApiKey(context);
+//            if (apiKey != null) {
+//                JSONObject body = new JSONObject();
+//                try {
+//                    body.put("api_key", apiKey);
+//                    body.put("device_id", deviceId);
+//                } catch (JSONException ignore) {
+//                }
+//                BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
+//                        .setUrl("") // todo: change URL
+//                        .addBasicAuth(apiKey, "")
+//                        .setReqBodyJson(body)
+//                        .setMethod(BlueshiftHttpRequest.Method.POST)
+//                        .build();
+//                BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(request);
+//                if (response.getCode() == 200) {
+//                    try {
+//                        JSONObject jsonObject = new JSONObject(response.getBody());
+//                        JSONArray content = jsonObject.optJSONArray("content");
+//                        if (content != null && content.length() > 0) {
+//                            List<BlueshiftInboxMessageStatus> statuses = new ArrayList<>();
+//                            for (int i = 0; i < content.length(); i++) {
+//                                statuses.add(new BlueshiftInboxMessageStatus(content.getJSONObject(i)));
+//                            }
+//                            return statuses;
+//                        }
+//                    } catch (JSONException ignore) {
+//                    }
+//                } else {
+//                    BlueshiftLogger.e(TAG, response.getBody());
+//                }
+//            }
+//        }
+
         return new ArrayList<>();
     }
 
     @WorkerThread
     @NonNull
     public static List<BlueshiftInboxMessage> getNewMessages(final Context context, List<String> messageIds) {
-        // todo remove the hacky call to inapp api
-        // BEGIN
+//        String deviceId = DeviceUtils.getDeviceId(context);
+//        if (deviceId == null || deviceId.isEmpty()) {
+//            BlueshiftLogger.d(TAG, "device_id is not available. try again later.");
+//        } else {
+//            String apiKey = BlueshiftUtils.getApiKey(context);
+//            if (apiKey != null) {
+//                JSONObject body = new JSONObject();
+//                try {
+//                    body.put("api_key", apiKey);
+//                    body.put("device_id", deviceId);
+//                    body.put("message_uuids", messageIds);
+//                } catch (JSONException ignore) {
+//                }
+//                BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
+//                        .setUrl("") // todo: change URL
+//                        .addBasicAuth(apiKey, "")
+//                        .setReqBodyJson(body)
+//                        .setMethod(BlueshiftHttpRequest.Method.POST)
+//                        .build();
+//                BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(request);
+//                if (response.getCode() == 200) {
+//                    try {
+//                        JSONObject jsonObject = new JSONObject(response.getBody());
+//                        JSONArray content = jsonObject.optJSONArray("content");
+//                        if (content != null && content.length() > 0) {
+//                            List<BlueshiftInboxMessage> messages = new ArrayList<>();
+//                            for (int i = 0; i < content.length(); i++) {
+//                                messages.add(new BlueshiftInboxMessage(content.getJSONObject(i)));
+//                            }
+//                            return messages;
+//                        }
+//                    } catch (JSONException ignore) {
+//                    }
+//                } else {
+//                    BlueshiftLogger.e(TAG, response.getBody());
+//                }
+//            }
+//        }
+
+        return mockAPICall(context);
+    }
+
+    @WorkerThread
+    public static boolean deleteMessages(Context context, List<String> messageIds) {
+//        String deviceId = DeviceUtils.getDeviceId(context);
+//        if (deviceId == null || deviceId.isEmpty()) {
+//            BlueshiftLogger.d(TAG, "device_id is not available. try again later.");
+//        } else {
+//            String apiKey = BlueshiftUtils.getApiKey(context);
+//            if (apiKey != null) {
+//                JSONObject body = new JSONObject();
+//                try {
+//                    body.put("api_key", apiKey);
+//                    body.put("device_id", deviceId);
+//                    body.put("action", "delete");
+//                    body.put("message_uuids", messageIds);
+//                } catch (JSONException ignore) {
+//                }
+//                BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
+//                        .setUrl("") // todo: change URL
+//                        .addBasicAuth(apiKey, "")
+//                        .setReqBodyJson(body)
+//                        .setMethod(BlueshiftHttpRequest.Method.POST)
+//                        .build();
+//                BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(request);
+//                if (response.getCode() == 200) {
+//                    try {
+//                        JSONObject jsonObject = new JSONObject(response.getBody());
+//                        if ("success".equals(jsonObject.optString("status"))) {
+//                            return true;
+//                        }
+//                    } catch (JSONException ignore) {
+//                    }
+//                } else {
+//                    BlueshiftLogger.e(TAG, response.getBody());
+//                }
+//            }
+//        }
+
+        // todo: change default to false
+        return true;
+    }
+
+    private static List<BlueshiftInboxMessage> mockAPICall(Context context) {
         String apiKey = BlueshiftUtils.getApiKey(context);
         JSONObject requestBody = InAppManager.generateInAppMessageAPIRequestPayload(context);
+        try {
+            if (requestBody != null) {
+                requestBody.putOpt(BlueshiftConstants.KEY_LAST_TIMESTAMP, 0);
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
 
         BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
                 .setUrl(BlueshiftConstants.IN_APP_API_URL(context))
@@ -58,13 +186,7 @@ public class BlueshiftInboxApiManager {
         return new ArrayList<>();
     }
 
-
-    @WorkerThread
-    public static int deleteMessages(List<String> messageIdsToKeep) {
-        return 0;
-    }
-
-    public static JSONObject transformPayload(String json) {
+    private static JSONObject transformPayload(String json) {
         JSONObject transformedResponse = new JSONObject();
 
         try {
@@ -101,11 +223,21 @@ public class BlueshiftInboxApiManager {
                                     if (inappContent.has("html")) {
                                         inbox.put("title", "HTML");
                                         inbox.put("details", "HTML in-app message");
-                                        inbox.put("icon", "");
+                                        inbox.put("icon", "https://picsum.photos/id/" + (60 + i) + "/100/100");
                                     } else {
-                                        inbox.putOpt("title", inappContent.optString("title"));
+                                        String title = inappContent.optString("title");
+                                        if (title.isEmpty()) {
+                                            title = "SLIDE IN";
+                                        }
+                                        inbox.putOpt("title", title);
+
                                         inbox.putOpt("details", inappContent.optString("message"));
-                                        inbox.putOpt("icon", inappContent.optString("icon_image"));
+
+                                        String icon = inappContent.optString("icon_image");
+                                        if (icon.isEmpty()) {
+                                            icon = "https://picsum.photos/id/" + (60 + i) + "/100/100";
+                                        }
+                                        inbox.putOpt("icon", icon);
                                     }
                                 }
                             }

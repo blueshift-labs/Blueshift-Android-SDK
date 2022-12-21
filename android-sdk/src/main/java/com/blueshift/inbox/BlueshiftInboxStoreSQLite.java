@@ -8,16 +8,19 @@ import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BlueshiftBaseSQLiteOpenHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<BlueshiftInboxMessage> implements BlueshiftInboxStore {
+    private static final String TAG = "InboxStoreSQLite";
     private static BlueshiftInboxStoreSQLite instance;
     private static final String DB_NAME = "bsft_inbox.sqlite3";
     private static final int DB_VERSION = 1;
@@ -118,7 +121,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         HashMap<String, FieldType> fieldTypeHashMap = new HashMap<>();
         fieldTypeHashMap.put(COL_ACCOUNT_UUID, FieldType.String);
         fieldTypeHashMap.put(COL_USER_UUID, FieldType.String);
-        fieldTypeHashMap.put(COL_MESSAGE_UUID, FieldType.String);
+        fieldTypeHashMap.put(COL_MESSAGE_UUID, FieldType.UniqueText);
         fieldTypeHashMap.put(COL_DISPLAY_ON, FieldType.String);
         fieldTypeHashMap.put(COL_TRIGGER, FieldType.String);
         fieldTypeHashMap.put(COL_MESSAGE_TYPE, FieldType.String);
@@ -142,6 +145,89 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
     }
 
+    /**
+     * This method is used for deleting messages that are deleted remotely.
+     *
+     * @param idsToKeep The message uuids of the messages to keep in the db.
+     *                  The rest of the messages will be deleted.
+     */
+    public void deleteMessages(List<String> idsToKeep) {
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                String idCsv = stringListToCsv(idsToKeep);
+                if (idCsv.isEmpty()) {
+                    // delete ALL
+                    db.delete(getTableName(), null, null);
+                } else {
+                    // delete obsolete messages
+                    int count = db.delete(getTableName(), COL_MESSAGE_UUID + " NOT IN (?)", new String[]{idCsv});
+                    BlueshiftLogger.d(TAG, count + " messages deleted.");
+                }
+                db.close();
+            }
+        }
+    }
+
+    public void updateStatus(List<String> ids, String status) {
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                String idCsv = stringListToCsv(ids);
+                if (!idCsv.isEmpty()) {
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(COL_STATUS, status);
+
+                    int count = db.update(getTableName(), contentValues, COL_MESSAGE_UUID + " IN (?)", new String[]{idCsv});
+                    BlueshiftLogger.d(TAG, count + " messages updated.");
+                }
+                db.close();
+            }
+        }
+    }
+
+    private String stringListToCsv(List<String> values) {
+        StringBuilder csvBuilder = new StringBuilder();
+
+        boolean first = true;
+        for (String value : values) {
+            if (first) {
+                first = false;
+            } else {
+                csvBuilder.append(",");
+            }
+
+            csvBuilder.append(value);
+        }
+
+        return csvBuilder.toString();
+    }
+
+    public List<String> getMessageIds() {
+        List<String> mids = new ArrayList<>();
+
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = db.query(getTableName(), new String[]{COL_MESSAGE_UUID}, null, null, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        while (!cursor.isAfterLast()) {
+                            String mid = cursor.getString(0);
+                            if (mid != null && !mid.isEmpty()) mids.add(mid);
+                            cursor.moveToNext();
+                        }
+                    }
+                    cursor.close();
+                }
+
+                db.close();
+            }
+        }
+
+        return mids;
+    }
+
     @WorkerThread
     @Override
     public List<BlueshiftInboxMessage> getMessages() {
@@ -150,11 +236,11 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
     @Override
     public void addMessages(List<BlueshiftInboxMessage> messages) {
-        insertAll(messages);
+        insertOrReplace(messages);
     }
 
     @Override
-    public void removeMessage(BlueshiftInboxMessage message) {
+    public void deleteMessage(BlueshiftInboxMessage message) {
         delete(message);
     }
 

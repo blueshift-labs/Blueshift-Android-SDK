@@ -8,7 +8,7 @@ public interface BlueshiftInboxStore {
 
     void addMessages(List<BlueshiftInboxMessage> messages);
 
-    void removeMessage(BlueshiftInboxMessage message);
+    void deleteMessage(BlueshiftInboxMessage message);
 
     void updateMessage(BlueshiftInboxMessage message);
 

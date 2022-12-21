@@ -13,6 +13,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.blueshift.BlueshiftImageCache;
@@ -35,12 +36,12 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
     private final BlueshiftInboxDateFormatter mInboxDateFormatter;
     private final BlueshiftInboxAdapterExtension<Object> mInboxAdapterExtension;
     private final EventListener mListener;
-    private final List<InboxItem> dataSet = new ArrayList<>();
+    private List<InboxItem> mDataSet = new ArrayList<>();
 
     public interface EventListener {
-        void onMessageClick(BlueshiftInboxMessage message);
+        void onMessageClick(BlueshiftInboxMessage message, int index);
 
-        void onMessageDelete(BlueshiftInboxMessage message);
+        void onMessageDelete(BlueshiftInboxMessage message, int index);
     }
 
     BlueshiftInboxAdapter(@LayoutRes int listItemLayoutResourceId, @NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @Nullable EventListener eventListener) {
@@ -55,24 +56,33 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
     public void setMessages(@NonNull List<BlueshiftInboxMessage> messages) {
         Collections.sort(messages, mInboxComparator);
 
-        // todo: fix this
-        dataSet.clear();
-
+        List<InboxItem> newList = new ArrayList<>();
         for (BlueshiftInboxMessage message : messages) {
             if (mInboxFilter.filter(message)) {
-                dataSet.add(new InboxItem(message));
+                newList.add(new InboxItem(message));
             }
         }
 
-        // todo: optimise this call
-        notifyDataSetChanged();
+        BlueshiftInboxItemDiffUtil diffUtil = new BlueshiftInboxItemDiffUtil(mDataSet, newList);
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffUtil);
+        mDataSet = newList;
+        diffResult.dispatchUpdatesTo(this);
     }
 
     void removeMessage(int index) {
-        BlueshiftInboxMessage message = dataSet.remove(index).message;
-        notifyItemRemoved(index);
+        if (mListener != null) mListener.onMessageDelete(mDataSet.get(index).message, index);
+    }
 
-        if (mListener != null) mListener.onMessageDelete(message);
+    void markMessageAsRead(int index) {
+        mDataSet.get(index).status = BlueshiftInboxMessage.Status.READ;
+
+        notifyItemChanged(index);
+    }
+
+    void markAsDeleted(int index) {
+        mDataSet.remove(index);
+
+        notifyItemRemoved(index);
     }
 
     @NonNull
@@ -85,9 +95,9 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        if (position >= 0 && position < dataSet.size()) {
-            final InboxItem inboxItem = dataSet.get(position);
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+        if (position >= 0 && position < mDataSet.size()) {
+            final InboxItem inboxItem = mDataSet.get(position);
 
             if (inboxItem != null) {
                 setText(holder.titleTextView, inboxItem.title);
@@ -107,7 +117,7 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
                     @Override
                     public void onClick(View view) {
                         if (mListener != null) {
-                            mListener.onMessageClick(inboxItem.message);
+                            mListener.onMessageClick(inboxItem.message, holder.getAbsoluteAdapterPosition());
                         }
                     }
                 });
@@ -139,7 +149,7 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
 
     @Override
     public int getItemCount() {
-        return dataSet.size();
+        return mDataSet.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -242,12 +252,12 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
     }
 
     public static class InboxItem {
-        private String title;
-        private String details;
-        private String imageUrl;
-        private final Date date;
-        private final BlueshiftInboxMessage.Status status;
-        private final BlueshiftInboxMessage message;
+        String title;
+        String details;
+        String imageUrl;
+        BlueshiftInboxMessage.Status status;
+        final Date date;
+        final BlueshiftInboxMessage message;
 
         InboxItem(BlueshiftInboxMessage message) {
             this.date = message.createdAt;

@@ -18,4 +18,6 @@
     <string name="bsft_inbox_placeholder_date">20 May 2022</string>
     <string name="bsft_inbox_unread_indicator">Inbox unread indicator</string>
     <string name="bsft_inbox_icon">Inbox icon</string>
+    <string name="bsft_inbox_title">Inbox</string>
+    <string name="bsft_inbox_refresh">Refresh</string>
 </resources>

@@ -1,19 +1,41 @@
 package com.blueshift.inbox;
 
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class BlueshiftInboxMessageStatus {
     final String account_uuid;
     final String user_uuid;
     final String message_uuid;
-    final String opened_at;
-    final String created_at;
-    final String status;
+    final Date opened_at;
+    final Date created_at;
+    final BlueshiftInboxMessage.Status status;
 
-    public BlueshiftInboxMessageStatus(String account_uuid, String user_uuid, String message_uuid, String opened_at, String created_at, String status) {
-        this.account_uuid = account_uuid;
-        this.user_uuid = user_uuid;
-        this.message_uuid = message_uuid;
-        this.opened_at = opened_at;
-        this.created_at = created_at;
-        this.status = status;
+    public BlueshiftInboxMessageStatus(JSONObject jsonObject) {
+        this.account_uuid = jsonObject.optString("account_uuid");
+        this.user_uuid = jsonObject.optString("user_uuid");
+        this.message_uuid = jsonObject.optString("message_uuid");
+        Date open;
+        try {
+            open = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault()).parse(jsonObject.optString("opened_at"));
+        } catch (Exception e) {
+            open = null;
+        }
+        this.opened_at = open;
+        Date created;
+        try {
+            created = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault()).parse(jsonObject.optString("created_at"));
+        } catch (Exception e) {
+            created = null;
+        }
+        this.created_at = created;
+        this.status = BlueshiftInboxMessage.Status.fromString(jsonObject.optString("status"));
+    }
+
+    public boolean isRead() {
+        return BlueshiftInboxMessage.Status.READ.equals(status);
     }
 }

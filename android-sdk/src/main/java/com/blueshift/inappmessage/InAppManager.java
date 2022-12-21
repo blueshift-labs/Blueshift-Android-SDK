@@ -466,7 +466,7 @@ public class InAppManager {
         }
     }
 
-    private static void displayInAppMessage(final InAppMessage inAppMessage) {
+    public static void displayInAppMessage(final InAppMessage inAppMessage) {
         if (inAppMessage != null && mActivity != null) {
             cacheAssets(inAppMessage, mActivity.getApplicationContext());
 
@@ -725,7 +725,7 @@ public class InAppManager {
         return result;
     }
 
-    public static boolean buildAndShowInAppMessage(Context context, InAppMessage inAppMessage) {
+    private static boolean buildAndShowInAppMessage(Context context, InAppMessage inAppMessage) {
         if (inAppMessage != null) {
             InAppTemplate inAppTemplate = inAppMessage.getTemplate();
             if (inAppTemplate != null) {

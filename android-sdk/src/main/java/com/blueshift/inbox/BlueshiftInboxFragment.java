@@ -1,5 +1,9 @@
 package com.blueshift.inbox;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -23,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class BlueshiftInboxFragment extends Fragment {
+    private static final String TAG = "InboxFragment";
     @LayoutRes
     private int mInboxListItemView = R.layout.bsft_inbox_list_item;
     private BlueshiftInboxComparator mInboxComparator = new DefaultInboxComparator();
@@ -32,6 +38,14 @@ public class BlueshiftInboxFragment extends Fragment {
     private BlueshiftInboxStore mInboxStore = null;
     private final BlueshiftInboxAdapter.EventListener mAdapterEventListener = new AdapterEventListener();
     private BlueshiftInboxAdapter mInboxAdapter;
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            BlueshiftLogger.d(TAG, intent.getAction());
+
+            refreshInboxList();
+        }
+    };
 
     BlueshiftInboxFragment() {
     }
@@ -44,18 +58,30 @@ public class BlueshiftInboxFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mInboxStore = BlueshiftInboxStoreSQLite.getInstance(getContext());
+
+        if (getContext() != null) {
+            BlueshiftInboxSyncManager.syncMessages(getContext());
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
         Blueshift.getInstance(getContext()).registerForInAppMessages(getActivity(), "blueshift_inbox");
+
+        if (getActivity() != null) {
+            getActivity().registerReceiver(mReceiver, new IntentFilter("com.blueshift.inbox.SYNC_COMPLETE"));
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
         Blueshift.getInstance(getContext()).unregisterForInAppMessages(getActivity());
+
+        if (getActivity() != null) {
+            getActivity().unregisterReceiver(mReceiver);
+        }
     }
 
     @Nullable
@@ -108,23 +134,31 @@ public class BlueshiftInboxFragment extends Fragment {
 
     private class AdapterEventListener implements BlueshiftInboxAdapter.EventListener {
         @Override
-        public void onMessageClick(BlueshiftInboxMessage message) {
-            if (getActivity() != null) {
-                InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
-                InAppManager.buildAndShowInAppMessage(getActivity(), inAppMessage);
+        public void onMessageClick(BlueshiftInboxMessage message, int index) {
+            InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
+            InAppManager.displayInAppMessage(inAppMessage);
+
+            if (mInboxStore != null) {
+                message.status = BlueshiftInboxMessage.Status.READ;
+                mInboxStore.updateMessage(message);
             }
 
-            message.status = BlueshiftInboxMessage.Status.READ;
-            mInboxStore.updateMessage(message);
-
-            refreshInboxList();
+            // todo: fire click tracking pixel for inbox
+            if (mInboxAdapter != null) {
+                mInboxAdapter.markMessageAsRead(index);
+            }
         }
 
         @Override
-        public void onMessageDelete(BlueshiftInboxMessage message) {
-            mInboxStore.removeMessage(message);
+        public void onMessageDelete(BlueshiftInboxMessage message, int index) {
+            if (mInboxStore != null) {
+                mInboxStore.deleteMessage(message);
+            }
 
-            refreshInboxList();
+            // todo: fire delete tracking pixel
+            if (mInboxAdapter != null) {
+                mInboxAdapter.markAsDeleted(index);
+            }
         }
     }
 

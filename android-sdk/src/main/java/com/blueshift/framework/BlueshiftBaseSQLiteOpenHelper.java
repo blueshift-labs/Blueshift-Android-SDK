@@ -95,13 +95,13 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
         }
     }
 
-    public void insertAll(List<T> tList) {
+    public void insertOrReplace(List<T> tList) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
                 db.beginTransaction();
                 for (T t : tList) {
-                    db.insert(getTableName(), null, getContentValues(t));
+                    db.insertWithOnConflict(getTableName(), null, getContentValues(t), SQLiteDatabase.CONFLICT_REPLACE);
                 }
                 db.setTransactionSuccessful();
                 db.endTransaction();

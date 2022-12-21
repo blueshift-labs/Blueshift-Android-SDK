@@ -1,7 +1,10 @@
 package com.blueshift.inbox;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +17,8 @@ public class BlueshiftInboxActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bsft_inbox_activity);
 
+        setTitle(getString(R.string.bsft_inbox_title));
+
         BlueshiftLogger.d("BlueshiftInboxActivity", "Activity started");
         if (savedInstanceState == null) {
             getSupportFragmentManager()
@@ -23,5 +28,21 @@ public class BlueshiftInboxActivity extends AppCompatActivity {
         } else {
             BlueshiftLogger.d("BlueshiftInboxActivity", "savedinstance is not null");
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.bsft_inbox_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.bsft_inbox_menu_refresh) {
+            BlueshiftInboxSyncManager.syncMessages(this);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
