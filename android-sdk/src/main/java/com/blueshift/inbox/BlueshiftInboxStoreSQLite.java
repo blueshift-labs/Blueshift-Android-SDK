@@ -33,6 +33,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     private static final String COL_CREATED_AT = "created_at";          // epoch timestamp
     private static final String COL_EXPIRES_AT = "expires_at";          // epoch timestamp
     private static final String COL_DELETED_AT = "deleted_at";          // epoch timestamp
+    // todo: remove this field
     private static final String COL_DISPLAYED_AT = "displayed_at";      // epoch timestamp
     private static final String COL_DISPLAY_ON = "display_on";          // name of screen
     private static final String COL_TRIGGER = "trigger";                // now or timestamp

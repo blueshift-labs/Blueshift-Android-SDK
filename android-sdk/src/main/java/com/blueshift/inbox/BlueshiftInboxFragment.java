@@ -25,7 +25,9 @@ import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class BlueshiftInboxFragment extends Fragment {
     private static final String TAG = "InboxFragment";
@@ -92,7 +94,7 @@ public class BlueshiftInboxFragment extends Fragment {
         if (view instanceof RecyclerView) {
             RecyclerView recyclerView = (RecyclerView) view;
 
-            mInboxAdapter = new BlueshiftInboxAdapter(mInboxListItemView, mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
+            mInboxAdapter = new BlueshiftInboxAdapter(mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
             LinearLayoutManager layoutManager = new LinearLayoutManager(recyclerView.getContext());
             recyclerView.setLayoutManager(layoutManager);
             recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation()));
@@ -151,13 +153,19 @@ public class BlueshiftInboxFragment extends Fragment {
 
         @Override
         public void onMessageDelete(BlueshiftInboxMessage message, int index) {
-            if (mInboxStore != null) {
-                mInboxStore.deleteMessage(message);
-            }
+            List<String> ids = new ArrayList<>();
+            ids.add(message.messageId);
 
-            // todo: fire delete tracking pixel
-            if (mInboxAdapter != null) {
-                mInboxAdapter.markAsDeleted(index);
+            boolean success = BlueshiftInboxApiManager.deleteMessages(getContext(), ids);
+            if (success) {
+                if (mInboxStore != null) {
+                    mInboxStore.deleteMessage(message);
+                }
+
+                // todo: fire delete tracking pixel
+                if (mInboxAdapter != null) {
+                    mInboxAdapter.markAsDeleted(index);
+                }
             }
         }
     }
@@ -184,7 +192,17 @@ public class BlueshiftInboxFragment extends Fragment {
         }
     }
 
-    private static class DefaultInboxAdapterExtension implements BlueshiftInboxAdapterExtension<Object> {
+    private class DefaultInboxAdapterExtension implements BlueshiftInboxAdapterExtension<Object> {
+        @Override
+        public int getViewType(@NonNull BlueshiftInboxMessage message) {
+            return 0;
+        }
+
+        @Override
+        public int getLayoutIdForViewType(int viewType) {
+            return mInboxListItemView;
+        }
+
         @Override
         public void onCreateViewHolder(@NonNull BlueshiftInboxAdapter.ViewHolder viewHolder, int viewType) {
 

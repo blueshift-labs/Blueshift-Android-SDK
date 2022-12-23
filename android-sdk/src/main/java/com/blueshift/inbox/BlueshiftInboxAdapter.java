@@ -10,7 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
-import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
@@ -28,9 +27,6 @@ import java.util.Date;
 import java.util.List;
 
 public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAdapter.ViewHolder> {
-
-    @LayoutRes
-    private final int mListItemLayoutResourceId;
     private final BlueshiftInboxFilter mInboxFilter;
     private final BlueshiftInboxComparator mInboxComparator;
     private final BlueshiftInboxDateFormatter mInboxDateFormatter;
@@ -44,8 +40,7 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         void onMessageDelete(BlueshiftInboxMessage message, int index);
     }
 
-    BlueshiftInboxAdapter(@LayoutRes int listItemLayoutResourceId, @NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @Nullable EventListener eventListener) {
-        mListItemLayoutResourceId = listItemLayoutResourceId;
+    BlueshiftInboxAdapter(@NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @Nullable EventListener eventListener) {
         mInboxFilter = inboxFilter;
         mInboxComparator = inboxComparator;
         mInboxDateFormatter = inboxDateFormatter;
@@ -85,10 +80,16 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         notifyItemRemoved(index);
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return mInboxAdapterExtension.getViewType(mDataSet.get(position).message);
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(mListItemLayoutResourceId, parent, false);
+        int layout = mInboxAdapterExtension.getLayoutIdForViewType(viewType);
+        View view = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
         ViewHolder viewHolder = new ViewHolder(view, mInboxAdapterExtension.onCreateViewHolderExtension(view, viewType));
         mInboxAdapterExtension.onCreateViewHolder(viewHolder, viewType);
         return viewHolder;
