@@ -1,15 +1,18 @@
 package com.blueshift.inbox;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.framework.BlueshiftBaseSQLiteOpenHelper;
+import com.blueshift.inappmessage.InAppMessage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +27,10 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     private static BlueshiftInboxStoreSQLite instance;
     private static final String DB_NAME = "bsft_inbox.sqlite3";
     private static final int DB_VERSION = 1;
+
+    private static final String ONE = "1";
+    private static final String NOW = "now";
+    private static final String EMPTY = "";
 
     private static final String COL_ACCOUNT_UUID = "account_uuid";      // account uuid
     private static final String COL_USER_UUID = "user_uuid";            // user uuid
@@ -144,6 +151,83 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
 
+    }
+
+    public InAppMessage getInAppMessage(Activity activity, String screenName) {
+        synchronized (_LOCK) {
+            InAppMessage inAppMessage = null;
+
+            String className = "unknown";
+
+            if (screenName != null && !screenName.isEmpty()) {
+                className = screenName;
+            } else if (activity != null) {
+                className = activity.getClass().getName();
+            }
+
+            SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+            qb.setTables(getTableName());
+
+            StringBuilder where = new StringBuilder();
+
+            // check for the screen to display on
+            where.append("(");
+            where.append(COL_DISPLAY_ON).append("=?");    // ARG #1 className
+            where.append(" OR ");
+            where.append(COL_DISPLAY_ON).append("=?");    // ARG #2 empty('')
+            where.append(")");
+
+            where.append(" AND ");
+
+            // check for valid trigger
+            where.append("(");
+            where.append(COL_TRIGGER).append("=?");       // ARG #3 now
+            where.append(" OR ");
+            where.append(COL_TRIGGER).append("<?");       // ARG #4 current time (seconds)
+            where.append(" OR ");
+            where.append(COL_TRIGGER).append("=?");       // ARG #5 empty
+            where.append(")");
+
+            // omit displayed items
+            where.append(" AND ");
+            where.append(COL_STATUS).append("=unread");
+
+            // omit expired items
+            where.append(" AND ");
+            where.append(COL_EXPIRES_AT).append(">?");    // ARG #6 current time (seconds)
+
+            qb.appendWhere(where);
+
+            String nowSeconds = String.valueOf(System.currentTimeMillis() / 1000);
+
+            String[] selectionArgs = new String[]{className,      // #1
+                    EMPTY,          // #2
+                    NOW,            // #3
+                    nowSeconds,     // #4
+                    EMPTY,          // #5
+                    nowSeconds      // #6
+            };
+
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, COL_DISPLAY_ON + " DESC," + _ID + " DESC", ONE);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        try {
+                            BlueshiftInboxMessage message = getObject(cursor);
+                            inAppMessage = InAppMessage.getInstance(message.data);
+                        } catch (Exception ignore) {
+                        }
+                    }
+
+                    cursor.close();
+                }
+
+                db.close();
+            }
+
+            return inAppMessage;
+        }
     }
 
     /**

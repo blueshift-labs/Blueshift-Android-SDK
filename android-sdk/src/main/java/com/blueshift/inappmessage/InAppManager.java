@@ -31,6 +31,7 @@ import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
+import com.blueshift.inbox.BlueshiftInboxStoreSQLite;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
@@ -424,10 +425,14 @@ public class InAppManager {
                         InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
                         if (store != null) {
                             InAppMessage input = store.getInAppMessage(mActivity, displayConfig.screenName);
-
                             if (input == null) {
-                                BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
-                                return;
+                                // the value might be null because the user has opted for inbox
+                                // check the inbox db to see if we have eligible in-app messages
+                                input = BlueshiftInboxStoreSQLite.getInstance(mActivity).getInAppMessage(mActivity, displayConfig.screenName);
+                                if (input == null) {
+                                    BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
+                                    return;
+                                }
                             }
 
                             if (!validate(input)) {
