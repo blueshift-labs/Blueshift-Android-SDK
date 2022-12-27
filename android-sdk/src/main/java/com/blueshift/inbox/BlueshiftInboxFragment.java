@@ -13,13 +13,11 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.blueshift.Blueshift;
-import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -30,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 
 public class BlueshiftInboxFragment extends Fragment {
-    private static final String TAG = "InboxFragment";
     @LayoutRes
     private int mInboxListItemView = R.layout.bsft_inbox_list_item;
     private BlueshiftInboxComparator mInboxComparator = new DefaultInboxComparator();
@@ -38,13 +35,13 @@ public class BlueshiftInboxFragment extends Fragment {
     private BlueshiftInboxDateFormatter mInboxDateFormatter = new DefaultInboxDateFormatter();
     private BlueshiftInboxAdapterExtension<Object> mInboxAdapterExtension = new DefaultInboxAdapterExtension();
     private BlueshiftInboxStore mInboxStore = null;
+    private RecyclerView.ItemDecoration mItemDecoration;
     private final BlueshiftInboxAdapter.EventListener mAdapterEventListener = new AdapterEventListener();
     private BlueshiftInboxAdapter mInboxAdapter;
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            BlueshiftLogger.d(TAG, intent.getAction());
-
             refreshInboxList();
         }
     };
@@ -95,9 +92,14 @@ public class BlueshiftInboxFragment extends Fragment {
             RecyclerView recyclerView = (RecyclerView) view;
 
             mInboxAdapter = new BlueshiftInboxAdapter(mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
+
             LinearLayoutManager layoutManager = new LinearLayoutManager(recyclerView.getContext());
             recyclerView.setLayoutManager(layoutManager);
-            recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation()));
+
+            if (mItemDecoration != null) {
+                recyclerView.addItemDecoration(mItemDecoration);
+            }
+
             recyclerView.setAdapter(mInboxAdapter);
 
             new ItemTouchHelper(new BlueshiftInboxTouchHelper(recyclerView.getContext(), mInboxAdapter)).attachToRecyclerView(recyclerView);
@@ -114,24 +116,70 @@ public class BlueshiftInboxFragment extends Fragment {
         }
     }
 
+    /**
+     * Use this method to provide a custom layout for the inbox list item.
+     *
+     * @param layout Layout resource ID
+     */
+    @SuppressWarnings("unused")
     public void setInboxListItemView(@LayoutRes int layout) {
         mInboxListItemView = layout;
     }
 
+    /**
+     * Use this method to provide the comparator for comparing two inbox messages.
+     * This value will be used when sorting the inbox messages before their display.
+     *
+     * @param comparator valid {@link BlueshiftInboxComparator} instance.
+     */
+    @SuppressWarnings("unused")
     public void setInboxComparator(@NonNull BlueshiftInboxComparator comparator) {
         mInboxComparator = comparator;
     }
 
+    /**
+     * Use this method to provide a filter for filtering the inbox messages.
+     * This value will be used for filtering purposes when adding new items to the list.
+     *
+     * @param filter valid {@link  BlueshiftInboxFilter} instance.
+     */
+    @SuppressWarnings("unused")
     public void setInboxFilter(@NonNull BlueshiftInboxFilter filter) {
         mInboxFilter = filter;
     }
 
+    /**
+     * Use this method to provide a date formatter for the inbox messages.
+     * This value will be used for formatting the date before showing it in the list.
+     *
+     * @param dateFormatter valid {@link  BlueshiftInboxDateFormatter} instance.
+     */
+    @SuppressWarnings("unused")
     public void setInboxDateFormatter(@NonNull BlueshiftInboxDateFormatter dateFormatter) {
         mInboxDateFormatter = dateFormatter;
     }
 
-    public void setInboxAdapterExtension(BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension) {
+    /**
+     * Use this method to provide an extension to the list adapter.
+     * This value will be used when forming the list of inbox messages. The host app can use the
+     * methods of this object to manipulate the appearance of the list.
+     *
+     * @param inboxAdapterExtension valid {@link BlueshiftInboxAdapter} instance.
+     */
+    @SuppressWarnings("unused")
+    public void setInboxAdapterExtension(@NonNull BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension) {
         mInboxAdapterExtension = inboxAdapterExtension;
+    }
+
+    /**
+     * Use this method to provide a item decoration for the inbox list.
+     * A common use case would be to provide a custom divider for the list.
+     *
+     * @param itemDecoration valid {@link  androidx.recyclerview.widget.RecyclerView.ItemDecoration} instance.
+     */
+    @SuppressWarnings("unused")
+    public void setInboxItemDecoration(@NonNull RecyclerView.ItemDecoration itemDecoration) {
+        mItemDecoration = itemDecoration;
     }
 
     private class AdapterEventListener implements BlueshiftInboxAdapter.EventListener {
