@@ -21,10 +21,10 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
     Date createdAt;
     Date expiresAt;
     Date deletedAt;
-    Date displayedAt;
     String displayOn;
     String trigger;
     String messageType;
+    String availability;
     Status status;
     JSONObject data;
     JSONObject campaignAttr;
@@ -33,18 +33,32 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
     }
 
     BlueshiftInboxMessage(@NonNull JSONObject jsonObject) {
-        accountId = jsonObject.optString("account_uuid");
-        userId = jsonObject.optString("user_uuid");
-        messageId = jsonObject.optString("message_uuid");
-        Date date;
         try {
-            date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault()).parse(jsonObject.optString("created_at"));
+            String format = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+            SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+            createdAt = sdf.parse(jsonObject.optString("created_at"));
         } catch (Exception e) {
-            date = new Date();
+            createdAt = new Date(0);
         }
-        createdAt = date;
+
+        accountId = jsonObject.optString("account_uuid", "");
+        userId = jsonObject.optString("user_uuid", "");
+        messageId = jsonObject.optString("message_uuid", "");
+        campaignAttr = jsonObject.optJSONObject("campaign_attr");
         status = Status.fromString(jsonObject.optString("status"));
+
         data = jsonObject.optJSONObject("data");
+        if (data != null) {
+            // in-app meta data extraction
+            JSONObject inapp = data.optJSONObject("inapp");
+            if (inapp != null) {
+                trigger = inapp.optString("trigger", "now");
+                displayOn = inapp.optString("display_on_android", "");
+                availability = inapp.optString("availability");
+                messageType = inapp.optString("type");
+                expiresAt = new Date(inapp.optLong("expires_at", 0));
+            }
+        }
     }
 
     public static List<BlueshiftInboxMessage> fromJsonArray(@NonNull JSONArray jsonArray) {
