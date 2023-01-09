@@ -1186,8 +1186,11 @@ public class Blueshift {
 
     public void trackInAppMessageView(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
+            HashMap<String, Object> extras = new HashMap<>();
+            extras.put(InAppConstants.OPENED_BY, inAppMessage.getOpenedBy().toString());
+
             trackCampaignEventAsync(
-                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), null);
+                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extras);
         }
     }
 

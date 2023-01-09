@@ -23,6 +23,8 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public static final String TAG = InAppMessage.class.getSimpleName();
     public static final String EXTRA_IN_APP = "inapp";
 
+    public enum OpenedBy {user, prefetch}
+
     private long id;
     private String type;
     private long expires_at;
@@ -44,6 +46,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private String transaction_uuid;
     private String timestamp;
 
+    private OpenedBy openedBy;
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -57,6 +60,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         map.put(InAppConstants.CONTENT_STYLE_DARK, content_style_dark);
         map.put(InAppConstants.CONTENT, content);
         map.put(InAppConstants.EXTRAS, extras);
+
+        if (openedBy != null) {
+            map.put(InAppConstants.OPENED_BY, openedBy.toString());
+        }
 
         map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
         map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
@@ -140,6 +147,14 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     @Override
     protected void setId(long id) {
         this.id = id;
+    }
+
+    public OpenedBy getOpenedBy() {
+        return openedBy;
+    }
+
+    public void setOpenedBy(OpenedBy openedBy) {
+        this.openedBy = openedBy;
     }
 
     public String getType() {

@@ -40,8 +40,6 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     private static final String COL_CREATED_AT = "created_at";          // epoch timestamp
     private static final String COL_EXPIRES_AT = "expires_at";          // epoch timestamp
     private static final String COL_DELETED_AT = "deleted_at";          // epoch timestamp
-    // todo: remove this field
-    private static final String COL_DISPLAYED_AT = "displayed_at";      // epoch timestamp
     private static final String COL_DISPLAY_ON = "display_on";          // name of screen
     private static final String COL_TRIGGER = "trigger";                // now or timestamp
     private static final String COL_MESSAGE_TYPE = "message_type";      // inapp/push
@@ -84,9 +82,6 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
             long deletedAt = getLong(cursor, COL_DELETED_AT);
             if (deletedAt > 0) message.deletedAt = new Date(deletedAt);
 
-            long displayedAt = getLong(cursor, COL_DISPLAYED_AT);
-            if (displayedAt > 0) message.displayedAt = new Date(displayedAt);
-
             String dataJSON = getString(cursor, COL_DATA);
             try {
                 if (dataJSON != null) message.data = new JSONObject(dataJSON);
@@ -117,7 +112,6 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
             contentValues.put(COL_CREATED_AT, message.createdAt != null ? message.createdAt.getTime() : 0);
             contentValues.put(COL_EXPIRES_AT, message.expiresAt != null ? message.expiresAt.getTime() : 0);
             contentValues.put(COL_DELETED_AT, message.deletedAt != null ? message.deletedAt.getTime() : 0);
-            contentValues.put(COL_DISPLAYED_AT, message.displayedAt != null ? message.displayedAt.getTime() : 0);
             contentValues.put(COL_DATA, message.data != null ? message.data.toString() : null);
             contentValues.put(COL_CAMPAIGN_ATTR, message.campaignAttr != null ? message.campaignAttr.toString() : null);
         }
@@ -137,7 +131,6 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         fieldTypeHashMap.put(COL_CREATED_AT, FieldType.Long);
         fieldTypeHashMap.put(COL_EXPIRES_AT, FieldType.Long);
         fieldTypeHashMap.put(COL_DELETED_AT, FieldType.Long);
-        fieldTypeHashMap.put(COL_DISPLAYED_AT, FieldType.Long);
         fieldTypeHashMap.put(COL_DATA, FieldType.Text);
         fieldTypeHashMap.put(COL_CAMPAIGN_ATTR, FieldType.Text);
         return fieldTypeHashMap;
@@ -190,11 +183,11 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
             // omit displayed items
             where.append(" AND ");
-            where.append(COL_STATUS).append("=unread");
+            where.append(COL_STATUS).append("=?");        // ARG #6 Status (unread)
 
             // omit expired items
             where.append(" AND ");
-            where.append(COL_EXPIRES_AT).append(">?");    // ARG #6 current time (seconds)
+            where.append(COL_EXPIRES_AT).append(">?");    // ARG #7 current time (seconds)
 
             qb.appendWhere(where);
 
@@ -205,7 +198,8 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
                     NOW,            // #3
                     nowSeconds,     // #4
                     EMPTY,          // #5
-                    nowSeconds      // #6
+                    "unread",       // #6
+                    nowSeconds      // #7
             };
 
             SQLiteDatabase db = getReadableDatabase();

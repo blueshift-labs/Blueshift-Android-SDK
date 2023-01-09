@@ -440,6 +440,8 @@ public class InAppManager {
                                 return;
                             }
 
+                            input.setOpenedBy(InAppMessage.OpenedBy.prefetch);
+
                             displayInAppMessage(input);
                         }
                     }

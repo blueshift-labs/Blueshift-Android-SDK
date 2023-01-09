@@ -186,16 +186,19 @@ public class BlueshiftInboxFragment extends Fragment {
         @Override
         public void onMessageClick(BlueshiftInboxMessage message, int index) {
             InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
-            InAppManager.displayInAppMessage(inAppMessage);
+            if (inAppMessage != null) {
+                inAppMessage.setOpenedBy(InAppMessage.OpenedBy.user);
+                InAppManager.displayInAppMessage(inAppMessage);
 
-            if (mInboxStore != null) {
-                message.status = BlueshiftInboxMessage.Status.READ;
-                mInboxStore.updateMessage(message);
-            }
+                if (mInboxStore != null) {
+                    message.status = BlueshiftInboxMessage.Status.READ;
+                    mInboxStore.updateMessage(message);
+                }
 
-            // todo: fire click tracking pixel for inbox
-            if (mInboxAdapter != null) {
-                mInboxAdapter.markMessageAsRead(index);
+                // todo: fire click tracking pixel for inbox
+                if (mInboxAdapter != null) {
+                    mInboxAdapter.markMessageAsRead(index);
+                }
             }
         }
 

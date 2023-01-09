@@ -61,6 +61,7 @@ public class InAppConstants {
     public static final String TITLE = "title";
     public static final String ANDROID_LINK = "android_link";
     public static final String EXTRAS = "extras";
+    public static final String OPENED_BY = "opened_by";
     public static final String SHAREABLE_TEXT = "shareable_text";
 
     public static final String ORIENTATION = "orientation";
