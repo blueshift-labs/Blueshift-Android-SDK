@@ -24,7 +24,7 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
     String displayOn;
     String trigger;
     String messageType;
-    String availability;
+    Scope scope;
     Status status;
     JSONObject data;
     JSONObject campaignAttr;
@@ -54,7 +54,7 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
             if (inapp != null) {
                 trigger = inapp.optString("trigger", "now");
                 displayOn = inapp.optString("display_on_android", "");
-                availability = inapp.optString("availability");
+                scope = Scope.fromString(inapp.optString("scope"));
                 messageType = inapp.optString("type");
                 expiresAt = new Date(inapp.optLong("expires_at", 0));
             }
@@ -94,6 +94,26 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
             if ("read".equals(status)) return READ;
             if ("unread".equals(status)) return UNREAD;
             return UNKNOWN;
+        }
+    }
+
+    enum Scope {
+        INAPP, INBOX, INAPP_AND_INBOX;
+
+        @NonNull
+        @Override
+        public String toString() {
+            if (this == INAPP) return "inapp";
+            if (this == INBOX) return "inbox";
+            if (this == INAPP_AND_INBOX) return "inapp+inbox";
+            return super.toString();
+        }
+
+        static Scope fromString(String status) {
+            if ("inbox".equals(status)) return INBOX;
+            if ("inapp+inbox".equals(status)) return INAPP_AND_INBOX;
+            // default is inapp
+            return INAPP;
         }
     }
 }

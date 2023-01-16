@@ -31,6 +31,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     private static final String ONE = "1";
     private static final String NOW = "now";
     private static final String EMPTY = "";
+    private static final String UNREAD = "unread";
 
     private static final String COL_ACCOUNT_UUID = "account_uuid";      // account uuid
     private static final String COL_USER_UUID = "user_uuid";            // user uuid
@@ -44,6 +45,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     private static final String COL_TRIGGER = "trigger";                // now or timestamp
     private static final String COL_MESSAGE_TYPE = "message_type";      // inapp/push
     private static final String COL_STATUS = "status";                  // read/unread
+    private static final String COL_SCOPE = "scope";                    // scope
 
     private BlueshiftInboxStoreSQLite(@Nullable Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -68,6 +70,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
             message.userId = getString(cursor, COL_USER_UUID);
             message.messageId = getString(cursor, COL_MESSAGE_UUID);
 
+            message.scope = BlueshiftInboxMessage.Scope.fromString(getString(cursor, COL_SCOPE));
             message.displayOn = getString(cursor, COL_DISPLAY_ON);
             message.trigger = getString(cursor, COL_TRIGGER);
             message.messageType = getString(cursor, COL_MESSAGE_TYPE);
@@ -105,6 +108,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
             contentValues.put(COL_ACCOUNT_UUID, message.accountId);
             contentValues.put(COL_USER_UUID, message.userId);
             contentValues.put(COL_MESSAGE_UUID, message.messageId);
+            contentValues.put(COL_SCOPE, message.scope.toString());
             contentValues.put(COL_DISPLAY_ON, message.displayOn);
             contentValues.put(COL_TRIGGER, message.trigger);
             contentValues.put(COL_MESSAGE_TYPE, message.messageType);
@@ -124,6 +128,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         fieldTypeHashMap.put(COL_ACCOUNT_UUID, FieldType.String);
         fieldTypeHashMap.put(COL_USER_UUID, FieldType.String);
         fieldTypeHashMap.put(COL_MESSAGE_UUID, FieldType.UniqueText);
+        fieldTypeHashMap.put(COL_SCOPE, FieldType.String);
         fieldTypeHashMap.put(COL_DISPLAY_ON, FieldType.String);
         fieldTypeHashMap.put(COL_TRIGGER, FieldType.String);
         fieldTypeHashMap.put(COL_MESSAGE_TYPE, FieldType.String);
@@ -146,62 +151,107 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
     }
 
-    public InAppMessage getInAppMessage(Activity activity, String screenName) {
+    /**
+     * Returns the number of unread messages.
+     *
+     * @return the unread message count.
+     */
+    @WorkerThread
+    public int getUnreadMessageCount() {
+        int count = 0;
+
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(getTableName());
+
+        StringBuilder where = new StringBuilder();
+        where.append(COL_STATUS).append("=?");
+
+        qb.appendWhere(where);
+
+        String[] selectionArgs = new String[]{UNREAD};
+
         synchronized (_LOCK) {
-            InAppMessage inAppMessage = null;
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = qb.query(db, new String[]{"COUNT(*)"}, null, selectionArgs, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        count = cursor.getInt(0);
+                    }
 
-            String className = "unknown";
-
-            if (screenName != null && !screenName.isEmpty()) {
-                className = screenName;
-            } else if (activity != null) {
-                className = activity.getClass().getName();
+                    cursor.close();
+                }
+                db.close();
             }
+        }
 
-            SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-            qb.setTables(getTableName());
+        return count;
+    }
 
-            StringBuilder where = new StringBuilder();
+    /**
+     * Returns next eligible in-app message for display.
+     *
+     * @param activity   instance of current activity
+     * @param screenName name of current screen
+     * @return inapp message instance if available, else null
+     */
+    @WorkerThread
+    public InAppMessage getInAppMessage(Activity activity, String screenName) {
+        InAppMessage inAppMessage = null;
 
-            // check for the screen to display on
-            where.append("(");
-            where.append(COL_DISPLAY_ON).append("=?");    // ARG #1 className
-            where.append(" OR ");
-            where.append(COL_DISPLAY_ON).append("=?");    // ARG #2 empty('')
-            where.append(")");
+        String className = "unknown";
 
-            where.append(" AND ");
+        if (screenName != null && !screenName.isEmpty()) {
+            className = screenName;
+        } else if (activity != null) {
+            className = activity.getClass().getName();
+        }
 
-            // check for valid trigger
-            where.append("(");
-            where.append(COL_TRIGGER).append("=?");       // ARG #3 now
-            where.append(" OR ");
-            where.append(COL_TRIGGER).append("<?");       // ARG #4 current time (seconds)
-            where.append(" OR ");
-            where.append(COL_TRIGGER).append("=?");       // ARG #5 empty
-            where.append(")");
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(getTableName());
 
-            // omit displayed items
-            where.append(" AND ");
-            where.append(COL_STATUS).append("=?");        // ARG #6 Status (unread)
+        StringBuilder where = new StringBuilder();
 
-            // omit expired items
-            where.append(" AND ");
-            where.append(COL_EXPIRES_AT).append(">?");    // ARG #7 current time (seconds)
+        // check for the screen to display on
+        where.append("(");
+        where.append(COL_DISPLAY_ON).append("=?");    // ARG #1 className
+        where.append(" OR ");
+        where.append(COL_DISPLAY_ON).append("=?");    // ARG #2 empty('')
+        where.append(")");
 
-            qb.appendWhere(where);
+        where.append(" AND ");
 
-            String nowSeconds = String.valueOf(System.currentTimeMillis() / 1000);
+        // check for valid trigger
+        where.append("(");
+        where.append(COL_TRIGGER).append("=?");       // ARG #3 now
+        where.append(" OR ");
+        where.append(COL_TRIGGER).append("<?");       // ARG #4 current time (seconds)
+        where.append(" OR ");
+        where.append(COL_TRIGGER).append("=?");       // ARG #5 empty
+        where.append(")");
 
-            String[] selectionArgs = new String[]{className,      // #1
-                    EMPTY,          // #2
-                    NOW,            // #3
-                    nowSeconds,     // #4
-                    EMPTY,          // #5
-                    "unread",       // #6
-                    nowSeconds      // #7
-            };
+        // omit displayed items
+        where.append(" AND ");
+        where.append(COL_STATUS).append("=?");        // ARG #6 Status (unread)
 
+        // omit expired items
+        where.append(" AND ");
+        where.append(COL_EXPIRES_AT).append(">?");    // ARG #7 current time (seconds)
+
+        qb.appendWhere(where);
+
+        String nowSeconds = String.valueOf(System.currentTimeMillis() / 1000);
+
+        String[] selectionArgs = new String[]{className,      // #1
+                EMPTY,          // #2
+                NOW,            // #3
+                nowSeconds,     // #4
+                EMPTY,          // #5
+                UNREAD,         // #6
+                nowSeconds      // #7
+        };
+
+        synchronized (_LOCK) {
             SQLiteDatabase db = getReadableDatabase();
             if (db != null) {
                 Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, COL_DISPLAY_ON + " DESC," + _ID + " DESC", ONE);
@@ -219,9 +269,43 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
                 db.close();
             }
-
-            return inAppMessage;
         }
+
+        return inAppMessage;
+    }
+
+    public List<BlueshiftInboxMessage> getInboxMessages() {
+        List<BlueshiftInboxMessage> messageList = new ArrayList<>();
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(getTableName());
+
+        StringBuilder where = new StringBuilder();
+        where.append(COL_SCOPE).append("=?");
+        where.append(" OR ");
+        where.append(COL_SCOPE).append("=?");
+
+        qb.appendWhere(where);
+
+        String[] selectionArgs = new String[]{"inbox", "inapp+inbox"};
+
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = qb.query(db, null, null, selectionArgs, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        while (!cursor.isAfterLast()) {
+                            messageList.add(getObject(cursor));
+                            cursor.moveToNext();
+                        }
+                    }
+                    cursor.close();
+                }
+                db.close();
+            }
+        }
+
+        return messageList;
     }
 
     /**
@@ -230,6 +314,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
      * @param idsToKeep The message uuids of the messages to keep in the db.
      *                  The rest of the messages will be deleted.
      */
+    @WorkerThread
     public void deleteMessages(List<String> idsToKeep) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
@@ -248,6 +333,13 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         }
     }
 
+    /**
+     * Update the status of messages with provided message ids.
+     *
+     * @param ids    message ids
+     * @param status status value (read, unread)
+     */
+    @WorkerThread
     public void updateStatus(List<String> ids, String status) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
@@ -282,7 +374,13 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         return csvBuilder.toString();
     }
 
-    public List<String> getMessageIds() {
+    /**
+     * Return the ids of messages stored in the db.
+     *
+     * @return list of message ids
+     */
+    @WorkerThread
+    public List<String> getStoredMessageIds() {
         List<String> mids = new ArrayList<>();
 
         synchronized (_LOCK) {
@@ -310,7 +408,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     @WorkerThread
     @Override
     public List<BlueshiftInboxMessage> getMessages() {
-        return findAll();
+        return getInboxMessages();
     }
 
     @Override

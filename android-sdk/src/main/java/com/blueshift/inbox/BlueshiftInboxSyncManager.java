@@ -31,7 +31,7 @@ public class BlueshiftInboxSyncManager {
                 List<String> messagesToFetchFromApi;
 
                 // fetch message ids from local db
-                List<String> dbMsgIds = BlueshiftInboxStoreSQLite.getInstance(context).getMessageIds();
+                List<String> dbMsgIds = BlueshiftInboxStoreSQLite.getInstance(context).getStoredMessageIds();
                 if (dbMsgIds.isEmpty()) {
                     // no messages found inside the db. this might be the first time we're using inbox
                     // try to fetch all messages.
