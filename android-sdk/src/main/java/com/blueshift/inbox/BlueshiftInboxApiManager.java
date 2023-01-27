@@ -218,6 +218,8 @@ public class BlueshiftInboxApiManager {
                             JSONObject inbox = new JSONObject();
                             JSONObject inapp = data.optJSONObject("inapp");
                             if (inapp != null) {
+                                inapp.putOpt("scope", BlueshiftInboxMessage.Scope.INAPP_AND_INBOX.toString());
+
                                 JSONObject inappContent = inapp.optJSONObject("content");
                                 if (inappContent != null) {
                                     if (inappContent.has("html")) {
@@ -246,6 +248,7 @@ public class BlueshiftInboxApiManager {
 
                             newContent.putOpt("campaign_attr", campaignAttr);
                             newContent.putOpt("data", data);
+                            newContent.putOpt("scope", "inapp+inbox");
 
                             newContents.put(newContent);
                         }

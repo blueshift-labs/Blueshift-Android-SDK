@@ -238,17 +238,31 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         where.append(" AND ");
         where.append(COL_EXPIRES_AT).append(">?");    // ARG #7 current time (seconds)
 
+        where.append(" AND ");
+        // check scope
+        where.append("(");
+        where.append(COL_SCOPE).append("=?");       // ARG #8 scope=inapp
+        where.append(" OR ");
+        where.append(COL_SCOPE).append("=?");       // ARG #9 scope=inapp+inbox
+        where.append(")");
+
         qb.appendWhere(where);
 
         String nowSeconds = String.valueOf(System.currentTimeMillis() / 1000);
 
-        String[] selectionArgs = new String[]{className,      // #1
-                EMPTY,          // #2
-                NOW,            // #3
-                nowSeconds,     // #4
-                EMPTY,          // #5
-                UNREAD,         // #6
-                nowSeconds      // #7
+        String inappScope = BlueshiftInboxMessage.Scope.INAPP.toString();
+        String inappInboxScope = BlueshiftInboxMessage.Scope.INAPP_AND_INBOX.toString();
+
+        String[] selectionArgs = new String[]{
+                className,       // #1
+                EMPTY,           // #2
+                NOW,             // #3
+                nowSeconds,      // #4
+                EMPTY,           // #5
+                UNREAD,          // #6
+                nowSeconds,      // #7
+                inappScope,      // #8
+                inappInboxScope  // #9
         };
 
         synchronized (_LOCK) {
@@ -286,7 +300,9 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
         qb.appendWhere(where);
 
-        String[] selectionArgs = new String[]{"inbox", "inapp+inbox"};
+        String inboxScope = BlueshiftInboxMessage.Scope.INBOX.toString();
+        String inappInboxScope = BlueshiftInboxMessage.Scope.INAPP_AND_INBOX.toString();
+        String[] selectionArgs = new String[]{inboxScope, inappInboxScope};
 
         synchronized (_LOCK) {
             SQLiteDatabase db = getReadableDatabase();
