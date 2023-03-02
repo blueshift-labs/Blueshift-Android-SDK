@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
@@ -188,6 +189,24 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         return count;
     }
 
+    public BlueshiftInboxMessage getMostRecentMessage() {
+        BlueshiftInboxMessage inboxMessage = null;
+
+        SQLiteDatabase db = getReadableDatabase();
+        if (db != null) {
+            Cursor cursor = db.query(getTableName(), null, null, null, null, null, COL_CREATED_AT + " DESC", "1");
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    inboxMessage = getObject(cursor);
+                }
+                cursor.close();
+            }
+            db.close();
+        }
+
+        return inboxMessage;
+    }
+
     /**
      * Returns next eligible in-app message for display.
      *
@@ -349,6 +368,20 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         }
     }
 
+    @WorkerThread
+    public void deleteExpiredMessages() {
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                long timestamp = System.currentTimeMillis() / 1000;
+                // delete obsolete messages
+                int count = db.delete(getTableName(), COL_EXPIRES_AT + "<?", new String[]{String.valueOf(timestamp)});
+                BlueshiftLogger.d(TAG, count + " expired messages deleted.");
+                db.close();
+            }
+        }
+    }
+
     /**
      * Update the status of messages with provided message ids.
      *
@@ -356,7 +389,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
      * @param status status value (read, unread)
      */
     @WorkerThread
-    public void updateStatus(List<String> ids, String status) {
+    public void updateStatus(@NonNull List<String> ids, @NonNull String status) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
@@ -368,6 +401,23 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
                     int count = db.update(getTableName(), contentValues, COL_MESSAGE_UUID + " IN (?)", new String[]{idCsv});
                     BlueshiftLogger.d(TAG, count + " messages updated.");
                 }
+                db.close();
+            }
+        }
+    }
+
+    public void markMessageAsRead(@NonNull String messageUuid) {
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                String read = BlueshiftInboxMessage.Status.READ.toString();
+
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(COL_STATUS, read);
+
+                int count = db.update(getTableName(), contentValues, COL_MESSAGE_UUID + "=?", new String[]{messageUuid});
+                BlueshiftLogger.d(TAG, count + " messages updated.");
+
                 db.close();
             }
         }
