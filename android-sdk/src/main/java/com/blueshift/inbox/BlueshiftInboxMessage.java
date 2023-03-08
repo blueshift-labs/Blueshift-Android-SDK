@@ -3,6 +3,7 @@ package com.blueshift.inbox;
 import androidx.annotation.NonNull;
 
 import com.blueshift.framework.BlueshiftBaseSQLiteModel;
+import com.blueshift.inappmessage.InAppMessage;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -67,6 +68,10 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
             messages.add(new BlueshiftInboxMessage(jsonArray.optJSONObject(i)));
         }
         return messages;
+    }
+
+    public InAppMessage getInAppMessage() {
+        return InAppMessage.getInstance(data);
     }
 
     @Override

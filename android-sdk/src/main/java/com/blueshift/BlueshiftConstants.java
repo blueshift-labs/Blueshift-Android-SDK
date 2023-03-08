@@ -43,6 +43,18 @@ public class BlueshiftConstants {
         return BASE_URL(context) + "/live";
     }
 
+    public static String INBOX_STATUS(Context context) {
+        return BASE_URL(context) + "/inbox/api/v1/status";
+    }
+
+    public static String INBOX_MESSAGES(Context context) {
+        return BASE_URL(context) + "/inbox/api/v1/messages";
+    }
+
+    public static String INBOX_UPDATE(Context context) {
+        return BASE_URL(context) + "/inbox/api/v1/update";
+    }
+
     /**
      * Event names sent to Blueshift server
      */
@@ -146,6 +158,10 @@ public class BlueshiftConstants {
 
     // push
     public static final String KEY_ENABLE_PUSH = "enable_push";
+
+    // inbox broadcast actions
+    public static final String INBOX_SYNC_COMPLETE = "com.blueshift.INBOX_SYNC_COMPLETE";
+    public static final String INBOX_DATA_CHANGED = "com.blueshift.INBOX_DATA_CHANGED";
 
     /**
      * Subscription status values

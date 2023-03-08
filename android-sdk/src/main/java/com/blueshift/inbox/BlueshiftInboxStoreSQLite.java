@@ -350,7 +350,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
      *                  The rest of the messages will be deleted.
      */
     @WorkerThread
-    public void deleteMessages(List<String> idsToKeep) {
+    public void deleteMessagesExcept(List<String> idsToKeep) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
@@ -363,6 +363,19 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
                     int count = db.delete(getTableName(), COL_MESSAGE_UUID + " NOT IN (?)", new String[]{idCsv});
                     BlueshiftLogger.d(TAG, count + " messages deleted.");
                 }
+                db.close();
+            }
+        }
+    }
+
+    /**
+     * Delete all messages from the database.
+     */
+    public void deleteAllMessages() {
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                db.delete(getTableName(), null, null);
                 db.close();
             }
         }
@@ -399,7 +412,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
                     contentValues.put(COL_STATUS, status);
 
                     int count = db.update(getTableName(), contentValues, COL_MESSAGE_UUID + " IN (?)", new String[]{idCsv});
-                    BlueshiftLogger.d(TAG, count + " messages updated.");
+                    BlueshiftLogger.d(TAG, count + " messages updated with status '" + status + "'");
                 }
                 db.close();
             }
@@ -416,7 +429,11 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
                 contentValues.put(COL_STATUS, read);
 
                 int count = db.update(getTableName(), contentValues, COL_MESSAGE_UUID + "=?", new String[]{messageUuid});
-                BlueshiftLogger.d(TAG, count + " messages updated.");
+                if (count > 0) {
+                    BlueshiftLogger.d(TAG, "message (" + messageUuid + ") updated with status 'read'.");
+                } else {
+                    BlueshiftLogger.d(TAG, "message (" + messageUuid + ") can not be marked as 'read' or not found in the db.");
+                }
 
                 db.close();
             }

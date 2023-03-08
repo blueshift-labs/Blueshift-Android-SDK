@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.blueshift.Blueshift;
+import com.blueshift.BlueshiftConstants;
 import com.blueshift.R;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -69,7 +71,15 @@ public class BlueshiftInboxFragment extends Fragment {
         Blueshift.getInstance(getContext()).registerForInAppMessages(getActivity(), "blueshift_inbox");
 
         if (getActivity() != null) {
-            getActivity().registerReceiver(mReceiver, new IntentFilter("com.blueshift.inbox.SYNC_COMPLETE"));
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(BlueshiftConstants.INBOX_SYNC_COMPLETE);
+            intentFilter.addAction(BlueshiftConstants.INBOX_DATA_CHANGED);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                getActivity().registerReceiver(mReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                getActivity().registerReceiver(mReceiver, intentFilter);
+            }
         }
     }
 

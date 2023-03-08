@@ -31,6 +31,7 @@ import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
+import com.blueshift.inbox.BlueshiftInboxMessage;
 import com.blueshift.inbox.BlueshiftInboxStoreSQLite;
 import com.blueshift.inbox.BlueshiftInboxSyncManager;
 import com.blueshift.model.Configuration;
@@ -287,11 +288,13 @@ public class InAppManager {
             String msgUUID = null;
             String timestamp = null;
 
-            InAppMessageStore store = InAppMessageStore.getInstance(context);
-            InAppMessage inAppMessage = store != null ? store.getLastInAppMessage() : null;
-            if (inAppMessage != null) {
-                msgUUID = inAppMessage.getMessageUuid();
-                timestamp = inAppMessage.getTimestamp();
+            BlueshiftInboxMessage inboxMessage = BlueshiftInboxStoreSQLite.getInstance(context).getMostRecentMessage();
+            if (inboxMessage != null) {
+                InAppMessage inAppMessage = inboxMessage.getInAppMessage();
+                if (inAppMessage != null) {
+                    msgUUID = inAppMessage.getMessageUuid();
+                    timestamp = inAppMessage.getTimestamp();
+                }
             }
 
             // message uuid
@@ -422,32 +425,22 @@ public class InAppManager {
         boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(mActivity);
         if (isEnabled) {
             try {
-                BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
-                        if (store != null) {
-                            InAppMessage input = store.getInAppMessage(mActivity, displayConfig.screenName);
-                            if (input == null) {
-                                // the value might be null because the user has opted for inbox
-                                // check the inbox db to see if we have eligible in-app messages
-                                input = BlueshiftInboxStoreSQLite.getInstance(mActivity).getInAppMessage(mActivity, displayConfig.screenName);
-                                if (input == null) {
-                                    BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
-                                    return;
-                                }
-                            }
-
-                            if (!validate(input)) {
-                                BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
-                                return;
-                            }
-
-                            input.setOpenedBy(InAppMessage.OpenedBy.prefetch);
-
-                            displayInAppMessage(input);
-                        }
+                BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+                    InAppMessage input = BlueshiftInboxStoreSQLite.getInstance(mActivity).getInAppMessage(mActivity, displayConfig.screenName);
+                    if (input == null) {
+                        BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
+                        return;
                     }
+
+
+                    if (!validate(input)) {
+                        BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
+                        return;
+                    }
+
+                    input.setOpenedBy(InAppMessage.OpenedBy.prefetch);
+
+                    displayInAppMessage(input);
                 });
             } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);
@@ -656,15 +649,15 @@ public class InAppManager {
     }
 
     private static void markAsDisplayed(final InAppMessage input) {
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (input != null && mActivity != null) {
-                            input.setDisplayedAt(System.currentTimeMillis());
-                            InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
-                            if (store != null) store.update(input);
-                        }
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+                    if (input != null && mActivity != null) {
+                        Context context = mActivity.getApplicationContext();
+
+                        input.setDisplayedAt(System.currentTimeMillis());
+                        InAppMessageStore store = InAppMessageStore.getInstance(context);
+                        if (store != null) store.update(input);
+
+                        BlueshiftInboxStoreSQLite.getInstance(context).markMessageAsRead(input.getMessageUuid());
                     }
                 }
         );
