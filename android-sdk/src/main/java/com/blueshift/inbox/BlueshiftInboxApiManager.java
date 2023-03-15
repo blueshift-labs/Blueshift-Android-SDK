@@ -128,12 +128,18 @@ public class BlueshiftInboxApiManager {
         } else {
             String apiKey = BlueshiftUtils.getApiKey(context);
             if (apiKey != null) {
+                // prepare ids
+                JSONArray jsonArray = new JSONArray();
+                for (String id : messageIds) {
+                    jsonArray.put(id);
+                }
+
                 JSONObject body = new JSONObject();
                 try {
                     body.put("api_key", apiKey);
                     body.put("device_id", deviceId);
                     body.put("action", "delete");
-                    body.put("message_uuids", messageIds);
+                    body.put("message_uuids", jsonArray);
                 } catch (JSONException ignore) {
                 }
                 BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
@@ -224,7 +230,7 @@ public class BlueshiftInboxApiManager {
                             JSONObject inbox = new JSONObject();
                             JSONObject inapp = data.optJSONObject("inapp");
                             if (inapp != null) {
-                                inapp.putOpt("scope", BlueshiftInboxMessage.Scope.INAPP_AND_INBOX.toString());
+                                inapp.putOpt("scope", BlueshiftInboxMessage.Scope.INBOX_AND_INAPP.toString());
 
                                 JSONObject inappContent = inapp.optJSONObject("content");
                                 if (inappContent != null) {

@@ -269,8 +269,8 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
         String nowSeconds = String.valueOf(System.currentTimeMillis() / 1000);
 
-        String inappScope = BlueshiftInboxMessage.Scope.INAPP.toString();
-        String inappInboxScope = BlueshiftInboxMessage.Scope.INAPP_AND_INBOX.toString();
+        String inappScope = BlueshiftInboxMessage.Scope.INAPP_ONLY.toString();
+        String inappInboxScope = BlueshiftInboxMessage.Scope.INBOX_AND_INAPP.toString();
 
         String[] selectionArgs = new String[]{
                 className,       // #1
@@ -319,8 +319,8 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
         qb.appendWhere(where);
 
-        String inboxScope = BlueshiftInboxMessage.Scope.INBOX.toString();
-        String inappInboxScope = BlueshiftInboxMessage.Scope.INAPP_AND_INBOX.toString();
+        String inboxScope = BlueshiftInboxMessage.Scope.INBOX_ONLY.toString();
+        String inappInboxScope = BlueshiftInboxMessage.Scope.INBOX_AND_INAPP.toString();
         String[] selectionArgs = new String[]{inboxScope, inappInboxScope};
 
         synchronized (_LOCK) {

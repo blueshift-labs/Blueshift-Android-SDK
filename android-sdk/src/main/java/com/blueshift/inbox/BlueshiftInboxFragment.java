@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftExecutor;
 import com.blueshift.R;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
@@ -122,7 +123,13 @@ public class BlueshiftInboxFragment extends Fragment {
 
     public void refreshInboxList() {
         if (mInboxAdapter != null && mInboxStore != null) {
-            mInboxAdapter.setMessages(mInboxStore.getMessages());
+            BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+                List<BlueshiftInboxMessage> messages = mInboxStore.getMessages();
+
+                BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                    mInboxAdapter.setMessages(messages);
+                });
+            });
         }
     }
 
@@ -195,46 +202,58 @@ public class BlueshiftInboxFragment extends Fragment {
     private class AdapterEventListener implements BlueshiftInboxAdapter.EventListener {
         @Override
         public void onMessageClick(BlueshiftInboxMessage message, int index) {
-            InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
-            if (inAppMessage != null) {
-                inAppMessage.setOpenedBy(InAppMessage.OpenedBy.user);
-                InAppManager.displayInAppMessage(inAppMessage);
+            BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+                InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
+                if (inAppMessage != null) {
+                    inAppMessage.setOpenedBy(InAppMessage.OpenedBy.user);
+                    InAppManager.displayInAppMessage(inAppMessage);
 
-                if (mInboxStore != null) {
-                    message.status = BlueshiftInboxMessage.Status.READ;
-                    mInboxStore.updateMessage(message);
-                }
+                    if (mInboxStore != null) {
+                        message.status = BlueshiftInboxMessage.Status.READ;
+                        mInboxStore.updateMessage(message);
+                    }
 
-                // todo: fire click tracking pixel for inbox
-                if (mInboxAdapter != null) {
-                    mInboxAdapter.markMessageAsRead(index);
+                    // todo: fire click tracking pixel for inbox
+                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                        if (mInboxAdapter != null) {
+                            mInboxAdapter.markMessageAsRead(index);
+                        }
+                    });
                 }
-            }
+            });
         }
 
         @Override
         public void onMessageDelete(BlueshiftInboxMessage message, int index) {
-            List<String> ids = new ArrayList<>();
-            ids.add(message.messageId);
+            BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+                List<String> ids = new ArrayList<>();
+                ids.add(message.messageId);
 
-            boolean success = BlueshiftInboxApiManager.deleteMessages(getContext(), ids);
-            if (success) {
-                if (mInboxStore != null) {
-                    mInboxStore.deleteMessage(message);
-                }
+                boolean success = BlueshiftInboxApiManager.deleteMessages(getContext(), ids);
+                if (success) {
+                    if (mInboxStore != null) {
+                        mInboxStore.deleteMessage(message);
+                    }
 
-                // todo: fire delete tracking pixel
-                if (mInboxAdapter != null) {
-                    mInboxAdapter.markAsDeleted(index);
+                    // todo: fire delete tracking pixel
+                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                        if (mInboxAdapter != null) {
+                            mInboxAdapter.markAsDeleted(index);
+                        }
+                    });
                 }
-            }
+            });
         }
     }
 
     private static class DefaultInboxComparator implements BlueshiftInboxComparator {
         @Override
         public int compare(BlueshiftInboxMessage message1, BlueshiftInboxMessage message2) {
-            return -message1.createdAt.compareTo(message2.createdAt);
+            if (message1 != null && message1.createdAt != null && message2 != null && message2.createdAt != null) {
+                return -message1.createdAt.compareTo(message2.createdAt);
+            }
+
+            return 0;
         }
     }
 

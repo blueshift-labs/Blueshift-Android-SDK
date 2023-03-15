@@ -34,14 +34,7 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
     }
 
     BlueshiftInboxMessage(@NonNull JSONObject jsonObject) {
-        try {
-            String format = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
-            SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
-            createdAt = sdf.parse(jsonObject.optString("created_at"));
-        } catch (Exception e) {
-            createdAt = new Date(0);
-        }
-
+        createdAt = new Date(jsonObject.optLong("created_at") * 1000);
         accountId = jsonObject.optString("account_uuid", "");
         userId = jsonObject.optString("user_uuid", "");
         messageId = jsonObject.optString("message_uuid", "");
@@ -103,22 +96,22 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
     }
 
     enum Scope {
-        INAPP, INBOX, INAPP_AND_INBOX;
+        INAPP_ONLY, INBOX_ONLY, INBOX_AND_INAPP;
 
         @NonNull
         @Override
         public String toString() {
-            if (this == INAPP) return "inapp";
-            if (this == INBOX) return "inbox";
-            if (this == INAPP_AND_INBOX) return "inapp+inbox";
+            if (this == INAPP_ONLY) return "inapp";
+            if (this == INBOX_ONLY) return "inbox";
+            if (this == INBOX_AND_INAPP) return "inbox+inapp";
             return super.toString();
         }
 
         static Scope fromString(String status) {
-            if ("inbox".equals(status)) return INBOX;
-            if ("inapp+inbox".equals(status)) return INAPP_AND_INBOX;
+            if ("inbox".equals(status)) return INBOX_ONLY;
+            if ("inbox+inapp".equals(status)) return INBOX_AND_INAPP;
             // default is inapp
-            return INAPP;
+            return INAPP_ONLY;
         }
     }
 }
