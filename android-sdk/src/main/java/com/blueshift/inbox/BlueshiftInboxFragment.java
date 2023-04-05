@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
@@ -241,6 +242,9 @@ public class BlueshiftInboxFragment extends Fragment {
                             mInboxAdapter.markAsDeleted(index);
                         }
                     });
+                } else {
+                    Toast.makeText(getContext(), "Could not delete the message!", Toast.LENGTH_SHORT).show();
+                    refreshInboxList();
                 }
             });
         }
@@ -268,7 +272,9 @@ public class BlueshiftInboxFragment extends Fragment {
         @NonNull
         @Override
         public String format(Date date) {
-            return SimpleDateFormat.getDateInstance().format(date);
+            String formattedDate = SimpleDateFormat.getDateInstance().format(date);
+            String formattedTime = SimpleDateFormat.getTimeInstance().format(date);
+            return formattedDate + " at " + formattedTime;
         }
     }
 
