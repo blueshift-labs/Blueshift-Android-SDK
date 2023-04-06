@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class BlueshiftInboxFragment extends Fragment {
     @LayoutRes
@@ -273,7 +274,7 @@ public class BlueshiftInboxFragment extends Fragment {
         @Override
         public String format(Date date) {
             String formattedDate = SimpleDateFormat.getDateInstance().format(date);
-            String formattedTime = SimpleDateFormat.getTimeInstance().format(date);
+            String formattedTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(date);
             return formattedDate + " at " + formattedTime;
         }
     }
