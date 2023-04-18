@@ -26,7 +26,6 @@ public class BlueshiftInboxApiManager {
     private static final String TAG = "InboxApiManager";
 
     @WorkerThread
-    @NonNull
     public static List<BlueshiftInboxMessageStatus> getMessageStatuses(@NonNull final Context context) {
         String deviceId = DeviceUtils.getDeviceId(context);
         if (deviceId == null || deviceId.isEmpty()) {
@@ -66,7 +65,8 @@ public class BlueshiftInboxApiManager {
             }
         }
 
-        return new ArrayList<>();
+        // NULL indicates internet unavailability or api error
+        return null;
     }
 
     @WorkerThread

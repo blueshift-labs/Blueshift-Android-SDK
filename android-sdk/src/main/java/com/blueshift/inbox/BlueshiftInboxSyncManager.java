@@ -21,6 +21,11 @@ public class BlueshiftInboxSyncManager {
         BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
             // fetch status from api
             List<BlueshiftInboxMessageStatus> statuses = BlueshiftInboxApiManager.getMessageStatuses(context);
+            if (statuses == null) {
+                // NULL indicates API error or internet unavailability.
+                notifySyncComplete(context);
+                return;
+            }
 
             List<String> statusApiAllMsgIds = new ArrayList<>();
             List<String> statusApiReadMsgIds = new ArrayList<>();
