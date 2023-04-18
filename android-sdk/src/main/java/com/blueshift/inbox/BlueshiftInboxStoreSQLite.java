@@ -451,7 +451,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
                 csvBuilder.append(",");
             }
 
-            csvBuilder.append(value);
+            csvBuilder.append("'").append(value).append("'");
         }
 
         return csvBuilder.toString();

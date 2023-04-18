@@ -347,6 +347,11 @@ public class Configuration {
 
     public void setInboxEnabled(boolean inboxEnabled) {
         this.inboxEnabled = inboxEnabled;
+
+        // Inbox needs inapp to be enabled to function properly
+        if (inboxEnabled) {
+            this.inAppEnabled = true;
+        }
     }
 
     public boolean isInAppEnabled() {
