@@ -66,7 +66,7 @@ public class InAppMessageIconFont {
                 synchronized (_LOCK) {
                     try {
                         // download
-                        String source = "https://bsftassets.s3-us-west-2.amazonaws.com/inapp/" + FILE_NAME;
+                        String source = "http://cdn.getblueshift.com/inapp/" + FILE_NAME;
                         File fontFile = getFontFile(context);
 
                         if (!fontFile.exists()) {
