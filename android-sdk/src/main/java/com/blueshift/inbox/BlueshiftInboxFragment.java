@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
@@ -43,6 +44,7 @@ public class BlueshiftInboxFragment extends Fragment {
     private RecyclerView.ItemDecoration mItemDecoration;
     private final BlueshiftInboxAdapter.EventListener mAdapterEventListener = new AdapterEventListener();
     private BlueshiftInboxAdapter mInboxAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -71,7 +73,6 @@ public class BlueshiftInboxFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        Blueshift.getInstance(getContext()).registerForInAppMessages(getActivity(), "blueshift_inbox");
 
         if (getActivity() != null) {
             IntentFilter intentFilter = new IntentFilter();
@@ -89,7 +90,6 @@ public class BlueshiftInboxFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        Blueshift.getInstance(getContext()).unregisterForInAppMessages(getActivity());
 
         if (getActivity() != null) {
             getActivity().unregisterReceiver(mReceiver);
@@ -101,8 +101,11 @@ public class BlueshiftInboxFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bsft_inbox_fragment, container, false);
 
-        if (view instanceof RecyclerView) {
-            RecyclerView recyclerView = (RecyclerView) view;
+        if (view instanceof SwipeRefreshLayout) {
+            mSwipeRefreshLayout = (SwipeRefreshLayout) view;
+            mSwipeRefreshLayout.setOnRefreshListener(() -> BlueshiftInboxSyncManager.syncMessages(getContext()));
+
+            RecyclerView recyclerView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_rv);
 
             mInboxAdapter = new BlueshiftInboxAdapter(mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
 
@@ -129,7 +132,8 @@ public class BlueshiftInboxFragment extends Fragment {
                 List<BlueshiftInboxMessage> messages = mInboxStore.getMessages();
 
                 BlueshiftExecutor.getInstance().runOnMainThread(() -> {
-                    mInboxAdapter.setMessages(messages);
+                    if (mInboxAdapter != null) mInboxAdapter.setMessages(messages);
+                    if (mSwipeRefreshLayout != null) mSwipeRefreshLayout.setRefreshing(false);
                 });
             });
         }

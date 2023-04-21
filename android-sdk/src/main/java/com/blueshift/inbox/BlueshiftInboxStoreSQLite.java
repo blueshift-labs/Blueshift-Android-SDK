@@ -354,15 +354,21 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
-                String idCsv = stringListToCsv(idsToKeep);
-                if (idCsv.isEmpty()) {
+                if (idsToKeep == null || idsToKeep.isEmpty()) {
                     // delete ALL
-                    db.delete(getTableName(), null, null);
+                    int count = db.delete(getTableName(), null, null);
+                    BlueshiftLogger.d(TAG, count + " messages deleted. (All messages in the db)");
                 } else {
                     // delete obsolete messages
-                    int count = db.delete(getTableName(), COL_MESSAGE_UUID + " NOT IN (?)", new String[]{idCsv});
+                    int count = db.delete(
+                            getTableName(),
+                            COL_MESSAGE_UUID + " NOT IN (" + questionMarkCsv(idsToKeep.size()) + ")",
+                            idsToKeep.toArray(new String[0])
+                    );
+
                     BlueshiftLogger.d(TAG, count + " messages deleted.");
                 }
+
                 db.close();
             }
         }
@@ -406,14 +412,19 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
-                String idCsv = stringListToCsv(ids);
-                if (!idCsv.isEmpty()) {
+                if (!ids.isEmpty()) {
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(COL_STATUS, status);
 
-                    int count = db.update(getTableName(), contentValues, COL_MESSAGE_UUID + " IN (?)", new String[]{idCsv});
+                    int count = db.update(
+                            getTableName(),
+                            contentValues, COL_MESSAGE_UUID + " IN (" + questionMarkCsv(ids.size()) + ")",
+                            ids.toArray(new String[0])
+                    );
+
                     BlueshiftLogger.d(TAG, count + " messages updated with status '" + status + "'");
                 }
+
                 db.close();
             }
         }
@@ -440,21 +451,17 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         }
     }
 
-    private String stringListToCsv(List<String> values) {
-        StringBuilder csvBuilder = new StringBuilder();
-
-        boolean first = true;
-        for (String value : values) {
-            if (first) {
-                first = false;
-            } else {
-                csvBuilder.append(",");
+    private String questionMarkCsv(int count) {
+        StringBuilder qnMarkBuilder = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                qnMarkBuilder.append(",");
             }
 
-            csvBuilder.append("'").append(value).append("'");
+            qnMarkBuilder.append("?");
         }
 
-        return csvBuilder.toString();
+        return qnMarkBuilder.toString();
     }
 
     /**
