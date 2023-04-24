@@ -31,6 +31,7 @@ import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
+import com.blueshift.inbox.BlueshiftInboxFragment;
 import com.blueshift.inbox.BlueshiftInboxMessage;
 import com.blueshift.inbox.BlueshiftInboxStoreSQLite;
 import com.blueshift.inbox.BlueshiftInboxSyncManager;
@@ -440,7 +441,11 @@ public class InAppManager {
 
                     input.setOpenedBy(InAppMessage.OpenedBy.prefetch);
 
-                    displayInAppMessage(input);
+                    if (BlueshiftInboxFragment.INBOX_SCREEN_NAME.equals(displayConfig.screenName)) {
+                        BlueshiftLogger.w(LOG_TAG, "Prefetch in-app messages are not eligible to be displayed inside inbox screen.");
+                    } else {
+                        displayInAppMessage(input);
+                    }
                 });
             } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);

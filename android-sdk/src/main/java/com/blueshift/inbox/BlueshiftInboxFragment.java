@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class BlueshiftInboxFragment extends Fragment {
+    public static final String INBOX_SCREEN_NAME = "blueshift_inbox";
+
     @LayoutRes
     private int mInboxListItemView = R.layout.bsft_inbox_list_item;
     private BlueshiftInboxComparator mInboxComparator = new DefaultInboxComparator();
@@ -74,6 +76,8 @@ public class BlueshiftInboxFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
+        Blueshift.getInstance(getContext()).registerForInAppMessages(getActivity(), INBOX_SCREEN_NAME);
+
         if (getActivity() != null) {
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(BlueshiftConstants.INBOX_SYNC_COMPLETE);
@@ -90,6 +94,8 @@ public class BlueshiftInboxFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
+
+        Blueshift.getInstance(getContext()).unregisterForInAppMessages(getActivity());
 
         if (getActivity() != null) {
             getActivity().unregisterReceiver(mReceiver);
