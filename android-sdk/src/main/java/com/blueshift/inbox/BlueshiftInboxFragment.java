@@ -53,7 +53,7 @@ public class BlueshiftInboxFragment extends Fragment {
         }
     };
 
-    BlueshiftInboxFragment() {
+    public BlueshiftInboxFragment() {
     }
 
     public static BlueshiftInboxFragment newInstance() {

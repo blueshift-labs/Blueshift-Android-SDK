@@ -16,19 +16,19 @@ import java.util.Locale;
 
 public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
     private long id; // ID for the local database
-    String accountId;
-    String userId;
-    String messageId;
-    Date createdAt;
-    Date expiresAt;
-    Date deletedAt;
-    String displayOn;
-    String trigger;
-    String messageType;
-    Scope scope;
-    Status status;
-    JSONObject data;
-    JSONObject campaignAttr;
+    public String accountId;
+    public String userId;
+    public String messageId;
+    public Date createdAt;
+    public Date expiresAt;
+    public Date deletedAt;
+    public String displayOn;
+    public String trigger;
+    public String messageType;
+    public Scope scope;
+    public Status status;
+    public JSONObject data;
+    public JSONObject campaignAttr;
 
     BlueshiftInboxMessage() {
     }
@@ -77,7 +77,7 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
         this.id = id;
     }
 
-    enum Status {
+    public enum Status {
         READ, UNREAD, UNKNOWN;
 
         @NonNull
