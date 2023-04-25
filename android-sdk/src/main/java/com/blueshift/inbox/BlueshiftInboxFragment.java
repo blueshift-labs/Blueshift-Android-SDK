@@ -228,7 +228,7 @@ public class BlueshiftInboxFragment extends Fragment {
                     // todo: fire click tracking pixel for inbox
                     BlueshiftExecutor.getInstance().runOnMainThread(() -> {
                         if (mInboxAdapter != null) {
-                            mInboxAdapter.markMessageAsRead(index);
+                            mInboxAdapter.updateMessageInDataSetAsRead(index);
                         }
                     });
                 }
@@ -237,6 +237,9 @@ public class BlueshiftInboxFragment extends Fragment {
 
         @Override
         public void onMessageDelete(BlueshiftInboxMessage message, int index) {
+            // remove item from the list
+            if (mInboxAdapter != null) mInboxAdapter.removeMessageFromDataSet(index);
+
             BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
                 List<String> ids = new ArrayList<>();
                 ids.add(message.messageId);
@@ -246,16 +249,12 @@ public class BlueshiftInboxFragment extends Fragment {
                     if (mInboxStore != null) {
                         mInboxStore.deleteMessage(message);
                     }
-
-                    // todo: fire delete tracking pixel
-                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
-                        if (mInboxAdapter != null) {
-                            mInboxAdapter.markAsDeleted(index);
-                        }
-                    });
                 } else {
-                    Toast.makeText(getContext(), "Could not delete the message!", Toast.LENGTH_SHORT).show();
-                    refreshInboxList();
+                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                        Toast.makeText(getContext(), "Could not delete the message!", Toast.LENGTH_SHORT).show();
+                        // put the message object back
+                        if (mInboxAdapter != null) mInboxAdapter.insertMessageToDataSet(message, index);
+                    });
                 }
             });
         }

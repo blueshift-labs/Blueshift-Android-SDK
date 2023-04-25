@@ -33,7 +33,7 @@ public class BlueshiftInboxTouchHelper extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-        mAdapter.removeMessage(viewHolder.getAbsoluteAdapterPosition());
+        mAdapter.onSwipeToRemove(viewHolder.getAbsoluteAdapterPosition());
     }
 
     @Override

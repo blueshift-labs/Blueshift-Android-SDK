@@ -64,20 +64,23 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         diffResult.dispatchUpdatesTo(this);
     }
 
-    void removeMessage(int index) {
-        if (mListener != null) mListener.onMessageDelete(mDataSet.get(index).message, index);
-    }
-
-    void markMessageAsRead(int index) {
+    void updateMessageInDataSetAsRead(int index) {
         mDataSet.get(index).status = BlueshiftInboxMessage.Status.READ;
-
         notifyItemChanged(index);
     }
 
-    void markAsDeleted(int index) {
+    void removeMessageFromDataSet(int index) {
         mDataSet.remove(index);
-
         notifyItemRemoved(index);
+    }
+
+    void insertMessageToDataSet(BlueshiftInboxMessage message, int index) {
+        mDataSet.add(index, new InboxItem(message));
+        notifyItemInserted(index);
+    }
+
+    void onSwipeToRemove(int index) {
+        if (mListener != null) mListener.onMessageDelete(mDataSet.get(index).message, index);
     }
 
     @Override
