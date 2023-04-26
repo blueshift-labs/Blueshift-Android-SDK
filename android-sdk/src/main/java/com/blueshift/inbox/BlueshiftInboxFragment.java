@@ -47,6 +47,7 @@ public class BlueshiftInboxFragment extends Fragment {
     private final BlueshiftInboxAdapter.EventListener mAdapterEventListener = new AdapterEventListener();
     private BlueshiftInboxAdapter mInboxAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private BlueshiftInboxEventListener mInboxEventListener;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -211,6 +212,19 @@ public class BlueshiftInboxFragment extends Fragment {
         mItemDecoration = itemDecoration;
     }
 
+    /**
+     * Use this method to provide a callback listener for events such as, <br/>
+     * - inbox message is clicked <br/>
+     * - inbox message is successfully deleted <br/>
+     * Note: The callbacks will run in the main/UI thread.
+     *
+     * @param listener - valid {@link BlueshiftInboxEventListener} instance.
+     */
+    @SuppressWarnings("unused")
+    public void setInboxEventListener(@NonNull BlueshiftInboxEventListener listener) {
+        mInboxEventListener = listener;
+    }
+
     private class AdapterEventListener implements BlueshiftInboxAdapter.EventListener {
         @Override
         public void onMessageClick(BlueshiftInboxMessage message, int index) {
@@ -225,10 +239,15 @@ public class BlueshiftInboxFragment extends Fragment {
                         mInboxStore.updateMessage(message);
                     }
 
-                    // todo: fire click tracking pixel for inbox
                     BlueshiftExecutor.getInstance().runOnMainThread(() -> {
                         if (mInboxAdapter != null) {
                             mInboxAdapter.updateMessageInDataSetAsRead(index);
+                        }
+                    });
+
+                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                        if (mInboxEventListener != null) {
+                            mInboxEventListener.onMessageClick(message);
                         }
                     });
                 }
@@ -249,11 +268,24 @@ public class BlueshiftInboxFragment extends Fragment {
                     if (mInboxStore != null) {
                         mInboxStore.deleteMessage(message);
                     }
+
+                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                        if (mInboxEventListener != null) {
+                            mInboxEventListener.onMessageDelete(message);
+                        }
+                    });
                 } else {
                     BlueshiftExecutor.getInstance().runOnMainThread(() -> {
-                        Toast.makeText(getContext(), "Could not delete the message!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(
+                                getContext(),
+                                R.string.bsft_inbox_delete_failure_message,
+                                Toast.LENGTH_SHORT
+                        ).show();
+
                         // put the message object back
-                        if (mInboxAdapter != null) mInboxAdapter.insertMessageToDataSet(message, index);
+                        if (mInboxAdapter != null) {
+                            mInboxAdapter.insertMessageToDataSet(message, index);
+                        }
                     });
                 }
             });

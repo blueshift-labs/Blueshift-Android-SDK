@@ -20,4 +20,5 @@
     <string name="bsft_inbox_icon">Inbox icon</string>
     <string name="bsft_inbox_title">Inbox</string>
     <string name="bsft_inbox_refresh">Refresh</string>
+    <string name="bsft_inbox_delete_failure_message">Delete failed. Please check your internet connection.</string>
 </resources>
