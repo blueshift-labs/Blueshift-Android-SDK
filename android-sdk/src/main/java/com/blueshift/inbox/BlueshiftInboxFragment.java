@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.LayoutRes;
@@ -48,6 +49,8 @@ public class BlueshiftInboxFragment extends Fragment {
     private BlueshiftInboxAdapter mInboxAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private BlueshiftInboxEventListener mInboxEventListener;
+    private String mEmptyMsgText = "";
+    private TextView mEmptyMsgTextView;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -111,8 +114,13 @@ public class BlueshiftInboxFragment extends Fragment {
         if (view instanceof SwipeRefreshLayout) {
             mSwipeRefreshLayout = (SwipeRefreshLayout) view;
             mSwipeRefreshLayout.setOnRefreshListener(() -> BlueshiftInboxSyncManager.syncMessages(getContext()));
+            mSwipeRefreshLayout.post(() -> mSwipeRefreshLayout.setRefreshing(true));
 
             RecyclerView recyclerView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_rv);
+            mEmptyMsgTextView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_empty_msg);
+            if (mEmptyMsgTextView != null) {
+                mEmptyMsgTextView.setText(mEmptyMsgText);
+            }
 
             mInboxAdapter = new BlueshiftInboxAdapter(mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
 
@@ -126,8 +134,6 @@ public class BlueshiftInboxFragment extends Fragment {
             recyclerView.setAdapter(mInboxAdapter);
 
             new ItemTouchHelper(new BlueshiftInboxTouchHelper(recyclerView.getContext(), mInboxAdapter)).attachToRecyclerView(recyclerView);
-
-            refreshInboxList();
         }
 
         return view;
@@ -139,8 +145,17 @@ public class BlueshiftInboxFragment extends Fragment {
                 List<BlueshiftInboxMessage> messages = mInboxStore.getMessages();
 
                 BlueshiftExecutor.getInstance().runOnMainThread(() -> {
-                    if (mInboxAdapter != null) mInboxAdapter.setMessages(messages);
-                    if (mSwipeRefreshLayout != null) mSwipeRefreshLayout.setRefreshing(false);
+                    if (mEmptyMsgTextView != null) {
+                        mEmptyMsgTextView.setVisibility(messages.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
+
+                    if (mInboxAdapter != null) {
+                        mInboxAdapter.setMessages(messages);
+                    }
+
+                    if (mSwipeRefreshLayout != null) {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
                 });
             });
         }
@@ -218,11 +233,20 @@ public class BlueshiftInboxFragment extends Fragment {
      * - inbox message is successfully deleted <br/>
      * Note: The callbacks will run in the main/UI thread.
      *
-     * @param listener - valid {@link BlueshiftInboxEventListener} instance.
+     * @param listener Valid {@link BlueshiftInboxEventListener} instance.
      */
     @SuppressWarnings("unused")
     public void setInboxEventListener(@NonNull BlueshiftInboxEventListener listener) {
         mInboxEventListener = listener;
+    }
+
+    /**
+     * Use this method to provide a message to be shown when the inbox list is empty.
+     *
+     * @param emptyInboxMessage Valid String object with appropriate message
+     */
+    public void setEmptyInboxMessage(String emptyInboxMessage) {
+        mEmptyMsgText = emptyInboxMessage;
     }
 
     private class AdapterEventListener implements BlueshiftInboxAdapter.EventListener {
