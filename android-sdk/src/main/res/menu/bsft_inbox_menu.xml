@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/bsft_inbox_menu_refresh"
-        android:icon="@drawable/bsft_inbox_refresh_24"
-        android:title="@string/bsft_inbox_refresh"
-        app:showAsAction="always" />
-</menu>
