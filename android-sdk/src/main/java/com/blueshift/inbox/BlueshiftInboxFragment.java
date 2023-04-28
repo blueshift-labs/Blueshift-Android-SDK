@@ -72,7 +72,7 @@ public class BlueshiftInboxFragment extends Fragment {
         mInboxStore = BlueshiftInboxStoreSQLite.getInstance(getContext());
 
         if (getContext() != null) {
-            BlueshiftInboxSyncManager.syncMessages(getContext());
+            BlueshiftInboxManager.syncMessages(getContext());
         }
     }
 
@@ -113,7 +113,7 @@ public class BlueshiftInboxFragment extends Fragment {
 
         if (view instanceof SwipeRefreshLayout) {
             mSwipeRefreshLayout = (SwipeRefreshLayout) view;
-            mSwipeRefreshLayout.setOnRefreshListener(() -> BlueshiftInboxSyncManager.syncMessages(getContext()));
+            mSwipeRefreshLayout.setOnRefreshListener(() -> BlueshiftInboxManager.syncMessages(getContext()));
             mSwipeRefreshLayout.post(() -> mSwipeRefreshLayout.setRefreshing(true));
 
             RecyclerView recyclerView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_rv);

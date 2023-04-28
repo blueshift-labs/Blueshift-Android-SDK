@@ -12,7 +12,7 @@ import com.blueshift.BlueshiftLogger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlueshiftInboxSyncManager {
+public class BlueshiftInboxManager {
 
     private static final int BATCH_SIZE = 30;
     private static final String TAG = "InboxSyncManager";

@@ -34,7 +34,7 @@ import com.blueshift.R;
 import com.blueshift.inbox.BlueshiftInboxFragment;
 import com.blueshift.inbox.BlueshiftInboxMessage;
 import com.blueshift.inbox.BlueshiftInboxStoreSQLite;
-import com.blueshift.inbox.BlueshiftInboxSyncManager;
+import com.blueshift.inbox.BlueshiftInboxManager;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
@@ -202,7 +202,7 @@ public class InAppManager {
                         @Override
                         public void run() {
                             try {
-                                BlueshiftInboxSyncManager.syncMessages(context);
+                                BlueshiftInboxManager.syncMessages(context);
 
                                 String apiKey = BlueshiftUtils.getApiKey(context);
                                 JSONObject requestBody = generateInAppMessageAPIRequestPayload(context);
