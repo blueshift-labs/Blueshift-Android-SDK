@@ -39,7 +39,7 @@ public class BlueshiftInboxActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.bsft_inbox_menu_refresh) {
-            BlueshiftInboxManager.syncMessages(this);
+            BlueshiftInboxManager.syncMessages(this, null);
             return true;
         }
 

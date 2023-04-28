@@ -350,17 +350,18 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
      *                  The rest of the messages will be deleted.
      */
     @WorkerThread
-    public void deleteMessagesExcept(List<String> idsToKeep) {
+    public int deleteMessagesExcept(List<String> idsToKeep) {
         synchronized (_LOCK) {
+            int count = 0;
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
                 if (idsToKeep == null || idsToKeep.isEmpty()) {
                     // delete ALL
-                    int count = db.delete(getTableName(), null, null);
+                    count = db.delete(getTableName(), null, null);
                     BlueshiftLogger.d(TAG, count + " messages deleted. (All messages in the db)");
                 } else {
                     // delete obsolete messages
-                    int count = db.delete(
+                    count = db.delete(
                             getTableName(),
                             COL_MESSAGE_UUID + " NOT IN (" + questionMarkCsv(idsToKeep.size()) + ")",
                             idsToKeep.toArray(new String[0])
@@ -371,6 +372,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
                 db.close();
             }
+            return count;
         }
     }
 
@@ -408,15 +410,16 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
      * @param status status value (read, unread)
      */
     @WorkerThread
-    public void updateStatus(@NonNull List<String> ids, @NonNull String status) {
+    public int updateStatus(@NonNull List<String> ids, @NonNull String status) {
         synchronized (_LOCK) {
+            int count = 0;
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
                 if (!ids.isEmpty()) {
                     ContentValues contentValues = new ContentValues();
                     contentValues.put(COL_STATUS, status);
 
-                    int count = db.update(
+                    db.update(
                             getTableName(),
                             contentValues, COL_MESSAGE_UUID + " IN (" + questionMarkCsv(ids.size()) + ")",
                             ids.toArray(new String[0])
@@ -427,6 +430,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
                 db.close();
             }
+            return count;
         }
     }
 

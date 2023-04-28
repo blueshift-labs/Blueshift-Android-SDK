@@ -17,13 +17,67 @@ public class BlueshiftInboxManager {
     private static final int BATCH_SIZE = 30;
     private static final String TAG = "InboxSyncManager";
 
-    public static void syncMessages(@NonNull final Context context) {
+    public static void getMessages(@NonNull Context context, BlueshiftInboxCallback<List<BlueshiftInboxMessage>> callback) {
+        BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+            List<BlueshiftInboxMessage> messages = BlueshiftInboxStoreSQLite.getInstance(context).getInboxMessages();
+
+            if (callback != null) {
+                BlueshiftExecutor.getInstance().runOnMainThread(() -> callback.onComplete(messages));
+            }
+        });
+    }
+
+    public static void deleteMessage(@NonNull Context context, BlueshiftInboxMessage message, BlueshiftInboxCallback<Boolean> callback) {
+        BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+            BlueshiftInboxStoreSQLite.getInstance(context).deleteMessage(message);
+
+            if (callback != null) {
+                BlueshiftExecutor.getInstance().runOnMainThread(() -> callback.onComplete(true));
+            }
+        });
+    }
+
+    public static void insertMessages(@NonNull Context context, List<BlueshiftInboxMessage> messages, BlueshiftInboxCallback<Boolean> callback) {
+        BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+            BlueshiftInboxStoreSQLite.getInstance(context).insertOrReplace(messages);
+
+            if (callback != null) {
+                BlueshiftExecutor.getInstance().runOnMainThread(() -> callback.onComplete(true));
+            }
+        });
+    }
+
+    public static void deleteAllMessages(@NonNull Context context, BlueshiftInboxCallback<Boolean> callback) {
+        BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+            BlueshiftInboxStoreSQLite.getInstance(context).deleteAllMessages();
+
+            if (callback != null) {
+                BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                    callback.onComplete(true);
+                });
+            }
+        });
+    }
+
+    public static void getUnreadMessagesCount(@NonNull Context context, BlueshiftInboxCallback<Integer> callback) {
+        BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+            int count = BlueshiftInboxStoreSQLite.getInstance(context).getUnreadMessageCount();
+
+            if (callback != null) {
+                BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                    callback.onComplete(count);
+                });
+            }
+        });
+    }
+
+    public static void syncMessages(@NonNull Context context, BlueshiftInboxCallback<Boolean> callback) {
         BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
             // fetch status from api
             List<BlueshiftInboxMessageStatus> statuses = BlueshiftInboxApiManager.getMessageStatuses(context);
             if (statuses == null) {
                 // NULL indicates API error or internet unavailability.
-                notifySyncComplete(context);
+                invokeSyncComplete(context, false, callback);
                 return;
             }
 
@@ -43,15 +97,18 @@ public class BlueshiftInboxManager {
             List<String> dbMsgIds = BlueshiftInboxStoreSQLite.getInstance(context).getStoredMessageIds();
             printLogs("dbMsgIds", dbMsgIds);
 
+            boolean dataChanged = false;
+
             if (dbMsgIds.isEmpty()) {
                 // no messages found inside the db. this might be the first time we're using inbox
                 // try to fetch all messages.
                 messagesToFetchFromApi = statusApiAllMsgIds;
             } else {
                 // delete all messages that are not part of the status api result
-                BlueshiftInboxStoreSQLite.getInstance(context).deleteMessagesExcept(statusApiAllMsgIds);
+                int deletedCount = BlueshiftInboxStoreSQLite.getInstance(context).deleteMessagesExcept(statusApiAllMsgIds);
+                if (deletedCount > 0) dataChanged = true;
 
-                // find the messages to fetch by removing the locall messages ids from api response
+                // find the messages to fetch by removing the local messages ids from api response
                 for (String mid : dbMsgIds) {
                     statusApiAllMsgIds.remove(mid);
                 }
@@ -61,7 +118,8 @@ public class BlueshiftInboxManager {
 
             // update local db with read status
             String read = BlueshiftInboxMessage.Status.READ.toString();
-            BlueshiftInboxStoreSQLite.getInstance(context).updateStatus(statusApiReadMsgIds, read);
+            int updateCount = BlueshiftInboxStoreSQLite.getInstance(context).updateStatus(statusApiReadMsgIds, read);
+            if (updateCount > 0) dataChanged = true;
 
             printLogs("messagesToFetchFromApi", messagesToFetchFromApi);
 
@@ -78,11 +136,23 @@ public class BlueshiftInboxManager {
                     start += (BATCH_SIZE + 1);
                 }
 
-                notifyDataChanged(context);
+                dataChanged = true;
             }
 
-            notifySyncComplete(context);
+            invokeSyncComplete(context, dataChanged, callback);
         });
+    }
+
+    private static void invokeSyncComplete(Context context, boolean dataChanged, BlueshiftInboxCallback<Boolean> callback) {
+        if (context != null) {
+            Intent broadcastIntent = new Intent(BlueshiftConstants.INBOX_SYNC_COMPLETE);
+            broadcastIntent.putExtra(BlueshiftConstants.INBOX_DATA_CHANGED, dataChanged);
+            context.sendBroadcast(broadcastIntent);
+
+            if (callback != null) {
+                BlueshiftExecutor.getInstance().runOnMainThread(() -> callback.onComplete(dataChanged));
+            }
+        }
     }
 
     private static void printLogs(String name, List<String> values) {
@@ -99,19 +169,5 @@ public class BlueshiftInboxManager {
         }
 
         BlueshiftLogger.d(TAG, name + " : [" + builder + "]");
-    }
-
-
-    private static void sendBroadcast(Context context, String action) {
-        Intent intent = new Intent(action);
-        context.sendBroadcast(intent);
-    }
-
-    public static void notifySyncComplete(Context context) {
-        sendBroadcast(context, BlueshiftConstants.INBOX_SYNC_COMPLETE);
-    }
-
-    public static void notifyDataChanged(Context context) {
-        sendBroadcast(context, BlueshiftConstants.INBOX_DATA_CHANGED);
     }
 }
