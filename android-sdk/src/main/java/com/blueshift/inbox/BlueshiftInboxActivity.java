@@ -16,6 +16,7 @@ public class BlueshiftInboxActivity extends AppCompatActivity {
      * Launches the mobile inbox activity offered by the Blueshift SDK
      *
      * @param context Valid {@link Context} object.
+     * @noinspection unused
      */
     public static void launch(Context context) {
         if (context != null) {
