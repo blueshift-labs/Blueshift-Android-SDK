@@ -108,7 +108,6 @@ public class BlueshiftInboxFragment extends Fragment {
         if (view instanceof SwipeRefreshLayout) {
             mSwipeRefreshLayout = (SwipeRefreshLayout) view;
             mSwipeRefreshLayout.setOnRefreshListener(() -> BlueshiftInboxManager.syncMessages(view.getContext(), dataChanged -> refreshInboxList()));
-            mSwipeRefreshLayout.post(() -> mSwipeRefreshLayout.setRefreshing(true));
 
             RecyclerView recyclerView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_rv);
             mEmptyMsgTextView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_empty_msg);
@@ -128,9 +127,25 @@ public class BlueshiftInboxFragment extends Fragment {
             recyclerView.setAdapter(mInboxAdapter);
 
             new ItemTouchHelper(new BlueshiftInboxTouchHelper(recyclerView.getContext(), mInboxAdapter)).attachToRecyclerView(recyclerView);
+
+            syncMessages(view.getContext());
         }
 
         return view;
+    }
+
+    private void syncMessages(Context context) {
+        if (mSwipeRefreshLayout != null) {
+            mSwipeRefreshLayout.post(() -> mSwipeRefreshLayout.setRefreshing(true));
+        }
+
+        BlueshiftInboxManager.syncMessages(context, dataChanged -> refreshInboxList());
+    }
+
+    private void stopRefreshing() {
+        if (mSwipeRefreshLayout != null && mSwipeRefreshLayout.isRefreshing()) {
+            mSwipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     public void refreshInboxList() {
@@ -147,11 +162,11 @@ public class BlueshiftInboxFragment extends Fragment {
                         mInboxAdapter.setMessages(messages);
                     }
 
-                    if (mSwipeRefreshLayout != null) {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
+                    stopRefreshing();
                 });
             });
+        } else {
+            stopRefreshing();
         }
     }
 
@@ -239,6 +254,7 @@ public class BlueshiftInboxFragment extends Fragment {
      *
      * @param emptyInboxMessage Valid String object with appropriate message
      */
+    @SuppressWarnings("unused")
     public void setEmptyInboxMessage(String emptyInboxMessage) {
         mEmptyMsgText = emptyInboxMessage;
     }
