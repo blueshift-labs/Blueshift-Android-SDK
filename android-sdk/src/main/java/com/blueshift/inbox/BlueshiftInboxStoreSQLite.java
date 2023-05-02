@@ -307,6 +307,7 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
         return inAppMessage;
     }
 
+    @WorkerThread
     public List<BlueshiftInboxMessage> getInboxMessages() {
         List<BlueshiftInboxMessage> messageList = new ArrayList<>();
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
