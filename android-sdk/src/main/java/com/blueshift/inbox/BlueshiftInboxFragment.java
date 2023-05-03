@@ -62,14 +62,44 @@ public class BlueshiftInboxFragment extends Fragment {
     public BlueshiftInboxFragment() {
     }
 
+    /**
+     * Get an instance of {@link BlueshiftInboxFragment} with default configurations.
+     *
+     * @return Instance of {@link BlueshiftInboxFragment}
+     * @noinspection unused
+     */
     public static BlueshiftInboxFragment newInstance() {
         return new BlueshiftInboxFragment();
+    }
+
+    /**
+     * Get an instance of {@link BlueshiftInboxFragment} with custom layout for inbox list item
+     * and a custom message to show when inbox is empty.
+     *
+     * @param inboxListItemLayout Layout resource id of the custom layout
+     * @param emptyInboxMessage   Message to show when inbox is empty
+     * @return Instance of {@link BlueshiftInboxFragment}
+     */
+    public static BlueshiftInboxFragment newInstance(@LayoutRes int inboxListItemLayout, @NonNull String emptyInboxMessage) {
+        BlueshiftInboxFragment fragment = new BlueshiftInboxFragment();
+        Bundle args = new Bundle();
+        args.putInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, inboxListItemLayout);
+        args.putString(BlueshiftConstants.INBOX_EMPTY_MESSAGE, emptyInboxMessage);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mInboxStore = BlueshiftInboxStoreSQLite.getInstance(getContext());
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            int resId = bundle.getInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, -1);
+            if (resId != -1) mInboxListItemView = resId;
+
+            mEmptyMsgText = bundle.getString(BlueshiftConstants.INBOX_EMPTY_MESSAGE, "");
+        }
     }
 
     @Override
@@ -310,11 +340,7 @@ public class BlueshiftInboxFragment extends Fragment {
                     });
                 } else {
                     BlueshiftExecutor.getInstance().runOnMainThread(() -> {
-                        Toast.makeText(
-                                getContext(),
-                                R.string.bsft_inbox_delete_failure_message,
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        Toast.makeText(getContext(), R.string.bsft_inbox_delete_failure_message, Toast.LENGTH_SHORT).show();
 
                         // put the message object back
                         if (mInboxAdapter != null) {
