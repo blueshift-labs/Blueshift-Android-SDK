@@ -351,6 +351,7 @@ public class Configuration {
         // Inbox needs inapp to be enabled to function properly
         if (inboxEnabled) {
             this.inAppEnabled = true;
+            this.inAppEnableJavascript = true;
         }
     }
 

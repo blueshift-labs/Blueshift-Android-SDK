@@ -1,7 +1,6 @@
 package com.blueshift.inbox;
 
 import android.content.Context;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
@@ -166,16 +165,10 @@ public class BlueshiftInboxApiManager {
         return false;
     }
 
-    private static List<BlueshiftInboxMessage> mockAPICall(Context context) {
+    @WorkerThread
+    public static List<BlueshiftInboxMessage> getNewMessagesLegacy(Context context) {
         String apiKey = BlueshiftUtils.getApiKey(context);
         JSONObject requestBody = InAppManager.generateInAppMessageAPIRequestPayload(context);
-        try {
-            if (requestBody != null) {
-                requestBody.putOpt(BlueshiftConstants.KEY_LAST_TIMESTAMP, 0);
-            }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
 
         BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
                 .setUrl(BlueshiftConstants.IN_APP_API_URL(context))
@@ -185,14 +178,11 @@ public class BlueshiftInboxApiManager {
 
         BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(builder.build());
         String responseBody = response.getBody();
-        // END
 
         JSONObject finalResponse = transformPayload(responseBody);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            JSONArray content = finalResponse.optJSONArray("content");
-            if (content != null) {
-                return BlueshiftInboxMessage.fromJsonArray(content);
-            }
+        JSONArray content = finalResponse.optJSONArray("content");
+        if (content != null) {
+            return BlueshiftInboxMessage.fromJsonArray(content);
         }
 
         return new ArrayList<>();
@@ -210,57 +200,23 @@ public class BlueshiftInboxApiManager {
                 JSONArray newContents = new JSONArray();
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject newContent = new JSONObject();
-                    JSONObject campaignAttr = new JSONObject();
-
                     JSONObject content = jsonArray.optJSONObject(i);
                     if (content != null) {
                         JSONObject data = content.optJSONObject("data");
                         if (data != null) {
-                            campaignAttr.putOpt("uid", data.optString("bsft_user_uuid"));
-                            campaignAttr.putOpt("mid", data.optString("bsft_message_uuid"));
-                            campaignAttr.putOpt("eid", data.optString("bsft_experiment_uuid"));
-                            campaignAttr.putOpt("txnid", data.optString("bsft_transaction_uuid"));
-
                             newContent.putOpt("created_at", data.optString("timestamp"));
                             newContent.putOpt("message_uuid", data.optString("bsft_message_uuid"));
                             newContent.putOpt("user_uuid", data.optString("bsft_user_uuid"));
                             newContent.putOpt("account_uuid", data.optString("bsft_user_uuid"));
                             newContent.putOpt("status", "unread");
 
-                            JSONObject inbox = new JSONObject();
                             JSONObject inapp = data.optJSONObject("inapp");
                             if (inapp != null) {
-                                inapp.putOpt("scope", BlueshiftInboxMessage.Scope.INBOX_AND_INAPP.toString());
-
-                                JSONObject inappContent = inapp.optJSONObject("content");
-                                if (inappContent != null) {
-                                    if (inappContent.has("html")) {
-                                        inbox.put("title", "HTML");
-                                        inbox.put("details", "HTML in-app message");
-                                        inbox.put("icon", "https://picsum.photos/id/" + (60 + i) + "/100/100");
-                                    } else {
-                                        String title = inappContent.optString("title");
-                                        if (title.isEmpty()) {
-                                            title = "SLIDE IN";
-                                        }
-                                        inbox.putOpt("title", title);
-
-                                        inbox.putOpt("details", inappContent.optString("message"));
-
-                                        String icon = inappContent.optString("icon_image");
-                                        if (icon.isEmpty()) {
-                                            icon = "https://picsum.photos/id/" + (60 + i) + "/100/100";
-                                        }
-                                        inbox.putOpt("icon", icon);
-                                    }
-                                }
+                                inapp.putOpt("scope", BlueshiftInboxMessage.Scope.INAPP_ONLY.toString());
+                                data.putOpt("inapp", inapp);
                             }
 
-                            data.putOpt("inbox", inbox);
-
-                            newContent.putOpt("campaign_attr", campaignAttr);
                             newContent.putOpt("data", data);
-                            newContent.putOpt("scope", "inapp+inbox");
 
                             newContents.put(newContent);
                         }

@@ -24,13 +24,11 @@ import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
-import com.blueshift.BlueshiftHttpManager;
-import com.blueshift.BlueshiftHttpRequest;
-import com.blueshift.BlueshiftHttpResponse;
 import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
+import com.blueshift.inbox.BlueshiftInboxApiManager;
 import com.blueshift.inbox.BlueshiftInboxFragment;
 import com.blueshift.inbox.BlueshiftInboxManager;
 import com.blueshift.inbox.BlueshiftInboxMessage;
@@ -44,6 +42,8 @@ import com.blueshift.util.InAppUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -195,71 +195,38 @@ public class InAppManager {
     }
 
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
-        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
-        if (isEnabled) {
-            BlueshiftExecutor.getInstance().runOnNetworkThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                BlueshiftInboxManager.syncMessages(context, result -> {
-                                    // this block runs on main thread
-                                });
-
-                                String apiKey = BlueshiftUtils.getApiKey(context);
-                                JSONObject requestBody = generateInAppMessageAPIRequestPayload(context);
-
-                                if (apiKey != null && requestBody != null) {
-                                    BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
-                                            .setUrl(BlueshiftConstants.IN_APP_API_URL(context))
-                                            .setMethod(BlueshiftHttpRequest.Method.POST)
-                                            .addBasicAuth(apiKey, "")
-                                            .setReqBodyJson(requestBody);
-
-                                    BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(builder.build());
-                                    int statusCode = response.getCode();
-                                    String responseBody = response.getBody();
-
-                                    if (statusCode == 200) {
-                                        handleInAppMessageAPIResponse(context, responseBody);
-                                        invokeApiSuccessCallback(callback);
-                                    } else {
-                                        invokeApiFailureCallback(callback, statusCode, responseBody);
-                                    }
-                                } else {
-                                    invokeApiFailureCallback(callback, 0, "Could not make the API call.");
-                                }
-                            } catch (Exception e) {
-                                BlueshiftLogger.e(LOG_TAG, e);
-                                invokeApiFailureCallback(callback, 0, e.getMessage());
-                            }
-                        }
+        if (BlueshiftUtils.isOptedInForInboxMessages(context)) {
+            // Opted in for inbox messages.
+            BlueshiftInboxManager.syncMessages(context, result -> {
+                // this block runs on main thread
+                if (callback != null) {
+                    if (result) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onFailure(0, "Could not sync messages. Please check internet connection.");
                     }
-            );
+                }
+            });
         } else {
-            BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not fetch in-app messages from API.");
-        }
-    }
+            boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
+            if (isEnabled) {
+                BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+                    List<BlueshiftInboxMessage> messages = BlueshiftInboxApiManager.getNewMessagesLegacy(context);
+                    if (!messages.isEmpty()) {
+                        BlueshiftInboxStoreSQLite.getInstance(context).insertOrReplace(messages);
+                    }
 
-    private static void invokeApiSuccessCallback(final InAppApiCallback callback) {
-        if (callback != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onSuccess();
+                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                        if (callback != null) {
+                            callback.onSuccess();
+                        }
+                    });
+                });
+            } else {
+                if (callback != null) {
+                    callback.onFailure(0, "Neither inbox nor inapp is enabled.");
                 }
-            });
-        }
-    }
-
-    private static void invokeApiFailureCallback(final InAppApiCallback callback, final int code, final String message) {
-        if (callback != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onFailure(code, message);
-                }
-            });
+            }
         }
     }
 

@@ -157,11 +157,23 @@ public class BlueshiftUtils {
         if (config != null) {
             isEnabled = config.isInAppEnabled();
             if (!isEnabled) {
-                BlueshiftLogger.e(LOG_TAG, "In-App is not enabled. Please call setInAppEnabled(true) " +
-                        "to enable it during SDK initialization.");
+                BlueshiftLogger.w(LOG_TAG, "In-App is not enabled. Please call setInAppEnabled(true) to enable it during SDK initialization.");
             }
         }
 
+        return isEnabled;
+    }
+
+    public static boolean isInboxEnabled(Context context) {
+        boolean isEnabled = false;
+
+        Configuration config = getConfiguration(context);
+        if (config != null) {
+            isEnabled = config.isInboxEnabled();
+            if (!isEnabled) {
+                BlueshiftLogger.w(LOG_TAG, "Inbox is not enabled. Please call setInboxEnabled(true) to enable it during SDK initialization.");
+            }
+        }
         return isEnabled;
     }
 
@@ -200,6 +212,14 @@ public class BlueshiftUtils {
             return configVal && appPreferenceVal;
         } catch (Exception e) {
             return true; // enabled by default
+        }
+    }
+
+    public static boolean isOptedInForInboxMessages(Context context) {
+        try {
+            return BlueshiftUtils.isInboxEnabled(context);
+        } catch (Exception e) {
+            return true;
         }
     }
 
