@@ -1,8 +1,8 @@
 *.gpg
 *.iml
-.gradle
 /local.properties
-/.idea
 .DS_Store
-/build
 /captures
+.idea
+.gradle
+build
