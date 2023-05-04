@@ -190,4 +190,8 @@ public class BlueshiftConstants {
     public static String BTN_(int index) {
         return "btn_" + index;
     }
+
+    public static final String INBOX_ACTIVITY_TITLE = "bsft_inbox_activity_title";
+    public static final String INBOX_ITEM_LAYOUT = "bsft_inbox_item_layout";
+    public static final String INBOX_EMPTY_MESSAGE = "bsft_inbox_empty_message";
 }

@@ -1,5 +1,6 @@
 package com.blueshift.inbox;
 
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -117,12 +118,9 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
                     holder.unreadIndicatorImageView.setVisibility(visibility);
                 }
 
-                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if (mListener != null) {
-                            mListener.onMessageClick(inboxItem.message, holder.getAbsoluteAdapterPosition());
-                        }
+                holder.itemView.setOnClickListener(view -> {
+                    if (mListener != null) {
+                        mListener.onMessageClick(inboxItem.message, holder.getAbsoluteAdapterPosition());
                     }
                 });
 
@@ -252,6 +250,42 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         @SuppressWarnings("unused")
         public void setBackgroundColor(@ColorInt int color) {
             itemView.setBackgroundColor(color);
+        }
+
+        /**
+         * Set the typeface of the title text in the list item.
+         *
+         * @param typeface Valid {@link Typeface} object
+         * @noinspection unused
+         */
+        public void setTitleTextViewTypeface(Typeface typeface) {
+            if (titleTextView != null && typeface != null) {
+                titleTextView.setTypeface(typeface);
+            }
+        }
+
+        /**
+         * Set the typeface of the details text in the list item.
+         *
+         * @param typeface Valid {@link Typeface} object
+         * @noinspection unused
+         */
+        public void setDetailsTextViewTypeface(Typeface typeface) {
+            if (detailsTextView != null && typeface != null) {
+                detailsTextView.setTypeface(typeface);
+            }
+        }
+
+        /**
+         * Set the typeface of the date text in the list item.
+         *
+         * @param typeface Valid {@link Typeface} object
+         * @noinspection unused
+         */
+        public void setDateTextViewTypeface(Typeface typeface) {
+            if (dateTextView != null && typeface != null) {
+                dateTextView.setTypeface(typeface);
+            }
         }
     }
 
