@@ -46,6 +46,24 @@ class HomeFragment : Fragment() {
 
             mOpenInboxButton!!.setOnClickListener {
                 val intent = Intent(context, BlueshiftInboxActivity::class.java)
+
+//                intent.putExtra(
+//                    BlueshiftConstants.INBOX_EMPTY_MESSAGE,
+//                    "The inbox is empty!"
+//                )
+//                intent.putExtra(
+//                    BlueshiftConstants.INBOX_ITEM_LAYOUT,
+//                    R.layout.custom_bsft_inbox_list_item
+//                )
+//                intent.putExtra(
+//                    BlueshiftConstants.INBOX_UNREAD_INDICATOR_COLOR,
+//                    Color.MAGENTA
+//                )
+//                intent.putExtra(
+//                    BlueshiftConstants.INBOX_REFRESH_INDICATOR_COLORS,
+//                    intArrayOf(Color.CYAN, Color.BLUE, Color.GREEN)
+//                )
+
                 startActivity(intent)
             }
 

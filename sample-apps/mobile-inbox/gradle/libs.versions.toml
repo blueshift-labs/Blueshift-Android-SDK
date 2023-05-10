@@ -1,5 +1,5 @@
 [versions]
-com-android-application = "8.2.0-alpha01"
+com-android-application = "8.1.0-beta01"
 org-jetbrains-kotlin-android = "1.8.0"
 com-google-gms-google-services = "4.3.15"
 firebase-bom = "31.5.0"
