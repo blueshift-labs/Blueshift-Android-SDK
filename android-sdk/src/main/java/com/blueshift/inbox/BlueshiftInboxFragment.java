@@ -3,8 +3,6 @@ package com.blueshift.inbox;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +10,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,7 +39,14 @@ public class BlueshiftInboxFragment extends Fragment {
     public static final String INBOX_SCREEN_NAME = "blueshift_inbox";
 
     @LayoutRes
-    private int mInboxListItemView = R.layout.bsft_inbox_list_item;
+    private int mInboxListItemLayout = 0;
+    @ColorInt
+    private int mInboxUnreadIndicatorColor = 0;
+    @ColorInt
+    private int[] mInboxRefreshIndicatorColors = new int[0];
+    @NonNull
+    private String mEmptyMsgText = "";
+
     private BlueshiftInboxComparator mInboxComparator = new DefaultInboxComparator();
     private BlueshiftInboxFilter mInboxFilter = new DefaultInboxFilter();
     private BlueshiftInboxDateFormatter mInboxDateFormatter = new DefaultInboxDateFormatter();
@@ -49,7 +57,6 @@ public class BlueshiftInboxFragment extends Fragment {
     private BlueshiftInboxAdapter mInboxAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private BlueshiftInboxEventListener mInboxEventListener;
-    private String mEmptyMsgText = "";
     private TextView mEmptyMsgTextView;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -72,19 +79,13 @@ public class BlueshiftInboxFragment extends Fragment {
         return new BlueshiftInboxFragment();
     }
 
-    /**
-     * Get an instance of {@link BlueshiftInboxFragment} with custom layout for inbox list item
-     * and a custom message to show when inbox is empty.
-     *
-     * @param inboxListItemLayout Layout resource id of the custom layout
-     * @param emptyInboxMessage   Message to show when inbox is empty
-     * @return Instance of {@link BlueshiftInboxFragment}
-     */
-    public static BlueshiftInboxFragment newInstance(@LayoutRes int inboxListItemLayout, @NonNull String emptyInboxMessage) {
+    public static BlueshiftInboxFragment newInstance(@NonNull BlueshiftInboxFragmentOptions options) {
         BlueshiftInboxFragment fragment = new BlueshiftInboxFragment();
         Bundle args = new Bundle();
-        args.putInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, inboxListItemLayout);
-        args.putString(BlueshiftConstants.INBOX_EMPTY_MESSAGE, emptyInboxMessage);
+        args.putInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, options.inboxListItemLayout);
+        args.putInt(BlueshiftConstants.INBOX_UNREAD_INDICATOR_COLOR, options.inboxUnreadIndicatorColor);
+        args.putIntArray(BlueshiftConstants.INBOX_REFRESH_INDICATOR_COLORS, options.inboxRefreshIndicatorColors);
+        args.putString(BlueshiftConstants.INBOX_EMPTY_MESSAGE, options.inboxEmptyMessage);
         fragment.setArguments(args);
         return fragment;
     }
@@ -93,12 +94,24 @@ public class BlueshiftInboxFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mInboxStore = BlueshiftInboxStoreSQLite.getInstance(getContext());
+        //noinspection DataFlowIssue
+        int indicatorColor = ContextCompat.getColor(getActivity(), R.color.bsft_inbox_item_unread_indicator);
+
         Bundle bundle = getArguments();
         if (bundle != null) {
-            int resId = bundle.getInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, -1);
-            if (resId != -1) mInboxListItemView = resId;
-
+            mInboxListItemLayout = bundle.getInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, R.layout.bsft_inbox_list_item);
+            mInboxUnreadIndicatorColor = bundle.getInt(BlueshiftConstants.INBOX_UNREAD_INDICATOR_COLOR, indicatorColor);
+            mInboxRefreshIndicatorColors = bundle.getIntArray(BlueshiftConstants.INBOX_REFRESH_INDICATOR_COLORS);
+            if (mInboxRefreshIndicatorColors == null || mInboxRefreshIndicatorColors.length == 0) {
+                mInboxRefreshIndicatorColors = new int[]{indicatorColor};
+            }
             mEmptyMsgText = bundle.getString(BlueshiftConstants.INBOX_EMPTY_MESSAGE, "");
+        } else {
+            // set default values
+            mInboxListItemLayout = R.layout.bsft_inbox_list_item;
+            mInboxUnreadIndicatorColor = indicatorColor;
+            mInboxRefreshIndicatorColors = new int[]{indicatorColor};
+            mEmptyMsgText = "";
         }
     }
 
@@ -109,13 +122,7 @@ public class BlueshiftInboxFragment extends Fragment {
         Blueshift.getInstance(getContext()).registerForInAppMessages(getActivity(), INBOX_SCREEN_NAME);
 
         if (getActivity() != null) {
-            IntentFilter intentFilter = new IntentFilter(BlueshiftConstants.INBOX_SYNC_COMPLETE);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                getActivity().registerReceiver(mReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
-            } else {
-                getActivity().registerReceiver(mReceiver, intentFilter);
-            }
+            BlueshiftInboxManager.registerForInboxBroadcasts(getActivity(), mReceiver);
         }
     }
 
@@ -138,6 +145,9 @@ public class BlueshiftInboxFragment extends Fragment {
         if (view instanceof SwipeRefreshLayout) {
             mSwipeRefreshLayout = (SwipeRefreshLayout) view;
             mSwipeRefreshLayout.setOnRefreshListener(() -> BlueshiftInboxManager.syncMessages(view.getContext(), dataChanged -> refreshInboxList()));
+            if (mInboxRefreshIndicatorColors != null && mInboxRefreshIndicatorColors.length > 0) {
+                mSwipeRefreshLayout.setColorSchemeColors(mInboxRefreshIndicatorColors);
+            }
 
             RecyclerView recyclerView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_rv);
             mEmptyMsgTextView = mSwipeRefreshLayout.findViewById(R.id.bsft_inbox_empty_msg);
@@ -145,13 +155,15 @@ public class BlueshiftInboxFragment extends Fragment {
                 mEmptyMsgTextView.setText(mEmptyMsgText);
             }
 
-            mInboxAdapter = new BlueshiftInboxAdapter(mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mAdapterEventListener);
+            mInboxAdapter = new BlueshiftInboxAdapter(mInboxFilter, mInboxComparator, mInboxDateFormatter, mInboxAdapterExtension, mInboxUnreadIndicatorColor, mAdapterEventListener);
 
             LinearLayoutManager layoutManager = new LinearLayoutManager(recyclerView.getContext());
             recyclerView.setLayoutManager(layoutManager);
 
             if (mItemDecoration != null) {
                 recyclerView.addItemDecoration(mItemDecoration);
+            } else {
+                recyclerView.addItemDecoration(new DividerItemDecoration(view.getContext(), DividerItemDecoration.VERTICAL));
             }
 
             recyclerView.setAdapter(mInboxAdapter);
@@ -207,7 +219,7 @@ public class BlueshiftInboxFragment extends Fragment {
      */
     @SuppressWarnings("unused")
     public void setInboxListItemView(@LayoutRes int layout) {
-        mInboxListItemView = layout;
+        mInboxListItemLayout = layout;
     }
 
     /**
@@ -331,6 +343,10 @@ public class BlueshiftInboxFragment extends Fragment {
                 if (success) {
                     if (mInboxStore != null) {
                         mInboxStore.deleteMessage(message);
+
+                        if (getActivity() != null) {
+                            BlueshiftInboxManager.notifyMessageDeleted(getActivity(), message.messageId);
+                        }
                     }
 
                     BlueshiftExecutor.getInstance().runOnMainThread(() -> {
@@ -388,7 +404,7 @@ public class BlueshiftInboxFragment extends Fragment {
 
         @Override
         public int getLayoutIdForViewType(int viewType) {
-            return mInboxListItemView;
+            return mInboxListItemLayout;
         }
 
         @Override

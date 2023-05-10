@@ -32,6 +32,7 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
     private final BlueshiftInboxComparator mInboxComparator;
     private final BlueshiftInboxDateFormatter mInboxDateFormatter;
     private final BlueshiftInboxAdapterExtension<Object> mInboxAdapterExtension;
+    private final int mUnreadIndicatorColor;
     private final EventListener mListener;
     private List<InboxItem> mDataSet = new ArrayList<>();
 
@@ -41,11 +42,12 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         void onMessageDelete(BlueshiftInboxMessage message, int index);
     }
 
-    BlueshiftInboxAdapter(@NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @Nullable EventListener eventListener) {
+    BlueshiftInboxAdapter(@NonNull BlueshiftInboxFilter inboxFilter, @NonNull BlueshiftInboxComparator inboxComparator, @NonNull BlueshiftInboxDateFormatter inboxDateFormatter, BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension, @ColorInt int unreadIndicatorColor, @Nullable EventListener eventListener) {
         mInboxFilter = inboxFilter;
         mInboxComparator = inboxComparator;
         mInboxDateFormatter = inboxDateFormatter;
         mInboxAdapterExtension = inboxAdapterExtension;
+        mUnreadIndicatorColor = unreadIndicatorColor;
         mListener = eventListener;
     }
 
@@ -95,6 +97,9 @@ public class BlueshiftInboxAdapter extends RecyclerView.Adapter<BlueshiftInboxAd
         int layout = mInboxAdapterExtension.getLayoutIdForViewType(viewType);
         View view = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
         ViewHolder viewHolder = new ViewHolder(view, mInboxAdapterExtension.onCreateViewHolderExtension(view, viewType));
+        if (mUnreadIndicatorColor != 0) {
+            viewHolder.setUnreadIndicatorColor(mUnreadIndicatorColor);
+        }
         mInboxAdapterExtension.onCreateViewHolder(viewHolder, viewType);
         return viewHolder;
     }

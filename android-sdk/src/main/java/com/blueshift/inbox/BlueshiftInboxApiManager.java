@@ -32,12 +32,7 @@ public class BlueshiftInboxApiManager {
         } else {
             String apiKey = BlueshiftUtils.getApiKey(context);
             if (apiKey != null) {
-                JSONObject body = new JSONObject();
-                try {
-                    body.put("api_key", apiKey);
-                    body.put("device_id", deviceId);
-                } catch (JSONException ignore) {
-                }
+                JSONObject body = InAppManager.generateInAppMessageAPIRequestPayload(context);
                 BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
                         .setUrl(BlueshiftConstants.INBOX_STATUS(context))
                         .addBasicAuth(apiKey, "")
@@ -83,11 +78,11 @@ public class BlueshiftInboxApiManager {
                     jsonArray.put(id);
                 }
 
-                JSONObject body = new JSONObject();
+                JSONObject body = InAppManager.generateInAppMessageAPIRequestPayload(context);
                 try {
-                    body.put("api_key", apiKey);
-                    body.put("device_id", deviceId);
-                    body.put("message_uuids", jsonArray);
+                    if (body != null) {
+                        body.put("message_uuids", jsonArray);
+                    }
                 } catch (JSONException ignore) {
                 }
                 BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()
@@ -133,12 +128,12 @@ public class BlueshiftInboxApiManager {
                     jsonArray.put(id);
                 }
 
-                JSONObject body = new JSONObject();
+                JSONObject body = InAppManager.generateInAppMessageAPIRequestPayload(context);
                 try {
-                    body.put("api_key", apiKey);
-                    body.put("device_id", deviceId);
-                    body.put("action", "delete");
-                    body.put("message_uuids", jsonArray);
+                    if (body != null) {
+                        body.put("action", "delete");
+                        body.put("message_uuids", jsonArray);
+                    }
                 } catch (JSONException ignore) {
                 }
                 BlueshiftHttpRequest request = new BlueshiftHttpRequest.Builder()

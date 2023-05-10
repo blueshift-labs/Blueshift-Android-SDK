@@ -613,6 +613,8 @@ public class InAppManager {
                                 BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
                                 mInApp = inAppMessage;
                                 markAsDisplayed(inAppMessage);
+
+                                BlueshiftInboxManager.notifyMessageRead(mActivity, inAppMessage.getMessageUuid());
                             }
                         } else {
                             BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");

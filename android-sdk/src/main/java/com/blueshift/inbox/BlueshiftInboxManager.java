@@ -1,9 +1,13 @@
 package com.blueshift.inbox;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
@@ -16,7 +20,7 @@ import java.util.List;
 
 public class BlueshiftInboxManager {
 
-    private static final int BATCH_SIZE = 30;
+    private static final int BATCH_SIZE = 10;
     private static final String TAG = "InboxSyncManager";
 
     /**
@@ -56,6 +60,7 @@ public class BlueshiftInboxManager {
             if (status) {
                 BlueshiftInboxStoreSQLite.getInstance(context).deleteMessage(message);
                 BlueshiftLogger.d(TAG, "Deleted the message with id = " + message.messageId);
+                BlueshiftInboxManager.notifyMessageDeleted(context, message.messageId);
             } else {
                 BlueshiftLogger.d(TAG, "Could not delete the message with id = " + message.messageId);
             }
@@ -196,12 +201,12 @@ public class BlueshiftInboxManager {
                     BlueshiftInboxStoreSQLite.getInstance(context).addMessages(messages);
 
                     start += (BATCH_SIZE + 1);
+
+                    invokeSyncComplete(context, true, callback);
                 }
-
-                dataChanged = true;
+            } else {
+                invokeSyncComplete(context, dataChanged, callback);
             }
-
-            invokeSyncComplete(context, dataChanged, callback);
         });
     }
 
@@ -220,11 +225,86 @@ public class BlueshiftInboxManager {
         }
     }
 
+    /**
+     * Helper method to register a given {@link BroadcastReceiver} to listen to the broadcasts sent
+     * by the inbox message events like sync, delete and mark as read.
+     * <p>
+     * Note: This is a context-registered broadcast, please make sure that you are unregistering it
+     * when it is no longer needed.
+     *
+     * @param context  Valid {@link Context} object.
+     * @param receiver Valid {@link BroadcastReceiver} object.
+     */
+    public static void registerForInboxBroadcasts(Context context, BroadcastReceiver receiver) {
+        if (context != null && receiver != null) {
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(BlueshiftConstants.ACTION_INBOX_SYNC_COMPLETE);
+            intentFilter.addAction(BlueshiftConstants.ACTION_INBOX_MESSAGE_READ);
+            intentFilter.addAction(BlueshiftConstants.ACTION_INBOX_MESSAGE_DELETED);
+
+            ContextCompat.registerReceiver(context, receiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+        }
+    }
+
+    /**
+     * Helper method to send a broadcast message when the inbox message sync process is complete.
+     * <p>
+     * Note: This method will not do the inbox message sync
+     *
+     * @param context     Valid {@link Context} object.
+     * @param dataChanged Indicates if the data inside inbox has changed or not.
+     */
+    public static void notifySyncComplete(Context context, boolean dataChanged) {
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(BlueshiftConstants.EXTRA_INBOX_DATA_CHANGED, dataChanged);
+
+        sendBroadcast(context, BlueshiftConstants.ACTION_INBOX_SYNC_COMPLETE, bundle);
+    }
+
+    /**
+     * Helper method to send a broadcast message when the inbox message is marked as read.
+     * <p>
+     * Note: This method will not mark the given message as read.
+     *
+     * @param context   Valid {@link Context} object.
+     * @param messageId Id of the message which was marked as read.
+     */
+    public static void notifyMessageRead(Context context, String messageId) {
+        Bundle bundle = new Bundle();
+        bundle.putString(BlueshiftConstants.EXTRA_INBOX_MESSAGE_ID, messageId);
+
+        sendBroadcast(context, BlueshiftConstants.ACTION_INBOX_MESSAGE_READ, bundle);
+    }
+
+    /**
+     * Helper method to send a broadcast message when the inbox message is marked as deleted.
+     * <p>
+     * Note: This method will not delete the given message.
+     *
+     * @param context   Valid {@link Context} object.
+     * @param messageId Id of the deleted message.
+     */
+    public static void notifyMessageDeleted(Context context, String messageId) {
+        Bundle bundle = new Bundle();
+        bundle.putString(BlueshiftConstants.EXTRA_INBOX_MESSAGE_ID, messageId);
+
+        sendBroadcast(context, BlueshiftConstants.ACTION_INBOX_MESSAGE_READ, bundle);
+    }
+
+    private static void sendBroadcast(Context context, String action, Bundle extras) {
+        if (context != null && action != null && !action.isEmpty()) {
+            Intent bcIntent = new Intent(action);
+            if (extras != null) {
+                bcIntent.putExtras(extras);
+            }
+
+            context.sendBroadcast(bcIntent);
+        }
+    }
+
     private static void invokeSyncComplete(Context context, boolean dataChanged, BlueshiftInboxCallback<Boolean> callback) {
         if (context != null) {
-            Intent broadcastIntent = new Intent(BlueshiftConstants.INBOX_SYNC_COMPLETE);
-            broadcastIntent.putExtra(BlueshiftConstants.INBOX_DATA_CHANGED, dataChanged);
-            context.sendBroadcast(broadcastIntent);
+            BlueshiftInboxManager.notifySyncComplete(context, dataChanged);
 
             if (callback != null) {
                 BlueshiftExecutor.getInstance().runOnMainThread(() -> callback.onComplete(dataChanged));

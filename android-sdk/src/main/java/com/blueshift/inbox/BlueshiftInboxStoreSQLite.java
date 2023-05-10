@@ -192,16 +192,18 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     public BlueshiftInboxMessage getMostRecentMessage() {
         BlueshiftInboxMessage inboxMessage = null;
 
-        SQLiteDatabase db = getReadableDatabase();
-        if (db != null) {
-            Cursor cursor = db.query(getTableName(), null, null, null, null, null, COL_CREATED_AT + " DESC", "1");
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    inboxMessage = getObject(cursor);
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getReadableDatabase();
+            if (db != null) {
+                Cursor cursor = db.query(getTableName(), null, null, null, null, null, COL_CREATED_AT + " DESC", "1");
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        inboxMessage = getObject(cursor);
+                    }
+                    cursor.close();
                 }
-                cursor.close();
+                db.close();
             }
-            db.close();
         }
 
         return inboxMessage;

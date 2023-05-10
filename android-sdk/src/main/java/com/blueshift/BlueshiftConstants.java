@@ -160,8 +160,11 @@ public class BlueshiftConstants {
     public static final String KEY_ENABLE_PUSH = "enable_push";
 
     // inbox broadcast actions
-    public static final String INBOX_SYNC_COMPLETE = "com.blueshift.INBOX_SYNC_COMPLETE";
-    public static final String INBOX_DATA_CHANGED = "com.blueshift.INBOX_DATA_CHANGED";
+    public static final String ACTION_INBOX_SYNC_COMPLETE = "com.blueshift.ACTION_INBOX_SYNC_COMPLETE";
+    public static final String ACTION_INBOX_MESSAGE_READ = "com.blueshift.ACTION_INBOX_MESSAGE_READ";
+    public static final String ACTION_INBOX_MESSAGE_DELETED = "com.blueshift.ACTION_INBOX_MESSAGE_DELETED";
+    public static final String EXTRA_INBOX_DATA_CHANGED = "com.blueshift.EXTRA_INBOX_DATA_CHANGED";
+    public static final String EXTRA_INBOX_MESSAGE_ID = "com.blueshift.EXTRA_INBOX_MESSAGE_ID";
 
     /**
      * Subscription status values
@@ -193,5 +196,7 @@ public class BlueshiftConstants {
 
     public static final String INBOX_ACTIVITY_TITLE = "bsft_inbox_activity_title";
     public static final String INBOX_ITEM_LAYOUT = "bsft_inbox_item_layout";
+    public static final String INBOX_UNREAD_INDICATOR_COLOR = "bsft_unread_indicator_color";
+    public static final String INBOX_REFRESH_INDICATOR_COLORS = "bsft_refresh_indicator_color";
     public static final String INBOX_EMPTY_MESSAGE = "bsft_inbox_empty_message";
 }
