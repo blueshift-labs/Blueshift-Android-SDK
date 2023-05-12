@@ -22,7 +22,7 @@ public class BlueshiftInboxActivity extends AppCompatActivity {
 
             BlueshiftInboxFragmentOptions.Builder builder = new BlueshiftInboxFragmentOptions.Builder();
 
-            int inboxListItem = extras.getInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, R.layout.bsft_inbox_list_item);
+            int inboxListItem = extras.getInt(BlueshiftConstants.INBOX_LIST_ITEM_LAYOUT, R.layout.bsft_inbox_list_item);
             builder.setInboxListItemLayout(inboxListItem);
 
             String inboxEmptyMessage = extras.getString(BlueshiftConstants.INBOX_EMPTY_MESSAGE, "");

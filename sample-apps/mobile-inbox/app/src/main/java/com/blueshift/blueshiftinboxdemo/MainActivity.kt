@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.blueshift.Blueshift
+import com.blueshift.inbox.BlueshiftInboxCallback
 import com.blueshift.inbox.BlueshiftInboxFragment
+import com.blueshift.inbox.BlueshiftInboxManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {

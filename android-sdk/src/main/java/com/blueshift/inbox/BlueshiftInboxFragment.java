@@ -82,12 +82,121 @@ public class BlueshiftInboxFragment extends Fragment {
     public static BlueshiftInboxFragment newInstance(@NonNull BlueshiftInboxFragmentOptions options) {
         BlueshiftInboxFragment fragment = new BlueshiftInboxFragment();
         Bundle args = new Bundle();
-        args.putInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, options.inboxListItemLayout);
+        args.putInt(BlueshiftConstants.INBOX_LIST_ITEM_LAYOUT, options.inboxListItemLayout);
         args.putInt(BlueshiftConstants.INBOX_UNREAD_INDICATOR_COLOR, options.inboxUnreadIndicatorColor);
         args.putIntArray(BlueshiftConstants.INBOX_REFRESH_INDICATOR_COLORS, options.inboxRefreshIndicatorColors);
         args.putString(BlueshiftConstants.INBOX_EMPTY_MESSAGE, options.inboxEmptyMessage);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    /**
+     * Use this method to provide a custom layout for the inbox list item.
+     *
+     * @param layout Layout resource ID
+     * @noinspection unused
+     */
+    public void setInboxListItemLayout(@LayoutRes int layout) {
+        mInboxListItemLayout = layout;
+    }
+
+    /**
+     * Use this method to provide a message to display when inbox is empty
+     *
+     * @param message NonNull message
+     * @noinspection unused
+     */
+    public void setInboxEmptyMessage(@NonNull String message) {
+        mEmptyMsgText = message;
+    }
+
+    /**
+     * Use this method to provide a color for the unread indicator
+     *
+     * @param color Valid color integer
+     * @noinspection unused
+     */
+    public void setInboxUnreadIndicatorColor(@ColorInt int color) {
+        mInboxUnreadIndicatorColor = color;
+    }
+
+    /**
+     * Use this method to provide colors for the {@link SwipeRefreshLayout}'s loading indicator.
+     *
+     * @param colors Valid color integers as array
+     * @noinspection unused
+     */
+    public void setInboxRefreshIndicatorColors(@ColorInt int... colors) {
+        mInboxRefreshIndicatorColors = colors;
+    }
+
+    /**
+     * Use this method to provide the comparator for comparing two inbox messages.
+     * This value will be used when sorting the inbox messages before their display.
+     *
+     * @param comparator valid {@link BlueshiftInboxComparator} instance.
+     * @noinspection unused
+     */
+    public void setInboxComparator(@NonNull BlueshiftInboxComparator comparator) {
+        mInboxComparator = comparator;
+    }
+
+    /**
+     * Use this method to provide a filter for filtering the inbox messages.
+     * This value will be used for filtering purposes when adding new items to the list.
+     *
+     * @param filter valid {@link  BlueshiftInboxFilter} instance.
+     * @noinspection unused
+     */
+    public void setInboxFilter(@NonNull BlueshiftInboxFilter filter) {
+        mInboxFilter = filter;
+    }
+
+    /**
+     * Use this method to provide a date formatter for the inbox messages.
+     * This value will be used for formatting the date before showing it in the list.
+     *
+     * @param dateFormatter valid {@link  BlueshiftInboxDateFormatter} instance.
+     * @noinspection unused
+     */
+    public void setInboxDateFormatter(@NonNull BlueshiftInboxDateFormatter dateFormatter) {
+        mInboxDateFormatter = dateFormatter;
+    }
+
+    /**
+     * Use this method to provide an extension to the list adapter.
+     * This value will be used when forming the list of inbox messages. The host app can use the
+     * methods of this object to manipulate the appearance of the list.
+     *
+     * @param inboxAdapterExtension valid {@link BlueshiftInboxAdapter} instance.
+     * @noinspection unused
+     */
+    public void setInboxAdapterExtension(@NonNull BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension) {
+        mInboxAdapterExtension = inboxAdapterExtension;
+    }
+
+    /**
+     * Use this method to provide a item decoration for the inbox list.
+     * A common use case would be to provide a custom divider for the list.
+     *
+     * @param itemDecoration valid {@link  androidx.recyclerview.widget.RecyclerView.ItemDecoration} instance.
+     * @noinspection unused
+     */
+    public void setInboxItemDecoration(@NonNull RecyclerView.ItemDecoration itemDecoration) {
+        mItemDecoration = itemDecoration;
+    }
+
+    /**
+     * Use this method to provide a callback listener for events such as, <br/>
+     * - inbox message is clicked <br/>
+     * - inbox message is successfully deleted <br/>
+     * Note: The callbacks will run in the main/UI thread.
+     *
+     * @param listener Valid {@link BlueshiftInboxEventListener} instance.
+     * @noinspection unused
+     */
+    public void setInboxEventListener(@NonNull BlueshiftInboxEventListener listener) {
+        mInboxEventListener = listener;
     }
 
     @Override
@@ -99,7 +208,7 @@ public class BlueshiftInboxFragment extends Fragment {
 
         Bundle bundle = getArguments();
         if (bundle != null) {
-            mInboxListItemLayout = bundle.getInt(BlueshiftConstants.INBOX_ITEM_LAYOUT, R.layout.bsft_inbox_list_item);
+            mInboxListItemLayout = bundle.getInt(BlueshiftConstants.INBOX_LIST_ITEM_LAYOUT, R.layout.bsft_inbox_list_item);
             mInboxUnreadIndicatorColor = bundle.getInt(BlueshiftConstants.INBOX_UNREAD_INDICATOR_COLOR, indicatorColor);
             mInboxRefreshIndicatorColors = bundle.getIntArray(BlueshiftConstants.INBOX_REFRESH_INDICATOR_COLORS);
             if (mInboxRefreshIndicatorColors == null || mInboxRefreshIndicatorColors.length == 0) {
@@ -210,95 +319,6 @@ public class BlueshiftInboxFragment extends Fragment {
         } else {
             stopRefreshing();
         }
-    }
-
-    /**
-     * Use this method to provide a custom layout for the inbox list item.
-     *
-     * @param layout Layout resource ID
-     */
-    @SuppressWarnings("unused")
-    public void setInboxListItemView(@LayoutRes int layout) {
-        mInboxListItemLayout = layout;
-    }
-
-    /**
-     * Use this method to provide the comparator for comparing two inbox messages.
-     * This value will be used when sorting the inbox messages before their display.
-     *
-     * @param comparator valid {@link BlueshiftInboxComparator} instance.
-     */
-    @SuppressWarnings("unused")
-    public void setInboxComparator(@NonNull BlueshiftInboxComparator comparator) {
-        mInboxComparator = comparator;
-    }
-
-    /**
-     * Use this method to provide a filter for filtering the inbox messages.
-     * This value will be used for filtering purposes when adding new items to the list.
-     *
-     * @param filter valid {@link  BlueshiftInboxFilter} instance.
-     */
-    @SuppressWarnings("unused")
-    public void setInboxFilter(@NonNull BlueshiftInboxFilter filter) {
-        mInboxFilter = filter;
-    }
-
-    /**
-     * Use this method to provide a date formatter for the inbox messages.
-     * This value will be used for formatting the date before showing it in the list.
-     *
-     * @param dateFormatter valid {@link  BlueshiftInboxDateFormatter} instance.
-     */
-    @SuppressWarnings("unused")
-    public void setInboxDateFormatter(@NonNull BlueshiftInboxDateFormatter dateFormatter) {
-        mInboxDateFormatter = dateFormatter;
-    }
-
-    /**
-     * Use this method to provide an extension to the list adapter.
-     * This value will be used when forming the list of inbox messages. The host app can use the
-     * methods of this object to manipulate the appearance of the list.
-     *
-     * @param inboxAdapterExtension valid {@link BlueshiftInboxAdapter} instance.
-     */
-    @SuppressWarnings("unused")
-    public void setInboxAdapterExtension(@NonNull BlueshiftInboxAdapterExtension<Object> inboxAdapterExtension) {
-        mInboxAdapterExtension = inboxAdapterExtension;
-    }
-
-    /**
-     * Use this method to provide a item decoration for the inbox list.
-     * A common use case would be to provide a custom divider for the list.
-     *
-     * @param itemDecoration valid {@link  androidx.recyclerview.widget.RecyclerView.ItemDecoration} instance.
-     */
-    @SuppressWarnings("unused")
-    public void setInboxItemDecoration(@NonNull RecyclerView.ItemDecoration itemDecoration) {
-        mItemDecoration = itemDecoration;
-    }
-
-    /**
-     * Use this method to provide a callback listener for events such as, <br/>
-     * - inbox message is clicked <br/>
-     * - inbox message is successfully deleted <br/>
-     * Note: The callbacks will run in the main/UI thread.
-     *
-     * @param listener Valid {@link BlueshiftInboxEventListener} instance.
-     */
-    @SuppressWarnings("unused")
-    public void setInboxEventListener(@NonNull BlueshiftInboxEventListener listener) {
-        mInboxEventListener = listener;
-    }
-
-    /**
-     * Use this method to provide a message to be shown when the inbox list is empty.
-     *
-     * @param emptyInboxMessage Valid String object with appropriate message
-     */
-    @SuppressWarnings("unused")
-    public void setEmptyInboxMessage(String emptyInboxMessage) {
-        mEmptyMsgText = emptyInboxMessage;
     }
 
     private class AdapterEventListener implements BlueshiftInboxAdapter.EventListener {

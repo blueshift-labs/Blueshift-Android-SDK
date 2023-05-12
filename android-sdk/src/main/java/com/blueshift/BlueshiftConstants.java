@@ -7,7 +7,7 @@ import com.blueshift.util.BlueshiftUtils;
 /**
  * @author Rahul Raveendran V P
  * Created on 4/3/15 @ 3:02 PM
- * https://github.com/rahulrvp
+ * <a href="https://github.com/rahulrvp">rahulrvp</a>
  */
 @SuppressWarnings("WeakerAccess")
 public class BlueshiftConstants {
@@ -195,7 +195,7 @@ public class BlueshiftConstants {
     }
 
     public static final String INBOX_ACTIVITY_TITLE = "bsft_inbox_activity_title";
-    public static final String INBOX_ITEM_LAYOUT = "bsft_inbox_item_layout";
+    public static final String INBOX_LIST_ITEM_LAYOUT = "bsft_inbox_item_layout";
     public static final String INBOX_UNREAD_INDICATOR_COLOR = "bsft_unread_indicator_color";
     public static final String INBOX_REFRESH_INDICATOR_COLORS = "bsft_refresh_indicator_color";
     public static final String INBOX_EMPTY_MESSAGE = "bsft_inbox_empty_message";

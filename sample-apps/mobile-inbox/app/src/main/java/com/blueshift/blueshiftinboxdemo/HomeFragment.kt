@@ -1,6 +1,7 @@
 package com.blueshift.blueshiftinboxdemo
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,9 @@ import android.widget.Button
 import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import com.blueshift.Blueshift
+import com.blueshift.BlueshiftConstants
 import com.blueshift.inbox.BlueshiftInboxActivity
+import com.blueshift.inbox.BlueshiftInboxFragment
 
 /**
  * A simple [Fragment] subclass.
