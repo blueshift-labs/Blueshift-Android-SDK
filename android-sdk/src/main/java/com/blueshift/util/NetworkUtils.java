@@ -11,9 +11,10 @@ import com.blueshift.BlueshiftLogger;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * @author Rahul Raveendran V P
@@ -25,17 +26,17 @@ public class NetworkUtils {
     public static boolean downloadFile(String url, String destinationPath) {
         InputStream inputStream = null;
         OutputStream outputStream = null;
-        HttpURLConnection httpURLConnection = null;
+        HttpsURLConnection httpsURLConnection = null;
         try {
             URL downloadURL = new URL(url);
-            httpURLConnection = (HttpURLConnection) downloadURL.openConnection();
-            httpURLConnection.connect();
+            httpsURLConnection = (HttpsURLConnection) downloadURL.openConnection();
+            httpsURLConnection.connect();
 
-            if (httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            if (httpsURLConnection.getResponseCode() != HttpsURLConnection.HTTP_OK) {
                 return false;
             }
 
-            inputStream = httpURLConnection.getInputStream();
+            inputStream = httpsURLConnection.getInputStream();
             outputStream = new FileOutputStream(destinationPath);
 
             byte[] data = new byte[4096];
@@ -48,7 +49,7 @@ public class NetworkUtils {
             // clean up memory
             outputStream.close();
             inputStream.close();
-            httpURLConnection.disconnect();
+            httpsURLConnection.disconnect();
         } catch (Exception e) {
             try {
                 if (outputStream != null) {
@@ -62,8 +63,8 @@ public class NetworkUtils {
                 BlueshiftLogger.e(null, e);
             }
 
-            if (httpURLConnection != null) {
-                httpURLConnection.disconnect();
+            if (httpsURLConnection != null) {
+                httpsURLConnection.disconnect();
             }
 
             return false;
