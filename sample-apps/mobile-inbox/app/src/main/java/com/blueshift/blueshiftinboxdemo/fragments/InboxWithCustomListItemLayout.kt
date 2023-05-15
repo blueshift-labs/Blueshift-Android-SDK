@@ -11,7 +11,7 @@ class InboxWithCustomListItemLayout : BlueshiftInboxFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setInboxListItemView(R.layout.custom_bsft_inbox_list_item)
+        setInboxListItemLayout(R.layout.custom_bsft_inbox_list_item)
 
         setInboxEventListener(object : BlueshiftInboxEventListener {
             override fun onMessageClick(message: BlueshiftInboxMessage?) {

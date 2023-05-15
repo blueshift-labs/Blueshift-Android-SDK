@@ -75,12 +75,14 @@ class HomeFragment : Fragment() {
             val btnDateFormat: Button = view.findViewById(R.id.buttonCustomInboxDateFormat)
             val btnSort: Button = view.findViewById(R.id.buttonCustomInboxSort)
             val btnFilter: Button = view.findViewById(R.id.buttonCustomInboxFilter)
+            val btnIndiColors: Button = view.findViewById(R.id.buttonCustomIndicatorColors)
 
             btnCellUi.setOnClickListener { launchCustomInbox(R.string.custom_inbox_ui) }
             btnCellElements.setOnClickListener { launchCustomInbox(R.string.custom_inbox_elements) }
             btnDateFormat.setOnClickListener { launchCustomInbox(R.string.custom_inbox_date_format) }
             btnSort.setOnClickListener { launchCustomInbox(R.string.custom_inbox_sort) }
             btnFilter.setOnClickListener { launchCustomInbox(R.string.custom_inbox_filter) }
+            btnIndiColors.setOnClickListener { launchCustomInbox(R.string.custom_inbox_indi_colors) }
         }
 
         return view

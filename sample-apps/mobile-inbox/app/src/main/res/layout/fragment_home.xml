@@ -104,6 +104,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonCustomInboxSort" />
 
+    <Button
+        android:id="@+id/buttonCustomIndicatorColors"
+        android:layout_width="379dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/custom_inbox_indi_colors"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonCustomInboxFilter"
+        app:layout_constraintVertical_bias="0.0" />
+
     <Spinner
         android:id="@+id/spinner"
         android:layout_width="0dp"

@@ -8,6 +8,7 @@ import com.blueshift.blueshiftinboxdemo.fragments.InboxWithCustomFilter
 import com.blueshift.blueshiftinboxdemo.fragments.InboxWithCustomListItemLayout
 import com.blueshift.blueshiftinboxdemo.fragments.InboxWithCustomListItemStyle
 import com.blueshift.blueshiftinboxdemo.fragments.InboxWithCustomSorting
+import com.blueshift.blueshiftinboxdemo.fragments.InboxWithCustomIndicatorClors
 
 class CustomInboxActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +29,7 @@ class CustomInboxActivity : AppCompatActivity() {
             R.string.custom_inbox_date_format -> InboxWithCustomDateFormat()
             R.string.custom_inbox_sort -> InboxWithCustomSorting()
             R.string.custom_inbox_filter -> InboxWithCustomFilter()
+            R.string.custom_inbox_indi_colors -> InboxWithCustomIndicatorClors()
             else -> InboxWithCustomListItemLayout()
         }
     }

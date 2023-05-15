@@ -13,8 +13,10 @@
     <string name="custom_inbox_date_format">Custom Inbox - Date format</string>
     <string name="custom_inbox_sort">Custom Inbox - Sort</string>
     <string name="custom_inbox_filter">Custom Inbox - Filter</string>
+    <string name="custom_inbox_indi_colors">Custom Inbox - Indi Colors</string>
 
     <string name="no_messages">No messages!</string>
+    <string name="bsft_inbox_delete_failure_message">Delete Failed!</string>
 
     <string name="home">Home</string>
     <string name="inbox">Inbox</string>
