@@ -896,9 +896,20 @@ public class InAppManager {
         return rootView;
     }
 
+    /**
+     * This checks if the inapp message can be displayed in the current screen. Following are the
+     * scenarios in which an inapp message should be shown to the user.
+     * <p>
+     * 1. If the target screen is not set, we can show the inapp now. <br>
+     * 2. If the target screen is the current screen, we can show the inapp now. <br>
+     * 3. If the case 1 & 2 fails and the user is inside blueshift_inbox screen, we can show the inapp.
+     *
+     * @param inAppMessage Valid {@link InAppMessage} instance.
+     * @return true, if we can show the inapp; else, false.
+     */
     private static boolean canDisplayInThisScreen(InAppMessage inAppMessage) {
         String targetScreen = inAppMessage != null ? inAppMessage.getDisplayOn() : "";
-        return targetScreen.isEmpty() || targetScreen.equals(displayConfig.screenName);
+        return targetScreen.isEmpty() || targetScreen.equals(displayConfig.screenName) || BlueshiftInboxFragment.INBOX_SCREEN_NAME.equals(displayConfig.screenName);
     }
 
     private static boolean buildAndShowAlertDialog(
