@@ -153,7 +153,9 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
     }
 
     /**
-     * Returns the number of unread messages.
+     * Returns the number of unread inbox messages
+     * <p>
+     * Unread inapp only messages are not counted
      *
      * @return the unread message count.
      */
@@ -166,10 +168,16 @@ public class BlueshiftInboxStoreSQLite extends BlueshiftBaseSQLiteOpenHelper<Blu
 
         StringBuilder where = new StringBuilder();
         where.append(COL_STATUS).append("=?");
+        where.append(_AND_);
+        where.append("(");
+        where.append(COL_SCOPE).append("=?");
+        where.append(_OR_);
+        where.append(COL_SCOPE).append("=?");
+        where.append(")");
 
         qb.appendWhere(where);
 
-        String[] selectionArgs = new String[]{UNREAD};
+        String[] selectionArgs = new String[]{UNREAD, BlueshiftInboxMessage.Scope.INBOX_ONLY.toString(), BlueshiftInboxMessage.Scope.INBOX_AND_INAPP.toString()};
 
         synchronized (_LOCK) {
             SQLiteDatabase db = getReadableDatabase();
