@@ -16,6 +16,10 @@
             android:exported="false"
             android:theme="@style/TransparentActivity" />
 
+        <activity
+            android:name=".inbox.BlueshiftInboxActivity"
+            android:exported="false" />
+
         <!--Events batching-->
         <receiver android:name="com.blueshift.batch.AlarmReceiver" />
         <!--End - Events batching-->

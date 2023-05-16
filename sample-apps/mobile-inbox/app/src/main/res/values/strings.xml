@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Blueshift Inbox Demo</string>
+    <string name="send_event">Send Event</string>
+    <string-array name="events">
+        <item>bsft_send_me_in_app</item>
+        <item>bsft_send_me_in_app_modal</item>
+        <item>bsft_send_me_in_app_html</item>
+    </string-array>
+
+    <string name="sdk_inbox">Mobile Inbox - SDK Default</string>
+    <string name="custom_inbox_ui">Custom Inbox - Cell layout</string>
+    <string name="custom_inbox_elements">Custom Inbox - Cell elements</string>
+    <string name="custom_inbox_date_format">Custom Inbox - Date format</string>
+    <string name="custom_inbox_sort">Custom Inbox - Sort</string>
+    <string name="custom_inbox_filter">Custom Inbox - Filter</string>
+    <string name="custom_inbox_indi_colors">Custom Inbox - Indi Colors</string>
+
+    <string name="no_messages">No messages!</string>
+    <string name="bsft_inbox_delete_failure_message">Delete Failed!</string>
+
+    <string name="home">Home</string>
+    <string name="inbox">Inbox</string>
+</resources>

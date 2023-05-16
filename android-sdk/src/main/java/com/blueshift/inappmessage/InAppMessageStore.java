@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+@Deprecated
 public class InAppMessageStore extends BlueshiftBaseSQLiteOpenHelper<InAppMessage> {
     private static final String TAG = InAppMessageStore.class.getSimpleName();
     private static final int DB_VERSION = 2;

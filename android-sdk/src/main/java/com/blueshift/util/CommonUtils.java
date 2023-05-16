@@ -12,6 +12,7 @@ import android.util.TypedValue;
 
 import com.blueshift.BlueshiftLogger;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -52,8 +53,7 @@ public class CommonUtils {
     public static int dpToPx(int dpValue, Context context) {
         int value = 0;
         if (context != null && context.getResources() != null) {
-            value = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, dpValue, context.getResources().getDisplayMetrics());
+            value = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpValue, context.getResources().getDisplayMetrics());
         }
 
         return value;
@@ -101,6 +101,31 @@ public class CommonUtils {
         SimpleDateFormat sdf = new SimpleDateFormat(formatString, Locale.getDefault());
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(new Date());
+    }
+
+    public static long iso8601ToEpochSeconds(String iso8601String) {
+        if (iso8601String != null && !iso8601String.isEmpty()) {
+            String formatStr = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+            SimpleDateFormat sdf = new SimpleDateFormat(formatStr, Locale.getDefault());
+            sdf.setTimeZone(TimeZone.getDefault());
+            try {
+                Date date = sdf.parse(iso8601String);
+                if (date != null) {
+                    return date.getTime() / 1000;
+                }
+            } catch (ParseException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+
+        return 0;
+    }
+
+    public static String epochSecondsToISO8601(long seconds) {
+        String formatStr = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+        SimpleDateFormat sdf = new SimpleDateFormat(formatStr, Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(new Date(seconds * 1000));
     }
 
     /**

@@ -21,21 +21,18 @@ public class InAppMessageIconFont {
         if (context != null && sFontAwesomeFont == null) {
             BlueshiftExecutor
                     .getInstance()
-                    .runOnWorkerThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            File fontFile = getFontFile(context);
-                            if (fontFile.exists()) {
-                                try {
-                                    sFontAwesomeFont = Typeface.createFromFile(fontFile);
-                                } catch (Exception e) {
-                                    // the file is corrupted, try downloading the font again
-                                    BlueshiftLogger.w(TAG, "Font file is corrupted. Delete: " + fontFile.delete());
-                                    updateFont(context);
-                                }
-                            } else {
+                    .runOnWorkerThread(() -> {
+                        File fontFile = getFontFile(context);
+                        if (fontFile.exists()) {
+                            try {
+                                sFontAwesomeFont = Typeface.createFromFile(fontFile);
+                            } catch (Exception e) {
+                                // the file is corrupted, try downloading the font again
+                                BlueshiftLogger.w(TAG, "Font file is corrupted. Delete: " + fontFile.delete());
                                 updateFont(context);
                             }
+                        } else {
+                            updateFont(context);
                         }
                     });
         }
@@ -60,25 +57,22 @@ public class InAppMessageIconFont {
     }
 
     public void updateFont(final Context context) {
-        BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (_LOCK) {
-                    try {
-                        // download
-                        String source = "https://bsftassets.s3-us-west-2.amazonaws.com/inapp/" + FILE_NAME;
-                        File fontFile = getFontFile(context);
+        BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+            synchronized (_LOCK) {
+                try {
+                    // download
+                    String source = "https://cdn.getblueshift.com/inapp/" + FILE_NAME;
+                    File fontFile = getFontFile(context);
 
-                        if (!fontFile.exists()) {
-                            BlueshiftLogger.d(TAG, "Downloading font to " + fontFile.getAbsolutePath());
-                            NetworkUtils.downloadFile(source, fontFile.getAbsolutePath());
-                        }
-
-                        // refresh variables
-                        sFontAwesomeFont = Typeface.createFromFile(fontFile);
-                    } catch (Exception e) {
-                        BlueshiftLogger.e(TAG, e);
+                    if (!fontFile.exists()) {
+                        BlueshiftLogger.d(TAG, "Downloading font to " + fontFile.getAbsolutePath());
+                        NetworkUtils.downloadFile(source, fontFile.getAbsolutePath());
                     }
+
+                    // refresh variables
+                    sFontAwesomeFont = Typeface.createFromFile(fontFile);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(TAG, e);
                 }
             }
         });

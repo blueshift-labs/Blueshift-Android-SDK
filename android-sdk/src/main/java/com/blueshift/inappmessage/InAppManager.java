@@ -8,9 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
-
-import androidx.annotation.WorkerThread;
-import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -20,17 +17,22 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 
+import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.AlertDialog;
+
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
-import com.blueshift.BlueshiftHttpManager;
-import com.blueshift.BlueshiftHttpRequest;
-import com.blueshift.BlueshiftHttpResponse;
 import com.blueshift.BlueshiftImageCache;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
+import com.blueshift.inbox.BlueshiftInboxApiManager;
+import com.blueshift.inbox.BlueshiftInboxFragment;
+import com.blueshift.inbox.BlueshiftInboxManager;
+import com.blueshift.inbox.BlueshiftInboxMessage;
+import com.blueshift.inbox.BlueshiftInboxStoreSQLite;
 import com.blueshift.model.Configuration;
 import com.blueshift.rich_push.Message;
 import com.blueshift.util.BlueshiftUtils;
@@ -40,6 +42,8 @@ import com.blueshift.util.InAppUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -191,67 +195,38 @@ public class InAppManager {
     }
 
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
-        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
-        if (isEnabled) {
-            BlueshiftExecutor.getInstance().runOnNetworkThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                String apiKey = BlueshiftUtils.getApiKey(context);
-                                JSONObject requestBody = generateInAppMessageAPIRequestPayload(context);
-
-                                if (apiKey != null && requestBody != null) {
-                                    BlueshiftHttpRequest.Builder builder = new BlueshiftHttpRequest.Builder()
-                                            .setUrl(BlueshiftConstants.IN_APP_API_URL(context))
-                                            .setMethod(BlueshiftHttpRequest.Method.POST)
-                                            .addBasicAuth(apiKey, "")
-                                            .setReqBodyJson(requestBody);
-
-                                    BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(builder.build());
-                                    int statusCode = response.getCode();
-                                    String responseBody = response.getBody();
-
-                                    if (statusCode == 200) {
-                                        handleInAppMessageAPIResponse(context, responseBody);
-                                        invokeApiSuccessCallback(callback);
-                                    } else {
-                                        invokeApiFailureCallback(callback, statusCode, responseBody);
-                                    }
-                                } else {
-                                    invokeApiFailureCallback(callback, 0, "Could not make the API call.");
-                                }
-                            } catch (Exception e) {
-                                BlueshiftLogger.e(LOG_TAG, e);
-                                invokeApiFailureCallback(callback, 0, e.getMessage());
-                            }
-                        }
+        if (BlueshiftUtils.isOptedInForInboxMessages(context)) {
+            // Opted in for inbox messages.
+            BlueshiftInboxManager.syncMessages(context, result -> {
+                // this block runs on main thread
+                if (callback != null) {
+                    if (result) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onFailure(0, "Could not sync messages. Please check internet connection.");
                     }
-            );
+                }
+            });
         } else {
-            BlueshiftLogger.w(LOG_TAG, "In-app is opted-out. Can not fetch in-app messages from API.");
-        }
-    }
+            boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
+            if (isEnabled) {
+                BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+                    List<BlueshiftInboxMessage> messages = BlueshiftInboxApiManager.getNewMessagesLegacy(context);
+                    if (!messages.isEmpty()) {
+                        BlueshiftInboxStoreSQLite.getInstance(context).insertOrReplace(messages);
+                    }
 
-    private static void invokeApiSuccessCallback(final InAppApiCallback callback) {
-        if (callback != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onSuccess();
+                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
+                        if (callback != null) {
+                            callback.onSuccess();
+                        }
+                    });
+                });
+            } else {
+                if (callback != null) {
+                    callback.onFailure(0, "Neither inbox nor inapp is enabled.");
                 }
-            });
-        }
-    }
-
-    private static void invokeApiFailureCallback(final InAppApiCallback callback, final int code, final String message) {
-        if (callback != null) {
-            BlueshiftExecutor.getInstance().runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onFailure(code, message);
-                }
-            });
+            }
         }
     }
 
@@ -283,11 +258,13 @@ public class InAppManager {
             String msgUUID = null;
             String timestamp = null;
 
-            InAppMessageStore store = InAppMessageStore.getInstance(context);
-            InAppMessage inAppMessage = store != null ? store.getLastInAppMessage() : null;
-            if (inAppMessage != null) {
-                msgUUID = inAppMessage.getMessageUuid();
-                timestamp = inAppMessage.getTimestamp();
+            BlueshiftInboxMessage inboxMessage = BlueshiftInboxStoreSQLite.getInstance(context).getMostRecentMessage();
+            if (inboxMessage != null) {
+                InAppMessage inAppMessage = inboxMessage.getInAppMessage();
+                if (inAppMessage != null) {
+                    msgUUID = inAppMessage.getMessageUuid();
+                    timestamp = inAppMessage.getTimestamp();
+                }
             }
 
             // message uuid
@@ -418,25 +395,25 @@ public class InAppManager {
         boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(mActivity);
         if (isEnabled) {
             try {
-                BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
-                        if (store != null) {
-                            InAppMessage input = store.getInAppMessage(mActivity, displayConfig.screenName);
+                BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+                    InAppMessage input = BlueshiftInboxStoreSQLite.getInstance(mActivity).getInAppMessage(mActivity, displayConfig.screenName);
+                    if (input == null) {
+                        BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
+                        return;
+                    }
 
-                            if (input == null) {
-                                BlueshiftLogger.d(LOG_TAG, "No pending in-app messages found.");
-                                return;
-                            }
 
-                            if (!validate(input)) {
-                                BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
-                                return;
-                            }
+                    if (!validate(input)) {
+                        BlueshiftLogger.d(LOG_TAG, "Invalid in-app messages found. Message UUID: " + input.getMessageUuid());
+                        return;
+                    }
 
-                            displayInAppMessage(input);
-                        }
+                    input.setOpenedBy(InAppMessage.OpenedBy.prefetch);
+
+                    if (BlueshiftInboxFragment.INBOX_SCREEN_NAME.equals(displayConfig.screenName)) {
+                        BlueshiftLogger.w(LOG_TAG, "Prefetch in-app messages are not eligible to be displayed inside inbox screen.");
+                    } else {
+                        displayInAppMessage(input);
                     }
                 });
             } catch (Exception e) {
@@ -466,7 +443,7 @@ public class InAppManager {
         }
     }
 
-    private static void displayInAppMessage(final InAppMessage inAppMessage) {
+    public static void displayInAppMessage(final InAppMessage inAppMessage) {
         if (inAppMessage != null && mActivity != null) {
             cacheAssets(inAppMessage, mActivity.getApplicationContext());
 
@@ -636,6 +613,8 @@ public class InAppManager {
                                 BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
                                 mInApp = inAppMessage;
                                 markAsDisplayed(inAppMessage);
+
+                                BlueshiftInboxManager.notifyMessageRead(mActivity, inAppMessage.getMessageUuid());
                             }
                         } else {
                             BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
@@ -646,15 +625,15 @@ public class InAppManager {
     }
 
     private static void markAsDisplayed(final InAppMessage input) {
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (input != null && mActivity != null) {
-                            input.setDisplayedAt(System.currentTimeMillis());
-                            InAppMessageStore store = InAppMessageStore.getInstance(mActivity);
-                            if (store != null) store.update(input);
-                        }
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+                    if (input != null && mActivity != null) {
+                        Context context = mActivity.getApplicationContext();
+
+                        input.setDisplayedAt(System.currentTimeMillis());
+                        InAppMessageStore store = InAppMessageStore.getInstance(context);
+                        if (store != null) store.update(input);
+
+                        BlueshiftInboxStoreSQLite.getInstance(context).markMessageAsRead(input.getMessageUuid());
                     }
                 }
         );
@@ -917,9 +896,20 @@ public class InAppManager {
         return rootView;
     }
 
+    /**
+     * This checks if the inapp message can be displayed in the current screen. Following are the
+     * scenarios in which an inapp message should be shown to the user.
+     * <p>
+     * 1. If the target screen is not set, we can show the inapp now. <br>
+     * 2. If the target screen is the current screen, we can show the inapp now. <br>
+     * 3. If the case 1 & 2 fails and the user is inside blueshift_inbox screen, we can show the inapp.
+     *
+     * @param inAppMessage Valid {@link InAppMessage} instance.
+     * @return true, if we can show the inapp; else, false.
+     */
     private static boolean canDisplayInThisScreen(InAppMessage inAppMessage) {
         String targetScreen = inAppMessage != null ? inAppMessage.getDisplayOn() : "";
-        return targetScreen.isEmpty() || targetScreen.equals(displayConfig.screenName);
+        return targetScreen.isEmpty() || targetScreen.equals(displayConfig.screenName) || BlueshiftInboxFragment.INBOX_SCREEN_NAME.equals(displayConfig.screenName);
     }
 
     private static boolean buildAndShowAlertDialog(

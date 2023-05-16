@@ -26,7 +26,7 @@ import com.blueshift.inappmessage.InAppConstants;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
 import com.blueshift.inappmessage.InAppMessageIconFont;
-import com.blueshift.inappmessage.InAppMessageStore;
+import com.blueshift.inbox.BlueshiftInboxStoreSQLite;
 import com.blueshift.model.Configuration;
 import com.blueshift.model.Product;
 import com.blueshift.model.Subscription;
@@ -190,13 +190,7 @@ public class Blueshift {
         if (isOptedIn) return;
 
         // remove all cached in-app messages if user opt-out from in-app
-        BlueshiftExecutor.getInstance().runOnDiskIOThread(new Runnable() {
-            @Override
-            public void run() {
-                InAppMessageStore store = InAppMessageStore.getInstance(context);
-                if (store != null) store.cleanAll();
-            }
-        });
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> BlueshiftInboxStoreSQLite.getInstance(context).deleteAllMessages());
     }
 
     /**
@@ -1186,8 +1180,11 @@ public class Blueshift {
 
     public void trackInAppMessageView(InAppMessage inAppMessage) {
         if (inAppMessage != null) {
+            HashMap<String, Object> extras = new HashMap<>();
+            extras.put(InAppConstants.OPENED_BY, inAppMessage.getOpenedBy().toString());
+
             trackCampaignEventAsync(
-                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), null);
+                    InAppConstants.EVENT_OPEN, inAppMessage.getCampaignParamsMap(), extras);
         }
     }
 

@@ -7,7 +7,7 @@ import com.blueshift.util.BlueshiftUtils;
 /**
  * @author Rahul Raveendran V P
  * Created on 4/3/15 @ 3:02 PM
- * https://github.com/rahulrvp
+ * <a href="https://github.com/rahulrvp">rahulrvp</a>
  */
 @SuppressWarnings("WeakerAccess")
 public class BlueshiftConstants {
@@ -41,6 +41,18 @@ public class BlueshiftConstants {
 
     public static String LIVE_CONTENT_API_URL(Context context) {
         return BASE_URL(context) + "/live";
+    }
+
+    public static String INBOX_STATUS(Context context) {
+        return BASE_URL(context) + "/inbox/api/v1/status";
+    }
+
+    public static String INBOX_MESSAGES(Context context) {
+        return BASE_URL(context) + "/inbox/api/v1/messages";
+    }
+
+    public static String INBOX_UPDATE(Context context) {
+        return BASE_URL(context) + "/inbox/api/v1/update";
     }
 
     /**
@@ -147,6 +159,13 @@ public class BlueshiftConstants {
     // push
     public static final String KEY_ENABLE_PUSH = "enable_push";
 
+    // inbox broadcast actions
+    public static final String ACTION_INBOX_SYNC_COMPLETE = "com.blueshift.ACTION_INBOX_SYNC_COMPLETE";
+    public static final String ACTION_INBOX_MESSAGE_READ = "com.blueshift.ACTION_INBOX_MESSAGE_READ";
+    public static final String ACTION_INBOX_MESSAGE_DELETED = "com.blueshift.ACTION_INBOX_MESSAGE_DELETED";
+    public static final String EXTRA_INBOX_DATA_CHANGED = "com.blueshift.EXTRA_INBOX_DATA_CHANGED";
+    public static final String EXTRA_INBOX_MESSAGE_ID = "com.blueshift.EXTRA_INBOX_MESSAGE_ID";
+
     /**
      * Subscription status values
      */
@@ -174,4 +193,10 @@ public class BlueshiftConstants {
     public static String BTN_(int index) {
         return "btn_" + index;
     }
+
+    public static final String INBOX_ACTIVITY_TITLE = "bsft_inbox_activity_title";
+    public static final String INBOX_LIST_ITEM_LAYOUT = "bsft_inbox_item_layout";
+    public static final String INBOX_UNREAD_INDICATOR_COLOR = "bsft_unread_indicator_color";
+    public static final String INBOX_REFRESH_INDICATOR_COLORS = "bsft_refresh_indicator_color";
+    public static final String INBOX_EMPTY_MESSAGE = "bsft_inbox_empty_message";
 }

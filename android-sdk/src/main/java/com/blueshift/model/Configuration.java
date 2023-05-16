@@ -57,6 +57,9 @@ public class Configuration {
     private boolean inAppManualTriggerEnabled;
     private boolean inAppBackgroundFetchEnabled;
 
+    // inbox
+    private boolean inboxEnabled;
+
     private boolean enableAutoAppOpen;
 
     // This is the time interval between the app_open events fired by the SDK in seconds.
@@ -75,6 +78,9 @@ public class Configuration {
         inAppManualTriggerEnabled = false;
         inAppBackgroundFetchEnabled = true;
         inAppInterval = InAppConstants.IN_APP_INTERVAL;
+
+        // inbox
+        inboxEnabled = false;
 
         // Push Messaging
         pushEnabled = true;
@@ -333,6 +339,20 @@ public class Configuration {
 
     public void setJavaScriptForInAppWebViewEnabled(boolean enable) {
         this.inAppEnableJavascript = enable;
+    }
+
+    public boolean isInboxEnabled() {
+        return inboxEnabled;
+    }
+
+    public void setInboxEnabled(boolean inboxEnabled) {
+        this.inboxEnabled = inboxEnabled;
+
+        // Inbox needs inapp to be enabled to function properly
+        if (inboxEnabled) {
+            this.inAppEnabled = true;
+            this.inAppEnableJavascript = true;
+        }
     }
 
     public boolean isInAppEnabled() {

@@ -6,8 +6,10 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -93,6 +95,21 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
         }
     }
 
+    public void insertOrReplace(List<T> tList) {
+        synchronized (_LOCK) {
+            SQLiteDatabase db = getWritableDatabase();
+            if (db != null) {
+                db.beginTransaction();
+                for (T t : tList) {
+                    db.insertWithOnConflict(getTableName(), null, getContentValues(t), SQLiteDatabase.CONFLICT_REPLACE);
+                }
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                db.close();
+            }
+        }
+    }
+
     public void update(T t) {
         synchronized (_LOCK) {
             SQLiteDatabase db = getWritableDatabase();
@@ -148,6 +165,8 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
             if (db != null) {
                 Cursor cursor = db.query(getTableName(), null, null, null, null, null, null);
                 if (cursor != null) {
+                    cursor.moveToFirst();
+
                     while (!cursor.isAfterLast()) {
                         records.add(getObject(cursor));
                         cursor.moveToNext();
@@ -170,12 +189,9 @@ public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLit
     abstract protected HashMap<String, FieldType> getFields();
 
     protected enum FieldType {
-        String,
-        Text,
-        UniqueText,
-        Autoincrement,
-        Long;
+        String, Text, UniqueText, Autoincrement, Long;
 
+        @NonNull
         @Override
         public String toString() {
             switch (this) {
