@@ -44,13 +44,13 @@ public class BlueshiftInboxApiManager {
                     try {
                         JSONObject jsonObject = new JSONObject(response.getBody());
                         JSONArray content = jsonObject.optJSONArray("content");
+                        List<BlueshiftInboxMessageStatus> statuses = new ArrayList<>();
                         if (content != null && content.length() > 0) {
-                            List<BlueshiftInboxMessageStatus> statuses = new ArrayList<>();
                             for (int i = 0; i < content.length(); i++) {
                                 statuses.add(new BlueshiftInboxMessageStatus(content.getJSONObject(i)));
                             }
-                            return statuses;
                         }
+                        return statuses;
                     } catch (JSONException ignore) {
                     }
                 } else {
@@ -96,13 +96,13 @@ public class BlueshiftInboxApiManager {
                     try {
                         JSONObject jsonObject = new JSONObject(response.getBody());
                         JSONArray content = jsonObject.optJSONArray("content");
+                        List<BlueshiftInboxMessage> messages = new ArrayList<>();
                         if (content != null && content.length() > 0) {
-                            List<BlueshiftInboxMessage> messages = new ArrayList<>();
                             for (int i = 0; i < content.length(); i++) {
                                 messages.add(new BlueshiftInboxMessage(content.getJSONObject(i)));
                             }
-                            return messages;
                         }
+                        return messages;
                     } catch (JSONException ignore) {
                     }
                 } else {
