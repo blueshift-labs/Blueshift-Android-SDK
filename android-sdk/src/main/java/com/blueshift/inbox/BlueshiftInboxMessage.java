@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 
 import com.blueshift.framework.BlueshiftBaseSQLiteModel;
 import com.blueshift.inappmessage.InAppMessage;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -82,7 +85,7 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
             Object value = hashMap.get(key);
             if (value != null) {
                 try {
-                    return Long.parseLong((String) value);
+                    return Long.parseLong(String.valueOf(value));
                 } catch (Exception ignore) {
                 }
             }
@@ -114,20 +117,46 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
         return value;
     }
 
+    private static JSONObject mapToJSONObject(HashMap<String, Object> map) {
+        if (map != null && !map.isEmpty()) {
+            String json = new Gson().toJson(map);
+            try {
+                return new JSONObject(json);
+            } catch (JSONException ignored) {
+            }
+        }
+
+        return new JSONObject();
+    }
+
+    private HashMap<String, Object> jsonObjectToMap(JSONObject jsonObject) {
+        if (jsonObject != null) {
+            Type type = new TypeToken<HashMap<String, Object>>() {
+            }.getType();
+            return new Gson().fromJson(jsonObject.toString(), type);
+        }
+
+        return new HashMap<>();
+    }
+
+
+    /**
+     * @noinspection unused
+     */
     public HashMap<String, Object> toHashMap() {
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("id", id);
         hashMap.put("messageId", messageId);
 
         if (data != null) {
-            hashMap.put("data", data.toString());
-
             JSONObject inbox = data.optJSONObject("inbox");
             if (inbox != null) {
                 hashMap.put("title", getStringFromJSONObject(inbox, "title"));
                 hashMap.put("details", getStringFromJSONObject(inbox, "details"));
-                hashMap.put("imageUrl", getStringFromJSONObject(inbox, "imageUrl"));
+                hashMap.put("imageUrl", getStringFromJSONObject(inbox, "icon"));
             }
+
+            hashMap.put("data", jsonObjectToMap(data));
         }
 
         if (status != null) {
@@ -141,6 +170,9 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
         return hashMap;
     }
 
+    /**
+     * @noinspection unused
+     */
     public static BlueshiftInboxMessage fromHashMap(HashMap<String, Object> hashMap) {
         if (hashMap != null) {
             BlueshiftInboxMessage inboxMessage = new BlueshiftInboxMessage();
@@ -151,11 +183,10 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
             String statusString = getOrDefaultString(hashMap, "status", "");
             inboxMessage.status = Status.fromString(statusString);
 
-            String dataString = getOrDefaultString(hashMap, "data", "");
-            try {
-                inboxMessage.data = new JSONObject(dataString);
-            } catch (JSONException e) {
-                inboxMessage.data = new JSONObject();
+            //noinspection unchecked
+            HashMap<String, Object> data = (HashMap<String, Object>) hashMap.get("data");
+            if (data != null) {
+                inboxMessage.data = mapToJSONObject(data);
             }
 
             long seconds = getOrDefaultLong(hashMap, "createdAt", 0);
