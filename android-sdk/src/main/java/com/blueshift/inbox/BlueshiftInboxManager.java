@@ -218,13 +218,15 @@ public class BlueshiftInboxManager {
      * @noinspection unused
      */
     public static void displayInboxMessage(@NonNull BlueshiftInboxMessage message) {
-        InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
-        if (inAppMessage != null) {
-            inAppMessage.setOpenedBy(InAppMessage.OpenedBy.user);
-            InAppManager.displayInAppMessage(inAppMessage);
-        } else {
-            BlueshiftLogger.d(TAG, "The given message can not be displayed to the user.");
-        }
+        BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
+            InAppMessage inAppMessage = InAppMessage.getInstance(message.data);
+            if (inAppMessage != null) {
+                inAppMessage.setOpenedBy(InAppMessage.OpenedBy.user);
+                InAppManager.displayInAppMessage(inAppMessage);
+            } else {
+                BlueshiftLogger.d(TAG, "The given message can not be displayed to the user.");
+            }
+        });
     }
 
     /**
