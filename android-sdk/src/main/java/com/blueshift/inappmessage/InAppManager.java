@@ -157,6 +157,15 @@ public class InAppManager {
         displayConfig.reset();
     }
 
+    /**
+     * Returns the name of the current screen registered for in-app message. Else, null.
+     *
+     * @return The name of the current screen registered for in-app message. Else, null.
+     */
+    public static String getRegisteredScreenName() {
+        return displayConfig.screenName;
+    }
+
     private static void logScreen(String action) {
         BlueshiftLogger.d(LOG_TAG, action + " { screen: " + displayConfig.screenName + ", activity: " + activityClassCanonicalName(mActivity) + " }");
     }
