@@ -4,18 +4,21 @@ import androidx.annotation.NonNull;
 
 import com.blueshift.framework.BlueshiftBaseSQLiteModel;
 import com.blueshift.inappmessage.InAppMessage;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
-    private long id; // ID for the local database
+    public long id; // ID for the local database
     public String accountId;
     public String userId;
     public String messageId;
@@ -75,6 +78,124 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
     @Override
     protected void setId(long id) {
         this.id = id;
+    }
+
+    private static long getOrDefaultLong(HashMap<String, Object> hashMap, String key, long defaultVal) {
+        if (hashMap != null && hashMap.containsKey(key)) {
+            Object value = hashMap.get(key);
+            if (value != null) {
+                try {
+                    return Long.parseLong(String.valueOf(value));
+                } catch (Exception ignore) {
+                }
+            }
+        }
+
+        return defaultVal;
+    }
+
+    private static String getOrDefaultString(HashMap<String, Object> hashMap, String key, String defaultVal) {
+        if (hashMap != null && hashMap.containsKey(key)) {
+            Object value = hashMap.get(key);
+            if (value != null) {
+                return String.valueOf(value);
+            }
+        }
+
+        return defaultVal;
+    }
+
+    private String getStringFromJSONObject(JSONObject jsonObject, String key) {
+        String value = "";
+        if (jsonObject != null && jsonObject.has(key)) {
+            try {
+                value = jsonObject.getString(key);
+            } catch (JSONException ignored) {
+            }
+        }
+
+        return value;
+    }
+
+    private static JSONObject mapToJSONObject(HashMap<String, Object> map) {
+        if (map != null && !map.isEmpty()) {
+            String json = new Gson().toJson(map);
+            try {
+                return new JSONObject(json);
+            } catch (JSONException ignored) {
+            }
+        }
+
+        return new JSONObject();
+    }
+
+    private HashMap<String, Object> jsonObjectToMap(JSONObject jsonObject) {
+        if (jsonObject != null) {
+            Type type = new TypeToken<HashMap<String, Object>>() {
+            }.getType();
+            return new Gson().fromJson(jsonObject.toString(), type);
+        }
+
+        return new HashMap<>();
+    }
+
+
+    /**
+     * @noinspection unused
+     */
+    public HashMap<String, Object> toHashMap() {
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("id", id);
+        hashMap.put("messageId", messageId);
+
+        if (data != null) {
+            JSONObject inbox = data.optJSONObject("inbox");
+            if (inbox != null) {
+                hashMap.put("title", getStringFromJSONObject(inbox, "title"));
+                hashMap.put("details", getStringFromJSONObject(inbox, "details"));
+                hashMap.put("imageUrl", getStringFromJSONObject(inbox, "icon"));
+            }
+
+            hashMap.put("data", jsonObjectToMap(data));
+        }
+
+        if (status != null) {
+            hashMap.put("status", status.toString());
+        }
+
+        if (createdAt != null) {
+            hashMap.put("createdAt", createdAt.getTime() / 1000);
+        }
+
+        return hashMap;
+    }
+
+    /**
+     * @noinspection unused
+     */
+    public static BlueshiftInboxMessage fromHashMap(HashMap<String, Object> hashMap) {
+        if (hashMap != null) {
+            BlueshiftInboxMessage inboxMessage = new BlueshiftInboxMessage();
+
+            inboxMessage.id = getOrDefaultLong(hashMap, "id", 0);
+            inboxMessage.messageId = getOrDefaultString(hashMap, "messageId", "");
+
+            String statusString = getOrDefaultString(hashMap, "status", "");
+            inboxMessage.status = Status.fromString(statusString);
+
+            //noinspection unchecked
+            HashMap<String, Object> data = (HashMap<String, Object>) hashMap.get("data");
+            if (data != null) {
+                inboxMessage.data = mapToJSONObject(data);
+            }
+
+            long seconds = getOrDefaultLong(hashMap, "createdAt", 0);
+            inboxMessage.createdAt = new Date(seconds * 1000);
+
+            return inboxMessage;
+        }
+
+        return null;
     }
 
     public enum Status {
