@@ -225,9 +225,9 @@ public class BlueshiftInboxApiManager {
                 transformedResponse.putOpt("content", newContents);
             }
 
-            BlueshiftLogger.d("", transformedResponse.toString());
-        } catch (JSONException e) {
-            BlueshiftLogger.e("", e);
+            BlueshiftLogger.d(TAG, transformedResponse.toString());
+        } catch (Exception e) {
+            BlueshiftLogger.e(TAG, e);
         }
 
         return transformedResponse;
