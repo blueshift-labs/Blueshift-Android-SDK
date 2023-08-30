@@ -174,10 +174,14 @@ public class BlueshiftInboxApiManager {
         BlueshiftHttpResponse response = BlueshiftHttpManager.getInstance().send(builder.build());
         String responseBody = response.getBody();
 
-        JSONObject finalResponse = transformPayload(responseBody);
-        JSONArray content = finalResponse.optJSONArray("content");
-        if (content != null) {
-            return BlueshiftInboxMessage.fromJsonArray(content);
+        if (responseBody != null && !responseBody.isEmpty()) {
+            JSONObject finalResponse = transformPayload(responseBody);
+            JSONArray content = finalResponse.optJSONArray("content");
+            if (content != null) {
+                return BlueshiftInboxMessage.fromJsonArray(content);
+            }
+        } else {
+            BlueshiftLogger.d(TAG, "Inapp API returned an empty or null response!");
         }
 
         return new ArrayList<>();
