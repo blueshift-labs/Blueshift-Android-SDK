@@ -58,17 +58,15 @@ public class RequestQueue {
 
                             final JobInfo jobInfo = builder.build();
 
-                            BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
-                                @Override
-                                public void run() {
+                            BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+                                try {
                                     if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
-                                        BlueshiftLogger.i(LOG_TAG, "Successfully scheduled request queue " +
-                                                "sync job on network change");
+                                        BlueshiftLogger.d(LOG_TAG, "Job scheduled successfully! (Request Queue Job)");
                                     } else {
-                                        // for some reason job scheduling failed. log this.
-                                        BlueshiftLogger.w(LOG_TAG, "Could not schedule request queue sync " +
-                                                "job on network change");
+                                        BlueshiftLogger.w(LOG_TAG, "Job scheduling failed! (Request Queue Job)");
                                     }
+                                } catch (Exception e) {
+                                    BlueshiftLogger.e(LOG_TAG, e);
                                 }
                             });
                         }
