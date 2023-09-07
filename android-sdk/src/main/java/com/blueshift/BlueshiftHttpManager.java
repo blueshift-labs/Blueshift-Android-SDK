@@ -29,54 +29,52 @@ public class BlueshiftHttpManager {
     }
 
     public BlueshiftHttpResponse send(BlueshiftHttpRequest request) {
-        synchronized (lock) {
-            BlueshiftHttpResponse.Builder builder = new BlueshiftHttpResponse.Builder();
+        BlueshiftHttpResponse.Builder builder = new BlueshiftHttpResponse.Builder();
 
-            if (request != null) {
-                HttpsURLConnection connection = null;
-                try {
-                    // open connection
-                    connection = openConnection(request.getUrlWithParams());
+        if (request != null) {
+            HttpsURLConnection connection = null;
+            try {
+                // open connection
+                connection = openConnection(request.getUrlWithParams());
 
-                    // set method
-                    connection.setRequestMethod(request.getMethod().name());
+                // set method
+                connection.setRequestMethod(request.getMethod().name());
 
-                    // add req headers
-                    connection = addHeaders(connection, request.getReqHeaderJson());
+                // add req headers
+                connection = addHeaders(connection, request.getReqHeaderJson());
 
-                    // write body
-                    connection = writeReqBody(connection, request.getReqBodyJson());
+                // write body
+                connection = writeReqBody(connection, request.getReqBodyJson());
 
-                    // get response code
-                    int responseCode = connection.getResponseCode();
-                    builder.setCode(responseCode);
+                // get response code
+                int responseCode = connection.getResponseCode();
+                builder.setCode(responseCode);
 
-                    // get response body
-                    String responseBody = readResponseBody(connection);
-                    builder.setBody(responseBody);
+                // get response body
+                String responseBody = readResponseBody(connection);
+                builder.setBody(responseBody);
 
-                    connection.disconnect();
-                } catch (Exception e) {
-                    BlueshiftLogger.e(TAG, e);
-                } finally {
-                    if (connection != null) {
-                        try {
-                            connection.disconnect();
-                        } catch (Exception ignored) {
+                connection.disconnect();
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Exception ignored) {
 
-                        }
                     }
                 }
             }
-
-            BlueshiftHttpResponse response = builder.build();
-
-            // log request details for debugging purposes
-            logRequest(request);
-            logResponse(response);
-
-            return response;
         }
+
+        BlueshiftHttpResponse response = builder.build();
+
+        // log request details for debugging purposes
+        logRequest(request);
+        logResponse(response);
+
+        return response;
     }
 
     private void logRequest(BlueshiftHttpRequest request) {
