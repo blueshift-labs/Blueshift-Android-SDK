@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.SystemClock;
+
 import androidx.annotation.RequiresApi;
 
 import com.blueshift.Blueshift;
@@ -68,18 +69,21 @@ public class BulkEventManager {
 
                     final JobInfo jobInfo = builder.build();
 
-                    BlueshiftExecutor.getInstance().runOnNetworkThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (jobScheduler != null && JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
-                                BlueshiftLogger.d(LOG_TAG, "Bulk event job scheduled.");
-                            } else {
-                                // for some reason job scheduling failed. log this.
-                                BlueshiftLogger.d(LOG_TAG, "Bulk event job scheduling failed.");
+                    BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+                        if (jobScheduler != null) {
+                            try {
+                                if (JobScheduler.RESULT_SUCCESS == jobScheduler.schedule(jobInfo)) {
+                                    BlueshiftLogger.d(LOG_TAG, "Job scheduled successfully! (Bulk Events Job)");
+                                } else {
+                                    BlueshiftLogger.w(LOG_TAG, "Job scheduling failed! (Bulk Events Job)");
+                                }
+                            } catch (Exception e) {
+                                BlueshiftLogger.e(LOG_TAG, e);
                             }
+                        } else {
+                            BlueshiftLogger.w(LOG_TAG, "JobScheduler instance is null (Bulk Events Job)");
                         }
                     });
-
                 }
             }
         } catch (Exception e) {
