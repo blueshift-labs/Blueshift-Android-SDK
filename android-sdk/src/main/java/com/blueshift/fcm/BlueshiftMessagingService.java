@@ -238,6 +238,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         message.setBsftExperimentUuid(data.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
                         message.setBsftUserUuid(data.get(Message.EXTRA_BSFT_USER_UUID));
                         message.setBsftTransactionUuid(data.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
+                        message.setAdapterUUID(data.get(Message.EXTRA_ADAPTER_UUID));
                     } catch (Exception e) {
                         BlueshiftLogger.e(LOG_TAG, "Error parsing campaign data. " + e.getMessage());
                     }

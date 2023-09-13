@@ -203,6 +203,9 @@ public class BlueshiftInboxApiManager {
                     if (content != null) {
                         JSONObject data = content.optJSONObject("data");
                         if (data != null) {
+                            String adapterUUID = content.optString("account_adapter_uuid");
+                            data.put("adapter_uuid", adapterUUID);
+
                             newContent.putOpt("created_at", data.optString("timestamp"));
                             newContent.putOpt("message_uuid", data.optString("bsft_message_uuid"));
                             newContent.putOpt("user_uuid", data.optString("bsft_user_uuid"));
