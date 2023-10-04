@@ -1,8 +1,6 @@
 package com.blueshift.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 import android.net.Uri;
 
@@ -14,7 +12,7 @@ public class BlueshiftUtilsTest {
         String url = "https://example.com/page?param1=value1&param2=value2&param3=value3";
         String paramToRemove = "param2";
         Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
-        assertEquals("https://example.com/page?param1=value1&param3=value3", modifiedUri.toString());
+        assertThat("https://example.com/page?param1=value1&param3=value3").isEqualTo(modifiedUri.toString());
     }
 
     @Test
@@ -22,7 +20,7 @@ public class BlueshiftUtilsTest {
         String url = "https://example.com/page?param1=value1&param3=value3";
         String paramToRemove = "param2";
         Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
-        assertEquals(url, modifiedUri.toString());
+        assertThat(url).isEqualTo(modifiedUri.toString());
     }
 
     @Test
@@ -30,7 +28,7 @@ public class BlueshiftUtilsTest {
         String url = "";
         String paramToRemove = "param1";
         Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
-        assertEquals("", modifiedUri.toString());
+        assertThat(url).isEqualTo(modifiedUri.toString());
     }
 
     @Test
@@ -38,7 +36,7 @@ public class BlueshiftUtilsTest {
         String url = "mailto:test@example.com";
         String paramToRemove = "param1";
         Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
-        assertEquals(url, modifiedUri.toString());
+        assertThat(url).isEqualTo(modifiedUri.toString());
     }
 
     @Test
@@ -46,7 +44,7 @@ public class BlueshiftUtilsTest {
         String url = "https://example.com/page?param1=value1&param3=value3";
         String paramToRemove = "param1";
         Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
-        assertEquals("https://example.com/page?param3=value3", modifiedUri.toString());
+        assertThat("https://example.com/page?param3=value3").isEqualTo(modifiedUri.toString());
     }
 
     @Test
@@ -54,34 +52,34 @@ public class BlueshiftUtilsTest {
         String url = "https://example.com/page?param1=value1";
         String paramToRemove = "param1";
         Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
-        assertEquals("https://example.com/page", modifiedUri.toString());
+        assertThat("https://example.com/page").isEqualTo(modifiedUri.toString());
     }
 
     @Test
     public void testShouldOpenURLWithExternalApp_WithNullUri() {
         // Test when the Uri is null
         Uri data = null;
-        assertFalse(BlueshiftUtils.shouldOpenURLWithExternalApp(data));
+        assertThat(BlueshiftUtils.shouldOpenURLWithExternalApp(data)).isFalse();
     }
 
     @Test
     public void testShouldOpenURLWithExternalApp_WithOpenInBrowser() {
         // Test when the "open-in" query parameter is "browser"
         Uri data = Uri.parse("https://example.com/?open-in=browser");
-        assertTrue(BlueshiftUtils.shouldOpenURLWithExternalApp(data));
+        assertThat(BlueshiftUtils.shouldOpenURLWithExternalApp(data)).isTrue();
     }
 
     @Test
     public void testShouldOpenURLWithExternalApp_WithOpenInOtherApp() {
         // Test when the "open-in" query parameter is not "browser"
         Uri data = Uri.parse("https://example.com/?open-in=email");
-        assertFalse(BlueshiftUtils.shouldOpenURLWithExternalApp(data));
+        assertThat(BlueshiftUtils.shouldOpenURLWithExternalApp(data)).isFalse();
     }
 
     @Test
     public void testShouldOpenURLWithExternalApp_WithoutQueryParameter() {
         // Test when the Uri has no "open-in" query parameter
         Uri data = Uri.parse("https://example.com/");
-        assertFalse(BlueshiftUtils.shouldOpenURLWithExternalApp(data));
+        assertThat(BlueshiftUtils.shouldOpenURLWithExternalApp(data)).isFalse();
     }
 }
