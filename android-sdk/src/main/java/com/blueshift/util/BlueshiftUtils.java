@@ -27,6 +27,8 @@ import java.util.Map;
 
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
+    private static final String KEY_OPEN_IN = "open-in";
+    private static final String VAL_BROWSER = "browser";
 
     /**
      * This method checks if a non-empty API key is supplied to the
@@ -352,10 +354,11 @@ public class BlueshiftUtils {
 
                 if (data != null) {
                     if (shouldOpenURLWithExternalApp(data)) {
-                        BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in external app. URL: " + url);
-                        openURLWithExternalApp(removeQueryParam("open-in", data), activity, bundle);
+                        Uri newData = removeQueryParam(KEY_OPEN_IN, data);
+                        BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in external app. URL: " + newData);
+                        openURLWithExternalApp(newData, activity, bundle);
                     } else {
-                        BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in the host app. URL: " + url);
+                        BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in the host app. URL: " + data);
                         openURLWithHostApp(data, activity, bundle);
                     }
                 } else {
@@ -407,8 +410,8 @@ public class BlueshiftUtils {
 
     public static boolean shouldOpenURLWithExternalApp(Uri data) {
         if (data != null) {
-            String openIn = data.getQueryParameter("open-in");
-            return "browser".equals(openIn);
+            String openIn = data.getQueryParameter(KEY_OPEN_IN);
+            return VAL_BROWSER.equals(openIn);
         }
 
         return false;
