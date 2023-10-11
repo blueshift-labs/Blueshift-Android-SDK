@@ -64,21 +64,21 @@ public class BlueshiftUtilsTest {
 
     @Test
     public void testShouldOpenURLWithExternalApp_WithOpenInBrowser() {
-        // Test when the "open-in" query parameter is "browser"
-        Uri data = Uri.parse("https://example.com/?open-in=browser");
+        // Test when the "bsft_tgt" query parameter is "browser"
+        Uri data = Uri.parse("https://example.com/?bsft_tgt=browser");
         assertThat(BlueshiftUtils.shouldOpenURLWithExternalApp(data)).isTrue();
     }
 
     @Test
     public void testShouldOpenURLWithExternalApp_WithOpenInOtherApp() {
-        // Test when the "open-in" query parameter is not "browser"
-        Uri data = Uri.parse("https://example.com/?open-in=email");
+        // Test when the "bsft_tgt" query parameter is not "browser"
+        Uri data = Uri.parse("https://example.com/?bsft_tgt=email");
         assertThat(BlueshiftUtils.shouldOpenURLWithExternalApp(data)).isFalse();
     }
 
     @Test
     public void testShouldOpenURLWithExternalApp_WithoutQueryParameter() {
-        // Test when the Uri has no "open-in" query parameter
+        // Test when the Uri has no "bsft_tgt" query parameter
         Uri data = Uri.parse("https://example.com/");
         assertThat(BlueshiftUtils.shouldOpenURLWithExternalApp(data)).isFalse();
     }

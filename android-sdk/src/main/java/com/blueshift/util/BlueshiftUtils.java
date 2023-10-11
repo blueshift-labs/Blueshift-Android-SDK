@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
-    private static final String KEY_OPEN_IN = "open-in";
+    private static final String KEY_OPEN_IN = "bsft_tgt";
     private static final String VAL_BROWSER = "browser";
 
     /**
