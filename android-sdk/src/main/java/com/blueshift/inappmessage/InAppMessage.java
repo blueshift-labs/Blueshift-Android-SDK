@@ -40,6 +40,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private long displayed_at;
 
     // campaign params
+    private String adapter_uuid;
     private String message_uuid;
     private String experiment_uuid;
     private String user_uuid;
@@ -65,6 +66,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             map.put(InAppConstants.OPENED_BY, openedBy.toString());
         }
 
+        map.put(Message.EXTRA_ADAPTER_UUID, adapter_uuid);
         map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
         map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
         map.put(Message.EXTRA_BSFT_USER_UUID, user_uuid);
@@ -92,6 +94,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
             inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
 
+            inAppMessage.adapter_uuid = jsonObject.optString(Message.EXTRA_ADAPTER_UUID);
             inAppMessage.message_uuid = jsonObject.optString(Message.EXTRA_BSFT_MESSAGE_UUID);
             inAppMessage.experiment_uuid = jsonObject.optString(Message.EXTRA_BSFT_EXPERIMENT_UUID);
             inAppMessage.user_uuid = jsonObject.optString(Message.EXTRA_BSFT_USER_UUID);
@@ -124,6 +127,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
                 inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
                 inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
 
+                inAppMessage.adapter_uuid = pushPayload.get(Message.EXTRA_ADAPTER_UUID);
                 inAppMessage.message_uuid = pushPayload.get(Message.EXTRA_BSFT_MESSAGE_UUID);
                 inAppMessage.experiment_uuid = pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
                 inAppMessage.user_uuid = pushPayload.get(Message.EXTRA_BSFT_USER_UUID);
@@ -288,6 +292,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public HashMap<String, Object> getCampaignParamsMap() {
         HashMap<String, Object> map = new HashMap<>();
 
+        map.put(Message.EXTRA_ADAPTER_UUID, adapter_uuid);
         map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
         map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
         map.put(Message.EXTRA_BSFT_USER_UUID, user_uuid);
