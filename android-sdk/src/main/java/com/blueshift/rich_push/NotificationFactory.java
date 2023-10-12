@@ -269,6 +269,7 @@ public class NotificationFactory {
                              * as of now, we will have only one message under one scheduled push.
                              */
 
+                            item.setAdapterUUID(message.getAdapterUUID());
                             item.setBsftMessageUuid(message.getId());
                             item.setBsftUserUuid(message.getBsftUserUuid());
                             item.setBsftExperimentUuid(message.getBsftExperimentUuid());

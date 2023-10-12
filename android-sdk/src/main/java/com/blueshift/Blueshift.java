@@ -1290,6 +1290,12 @@ public class Blueshift {
                 q.append(BlueshiftConstants.KEY_EID).append("=").append(eid);
             }
 
+            Object aid = campaignParams.get(Message.EXTRA_ADAPTER_UUID);
+            if (aid != null) {
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_BSFT_AAID).append("=").append(aid);
+            }
+
             Object tid = campaignParams.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);
             if (tid != null) {
                 appendAnd(q);

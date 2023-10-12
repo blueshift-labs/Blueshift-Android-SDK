@@ -20,6 +20,7 @@ import java.util.Map;
 public class Message implements Serializable {
     private static final String TAG = "Message";
     public static final String EXTRA_MESSAGE = "message";
+    public static final String EXTRA_ADAPTER_UUID = "adapter_uuid";
     public static final String EXTRA_BSFT_EXPERIMENT_UUID = "bsft_experiment_uuid";
     public static final String EXTRA_BSFT_USER_UUID = "bsft_user_uuid";
     public static final String EXTRA_BSFT_TRANSACTIONAL_UUID = "bsft_transaction_uuid";
@@ -31,6 +32,7 @@ public class Message implements Serializable {
      * We have added them inside this class to avoid major code change and to use them conveniently
      * as the message object is passed along with all notification methods generally.
      */
+    private String adapter_uuid;
     private String bsft_experiment_uuid;
     private String bsft_user_uuid;
     private String bsft_transaction_uuid; // present only with transactional campaign
@@ -180,6 +182,7 @@ public class Message implements Serializable {
 
         map.put(Message.EXTRA_BSFT_MESSAGE_UUID, bsft_message_uuid);
         map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, bsft_experiment_uuid);
+        map.put(Message.EXTRA_ADAPTER_UUID, adapter_uuid);
         map.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, bsft_transaction_uuid);
         map.put(Message.EXTRA_BSFT_USER_UUID, bsft_user_uuid);
         map.put(Message.EXTRA_BSFT_SEED_LIST_SEND, bsft_seed_list_send);
@@ -272,9 +275,18 @@ public class Message implements Serializable {
         }
     }
 
+    public String getAdapterUUID() {
+        return adapter_uuid;
+    }
+
+    public void setAdapterUUID(String adapterUUID) {
+        this.adapter_uuid = adapterUUID;
+    }
+
     /**
      * The following are the get / set methods for the above declared variables.
      */
+
 
     public String getBsftExperimentUuid() {
         return bsft_experiment_uuid;
@@ -302,6 +314,7 @@ public class Message implements Serializable {
 
         if (isCampaignPush()) {
             attributes = new HashMap<>();
+            attributes.put(EXTRA_ADAPTER_UUID, getAdapterUUID());
             attributes.put(EXTRA_BSFT_EXPERIMENT_UUID, getBsftExperimentUuid());
             attributes.put(EXTRA_BSFT_USER_UUID, getBsftUserUuid());
 
