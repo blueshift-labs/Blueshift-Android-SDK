@@ -8,11 +8,27 @@ import org.junit.Test;
 
 public class BlueshiftUtilsTest {
     @Test
-    public void testRemoveQueryParam_RemovesExistingQueryParam() {
+    public void testRemoveQueryParam_RemovesExistingQueryParamBeginning() {
+        String url = "https://example.com/page?param1=value1&param2=value2&param3=value3";
+        String paramToRemove = "param1";
+        Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
+        assertThat("https://example.com/page?param2=value2&param3=value3").isEqualTo(modifiedUri.toString());
+    }
+
+    @Test
+    public void testRemoveQueryParam_RemovesExistingQueryParamMiddle() {
         String url = "https://example.com/page?param1=value1&param2=value2&param3=value3";
         String paramToRemove = "param2";
         Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
         assertThat("https://example.com/page?param1=value1&param3=value3").isEqualTo(modifiedUri.toString());
+    }
+
+    @Test
+    public void testRemoveQueryParam_RemovesExistingQueryParamEnd() {
+        String url = "https://example.com/page?param1=value1&param2=value2&param3=value3";
+        String paramToRemove = "param3";
+        Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
+        assertThat("https://example.com/page?param1=value1&param2=value2").isEqualTo(modifiedUri.toString());
     }
 
     @Test
