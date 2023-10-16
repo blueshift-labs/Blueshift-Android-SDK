@@ -40,6 +40,14 @@ public class BlueshiftUtilsTest {
     }
 
     @Test
+    public void testRemoveQueryParam_TryToRemoveExistingQueryParamFromCustomeSchemeURL() {
+        String url = "example://app.com/page?param1=value1&param3=value3";
+        String paramToRemove = "param1";
+        Uri modifiedUri = BlueshiftUtils.removeQueryParam(paramToRemove, Uri.parse(url));
+        assertThat("example://app.com/page?param3=value3").isEqualTo(modifiedUri.toString());
+    }
+
+    @Test
     public void testRemoveQueryParam_TryToRemoveQueryParamFromEmptyURL() {
         String url = "";
         String paramToRemove = "param1";
