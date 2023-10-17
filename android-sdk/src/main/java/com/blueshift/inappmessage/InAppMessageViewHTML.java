@@ -4,10 +4,12 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,9 +114,10 @@ public class InAppMessageViewHTML extends InAppMessageView {
             invokeNotificationPermissionReq(uri);
         } else {
             try {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(uri);
-                getContext().startActivity(intent);
+                Context context = getContext();
+                if (context instanceof Activity) {
+                    BlueshiftUtils.openURL(uri.toString(), (Activity) context, new Bundle());
+                }
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             }

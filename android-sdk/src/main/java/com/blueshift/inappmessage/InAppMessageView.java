@@ -1,5 +1,6 @@
 package com.blueshift.inappmessage;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
@@ -7,9 +8,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.core.content.ContextCompat;
-
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -21,9 +19,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.InAppUtils;
 
@@ -421,7 +422,10 @@ public abstract class InAppMessageView extends RelativeLayout {
                     }
 
                     try {
-                        openLink(link, bundle);
+                        Context context = getContext();
+                        if (context instanceof Activity) {
+                            BlueshiftUtils.openURL(link, (Activity) context, bundle);
+                        }
                     } catch (Exception e) {
                         BlueshiftLogger.e(TAG, e);
 
@@ -436,18 +440,6 @@ public abstract class InAppMessageView extends RelativeLayout {
         } catch (Exception e) {
             BlueshiftLogger.e(TAG, e);
         }
-    }
-
-    private void openLink(String link, Bundle extras) {
-        Uri linkUri = Uri.parse(link);
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(linkUri);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        if (extras != null) {
-            intent.putExtras(extras);
-        }
-        getContext().startActivity(intent);
     }
 
     private void openActivity(String className, Bundle extras) throws ClassNotFoundException {

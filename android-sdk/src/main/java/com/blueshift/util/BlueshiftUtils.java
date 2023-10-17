@@ -1,7 +1,11 @@
 package com.blueshift.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Bundle;
 import android.text.TextUtils;
 
 import androidx.annotation.WorkerThread;
@@ -23,6 +27,8 @@ import java.util.Map;
 
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
+    private static final String KEY_OPEN_IN = "bsft_tgt";
+    private static final String VAL_BROWSER = "browser";
 
     /**
      * This method checks if a non-empty API key is supplied to the
@@ -330,5 +336,125 @@ public class BlueshiftUtils {
         }
 
         return null;
+    }
+
+    public static void openURL(String url, Activity activity, Bundle bundle) {
+        if (activity == null) {
+            BlueshiftLogger.w(LOG_TAG, "openURL: Can't open the URL. No activity context found.");
+        } else {
+            if (url == null || "".equals(url.trim())) {
+                BlueshiftLogger.w(LOG_TAG, "openURL: The provided URL is null / empty.");
+            } else {
+                Uri data = null;
+                try {
+                    data = Uri.parse(url);
+                } catch (Exception e) {
+                    BlueshiftLogger.w(LOG_TAG, "openURL: Could not parse the URL: " + url);
+                }
+
+                if (data != null) {
+                    if (shouldOpenURLWithExternalApp(data)) {
+                        Uri newData = removeQueryParam(KEY_OPEN_IN, data);
+                        BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in external app. URL: " + newData);
+                        openURLWithExternalApp(newData, activity, bundle);
+                    } else {
+                        BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in the host app. URL: " + data);
+                        openURLWithHostApp(data, activity, bundle);
+                    }
+                } else {
+                    BlueshiftLogger.w(LOG_TAG, "openURL: No URL available to open.");
+                }
+            }
+        }
+    }
+
+    public static Uri removeQueryParam(String query, Uri uri) {
+        if (uri == null) return null;
+
+        boolean isParamAvailable = false;
+
+        try {
+            isParamAvailable = query != null && uri.getQueryParameter(query) != null;
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
+
+        if (isParamAvailable) {
+            Uri.Builder newUri = uri.buildUpon();
+            newUri.clearQuery();
+
+            String queryString = uri.getQuery();
+            if (queryString != null) {
+                String[] queryParams = queryString.split("&");
+
+                StringBuilder queryBuilder = new StringBuilder();
+
+                for (String param : queryParams) {
+                    if (!param.startsWith(query + "=")) {
+                        if (queryBuilder.length() > 1) {
+                            queryBuilder.append("&");
+                        }
+
+                        queryBuilder.append(param);
+                    }
+                }
+
+                newUri.encodedQuery(queryBuilder.toString());
+            }
+
+            return newUri.build();
+        }
+
+        return uri;
+    }
+
+    public static boolean shouldOpenURLWithExternalApp(Uri data) {
+        if (data != null) {
+            String openIn = data.getQueryParameter(KEY_OPEN_IN);
+            return VAL_BROWSER.equals(openIn);
+        }
+
+        return false;
+    }
+
+    public static void openURLWithHostApp(Uri data, Activity activity, Bundle bundle) {
+        if (data != null && activity != null) {
+            PackageManager packageManager = activity.getPackageManager();
+            if (packageManager != null) {
+                Intent intent = packageManager.getLaunchIntentForPackage(activity.getPackageName());
+                if (intent != null) {
+                    if (bundle != null) {
+                        intent.putExtras(bundle);
+                    }
+
+                    intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+                    try {
+                        activity.startActivity(intent);
+                    } catch (Exception e) {
+                        BlueshiftLogger.e(LOG_TAG, e);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void openURLWithExternalApp(Uri data, Activity activity, Bundle bundle) {
+        if (data != null && activity != null) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, data);
+
+            if (bundle != null) {
+                intent.putExtras(bundle);
+            }
+
+            try {
+                activity.startActivity(intent);
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+
+                // fallback to open URl inside the host app
+                openURLWithHostApp(data, activity, bundle);
+            }
+        }
     }
 }

@@ -476,20 +476,7 @@ public class NotificationUtils {
                     if (BlueshiftUtils.isPushAppLinksEnabled(activity)) {
                         launchUrl(activity, deepLink, clickElement);
                     } else {
-                        Intent intent = buildIntentFromAction(activity, message, action);
-                        if (intent == null) return false; // if intent is null, abort here.
-
-                        // add complete bundle to the intent.
-                        intent.putExtras(bundle);
-
-                        try {
-                            // add deep link URL to the intent's data as well.
-                            if (deepLink != null) intent.setData(Uri.parse(deepLink));
-                        } catch (Exception e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
-                        }
-
-                        activity.startActivity(intent);
+                        BlueshiftUtils.openURL(deepLink, activity, bundle);
                     }
 
                     // mark 'app_open'
