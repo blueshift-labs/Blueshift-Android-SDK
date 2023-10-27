@@ -742,27 +742,18 @@ class CustomNotificationFactory {
      * @return {@link PendingIntent}
      */
     private PendingIntent getCarouselImageClickPendingIntent(Context context, Message message, CarouselElement element, int notificationId) {
-        String action = RichPushConstants.ACTION_OPEN_APP(context); // default is OPEN_APP
-
         Bundle bundle = new Bundle();
         bundle.putInt(RichPushConstants.EXTRA_NOTIFICATION_ID, notificationId);
 
-        if (message != null) {
-            bundle.putString(RichPushConstants.EXTRA_MESSAGE, message.toJson());
-        }
+        if (message != null) bundle.putString(RichPushConstants.EXTRA_MESSAGE, message.toJson());
 
         if (element != null) {
             bundle.putString(RichPushConstants.EXTRA_CAROUSEL_ELEMENT, element.toJson());
-
-            if (element.isDeepLinkingEnabled()) {
-                bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
-            } else {
-                action = RichPushConstants.buildAction(context, element.getAction());
-            }
+            bundle.putString(RichPushConstants.EXTRA_DEEP_LINK_URL, element.getDeepLinkUrl());
         }
 
         // get the activity to handle clicks (user defined or sdk defined
-        Intent intent = NotificationUtils.getNotificationEventsActivity(context, action, bundle);
+        Intent intent = NotificationUtils.getNotificationEventsActivity(context, bundle);
         TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
         taskStackBuilder.addNextIntent(intent);
 
