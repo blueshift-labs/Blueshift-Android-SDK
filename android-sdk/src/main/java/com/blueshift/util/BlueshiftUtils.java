@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class BlueshiftUtils {
     private static final String LOG_TAG = "Blueshift";
-    private static final String KEY_OPEN_IN = "bsft_tgt";
+    private static final String KEY_BSFT_TGT = "bsft_tgt";
     private static final String VAL_BROWSER = "browser";
 
     /**
@@ -338,7 +338,7 @@ public class BlueshiftUtils {
         return null;
     }
 
-    public static void openURL(String url, Activity activity, Bundle bundle) {
+    public static void openURL(String url, Activity activity, Bundle bundle, String source) {
         if (activity == null) {
             BlueshiftLogger.w(LOG_TAG, "openURL: Can't open the URL. No activity context found.");
         } else {
@@ -354,12 +354,19 @@ public class BlueshiftUtils {
 
                 if (data != null) {
                     if (shouldOpenURLWithExternalApp(data)) {
-                        Uri newData = removeQueryParam(KEY_OPEN_IN, data);
+                        Uri newData = removeQueryParam(KEY_BSFT_TGT, data);
                         BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in external app. URL: " + newData);
                         openURLWithExternalApp(newData, activity, bundle);
                     } else {
-                        BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL in the host app. URL: " + data);
-                        openURLWithHostApp(data, activity, bundle);
+                        if (BlueshiftConstants.LINK_SOURCE_INAPP.equals(source)) {
+                            // The URLs in the in-app messages are opened with VIEW intents by default.
+                            // When bsft_tgt is not present, we should fallback to this behavior.
+                            BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL (source => inapp) in external app. URL: " + data);
+                            openURLWithExternalApp(data, activity, bundle);
+                        } else {
+                            BlueshiftLogger.d(LOG_TAG, "openURL: Attempting to open the URL (source => push) in the host app. URL: " + data);
+                            openURLWithHostApp(data, activity, bundle);
+                        }
                     }
                 } else {
                     BlueshiftLogger.w(LOG_TAG, "openURL: No URL available to open.");
@@ -410,8 +417,8 @@ public class BlueshiftUtils {
 
     public static boolean shouldOpenURLWithExternalApp(Uri data) {
         if (data != null) {
-            String openIn = data.getQueryParameter(KEY_OPEN_IN);
-            return VAL_BROWSER.equals(openIn);
+            String target = data.getQueryParameter(KEY_BSFT_TGT);
+            return VAL_BROWSER.equals(target);
         }
 
         return false;
