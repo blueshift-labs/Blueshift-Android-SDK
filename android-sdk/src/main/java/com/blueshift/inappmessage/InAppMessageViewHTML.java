@@ -116,7 +116,7 @@ public class InAppMessageViewHTML extends InAppMessageView {
             try {
                 Context context = getContext();
                 if (context instanceof Activity) {
-                    BlueshiftUtils.openURL(uri.toString(), (Activity) context, new Bundle());
+                    BlueshiftUtils.openURL(uri.toString(), (Activity) context, new Bundle(), BlueshiftConstants.LINK_SOURCE_INAPP);
                 }
             } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
