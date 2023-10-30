@@ -424,7 +424,7 @@ public abstract class InAppMessageView extends RelativeLayout {
                     try {
                         Context context = getContext();
                         if (context instanceof Activity) {
-                            BlueshiftUtils.openURL(link, (Activity) context, bundle);
+                            BlueshiftUtils.openURL(link, (Activity) context, bundle, BlueshiftConstants.LINK_SOURCE_INAPP);
                         }
                     } catch (Exception e) {
                         BlueshiftLogger.e(TAG, e);

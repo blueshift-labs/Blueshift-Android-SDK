@@ -476,7 +476,7 @@ public class NotificationUtils {
                     if (BlueshiftUtils.isPushAppLinksEnabled(activity)) {
                         launchUrl(activity, deepLink, clickElement);
                     } else {
-                        BlueshiftUtils.openURL(deepLink, activity, bundle);
+                        BlueshiftUtils.openURL(deepLink, activity, bundle, BlueshiftConstants.LINK_SOURCE_PUSH);
                     }
 
                     // mark 'app_open'

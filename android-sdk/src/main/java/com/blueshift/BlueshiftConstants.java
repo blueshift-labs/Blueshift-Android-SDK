@@ -202,4 +202,7 @@ public class BlueshiftConstants {
     public static final String INBOX_UNREAD_INDICATOR_COLOR = "bsft_unread_indicator_color";
     public static final String INBOX_REFRESH_INDICATOR_COLORS = "bsft_refresh_indicator_color";
     public static final String INBOX_EMPTY_MESSAGE = "bsft_inbox_empty_message";
+
+    public static final String LINK_SOURCE_INAPP = "inapp";
+    public static final String LINK_SOURCE_PUSH = "push";
 }
