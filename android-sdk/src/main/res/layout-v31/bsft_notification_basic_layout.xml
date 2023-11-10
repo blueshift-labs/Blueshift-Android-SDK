@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="@android:dimen/notification_large_icon_height">
 
     <TextView
         android:id="@+id/notification_content_title"
@@ -24,7 +24,7 @@
 
     <FrameLayout
         android:id="@+id/icon_group"
-        android:layout_width="40dp"
+        android:layout_width="@android:dimen/notification_large_icon_width"
         android:layout_height="match_parent"
         android:layout_alignTop="@id/notification_content_title"
         android:layout_alignBottom="@id/notification_content_text"
@@ -45,7 +45,8 @@
             android:id="@+id/notification_icon"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/bsft_notification_large_icon" />
+            android:contentDescription="@string/bsft_notification_large_icon"
+            android:scaleType="center" />
 
     </FrameLayout>
 

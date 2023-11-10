@@ -160,6 +160,11 @@ public class NotificationFactory {
                     NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
                     bigPictureStyle.bigPicture(bitmap);
 
+                    // Set the large icon to match the big picture.
+                    builder.setLargeIcon(bitmap);
+                    // Hide the large icon when the notification is expanded.
+                    bigPictureStyle.bigLargeIcon(null);
+
                     if (!TextUtils.isEmpty(message.getBigContentTitle())) {
                         bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
                     }

@@ -397,9 +397,18 @@ class CustomNotificationFactory {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
 
             // check if large icon is available. If yes, set it
-            int largeIcon = configuration.getLargeIconResId();
-            if (largeIcon != 0) {
-                contentView.setImageViewResource(R.id.notification_icon, largeIcon);
+            Bitmap largeIcon = BlueshiftImageCache.getScaledBitmap(
+                    context,
+                    message.getLargeIconUrl(),
+                    RichPushConstants.BIG_IMAGE_WIDTH,
+                    RichPushConstants.BIG_IMAGE_HEIGHT);
+
+            if (largeIcon != null) {
+                if (isExpanded) {
+                    contentView.setViewVisibility(R.id.icon_group, View.GONE);
+                } else {
+                    contentView.setImageViewBitmap(R.id.notification_icon, largeIcon);
+                }
 
                 int smallIconResId = configuration.getSmallIconResId();
                 if (smallIconResId != 0) {
