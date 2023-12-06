@@ -405,7 +405,13 @@ class CustomNotificationFactory {
 
             if (largeIcon != null) {
                 if (isExpanded) {
-                    contentView.setViewVisibility(R.id.icon_group, View.GONE);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        contentView.setViewVisibility(R.id.icon_group, View.GONE);
+                    } else {
+                        // The icon comes on the left side for API levels less than 24.
+                        // So, the icon should stay when expanded.
+                        contentView.setImageViewBitmap(R.id.notification_icon, largeIcon);
+                    }
                 } else {
                     contentView.setImageViewBitmap(R.id.notification_icon, largeIcon);
                 }
