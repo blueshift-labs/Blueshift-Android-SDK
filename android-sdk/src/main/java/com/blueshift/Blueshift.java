@@ -56,7 +56,6 @@ import java.util.Set;
  */
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
-    private static final HashMap<String, Object> sAppParams = new HashMap<>();
     private static final String UTF8_SPACE = "%20";
 
     private Context mContext;
@@ -345,52 +344,6 @@ public class Blueshift {
         fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
     }
 
-    private void initAppInfo(Context context) {
-        synchronized (sAppParams) {
-            if (context != null) {
-                String pkgName = context.getPackageName();
-
-                if (!TextUtils.isEmpty(pkgName)) {
-                    PackageManager pkgManager = context.getPackageManager();
-
-                    if (pkgManager != null) {
-                        // ============== Read App Version ==============
-                        PackageInfo pkgInfo = null;
-
-                        try {
-                            pkgInfo = pkgManager.getPackageInfo(pkgName, 0);
-                        } catch (PackageManager.NameNotFoundException e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
-                        }
-
-                        if (pkgInfo != null && pkgInfo.versionName != null) {
-                            String versionName = pkgInfo.versionName;
-                            String versionCode;
-
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                versionCode = String.valueOf(pkgInfo.getLongVersionCode());
-                            } else {
-                                versionCode = String.valueOf(pkgInfo.versionCode);
-                            }
-
-                            String version = versionName + " (" + versionCode + ")";
-                            sAppParams.put(BlueshiftConstants.KEY_APP_VERSION, version);
-                        }
-
-                        // ============== Package Name ==============
-                        sAppParams.put(BlueshiftConstants.KEY_APP_NAME, pkgName);
-                    }
-                }
-            }
-        }
-    }
-
-    private HashMap<String, Object> getAppInfoMap() {
-        synchronized (sAppParams) {
-            return sAppParams;
-        }
-    }
-
     /**
      * This method initializes the sdk with the configuration set by user
      *
@@ -403,8 +356,6 @@ public class Blueshift {
 
         // set app icon as notification icon if not set
         initAppIcon(mContext);
-        // Collect app details
-        initAppInfo(mContext);
         // Sync the http request queue.
         RequestQueue.getInstance().syncInBackground(mContext);
         // schedule job to sync request queue on nw change
