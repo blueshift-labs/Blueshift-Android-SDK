@@ -44,6 +44,7 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -352,6 +353,8 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
+        doAppVersionChecks(mContext);
+
         BlueshiftAttributesApp.getInstance().init(mContext);
 
         // set app icon as notification icon if not set
@@ -376,6 +379,98 @@ public class Blueshift {
         // fetch from API
         if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
             InAppManager.fetchInAppFromServer(mContext, null);
+        }
+    }
+
+    private String getAppVersionString(Context context) {
+        String appVersionName = null;
+        long appVersionCode = -1;
+
+        String packageName = context.getPackageName();
+        if (packageName != null) {
+            PackageManager packageManager = context.getPackageManager();
+            if (packageManager != null) {
+                try {
+                    PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+                    if (packageInfo != null) {
+                        appVersionName = packageInfo.versionName;
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            appVersionCode = packageInfo.getLongVersionCode();
+                        } else {
+                            appVersionCode = packageInfo.versionCode;
+                        }
+                    }
+                } catch (PackageManager.NameNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        if (appVersionName != null && appVersionCode != -1) {
+            return appVersionName + " (" + appVersionCode + ")";
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * This method checks for app installs and app updates by looking at the app version changes.
+     * When a change is detected, an event will be sent to Blueshift to report the same.
+     */
+    private void doAppVersionChecks(Context context) {
+        if (context != null) {
+            final String appVersionString = getAppVersionString(context);
+
+            if (appVersionString != null) {
+                HashMap<String, Object> appVersionMap = new HashMap<>();
+                appVersionMap.put("current_app_version", appVersionString);
+
+                String storedAppVersionString = BlueShiftPreference.getStoredAppVersionString(context);
+                if (storedAppVersionString == null) {
+                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value NOT available");
+
+                    // When stored value for appVersion is absent. It could be because..
+                    // 1 - The app is freshly installed
+                    // 2 - The app is updated, but the old version did not have blueshift SDK
+                    // 3 - The app is updated, but the old version had blueshift SDK's old version.
+                    //
+                    // Case 1 & 2 will be treated as app_install.
+                    // Case 3 will be treated as app_update. We do this by checking the availability
+                    // of the database file created by the older version of blueshift SDK. If present,
+                    // it is app update, else it is app install.
+
+                    File database = context.getDatabasePath("blueshift_db.sqlite3");
+                    if (database.exists()) {
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file found at " + database.getAbsolutePath());
+
+                        appVersionMap.put("previous_app_version", null);
+                        sendEvent("app_update", appVersionMap, false);
+                    } else {
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
+
+                        sendEvent("app_install", appVersionMap, false);
+                    }
+                } else {
+                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value available");
+
+                    // When a stored value for appVersion is found, we compare it with the existing
+                    // app version value. If there is a change, we consider it as app_update.
+                    //
+                    // PS: Android will not let you downgrade the app version without installing the old
+                    // version, so it will always be an app upgrade event.
+                    if (!storedAppVersionString.equals(appVersionString)) {
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value doesn't match (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
+
+                        appVersionMap.put("previous_app_version", storedAppVersionString);
+                        sendEvent("app_update", appVersionMap, false);
+                    } else {
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value matches (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
+                    }
+                }
+
+                BlueShiftPreference.saveAppVersionString(context, appVersionString);
+            }
         }
     }
 
