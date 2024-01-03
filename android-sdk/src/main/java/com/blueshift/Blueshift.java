@@ -423,9 +423,6 @@ public class Blueshift {
             final String appVersionString = getAppVersionString(context);
 
             if (appVersionString != null) {
-                HashMap<String, Object> appVersionMap = new HashMap<>();
-                appVersionMap.put("current_app_version", appVersionString);
-
                 String storedAppVersionString = BlueShiftPreference.getStoredAppVersionString(context);
                 if (storedAppVersionString == null) {
                     BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value NOT available");
@@ -444,12 +441,13 @@ public class Blueshift {
                     if (database.exists()) {
                         BlueshiftLogger.d(LOG_TAG, "appVersion: db file found at " + database.getAbsolutePath());
 
-                        appVersionMap.put("previous_app_version", null);
-                        sendEvent("app_update", appVersionMap, false);
+                        sendEvent("app_update", null, false);
+                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
                     } else {
                         BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
 
-                        sendEvent("app_install", appVersionMap, false);
+                        sendEvent("app_install", null, false);
+                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
                     }
                 } else {
                     BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value available");
@@ -462,14 +460,15 @@ public class Blueshift {
                     if (!storedAppVersionString.equals(appVersionString)) {
                         BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value doesn't match (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
 
-                        appVersionMap.put("previous_app_version", storedAppVersionString);
+                        HashMap<String, Object> appVersionMap = new HashMap<>();
+                        appVersionMap.put("prev_app_version", storedAppVersionString);
                         sendEvent("app_update", appVersionMap, false);
+
+                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
                     } else {
                         BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value matches (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
                     }
                 }
-
-                BlueShiftPreference.saveAppVersionString(context, appVersionString);
             }
         }
     }
