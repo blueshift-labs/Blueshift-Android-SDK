@@ -439,11 +439,13 @@ public class Blueshift {
 
                     File database = context.getDatabasePath("blueshift_db.sqlite3");
                     if (database.exists()) {
+                        // case 3
                         BlueshiftLogger.d(LOG_TAG, "appVersion: db file found at " + database.getAbsolutePath());
 
                         sendEvent("app_update", null, false);
                         BlueShiftPreference.saveAppVersionString(context, appVersionString);
                     } else {
+                        // cases 1 & 2
                         BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
 
                         sendEvent("app_install", null, false);
