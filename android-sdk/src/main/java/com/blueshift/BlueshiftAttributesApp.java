@@ -15,6 +15,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.blueshift.model.Configuration;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.PermissionUtils;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -529,32 +530,8 @@ public class BlueshiftAttributesApp extends JSONObject {
     }
 
     private void addAppVersion(Context context) {
-        if (context != null) {
-            try {
-                String pkgName = context.getPackageName();
-                if (pkgName != null) {
-                    PackageManager pkgManager = context.getPackageManager();
-                    if (pkgManager != null) {
-                        PackageInfo pkgInfo = pkgManager.getPackageInfo(pkgName, 0);
-                        if (pkgInfo != null && pkgInfo.versionName != null) {
-                            String versionName = pkgInfo.versionName;
-                            String versionCode;
-
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                versionCode = String.valueOf(pkgInfo.getLongVersionCode());
-                            } else {
-                                versionCode = String.valueOf(pkgInfo.versionCode);
-                            }
-
-                            String version = versionName + " (" + versionCode + ")";
-                            setAppVersion(version);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                BlueshiftLogger.e(TAG, e);
-            }
-        }
+        String version = CommonUtils.getAppVersion(context);
+        setAppVersion(version);
     }
 
     private void setAppVersion(String appVersion) {

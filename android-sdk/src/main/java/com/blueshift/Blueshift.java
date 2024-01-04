@@ -382,45 +382,13 @@ public class Blueshift {
         }
     }
 
-    private String getAppVersionString(Context context) {
-        String appVersionName = null;
-        long appVersionCode = -1;
-
-        String packageName = context.getPackageName();
-        if (packageName != null) {
-            PackageManager packageManager = context.getPackageManager();
-            if (packageManager != null) {
-                try {
-                    PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
-                    if (packageInfo != null) {
-                        appVersionName = packageInfo.versionName;
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            appVersionCode = packageInfo.getLongVersionCode();
-                        } else {
-                            appVersionCode = packageInfo.versionCode;
-                        }
-                    }
-                } catch (PackageManager.NameNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        if (appVersionName != null && appVersionCode != -1) {
-            return appVersionName + " (" + appVersionCode + ")";
-        } else {
-            return null;
-        }
-    }
-
     /**
      * This method checks for app installs and app updates by looking at the app version changes.
      * When a change is detected, an event will be sent to Blueshift to report the same.
      */
     private void doAppVersionChecks(Context context) {
         if (context != null) {
-            final String appVersionString = getAppVersionString(context);
+            final String appVersionString = CommonUtils.getAppVersion(context);
 
             if (appVersionString != null) {
                 String storedAppVersionString = BlueShiftPreference.getStoredAppVersionString(context);
