@@ -45,6 +45,10 @@ dependencies {
     // Firebase
     implementation 'com.google.firebase:firebase-core:17.4.4'
     implementation 'com.google.firebase:firebase-messaging:20.3.0'
+
+    // Test
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:4.6.1'
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"

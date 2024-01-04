@@ -386,7 +386,7 @@ public class Blueshift {
      * This method checks for app installs and app updates by looking at the app version changes.
      * When a change is detected, an event will be sent to Blueshift to report the same.
      */
-    private void doAppVersionChecks(Context context) {
+    void doAppVersionChecks(Context context) {
         if (context != null) {
             final String appVersionString = CommonUtils.getAppVersion(context);
 
@@ -538,9 +538,9 @@ public class Blueshift {
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      * @return true if everything works fine, else false
      */
-    private boolean sendEvent(String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
+    boolean sendEvent(String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
         String apiKey = BlueshiftUtils.getApiKey(mContext);
-        if (TextUtils.isEmpty(apiKey)) {
+        if (apiKey == null || apiKey.isEmpty()) {
             BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
             return false;
         } else {
