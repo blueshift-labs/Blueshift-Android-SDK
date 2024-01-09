@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="90dp"
     android:background="@android:color/white"
@@ -17,7 +18,7 @@
         android:layout_marginEnd="5dp"
         android:background="@android:color/transparent"
         android:contentDescription="@string/bsft_notification_small_icon"
-        android:tint="#808080" />
+        app:tint="#808080" />
 
     <TextView
         android:id="@+id/notification_app_name_text"
@@ -89,7 +90,8 @@
             android:id="@+id/notification_icon"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/bsft_notification_large_icon" />
+            android:contentDescription="@string/bsft_notification_large_icon"
+            android:scaleType="center" />
 
     </FrameLayout>
 

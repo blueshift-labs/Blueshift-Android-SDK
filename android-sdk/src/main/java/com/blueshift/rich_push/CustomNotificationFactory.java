@@ -397,9 +397,24 @@ class CustomNotificationFactory {
             Configuration configuration = Blueshift.getInstance(context).getConfiguration();
 
             // check if large icon is available. If yes, set it
-            int largeIcon = configuration.getLargeIconResId();
-            if (largeIcon != 0) {
-                contentView.setImageViewResource(R.id.notification_icon, largeIcon);
+            Bitmap largeIcon = BlueshiftImageCache.getScaledBitmap(
+                    context,
+                    message.getLargeIconUrl(),
+                    RichPushConstants.BIG_IMAGE_WIDTH,
+                    RichPushConstants.BIG_IMAGE_HEIGHT);
+
+            if (largeIcon != null) {
+                if (isExpanded) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        contentView.setViewVisibility(R.id.icon_group, View.GONE);
+                    } else {
+                        // The icon comes on the left side for API levels less than 24.
+                        // So, the icon should stay when expanded.
+                        contentView.setImageViewBitmap(R.id.notification_icon, largeIcon);
+                    }
+                } else {
+                    contentView.setImageViewBitmap(R.id.notification_icon, largeIcon);
+                }
 
                 int smallIconResId = configuration.getSmallIconResId();
                 if (smallIconResId != 0) {

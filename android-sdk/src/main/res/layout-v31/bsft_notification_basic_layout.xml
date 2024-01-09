@@ -24,8 +24,8 @@
 
     <FrameLayout
         android:id="@+id/icon_group"
-        android:layout_width="40dp"
-        android:layout_height="match_parent"
+        android:layout_width="@dimen/bsft_notification_large_icon_width"
+        android:layout_height="@dimen/bsft_notification_large_icon_height"
         android:layout_alignTop="@id/notification_content_title"
         android:layout_alignBottom="@id/notification_content_text"
         android:layout_alignParentEnd="true"
@@ -33,19 +33,11 @@
         android:layout_marginStart="10dp">
 
         <ImageView
-            android:id="@+id/notification_icon_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/bsft_notification_large_icon"
-            android:scaleType="fitXY"
-            android:src="@drawable/bsft_notification_big_icon_overlay"
-            android:visibility="gone" />
-
-        <ImageView
             android:id="@+id/notification_icon"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/bsft_notification_large_icon" />
+            android:contentDescription="@string/bsft_notification_large_icon"
+            android:scaleType="center" />
 
     </FrameLayout>
 
