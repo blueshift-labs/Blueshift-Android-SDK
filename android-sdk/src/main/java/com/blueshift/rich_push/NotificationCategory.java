@@ -8,11 +8,6 @@ import com.blueshift.BlueshiftLogger;
  *         https://github.com/rahulrvp
  */
 public enum NotificationCategory {
-    Buy,
-    ViewCart,
-    Promotion,
-    AlertBoxOpenDismiss,
-    AlertBoxDismiss,
     SilentPush,
     AnimatedCarousel,
     Carousel,
@@ -24,23 +19,6 @@ public enum NotificationCategory {
     public static NotificationCategory fromString(String notificationCategory) {
         if (notificationCategory != null) {
             switch (notificationCategory) {
-                // for regular notifications
-                case "buy":
-                    return Buy;
-
-                case "view_cart":
-                    return ViewCart;
-
-                case "promotion":
-                    return Promotion;
-
-                // for dialog notifications
-                case "alert_box":
-                    return AlertBoxOpenDismiss;
-
-                case "alert_box_1_button":
-                    return AlertBoxDismiss;
-
                 // silent push
                 case "silent_push":
                     return SilentPush;

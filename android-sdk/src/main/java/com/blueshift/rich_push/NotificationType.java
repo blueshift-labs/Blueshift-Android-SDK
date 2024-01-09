@@ -8,7 +8,6 @@ import com.blueshift.BlueshiftLogger;
  *         https://github.com/rahulrvp
  */
 public enum NotificationType {
-    AlertDialog,
     Notification,
     CustomNotification,
     NotificationScheduler,
@@ -19,9 +18,6 @@ public enum NotificationType {
     public static NotificationType fromString(String notificationType) {
         if (notificationType != null) {
             switch (notificationType) {
-                case "alert":
-                    return AlertDialog;
-
                 case "notification":
                     return Notification;
 
