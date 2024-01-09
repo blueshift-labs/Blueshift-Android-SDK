@@ -508,4 +508,17 @@ public class Message implements Serializable {
     public boolean hasActions() {
         return actions != null && actions.size() > 0;
     }
+
+    public String getLargeIconUrl() {
+        String url = image_url;
+
+        if (carousel_elements != null && carousel_elements.length > 1) {
+            CarouselElement element = carousel_elements[0];
+            if (element != null) {
+                url = element.getImageUrl();
+            }
+        }
+
+        return url;
+    }
 }
