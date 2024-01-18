@@ -200,6 +200,11 @@ public class BlueshiftInboxManager {
                     List<BlueshiftInboxMessage> messages = BlueshiftInboxApiManager.getNewMessages(context, batchOfIds);
                     BlueshiftInboxStoreSQLite.getInstance(context).addMessages(messages);
 
+                    // Track delivered event for all the inbox messages.
+                    for (BlueshiftInboxMessage message : messages) {
+                        InAppManager.onInAppMessageReceived(context, message.getInAppMessage());
+                    }
+
                     start += (BATCH_SIZE + 1);
 
                     invokeSyncComplete(context, true, callback);
