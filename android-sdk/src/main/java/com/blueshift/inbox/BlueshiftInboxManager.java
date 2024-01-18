@@ -14,6 +14,7 @@ import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.inappmessage.InAppMessage;
+import com.blueshift.util.InAppUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -202,7 +203,12 @@ public class BlueshiftInboxManager {
 
                     // Track delivered event for all the inbox messages.
                     for (BlueshiftInboxMessage message : messages) {
-                        InAppManager.onInAppMessageReceived(context, message.getInAppMessage());
+                        if (message != null) {
+                            InAppMessage inAppMessage = message.getInAppMessage();
+                            if (inAppMessage != null && !inAppMessage.isExpired()) {
+                                InAppUtils.invokeInAppDelivered(context, inAppMessage);
+                            }
+                        }
                     }
 
                     start += (BATCH_SIZE + 1);
