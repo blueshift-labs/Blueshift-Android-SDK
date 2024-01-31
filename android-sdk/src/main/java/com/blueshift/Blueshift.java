@@ -3,7 +3,6 @@ package com.blueshift;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -353,8 +352,6 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
-        doAppVersionChecks(mContext);
-
         BlueshiftAttributesApp.getInstance().init(mContext);
 
         // set app icon as notification icon if not set
@@ -380,6 +377,8 @@ public class Blueshift {
         if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
             InAppManager.fetchInAppFromServer(mContext, null);
         }
+
+        doAppVersionChecks(mContext);
     }
 
     /**
@@ -410,15 +409,19 @@ public class Blueshift {
                         // case 3
                         BlueshiftLogger.d(LOG_TAG, "appVersion: db file found at " + database.getAbsolutePath());
 
-                        sendEvent("app_update", null, false);
-                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
+                        HashMap<String, Object> extras = new HashMap<>();
+                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
+                        sendEvent(BlueshiftConstants.EVENT_APP_UPDATE, extras, false);
                     } else {
                         // cases 1 & 2
                         BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
 
-                        sendEvent("app_install", null, false);
-                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
+                        HashMap<String, Object> extras = new HashMap<>();
+                        extras.put(BlueshiftConstants.KEY_APP_INSTALLED_AT, CommonUtils.getCurrentUtcTimestamp());
+                        sendEvent(BlueshiftConstants.EVENT_APP_INSTALL, extras, false);
                     }
+
+                    BlueShiftPreference.saveAppVersionString(context, appVersionString);
                 } else {
                     BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value available");
 
@@ -430,9 +433,10 @@ public class Blueshift {
                     if (!storedAppVersionString.equals(appVersionString)) {
                         BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value doesn't match (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
 
-                        HashMap<String, Object> appVersionMap = new HashMap<>();
-                        appVersionMap.put("prev_app_version", storedAppVersionString);
-                        sendEvent("app_update", appVersionMap, false);
+                        HashMap<String, Object> extras = new HashMap<>();
+                        extras.put(BlueshiftConstants.KEY_PREV_APP_VERSION, storedAppVersionString);
+                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
+                        sendEvent(BlueshiftConstants.EVENT_APP_UPDATE, extras, false);
 
                         BlueShiftPreference.saveAppVersionString(context, appVersionString);
                     } else {
