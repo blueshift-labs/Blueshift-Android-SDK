@@ -75,6 +75,7 @@ public class BlueshiftConstants {
     public static final String EVENT_SUBSCRIPTION_CANCEL = "subscription_cancel";
     public static final String EVENT_APP_OPEN = "app_open";
     public static final String EVENT_APP_INSTALL = "app_install";
+    public static final String EVENT_APP_UPDATE = "app_update";
     public static final String EVENT_PUSH_DELIVERED = "delivered";
     public static final String EVENT_PUSH_CLICK = "click";
     public static final String EVENT_DISMISS_ALERT = "dismiss_alert";
@@ -101,6 +102,9 @@ public class BlueshiftConstants {
     public static final String KEY_LONGITUDE = "longitude";
     public static final String KEY_COUNTRY_CODE = "country_code";
     public static final String KEY_LANGUAGE_CODE = "language_code";
+    public static final String KEY_APP_INSTALLED_AT = "app_installed_at";
+    public static final String KEY_APP_UPDATED_AT = "app_updated_at";
+    public static final String KEY_PREV_APP_VERSION = "prev_app_version";
 
     // User
     public static final String KEY_EMAIL = "email";
