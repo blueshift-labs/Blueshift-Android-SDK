@@ -146,6 +146,7 @@ public class BlueshiftConstants {
     public static final String KEY_MID = "mid";
     public static final String KEY_EID = "eid";
     public static final String KEY_BSFT_AAID = "bsft_aaid";
+    public static final String KEY_BSFT_EK = "bsft_ek";
     public static final String KEY_TXNID = "txnid";
     public static final String KEY_ACTION = "a";
 

@@ -1086,7 +1086,7 @@ public class Blueshift {
             } else {
                 HashMap<String, Object> params = new HashMap<>();
                 params.put(Message.EXTRA_BSFT_MESSAGE_UUID, message.getId());
-                if (message.isCampaignPush()) params.putAll(message.getCampaignAttr());
+                params.putAll(message.getCampaignAttr());
                 trackCampaignEventAsync(BlueshiftConstants.EVENT_PUSH_CLICK, params, extras);
             }
         }
@@ -1294,6 +1294,12 @@ public class Blueshift {
             if (aid != null) {
                 appendAnd(q);
                 q.append(BlueshiftConstants.KEY_BSFT_AAID).append("=").append(aid);
+            }
+
+            Object ek = campaignParams.get(Message.EXTRA_BSFT_EXECUTION_KEY);
+            if (ek != null) {
+                appendAnd(q);
+                q.append(BlueshiftConstants.KEY_BSFT_EK).append("=").append(ek);
             }
 
             Object tid = campaignParams.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID);

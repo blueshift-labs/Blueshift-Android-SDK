@@ -242,6 +242,7 @@ public class NotificationFactory {
                             item.setBsftMessageUuid(message.getId());
                             item.setBsftUserUuid(message.getBsftUserUuid());
                             item.setBsftExperimentUuid(message.getBsftExperimentUuid());
+                            item.setBsftExecutionKey(message.getBsftExecutionKey());
                             item.setBsftTransactionUuid(message.getBsftTransactionUuid());
                             item.setBsftSeedListSend(message.getBsftSeedListSend());
 

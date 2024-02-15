@@ -236,6 +236,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
                         // CAMPAIGN METADATA CHECK
                         message.setBsftMessageUuid(data.get(Message.EXTRA_BSFT_MESSAGE_UUID));
                         message.setBsftExperimentUuid(data.get(Message.EXTRA_BSFT_EXPERIMENT_UUID));
+                        message.setBsftExecutionKey(data.get(Message.EXTRA_BSFT_EXECUTION_KEY));
                         message.setBsftUserUuid(data.get(Message.EXTRA_BSFT_USER_UUID));
                         message.setBsftTransactionUuid(data.get(Message.EXTRA_BSFT_TRANSACTIONAL_UUID));
                         message.setAdapterUUID(data.get(Message.EXTRA_ADAPTER_UUID));

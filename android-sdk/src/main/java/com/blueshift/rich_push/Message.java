@@ -21,6 +21,7 @@ public class Message implements Serializable {
     private static final String TAG = "Message";
     public static final String EXTRA_MESSAGE = "message";
     public static final String EXTRA_ADAPTER_UUID = "adapter_uuid";
+    public static final String EXTRA_BSFT_EXECUTION_KEY = "bsft_execution_key";
     public static final String EXTRA_BSFT_EXPERIMENT_UUID = "bsft_experiment_uuid";
     public static final String EXTRA_BSFT_USER_UUID = "bsft_user_uuid";
     public static final String EXTRA_BSFT_TRANSACTIONAL_UUID = "bsft_transaction_uuid";
@@ -34,6 +35,7 @@ public class Message implements Serializable {
      */
     private String adapter_uuid;
     private String bsft_experiment_uuid;
+    private String bsft_execution_key;
     private String bsft_user_uuid;
     private String bsft_transaction_uuid; // present only with transactional campaign
     private Boolean bsft_seed_list_send; // test messages sent to seed list of users will have this
@@ -182,6 +184,7 @@ public class Message implements Serializable {
 
         map.put(Message.EXTRA_BSFT_MESSAGE_UUID, bsft_message_uuid);
         map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, bsft_experiment_uuid);
+        map.put(Message.EXTRA_BSFT_EXECUTION_KEY, bsft_execution_key);
         map.put(Message.EXTRA_ADAPTER_UUID, adapter_uuid);
         map.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, bsft_transaction_uuid);
         map.put(Message.EXTRA_BSFT_USER_UUID, bsft_user_uuid);
@@ -288,6 +291,14 @@ public class Message implements Serializable {
      */
 
 
+    public String getBsftExecutionKey() {
+        return bsft_execution_key;
+    }
+
+    public void setBsftExecutionKey(String bsftExecutionKey) {
+        this.bsft_execution_key = bsftExecutionKey;
+    }
+
     public String getBsftExperimentUuid() {
         return bsft_experiment_uuid;
     }
@@ -310,18 +321,22 @@ public class Message implements Serializable {
      * @return valid parameters inside HashMap if it is a campaign push, else null
      */
     public HashMap<String, Object> getCampaignAttr() {
-        HashMap<String, Object> attributes = null;
+        HashMap<String, Object> attributes =  new HashMap<>();
 
-        if (isCampaignPush()) {
-            attributes = new HashMap<>();
-            attributes.put(EXTRA_ADAPTER_UUID, getAdapterUUID());
-            attributes.put(EXTRA_BSFT_EXPERIMENT_UUID, getBsftExperimentUuid());
-            attributes.put(EXTRA_BSFT_USER_UUID, getBsftUserUuid());
+        String ek = getBsftExecutionKey();
+        if (ek != null && !ek.isEmpty()) attributes.put(EXTRA_BSFT_EXECUTION_KEY, ek);
 
-            if (!TextUtils.isEmpty(getBsftTransactionUuid())) {
-                attributes.put(EXTRA_BSFT_TRANSACTIONAL_UUID, getBsftTransactionUuid());
-            }
-        }
+        String aid = getAdapterUUID();
+        if (aid != null && !aid.isEmpty()) attributes.put(EXTRA_ADAPTER_UUID, getAdapterUUID());
+
+        String eid = getBsftExperimentUuid();
+        if (eid != null && !eid.isEmpty()) attributes.put(EXTRA_BSFT_EXPERIMENT_UUID, getBsftExperimentUuid());
+
+        String uid = getBsftUserUuid();
+        if (uid != null && !uid.isEmpty()) attributes.put(EXTRA_BSFT_USER_UUID, getBsftUserUuid());
+
+        String tid = getBsftTransactionUuid();
+        if (tid != null && !tid.isEmpty()) attributes.put(EXTRA_BSFT_TRANSACTIONAL_UUID, getBsftTransactionUuid());
 
         return attributes;
     }
