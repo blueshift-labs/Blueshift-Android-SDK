@@ -203,8 +203,27 @@ public class BlueshiftInboxApiManager {
                     if (content != null) {
                         JSONObject data = content.optJSONObject("data");
                         if (data != null) {
-                            String adapterUUID = content.optString("account_adapter_uuid");
-                            data.put("adapter_uuid", adapterUUID);
+                            // if the data already has the value, do not touch it
+                            if (!data.has("adapter_uuid")) {
+                                // else try to get it from root level.
+                                String adapterUUID = content.optString("account_adapter_uuid");
+                                if (!adapterUUID.isEmpty()) {
+                                    data.put("adapter_uuid", adapterUUID);
+                                }
+                            }
+
+                            if (!data.has("bsft_execution_key")) {
+                                JSONObject executionContext = content.optJSONObject("execution_context");
+                                if (executionContext != null) {
+                                    JSONObject context = executionContext.optJSONObject("context");
+                                    if (context != null) {
+                                        String executionKey = context.optString("execution_key");
+                                        if (!executionKey.isEmpty()) {
+                                            data.putOpt("bsft_execution_key", executionKey);
+                                        }
+                                    }
+                                }
+                            }
 
                             newContent.putOpt("created_at", data.optString("timestamp"));
                             newContent.putOpt("message_uuid", data.optString("bsft_message_uuid"));

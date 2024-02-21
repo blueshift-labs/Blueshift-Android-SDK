@@ -41,6 +41,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     // campaign params
     private String adapter_uuid;
+    private String execution_key;
     private String message_uuid;
     private String experiment_uuid;
     private String user_uuid;
@@ -67,6 +68,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
         }
 
         map.put(Message.EXTRA_ADAPTER_UUID, adapter_uuid);
+        map.put(Message.EXTRA_BSFT_EXECUTION_KEY, execution_key);
         map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
         map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
         map.put(Message.EXTRA_BSFT_USER_UUID, user_uuid);
@@ -95,6 +97,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
 
             inAppMessage.adapter_uuid = jsonObject.optString(Message.EXTRA_ADAPTER_UUID);
+            inAppMessage.execution_key = jsonObject.optString(Message.EXTRA_BSFT_EXECUTION_KEY);
             inAppMessage.message_uuid = jsonObject.optString(Message.EXTRA_BSFT_MESSAGE_UUID);
             inAppMessage.experiment_uuid = jsonObject.optString(Message.EXTRA_BSFT_EXPERIMENT_UUID);
             inAppMessage.user_uuid = jsonObject.optString(Message.EXTRA_BSFT_USER_UUID);
@@ -128,6 +131,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
                 inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
 
                 inAppMessage.adapter_uuid = pushPayload.get(Message.EXTRA_ADAPTER_UUID);
+                inAppMessage.execution_key = pushPayload.get(Message.EXTRA_BSFT_EXECUTION_KEY);
                 inAppMessage.message_uuid = pushPayload.get(Message.EXTRA_BSFT_MESSAGE_UUID);
                 inAppMessage.experiment_uuid = pushPayload.get(Message.EXTRA_BSFT_EXPERIMENT_UUID);
                 inAppMessage.user_uuid = pushPayload.get(Message.EXTRA_BSFT_USER_UUID);
@@ -292,11 +296,29 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public HashMap<String, Object> getCampaignParamsMap() {
         HashMap<String, Object> map = new HashMap<>();
 
-        map.put(Message.EXTRA_ADAPTER_UUID, adapter_uuid);
-        map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
-        map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
-        map.put(Message.EXTRA_BSFT_USER_UUID, user_uuid);
-        map.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, transaction_uuid);
+        if (adapter_uuid != null && !adapter_uuid.isEmpty()) {
+            map.put(Message.EXTRA_ADAPTER_UUID, adapter_uuid);
+        }
+
+        if (execution_key != null && !execution_key.isEmpty()) {
+            map.put(Message.EXTRA_BSFT_EXECUTION_KEY, execution_key);
+        }
+
+        if (message_uuid != null && !message_uuid.isEmpty()) {
+            map.put(Message.EXTRA_BSFT_MESSAGE_UUID, message_uuid);
+        }
+
+        if (experiment_uuid != null && !experiment_uuid.isEmpty()) {
+            map.put(Message.EXTRA_BSFT_EXPERIMENT_UUID, experiment_uuid);
+        }
+
+        if (user_uuid != null && !user_uuid.isEmpty()) {
+            map.put(Message.EXTRA_BSFT_USER_UUID, user_uuid);
+        }
+
+        if (transaction_uuid != null && !transaction_uuid.isEmpty()) {
+            map.put(Message.EXTRA_BSFT_TRANSACTIONAL_UUID, transaction_uuid);
+        }
 
         return map;
     }
