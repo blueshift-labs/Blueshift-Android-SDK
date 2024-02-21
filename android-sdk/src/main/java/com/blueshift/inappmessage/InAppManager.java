@@ -223,6 +223,16 @@ public class InAppManager {
                     List<BlueshiftInboxMessage> messages = BlueshiftInboxApiManager.getNewMessagesLegacy(context);
                     if (!messages.isEmpty()) {
                         BlueshiftInboxStoreSQLite.getInstance(context).insertOrReplace(messages);
+
+                        // Track delivered event for all the messages from legacy API.
+                        for (BlueshiftInboxMessage message : messages) {
+                            if (message != null) {
+                                InAppMessage inAppMessage = message.getInAppMessage();
+                                if (inAppMessage != null && !inAppMessage.isExpired()) {
+                                    InAppUtils.invokeInAppDelivered(context, inAppMessage);
+                                }
+                            }
+                        }
                     }
 
                     BlueshiftExecutor.getInstance().runOnMainThread(() -> {
