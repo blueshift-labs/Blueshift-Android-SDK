@@ -1,0 +1,45 @@
+name: Close new issues with a comment
+
+on:
+    issues:
+        types: [opened]
+
+jobs:
+    close_issue:
+        permissions:
+            issues: write
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Add comment and close
+              env:
+                GH_TOKEN: ${{ github.token }}
+              run: |
+                issue_number=${{ github.event.issue.number }}
+                
+                echo "Hi there! 👋
+
+                Thank you for reaching out to us regarding an issue. We appreciate your efforts in helping us improve our product.
+                
+                Unfortunately, GitHub's privacy policies prevent us from identifying the issue reporter's organization or work email, thereby limiting our ability to provide personalized and efficient support.
+                
+                The primary -- and correct -- way to report an issue to us is via the customer support channel. Please email us at support@blueshift.com with all the necessary details from your work email.
+                
+                The necessary details may include the following, based on the nature of the issue:
+                
+                - Step-by-step instructions on how to reproduce the issue
+                - Logs (in case of an app crash or ANR)
+                - Screenshots/Screen Recordings
+                - Device details (Make, OS version, etc.)
+                - Blueshift Android/iOS SDK version being used
+                - Campaign Name/Link (if available)
+                - Template Name/Link (if available)
+                - Any extra details that you think would help in reproducing the issue
+                
+                Thank you once again for your cooperation and support." > comment.txt
+
+                cat comment.txt | gh issue comment $issue_number --body-file -
+
+                gh issue close $issue_number
