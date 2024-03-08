@@ -20,12 +20,29 @@ import java.util.UUID;
 public class BlueShiftPreference {
 
     private static final String PREF_FILE = "com.blueshift.sdk_preferences";
+    private static final String PREF_KEY_APP_VERSION = "blueshift_app_version";
     private static final String PREF_KEY_DEVICE_ID = "blueshift_device_id";
     private static final String PREF_KEY_PUSH_ENABLED = "blueshift_push_enabled";
     private static final String PREF_KEY_APP_OPEN_TRACKED_AT = "blueshift_app_open_tracked_at";
     private static final String PREF_FILE_EMAIL = "BsftEmailPrefFile";
 
     private static final String TAG = "BlueShiftPreference";
+
+    static void saveAppVersionString(Context context, String appVersionString) {
+        SharedPreferences preferences = getBlueshiftPreferences(context);
+        if (preferences != null) {
+            preferences.edit().putString(PREF_KEY_APP_VERSION, appVersionString).apply();
+        }
+    }
+
+    static String getStoredAppVersionString(Context context) {
+        SharedPreferences preferences = getBlueshiftPreferences(context);
+        if (preferences != null) {
+            return preferences.getString(PREF_KEY_APP_VERSION, null);
+        }
+
+        return null;
+    }
 
     static void incrementPermissionDenialCount(Context context, String permission) {
         try {
