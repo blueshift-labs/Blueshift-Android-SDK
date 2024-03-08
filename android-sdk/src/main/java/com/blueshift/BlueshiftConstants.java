@@ -104,7 +104,7 @@ public class BlueshiftConstants {
     public static final String KEY_LANGUAGE_CODE = "language_code";
     public static final String KEY_APP_INSTALLED_AT = "app_installed_at";
     public static final String KEY_APP_UPDATED_AT = "app_updated_at";
-    public static final String KEY_PREV_APP_VERSION = "prev_app_version";
+    public static final String KEY_PREVIOUS_APP_VERSION = "previous_app_version";
 
     // User
     public static final String KEY_EMAIL = "email";
