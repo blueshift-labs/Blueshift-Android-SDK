@@ -3,7 +3,6 @@ package com.blueshift;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -44,6 +43,7 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -56,7 +56,6 @@ import java.util.Set;
  */
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
-    private static final HashMap<String, Object> sAppParams = new HashMap<>();
     private static final String UTF8_SPACE = "%20";
 
     private Context mContext;
@@ -345,52 +344,6 @@ public class Blueshift {
         fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
     }
 
-    private void initAppInfo(Context context) {
-        synchronized (sAppParams) {
-            if (context != null) {
-                String pkgName = context.getPackageName();
-
-                if (!TextUtils.isEmpty(pkgName)) {
-                    PackageManager pkgManager = context.getPackageManager();
-
-                    if (pkgManager != null) {
-                        // ============== Read App Version ==============
-                        PackageInfo pkgInfo = null;
-
-                        try {
-                            pkgInfo = pkgManager.getPackageInfo(pkgName, 0);
-                        } catch (PackageManager.NameNotFoundException e) {
-                            BlueshiftLogger.e(LOG_TAG, e);
-                        }
-
-                        if (pkgInfo != null && pkgInfo.versionName != null) {
-                            String versionName = pkgInfo.versionName;
-                            String versionCode;
-
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                versionCode = String.valueOf(pkgInfo.getLongVersionCode());
-                            } else {
-                                versionCode = String.valueOf(pkgInfo.versionCode);
-                            }
-
-                            String version = versionName + " (" + versionCode + ")";
-                            sAppParams.put(BlueshiftConstants.KEY_APP_VERSION, version);
-                        }
-
-                        // ============== Package Name ==============
-                        sAppParams.put(BlueshiftConstants.KEY_APP_NAME, pkgName);
-                    }
-                }
-            }
-        }
-    }
-
-    private HashMap<String, Object> getAppInfoMap() {
-        synchronized (sAppParams) {
-            return sAppParams;
-        }
-    }
-
     /**
      * This method initializes the sdk with the configuration set by user
      *
@@ -400,11 +353,10 @@ public class Blueshift {
         mConfiguration = configuration;
 
         BlueshiftAttributesApp.getInstance().init(mContext);
+        doAppVersionChecks(mContext);
 
         // set app icon as notification icon if not set
         initAppIcon(mContext);
-        // Collect app details
-        initAppInfo(mContext);
         // Sync the http request queue.
         RequestQueue.getInstance().syncInBackground(mContext);
         // schedule job to sync request queue on nw change
@@ -425,6 +377,72 @@ public class Blueshift {
         // fetch from API
         if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
             InAppManager.fetchInAppFromServer(mContext, null);
+        }
+    }
+
+    /**
+     * This method checks for app installs and app updates by looking at the app version changes.
+     * When a change is detected, an event will be sent to Blueshift to report the same.
+     */
+    void doAppVersionChecks(Context context) {
+        if (context != null) {
+            final String appVersionString = CommonUtils.getAppVersion(context);
+
+            if (appVersionString != null) {
+                String storedAppVersionString = BlueShiftPreference.getStoredAppVersionString(context);
+                if (storedAppVersionString == null) {
+                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value NOT available");
+
+                    // When stored value for appVersion is absent. It could be because..
+                    // 1 - The app is freshly installed
+                    // 2 - The app is updated, but the old version did not have blueshift SDK
+                    // 3 - The app is updated, but the old version had blueshift SDK's old version.
+                    //
+                    // Case 1 & 2 will be treated as app_install.
+                    // Case 3 will be treated as app_update. We do this by checking the availability
+                    // of the database file created by the older version of blueshift SDK. If present,
+                    // it is app update, else it is app install.
+
+                    File database = context.getDatabasePath("blueshift_db.sqlite3");
+                    if (database.exists()) {
+                        // case 3
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file found at " + database.getAbsolutePath());
+
+                        HashMap<String, Object> extras = new HashMap<>();
+                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
+                        sendEvent(BlueshiftConstants.EVENT_APP_UPDATE, extras, false);
+                    } else {
+                        // cases 1 & 2
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
+
+                        HashMap<String, Object> extras = new HashMap<>();
+                        extras.put(BlueshiftConstants.KEY_APP_INSTALLED_AT, CommonUtils.getCurrentUtcTimestamp());
+                        sendEvent(BlueshiftConstants.EVENT_APP_INSTALL, extras, false);
+                    }
+
+                    BlueShiftPreference.saveAppVersionString(context, appVersionString);
+                } else {
+                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value available");
+
+                    // When a stored value for appVersion is found, we compare it with the existing
+                    // app version value. If there is a change, we consider it as app_update.
+                    //
+                    // PS: Android will not let you downgrade the app version without installing the old
+                    // version, so it will always be an app upgrade event.
+                    if (!storedAppVersionString.equals(appVersionString)) {
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value doesn't match (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
+
+                        HashMap<String, Object> extras = new HashMap<>();
+                        extras.put(BlueshiftConstants.KEY_PREVIOUS_APP_VERSION, storedAppVersionString);
+                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
+                        sendEvent(BlueshiftConstants.EVENT_APP_UPDATE, extras, false);
+
+                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
+                    } else {
+                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value matches (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
+                    }
+                }
+            }
         }
     }
 
@@ -523,9 +541,9 @@ public class Blueshift {
      * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
      * @return true if everything works fine, else false
      */
-    private boolean sendEvent(String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
+    boolean sendEvent(String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
         String apiKey = BlueshiftUtils.getApiKey(mContext);
-        if (TextUtils.isEmpty(apiKey)) {
+        if (apiKey == null || apiKey.isEmpty()) {
             BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
             return false;
         } else {
