@@ -17,6 +17,8 @@ import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
 import com.blueshift.batch.FailedEventsTable;
+import com.blueshift.core.schedule.bulkevents.BlueshiftBulkEventScheduler;
+import com.blueshift.core.schedule.networkqueue.BlueshiftNetworkQueueScheduler;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.inappmessage.InAppActionCallback;
@@ -368,6 +370,10 @@ public class Blueshift {
         RequestQueue.getInstance().syncInBackground(mContext);
         // schedule job to sync request queue on nw change
         RequestQueue.scheduleQueueSyncJob(mContext);
+
+        BlueshiftBulkEventScheduler.INSTANCE.schedule(mContext, mConfiguration);
+        BlueshiftNetworkQueueScheduler.INSTANCE.schedule(mContext, mConfiguration);
+
         // schedule the bulk events dispatch
         BulkEventManager.scheduleBulkEventEnqueue(mContext);
         // fire an app open automatically if enabled

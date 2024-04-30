@@ -58,8 +58,29 @@
         </receiver>
 
         <!-- NW Change: This broadcast receiver is added for Android API version 23 and below.-->
+        <!--        <receiver-->
+        <!--            android:name=".receiver.NetworkChangeListener"-->
+        <!--            android:exported="false">-->
+        <!--            <intent-filter>-->
+        <!--                <action-->
+        <!--                    android:name="android.net.conn.CONNECTIVITY_CHANGE"-->
+        <!--                    tools:ignore="BatteryLife" />-->
+        <!--            </intent-filter>-->
+        <!--        </receiver>-->
+        <!-- NW Change: This service is added for API version 24+-->
+        <!--        <service-->
+        <!--            android:name=".httpmanager.request_queue.RequestQueueJobService"-->
+        <!--            android:exported="true"-->
+        <!--            android:permission="android.permission.BIND_JOB_SERVICE" />-->
+        <!--Job Service for Bulk event dispatching-->
+        <service
+            android:name=".batch.BulkEventJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!--Network Change: Broadcast Receiver for API 20 and lower-->
         <receiver
-            android:name=".receiver.NetworkChangeListener"
+            android:name=".core.schedule.networkqueue.BlueshiftNetworkQueueBroadcastReceiver"
             android:exported="false">
             <intent-filter>
                 <action
@@ -67,17 +88,11 @@
                     tools:ignore="BatteryLife" />
             </intent-filter>
         </receiver>
-        <!-- NW Change: This service is added for API version 24+-->
+        <!--Network Change: JobScheduler for API 21 and higher-->
         <service
-            android:name=".httpmanager.request_queue.RequestQueueJobService"
+            android:name=".core.schedule.networkqueue.BlueshiftNetworkQueueJobService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
-        <!--Job Service for Bulk event dispatching-->
-        <service
-            android:name=".batch.BulkEventJobService"
-            android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
     </application>
 
 </manifest>
