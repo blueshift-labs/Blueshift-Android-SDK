@@ -268,6 +268,7 @@ public class NotificationFactory {
                                     BlueshiftLogger.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
                                 } else {
                                     BlueshiftLogger.i(LOG_TAG, "Display time (" + sdf.format(timeToDisplay) + ") elapsed! Showing the notification now.");
+                                    bcIntent.setPackage(context.getPackageName());
                                     context.sendBroadcast(bcIntent);
                                 }
                             } else {
