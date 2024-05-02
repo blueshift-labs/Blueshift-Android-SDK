@@ -309,6 +309,8 @@ public class BlueshiftInboxManager {
     private static void sendBroadcast(Context context, String action, Bundle extras) {
         if (context != null && action != null && !action.isEmpty()) {
             Intent bcIntent = new Intent(action);
+            bcIntent.setPackage(context.getPackageName());
+
             if (extras != null) {
                 bcIntent.putExtras(extras);
             }
