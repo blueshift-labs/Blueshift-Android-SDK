@@ -12,7 +12,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 23
         targetSdkVersion 34
         multiDexEnabled true
 
@@ -53,6 +53,7 @@ dependencies {
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01'
 
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'androidx.security:security-crypto:1.0.0'
 
     // Firebase
     implementation 'com.google.firebase:firebase-core:17.4.4'

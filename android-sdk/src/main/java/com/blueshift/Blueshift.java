@@ -352,6 +352,8 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
+        BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
+
         BlueshiftAttributesApp.getInstance().init(mContext);
         doAppVersionChecks(mContext);
 

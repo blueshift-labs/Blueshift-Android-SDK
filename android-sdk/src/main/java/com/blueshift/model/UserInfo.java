@@ -3,6 +3,7 @@ package com.blueshift.model;
 import android.content.Context;
 
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftEncryptedPreferences;
 import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -70,8 +71,10 @@ public class UserInfo {
 
     private static UserInfo load(Context context) {
         UserInfo userInfo = null;
-        String json = context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
-                .getString(getPrefKey(context), null);
+        String json = BlueshiftEncryptedPreferences.INSTANCE.getString(getPrefKey(context), null);
+
+//        String json = context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
+//                .getString(getPrefKey(context), null);
         if (json != null) {
             try {
                 userInfo = new Gson().fromJson(json, UserInfo.class);
@@ -117,10 +120,13 @@ public class UserInfo {
     }
 
     public void save(Context context) {
-        context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
-                .edit()
-                .putString(getPrefKey(context), new Gson().toJson(this))
-                .apply();
+        String json = new Gson().toJson(this);
+        BlueshiftEncryptedPreferences.INSTANCE.saveString(getPrefKey(context), json);
+//        BlueshiftEncryptedPreferences.INSTANCE.putString(getPrefKey(context), json);
+//        context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
+//                .edit()
+//                .putString(getPrefKey(context), new Gson().toJson(this))
+//                .apply();
     }
 
     public String getEmail() {
