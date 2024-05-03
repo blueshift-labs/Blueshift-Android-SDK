@@ -127,7 +127,7 @@ public class NotificationFactory {
                     // Set the large icon to match the big picture.
                     builder.setLargeIcon(bitmap);
                     // Hide the large icon when the notification is expanded.
-                    bigPictureStyle.bigLargeIcon(null);
+                    bigPictureStyle.bigLargeIcon((Bitmap) null);
 
                     if (!TextUtils.isEmpty(message.getBigContentTitle())) {
                         bigPictureStyle.setBigContentTitle(message.getBigContentTitle());
