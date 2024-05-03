@@ -4,7 +4,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 ext {
     PUBLISH_GROUP_ID = 'com.blueshift'
     PUBLISH_ARTIFACT_ID = 'android-sdk-x'
-    PUBLISH_VERSION = '3.4.8'
+    PUBLISH_VERSION = '3.4.6'
 }
 
 android {
