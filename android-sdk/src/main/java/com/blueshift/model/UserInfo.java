@@ -1,12 +1,12 @@
 package com.blueshift.model;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftEncryptedPreferences;
 import com.blueshift.BlueshiftLogger;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,8 +22,7 @@ import java.util.Map;
  */
 public class UserInfo {
     private static final String TAG = "UserInfo";
-    private static final String PREF_FILE = "user_info_file";
-    private static final String PREF_KEY = "user_info_key";
+    private static final String PREF_KEY = "user_info";
     private static final Boolean lock = false;
 
     private String email;
@@ -61,24 +60,34 @@ public class UserInfo {
         }
     }
 
-    private static String getPrefFile(Context context) {
-        return context.getPackageName() + "." + PREF_FILE;
-    }
-
-    private static String getPrefKey(Context context) {
-        return context.getPackageName() + "." + PREF_KEY;
-    }
-
     private static UserInfo load(Context context) {
         UserInfo userInfo = null;
-        String json = BlueshiftEncryptedPreferences.INSTANCE.getString(getPrefKey(context), null);
 
-//        String json = context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
-//                .getString(getPrefKey(context), null);
-        if (json != null) {
+        String json = BlueshiftEncryptedPreferences.INSTANCE.getString(PREF_KEY, null);
+        if (json == null) {
+            // The new secure store doesn't have the user info. Let's check in the old preference
+            // file and copy over the data if present.
+            String oldPreferenceFile = context.getPackageName() + ".user_info_file";
+            String oldPreferenceKey = context.getPackageName() + ".user_info_key";
+
+            SharedPreferences pref = context.getSharedPreferences(oldPreferenceFile, Context.MODE_PRIVATE);
+            String oldJson = pref.getString(oldPreferenceKey, null);
+            if (oldJson != null) {
+                try {
+                    userInfo = new Gson().fromJson(oldJson, UserInfo.class);
+                    // Save it to secure store for loading next time.
+                    userInfo.save();
+                    // Clear the old preference for privacy reasons.
+                    pref.edit().clear().apply();
+                } catch (Exception e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            }
+        } else {
+            // The new secure store has the user info. Let's load it.
             try {
                 userInfo = new Gson().fromJson(json, UserInfo.class);
-            } catch (JsonSyntaxException e) {
+            } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             }
         }
@@ -119,14 +128,16 @@ public class UserInfo {
         return map;
     }
 
+
+    // This method is deprecated. Use the save() method instead.
+    @Deprecated
     public void save(Context context) {
+        save();
+    }
+
+    public void save() {
         String json = new Gson().toJson(this);
-        BlueshiftEncryptedPreferences.INSTANCE.saveString(getPrefKey(context), json);
-//        BlueshiftEncryptedPreferences.INSTANCE.putString(getPrefKey(context), json);
-//        context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
-//                .edit()
-//                .putString(getPrefKey(context), new Gson().toJson(this))
-//                .apply();
+        BlueshiftEncryptedPreferences.INSTANCE.putString(PREF_KEY, json);
     }
 
     public String getEmail() {
@@ -275,6 +286,6 @@ public class UserInfo {
             instance.dateOfBirth = null;
         }
 
-        save(context);
+        save();
     }
 }

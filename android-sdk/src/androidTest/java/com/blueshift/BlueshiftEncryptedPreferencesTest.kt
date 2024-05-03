@@ -13,14 +13,14 @@ class BlueshiftEncryptedPreferencesTest {
 
     @Test
     fun savedValueIsReturnedWhenCorrectKeyIsProvided() {
-        BlueshiftEncryptedPreferences.saveString(key = "key", value = "value")
+        BlueshiftEncryptedPreferences.putString(key = "key", value = "value")
         val result = BlueshiftEncryptedPreferences.getString(key = "key", null)
         assert(result == "value")
     }
 
     @Test
     fun defaultValueIsReturnedWhenIncorrectKeyIsProvided() {
-        BlueshiftEncryptedPreferences.saveString(key = "key", value = "value")
+        BlueshiftEncryptedPreferences.putString(key = "key", value = "value")
         val result = BlueshiftEncryptedPreferences.getString(key = "wrong_key", "default")
         assert(result == "default")
     }
