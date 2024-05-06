@@ -9,16 +9,19 @@ ext {
 
 android {
     namespace "$PUBLISH_GROUP_ID"
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 33
+        targetSdkVersion 34
         multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField 'String', 'SDK_VERSION', "\"$PUBLISH_VERSION\""
+    }
+    buildFeatures {
+        buildConfig true
     }
     buildTypes {
         release {
