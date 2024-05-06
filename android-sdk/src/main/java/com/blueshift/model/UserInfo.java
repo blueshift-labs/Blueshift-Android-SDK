@@ -49,6 +49,10 @@ public class UserInfo {
         unsubscribed = false;
     }
 
+    static void killInstance() {
+        instance = null;
+    }
+
     public static UserInfo getInstance(Context context) {
         synchronized (lock) {
             if (instance == null) {

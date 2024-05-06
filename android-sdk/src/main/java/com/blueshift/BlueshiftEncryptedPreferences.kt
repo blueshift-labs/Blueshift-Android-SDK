@@ -22,6 +22,12 @@ object BlueshiftEncryptedPreferences {
         )
     }
 
+    fun remove(key: String) {
+        if (::sharedPreferences.isInitialized) {
+            sharedPreferences.edit().remove(key).apply()
+        }
+    }
+
     fun putString(key: String, value: String?) {
         if (::sharedPreferences.isInitialized) {
             sharedPreferences.edit().putString(key, value).apply()
