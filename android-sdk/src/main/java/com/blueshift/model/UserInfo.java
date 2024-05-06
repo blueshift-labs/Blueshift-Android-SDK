@@ -269,7 +269,13 @@ public class UserInfo {
         return dateOfBirth;
     }
 
+    // This method is deprecated. Use the clear() method instead.
+    @Deprecated
     public void clear(Context context) {
+        clear();
+    }
+
+    public void clear() {
         synchronized (lock) {
             instance.email = null;
             instance.email_hash = null;
