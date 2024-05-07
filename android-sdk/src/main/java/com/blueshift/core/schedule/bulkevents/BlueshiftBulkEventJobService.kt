@@ -2,8 +2,6 @@ package com.blueshift.core.schedule.bulkevents
 
 import android.app.job.JobParameters
 import android.app.job.JobService
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.blueshift.core.BlueshiftEventManager
 import com.blueshift.core.common.BlueshiftLogger
 import kotlinx.coroutines.CoroutineScope
