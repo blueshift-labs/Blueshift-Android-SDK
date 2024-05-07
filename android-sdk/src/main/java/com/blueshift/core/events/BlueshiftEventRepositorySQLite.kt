@@ -4,11 +4,10 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
-import android.util.Log
-import com.blueshift.core.db.BlueshiftSQLiteOpenHelper
+import com.blueshift.core.database.BlueshiftSQLiteOpenHelper
 import org.json.JSONObject
 
-class BlueshiftEventRepositoryImpl(
+class BlueshiftEventRepositorySQLite(
     context: Context?
 ) : BlueshiftSQLiteOpenHelper<BlueshiftEvent>(
     context, "blueshift_events.sqlite", null, 1

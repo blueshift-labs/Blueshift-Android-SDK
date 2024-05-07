@@ -4,10 +4,10 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
-import com.blueshift.core.db.BlueshiftSQLiteOpenHelper
+import com.blueshift.core.database.BlueshiftSQLiteOpenHelper
 import org.json.JSONObject
 
-class BlueshiftNetworkRequestRepositoryImpl(
+class BlueshiftNetworkRequestRepositorySQLite(
     context: Context?
 ) : BlueshiftSQLiteOpenHelper<BlueshiftNetworkRequest>(
     context, "blueshift_request_queue.sqlite", null, 1

@@ -4,7 +4,7 @@ import com.blueshift.core.common.BlueshiftLogger
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-object BlueshiftNetworkRepositoryImpl : BlueshiftNetworkRepository {
+object BlueshiftNetworkRepositorySQLite : BlueshiftNetworkRepository {
     private const val TAG = "NetworkRepository"
 
     override fun makeRequest(networkRequest: BlueshiftNetworkRequest): BlueshiftNetworkResponse {

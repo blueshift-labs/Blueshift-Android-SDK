@@ -1,6 +1,6 @@
 package com.blueshift.core.network
 
-import com.blueshift.core.db.BlueshiftSQLiteModel
+import com.blueshift.core.database.BlueshiftSQLiteModel
 import org.json.JSONObject
 
 data class BlueshiftNetworkRequest(

@@ -4,9 +4,7 @@ import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Build
-import androidx.annotation.RequiresApi
 import com.blueshift.core.common.BlueshiftLogger
 import com.blueshift.model.Configuration
 import kotlinx.coroutines.CoroutineScope
@@ -14,17 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 object BlueshiftNetworkQueueScheduler {
-    fun schedule(context: Context, configuration: Configuration) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            scheduleWithJobScheduler(context = context, configuration = configuration)
-        } else {
-        }
-
-        // For Android versions older than API 21, we will use the
-        // BlueshiftNetworkQueueBroadcastReceiver to periodically
-    }
-
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun scheduleWithJobScheduler(context: Context, configuration: Configuration) {
         val jobScheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         val jobID = configuration.networkChangeListenerJobId

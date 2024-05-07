@@ -1,4 +1,4 @@
-package com.blueshift.core.db
+package com.blueshift.core.database
 
 abstract class BlueshiftSQLiteModel {
     abstract val id: Long

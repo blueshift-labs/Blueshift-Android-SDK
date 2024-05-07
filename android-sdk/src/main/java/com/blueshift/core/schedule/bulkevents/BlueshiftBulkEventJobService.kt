@@ -10,7 +10,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class BlueshiftBulkEventJobService : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         doBackgroundWork(jobParameters = params)

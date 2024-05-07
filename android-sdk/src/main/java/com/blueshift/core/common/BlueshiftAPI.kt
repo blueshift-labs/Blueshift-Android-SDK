@@ -2,8 +2,8 @@ package com.blueshift.core.common
 
 object BlueshiftAPI {
     sealed class Datacenter(val baseUrl: String) {
-        object EU : Datacenter("https://api.eu.getblueshift.com/")
-        object US : Datacenter("https://api.getblueshift.com/")
+        data object EU : Datacenter("https://api.eu.getblueshift.com/")
+        data object US : Datacenter("https://api.getblueshift.com/")
     }
 
     private var currentDatacenter: Datacenter = Datacenter.US

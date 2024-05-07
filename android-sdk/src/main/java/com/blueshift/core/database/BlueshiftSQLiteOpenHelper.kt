@@ -1,4 +1,4 @@
-package com.blueshift.core.db
+package com.blueshift.core.database
 
 import android.content.ContentValues
 import android.content.Context

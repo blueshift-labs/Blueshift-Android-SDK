@@ -371,8 +371,8 @@ public class Blueshift {
         // schedule job to sync request queue on nw change
         RequestQueue.scheduleQueueSyncJob(mContext);
 
-        BlueshiftBulkEventScheduler.INSTANCE.schedule(mContext, mConfiguration);
-        BlueshiftNetworkQueueScheduler.INSTANCE.schedule(mContext, mConfiguration);
+        BlueshiftBulkEventScheduler.INSTANCE.scheduleWithJobScheduler(mContext, mConfiguration);
+        BlueshiftNetworkQueueScheduler.INSTANCE.scheduleWithJobScheduler(mContext, mConfiguration);
 
         // schedule the bulk events dispatch
         BulkEventManager.scheduleBulkEventEnqueue(mContext);
