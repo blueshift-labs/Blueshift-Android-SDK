@@ -3,11 +3,11 @@ package com.blueshift.core.database
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
-import android.database.DatabaseUtils
-import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CursorFactory
 import android.database.sqlite.SQLiteOpenHelper
 import android.text.TextUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
     context: Context?, name: String?, factory: CursorFactory?, version: Int
@@ -51,104 +51,85 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
         return if (index >= 0) cursor.getString(index) else null
     }
 
-    fun insert(t: T): Boolean {
-        synchronized(this) {
-            var id: Long = -1
-            val db = writableDatabase
-            if (db != null) {
-                id = db.insert(tableName, null, getContentValues(t))
-                db.close()
-            }
-            return id != -1L
-        }
-    }
-
-    fun insertOrReplace(tList: List<T>) {
-        synchronized(this) {
-            val db = writableDatabase
-            if (db != null) {
-                db.beginTransaction()
-                for (t in tList) {
-                    db.insertWithOnConflict(
-                        tableName, null, getContentValues(t), SQLiteDatabase.CONFLICT_REPLACE
-                    )
-                }
-                db.setTransactionSuccessful()
-                db.endTransaction()
-                db.close()
-            }
-        }
-    }
-
-    fun update(t: T?) {
-        synchronized(this) {
-            val db = writableDatabase
-            if (db != null) {
-                if (t != null && t.id > 0) {
-                    db.update(
-                        tableName, getContentValues(t), "$ID=?", arrayOf("${t.id}")
-                    )
-                }
-                db.close()
-            }
-        }
-    }
-
-    fun delete(t: T) {
-        synchronized(this) {
-            val db = writableDatabase
-            if (db != null) {
-                if (t != null) {
-                    db.delete(
-                        tableName, "$ID=?", arrayOf("${t.id}")
-                    )
-                }
-                db.close()
-            }
-        }
-    }
-
-    protected fun deleteAll(whereClause: String?, selectionArgs: Array<String?>?) {
-        synchronized(this) {
-            val db = writableDatabase
-            if (db != null) {
-                db.delete(tableName, whereClause, selectionArgs)
-                db.close()
-            }
-        }
-    }
-
-    val totalRecordCount: Long
-        get() {
+    suspend fun insert(t: T): Boolean {
+        return withContext(Dispatchers.IO) {
             synchronized(this) {
-                var count: Long = 0
+                var id: Long = -1
                 val db = writableDatabase
                 if (db != null) {
-                    count = DatabaseUtils.queryNumEntries(db, tableName)
+                    id = db.insert(tableName, null, getContentValues(t))
                     db.close()
                 }
-                return count
-            }
-        }
 
-    fun findAll(): List<T> {
-        val records: MutableList<T> = ArrayList()
-        synchronized(this) {
-            val db = readableDatabase
-            if (db != null) {
-                val cursor = db.query(tableName, null, null, null, null, null, null)
-                if (cursor != null) {
-                    cursor.moveToFirst()
-                    while (!cursor.isAfterLast) {
-                        records.add(getObject(cursor))
-                        cursor.moveToNext()
-                    }
-                    cursor.close()
-                }
-                db.close()
+                id != -1L
             }
         }
-        return records
+    }
+
+    suspend fun update(t: T?) {
+        withContext(Dispatchers.IO) {
+            synchronized(this) {
+                val db = writableDatabase
+                if (db != null) {
+                    if (t != null && t.id > 0) {
+                        db.update(
+                            tableName, getContentValues(t), "$ID=?", arrayOf("${t.id}")
+                        )
+                    }
+                    db.close()
+                }
+            }
+        }
+    }
+
+    suspend fun delete(t: T) {
+        withContext(Dispatchers.IO) {
+            synchronized(this) {
+                val db = writableDatabase
+                if (db != null) {
+                    if (t != null) {
+                        db.delete(
+                            tableName, "$ID=?", arrayOf("${t.id}")
+                        )
+                    }
+                    db.close()
+                }
+            }
+        }
+    }
+
+    suspend fun deleteAll(whereClause: String?, selectionArgs: Array<String?>?) {
+        withContext(Dispatchers.IO) {
+            synchronized(this) {
+                val db = writableDatabase
+                if (db != null) {
+                    db.delete(tableName, whereClause, selectionArgs)
+                    db.close()
+                }
+            }
+        }
+    }
+
+    suspend fun findAll(): List<T> {
+        return withContext(Dispatchers.IO) {
+            val records: MutableList<T> = ArrayList()
+            synchronized(this) {
+                val db = readableDatabase
+                if (db != null) {
+                    val cursor = db.query(tableName, null, null, null, null, null, null)
+                    if (cursor != null) {
+                        cursor.moveToFirst()
+                        while (!cursor.isAfterLast) {
+                            records.add(getObject(cursor))
+                            cursor.moveToNext()
+                        }
+                        cursor.close()
+                    }
+                    db.close()
+                }
+            }
+            records
+        }
     }
 
     protected abstract fun getObject(cursor: Cursor): T

@@ -5,9 +5,11 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.blueshift.core.database.BlueshiftSQLiteOpenHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-class BlueshiftEventRepositorySQLite(
+class BlueshiftEventRepositoryImpl(
     context: Context?
 ) : BlueshiftSQLiteOpenHelper<BlueshiftEvent>(
     context, "blueshift_events.sqlite", null, 1
@@ -53,29 +55,31 @@ class BlueshiftEventRepositorySQLite(
         private const val TIMESTAMP = "timestamp"
     }
 
-    override fun insertEvent(event: BlueshiftEvent) {
+    override suspend fun insertEvent(event: BlueshiftEvent) {
         insert(event)
     }
 
-    override fun deleteEvents(events: List<BlueshiftEvent>) {
+    override suspend fun deleteEvents(events: List<BlueshiftEvent>) {
         val ids = events.joinToString { it.id.toString() } // CSV of ID
         deleteAll(whereClause = "$ID IN (?)", selectionArgs = arrayOf(ids))
     }
 
-    override fun readOneBatch(batchCount: Int): List<BlueshiftEvent> {
-        synchronized(this) {
-            val events = mutableListOf<BlueshiftEvent>()
-            val cursor = readableDatabase.query(
-                tableName, null, null, null, null, null, "$TIMESTAMP DESC", "$batchCount"
-            )
+    override suspend fun readOneBatch(batchCount: Int): List<BlueshiftEvent> {
+        return withContext(Dispatchers.IO) {
+            synchronized(this) {
+                val events = mutableListOf<BlueshiftEvent>()
+                val cursor = readableDatabase.query(
+                    tableName, null, null, null, null, null, "$TIMESTAMP DESC", "$batchCount"
+                )
 
-            while (cursor.moveToNext()) {
-                events.add(getObject(cursor))
+                while (cursor.moveToNext()) {
+                    events.add(getObject(cursor))
+                }
+
+                cursor.close()
+
+                events
             }
-
-            cursor.close()
-
-            return events
         }
     }
 }

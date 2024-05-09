@@ -2,11 +2,11 @@ package com.blueshift.core.network
 
 class FakeNetworkRequestRepo : BlueshiftNetworkRequestRepository {
      val requests = mutableListOf<BlueshiftNetworkRequest>()
-    override fun insertRequest(networkRequest: BlueshiftNetworkRequest) {
+    override suspend fun insertRequest(networkRequest: BlueshiftNetworkRequest) {
         requests.add(networkRequest)
     }
 
-    override fun updateRequest(networkRequest: BlueshiftNetworkRequest) {
+    override suspend fun updateRequest(networkRequest: BlueshiftNetworkRequest) {
         for (i in requests.indices) {
             if (requests[i].id == networkRequest.id) {
                 requests[i] = networkRequest
@@ -15,11 +15,11 @@ class FakeNetworkRequestRepo : BlueshiftNetworkRequestRepository {
         }
     }
 
-    override fun deleteRequest(networkRequest: BlueshiftNetworkRequest) {
+    override suspend fun deleteRequest(networkRequest: BlueshiftNetworkRequest) {
         requests.remove(networkRequest)
     }
 
-    override fun readNextRequest(): BlueshiftNetworkRequest? {
+    override suspend fun readNextRequest(): BlueshiftNetworkRequest? {
         return if (requests.isEmpty()) {
             null
         } else {

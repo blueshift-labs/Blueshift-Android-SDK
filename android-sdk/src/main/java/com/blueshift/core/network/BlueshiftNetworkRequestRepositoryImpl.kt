@@ -5,9 +5,11 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.blueshift.core.database.BlueshiftSQLiteOpenHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-class BlueshiftNetworkRequestRepositorySQLite(
+class BlueshiftNetworkRequestRepositoryImpl(
     context: Context?
 ) : BlueshiftSQLiteOpenHelper<BlueshiftNetworkRequest>(
     context, "blueshift_request_queue.sqlite", null, 1
@@ -85,39 +87,41 @@ class BlueshiftNetworkRequestRepositorySQLite(
         private const val TIMESTAMP = "timestamp"
     }
 
-    override fun insertRequest(networkRequest: BlueshiftNetworkRequest) {
-        insert(networkRequest)
+    override suspend fun insertRequest(networkRequest: BlueshiftNetworkRequest) {
+            insert(networkRequest)
     }
 
-    override fun updateRequest(networkRequest: BlueshiftNetworkRequest) {
-        update(networkRequest)
+    override suspend fun updateRequest(networkRequest: BlueshiftNetworkRequest) {
+            update(networkRequest)
     }
 
-    override fun deleteRequest(networkRequest: BlueshiftNetworkRequest) {
-        delete(networkRequest)
+    override suspend fun deleteRequest(networkRequest: BlueshiftNetworkRequest) {
+            delete(networkRequest)
     }
 
-    override fun readNextRequest(): BlueshiftNetworkRequest? {
-        synchronized(this) {
-            var request: BlueshiftNetworkRequest? = null
-            val cursor = readableDatabase.query(
-                tableName,
-                null,
-                "$RETRY_BALANCE > 0 AND $RETRY_TIMESTAMP < ${System.currentTimeMillis()}",
-                null,
-                null,
-                null,
-                "$TIMESTAMP ASC",
-                "1"
-            )
+    override suspend fun readNextRequest(): BlueshiftNetworkRequest? {
+        return withContext(Dispatchers.IO) {
+            synchronized(this) {
+                var request: BlueshiftNetworkRequest? = null
+                val cursor = readableDatabase.query(
+                    tableName,
+                    null,
+                    "$RETRY_BALANCE > 0 AND $RETRY_TIMESTAMP < ${System.currentTimeMillis()}",
+                    null,
+                    null,
+                    null,
+                    "$TIMESTAMP ASC",
+                    "1"
+                )
 
-            if (cursor.moveToFirst()) {
-                request = getObject(cursor)
+                if (cursor.moveToFirst()) {
+                    request = getObject(cursor)
+                }
+
+                cursor.close()
+
+                request
             }
-
-            cursor.close()
-
-            return request
         }
     }
 

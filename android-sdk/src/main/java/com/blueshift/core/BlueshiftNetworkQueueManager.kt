@@ -5,53 +5,40 @@ import com.blueshift.core.network.BlueshiftNetworkConfiguration
 import com.blueshift.core.network.BlueshiftNetworkRepository
 import com.blueshift.core.network.BlueshiftNetworkRequest
 import com.blueshift.core.network.BlueshiftNetworkRequestRepository
-import com.blueshift.core.network.BlueshiftNetworkResponse
 import java.net.HttpURLConnection.HTTP_OK
 import java.util.concurrent.atomic.AtomicBoolean
 
 object BlueshiftNetworkQueueManager {
     private const val TAG = "RequestQueueManager"
-    private lateinit var networkRequestRepo: BlueshiftNetworkRequestRepository
-    private lateinit var networkRepo: BlueshiftNetworkRepository
+    private lateinit var networkRequestRepository: BlueshiftNetworkRequestRepository
+    private lateinit var networkRepository: BlueshiftNetworkRepository
     private val isSyncing = AtomicBoolean(false) // to prevent concurrent access to the sync method
     private val lock = Any() // to prevent concurrent access to the database
 
-    suspend fun initialize(
+    fun initialize(
         networkRequestRepository: BlueshiftNetworkRequestRepository,
         networkRepository: BlueshiftNetworkRepository
     ) {
         synchronized(lock) {
-            networkRequestRepo = networkRequestRepository
-            networkRepo = networkRepository
+            this.networkRequestRepository = networkRequestRepository
+            this.networkRepository = networkRepository
         }
     }
 
     suspend fun insertNewRequest(request: BlueshiftNetworkRequest) {
-        synchronized(lock) {
-            networkRequestRepo.insertRequest(request)
-        }
+        networkRequestRepository.insertRequest(request)
     }
 
     suspend fun updateRequest(request: BlueshiftNetworkRequest) {
-        synchronized(lock) {
-            networkRequestRepo.updateRequest(request)
-        }
+        networkRequestRepository.updateRequest(request)
     }
 
     suspend fun deleteRequest(request: BlueshiftNetworkRequest) {
-        synchronized(lock) {
-            networkRequestRepo.deleteRequest(request)
-        }
+        networkRequestRepository.deleteRequest(request)
     }
 
     suspend fun readNextRequest(): BlueshiftNetworkRequest? {
-        synchronized(lock) {
-            return networkRequestRepo.readNextRequest()
-        }
-    }
-
-    suspend fun makeNetworkRequest(request: BlueshiftNetworkRequest): BlueshiftNetworkResponse {
-        return networkRepo.makeRequest(request)
+        return networkRequestRepository.readNextRequest()
     }
 
     suspend fun sync() {
@@ -72,7 +59,7 @@ object BlueshiftNetworkQueueManager {
                     networkRequest.authorization = BlueshiftNetworkConfiguration.authorization
                 }
 
-                val response = makeNetworkRequest(networkRequest)
+                val response = networkRepository.makeNetworkRequest(networkRequest = networkRequest)
                 if (response.responseCode == HTTP_OK) {
                     BlueshiftLogger.d("$TAG - request was success! delete request = $networkRequest")
                     deleteRequest(networkRequest)
