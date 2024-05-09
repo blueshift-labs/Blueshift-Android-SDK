@@ -2,8 +2,8 @@ package com.blueshift.core
 
 import android.util.Log
 import com.blueshift.core.network.BlueshiftNetworkRequest
-import com.blueshift.core.network.FakeNetworkRepoWithAPISuccess
 import com.blueshift.core.network.FakeNetworkRepoWithAPIError
+import com.blueshift.core.network.FakeNetworkRepoWithAPISuccess
 import com.blueshift.core.network.FakeNetworkRequestRepo
 import io.mockk.every
 import io.mockk.mockkStatic
@@ -20,7 +20,7 @@ class BlueshiftNetworkQueueManagerTest {
     }
 
     @Before
-    fun setUp() {
+    fun setUp() = runBlocking {
         networkRequestRepo = FakeNetworkRequestRepo()
 
         (1..REQUEST_COUNT).forEach {
