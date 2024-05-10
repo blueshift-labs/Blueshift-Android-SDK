@@ -3,6 +3,7 @@ package com.blueshift.core.network
 import com.blueshift.core.common.BlueshiftLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
@@ -10,10 +11,14 @@ class BlueshiftNetworkRepositoryImpl : BlueshiftNetworkRepository {
 
     override suspend fun makeNetworkRequest(networkRequest: BlueshiftNetworkRequest): BlueshiftNetworkResponse {
         return withContext(Dispatchers.IO) {
-            with(URL(networkRequest.url)) {
-                BlueshiftLogger.d("$TAG - networkRequest = $networkRequest")
+            var response: BlueshiftNetworkResponse
+            var connection: HttpsURLConnection? = null
 
-                val connection = openConnection() as HttpsURLConnection
+            try {
+                val url = URL(networkRequest.url)
+                connection = url.openConnection() as HttpsURLConnection
+
+                BlueshiftLogger.d("$TAG - networkRequest = $networkRequest")
 
                 if (networkRequest.authorizationRequired) {
                     val authorization = networkRequest.authorization
@@ -29,29 +34,34 @@ class BlueshiftNetworkRepositoryImpl : BlueshiftNetworkRepository {
                 when (networkRequest.method) {
                     BlueshiftNetworkRequest.Method.GET -> prepareGetRequest(connection)
                     BlueshiftNetworkRequest.Method.POST -> preparePostRequest(
-                        connection,
-                        networkRequest
+                        connection, networkRequest
                     )
                 }
 
-                var response: BlueshiftNetworkResponse
-                try {
-                    connection.connect()
-                    response = readResponseFromHttpsConnection(connection)
-                } catch (ex: Exception) {
-                    response = BlueshiftNetworkResponse(responseCode = -1, responseBody = "")
-                    BlueshiftLogger.e("$TAG - ${ex.stackTraceToString()}")
-                } finally {
+                connection.connect()
+                response = readResponseFromHttpsConnection(connection)
+            } catch (e: Exception) {
+                response = when (e) {
+                    is IOException -> {
+                        BlueshiftNetworkResponse(responseCode = 0, responseBody = "IOException")
+                    }
+
+                    else -> {
+                        BlueshiftNetworkResponse(responseCode = -1, responseBody = "${e.message}")
+                    }
+                }
+            } finally {
+                connection?.let {
                     try {
-                        connection.disconnect()
+                        it.disconnect()
                     } catch (_: Exception) {
                     }
                 }
-
-                BlueshiftLogger.d("$TAG - networkResponse = $response")
-
-                response
             }
+
+            BlueshiftLogger.d("$TAG - networkResponse = $response")
+
+            response
         }
     }
 
@@ -59,7 +69,9 @@ class BlueshiftNetworkRepositoryImpl : BlueshiftNetworkRepository {
         connection.requestMethod = "GET"
     }
 
-    private fun preparePostRequest(connection: HttpsURLConnection, request: BlueshiftNetworkRequest) {
+    private fun preparePostRequest(
+        connection: HttpsURLConnection, request: BlueshiftNetworkRequest
+    ) {
         connection.doOutput = true
         connection.requestMethod = "POST"
 
