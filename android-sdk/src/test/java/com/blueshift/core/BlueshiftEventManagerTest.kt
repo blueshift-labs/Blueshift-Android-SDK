@@ -31,7 +31,7 @@ class BlueshiftEventManagerTest {
                 eventParams = JSONObject(),
                 timestamp = System.currentTimeMillis()
             ),
-            realtimeEvent = isOnline
+            isBatchEvent = isOnline
         )
 
         // A new request should be added to network request repo
@@ -49,7 +49,7 @@ class BlueshiftEventManagerTest {
                 eventParams = JSONObject(),
                 timestamp = 0L
             ),
-            realtimeEvent = false
+            isBatchEvent = false
         )
 
         // No request should be added to network request repo
@@ -67,7 +67,7 @@ class BlueshiftEventManagerTest {
                     eventParams = JSONObject(),
                     timestamp = 0L
                 ),
-                realtimeEvent = false
+                isBatchEvent = false
             )
         }
     }

@@ -24,8 +24,7 @@ class BlueshiftNetworkRequestRepositoryImpl(
 
     override fun getContentValues(obj: BlueshiftNetworkRequest): ContentValues {
         val contentValues = ContentValues()
-
-        if (obj.id >= 0) contentValues.put(ID, obj.id)
+        if (obj.id != ID_DEFAULT) contentValues.put(ID, obj.id)
         contentValues.put(URL, obj.url)
         contentValues.put(METHOD, obj.method.name)
         obj.body?.let {

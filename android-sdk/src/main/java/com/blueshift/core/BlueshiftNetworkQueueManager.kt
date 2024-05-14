@@ -44,7 +44,7 @@ object BlueshiftNetworkQueueManager {
     suspend fun sync() {
         // Prevent concurrent access to the sync method.
         if (!isSyncing.compareAndSet(false, true)) {
-            BlueshiftLogger.d("$TAG - isSyncing = true. Ignoring the duplicate call.")
+            BlueshiftLogger.d("$TAG: Syncing = true. Ignoring the duplicate call.")
             return
         }
 
@@ -52,7 +52,7 @@ object BlueshiftNetworkQueueManager {
             while (true) {
                 // break the look when networkRequest is null.
                 val networkRequest = readNextRequest()
-                BlueshiftLogger.d("$TAG - dequeued request = $networkRequest")
+                BlueshiftLogger.d("$TAG: Dequeue request = $networkRequest")
                 if (networkRequest == null) break
 
                 if (networkRequest.authorizationRequired) {
@@ -61,10 +61,10 @@ object BlueshiftNetworkQueueManager {
 
                 val response = networkRepository.makeNetworkRequest(networkRequest = networkRequest)
                 if (response.responseCode == HTTP_OK) {
-                    BlueshiftLogger.d("$TAG - request was success! delete request = $networkRequest")
+                    BlueshiftLogger.d("$TAG: Event sent to Blueshift. Delete request = $networkRequest")
                     deleteRequest(networkRequest)
                 } else if (response.responseCode == 0) {
-                    BlueshiftLogger.d("$TAG - Internet connection lost! Pausing sync.")
+                    BlueshiftLogger.d("$TAG: No internet connection. Sync paused.")
                     break
                 } else {
                     networkRequest.retryAttemptBalance--
@@ -79,10 +79,10 @@ object BlueshiftNetworkQueueManager {
                         // reset authorization to avoid storing it in db
                         networkRequest.authorization = null
 
-                        BlueshiftLogger.d("$TAG - we should retry. update request = $networkRequest")
+                        BlueshiftLogger.d("$TAG: We should retry $networkRequest")
                         updateRequest(networkRequest)
                     } else {
-                        BlueshiftLogger.d("$TAG - retry limit exceeded! delete request = $networkRequest")
+                        BlueshiftLogger.d("$TAG: Retry limit exceeded! Delete request = $networkRequest")
                         deleteRequest(networkRequest)
                     }
                 }

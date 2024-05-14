@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase.CursorFactory
 import android.database.sqlite.SQLiteOpenHelper
 import android.text.TextUtils
+import com.blueshift.core.common.BlueshiftLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -54,14 +55,11 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
     suspend fun insert(t: T): Boolean {
         return withContext(Dispatchers.IO) {
             synchronized(this) {
-                var id: Long = -1
+                val id: Long
                 val db = writableDatabase
-                if (db != null) {
-                    id = db.insert(tableName, null, getContentValues(t))
-                    db.close()
-                }
+                id = db.insert(tableName, null, getContentValues(t))
 
-                id != -1L
+                id != ID_DEFAULT
             }
         }
     }
@@ -72,11 +70,9 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
                 val db = writableDatabase
                 if (db != null) {
                     if (t != null && t.id > 0) {
-                        db.update(
-                            tableName, getContentValues(t), "$ID=?", arrayOf("${t.id}")
-                        )
+                        val count = db.update(tableName, getContentValues(t), "$ID=?", arrayOf("${t.id}"))
+                        BlueshiftLogger.d("Successfully updated $count record(s) in $tableName where id IN (${t.id})")
                     }
-                    db.close()
                 }
             }
         }
@@ -87,12 +83,9 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
             synchronized(this) {
                 val db = writableDatabase
                 if (db != null) {
-                    if (t != null) {
-                        db.delete(
-                            tableName, "$ID=?", arrayOf("${t.id}")
-                        )
-                    }
-                    db.close()
+                    val id = t?.id
+                    val count = db.delete(tableName, "$ID=?", arrayOf("$id"))
+                    BlueshiftLogger.d("Successfully deleted $count record(s) from $tableName where id IN ($id)")
                 }
             }
         }
@@ -103,8 +96,10 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
             synchronized(this) {
                 val db = writableDatabase
                 if (db != null) {
-                    db.delete(tableName, whereClause, selectionArgs)
-                    db.close()
+                    val count = db.delete(tableName, whereClause, selectionArgs)
+
+                    val csv = selectionArgs?.joinToString { it.toString() }
+                    BlueshiftLogger.d("Successfully deleted $count record(s) from $tableName where id IN ($csv)")
                 }
             }
         }
@@ -125,7 +120,6 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
                         }
                         cursor.close()
                     }
-                    db.close()
                 }
             }
             records
@@ -153,6 +147,7 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
     }
 
     companion object {
+        const val ID_DEFAULT = -1L
         const val ID = "_id"
         const val _AND_ = " AND "
         const val _AND = " AND"

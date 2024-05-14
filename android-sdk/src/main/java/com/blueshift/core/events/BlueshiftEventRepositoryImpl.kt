@@ -23,7 +23,7 @@ class BlueshiftEventRepositoryImpl(
 
     override fun getContentValues(obj: BlueshiftEvent): ContentValues {
         val contentValues = ContentValues()
-        contentValues.put(ID, obj.id)
+        if (obj.id != ID_DEFAULT) contentValues.put(ID, obj.id)
         contentValues.put(NAME, obj.eventName)
         contentValues.put(PARAMS, obj.eventParams.toString().toByteArray(charset = Charsets.UTF_8))
         contentValues.put(TIMESTAMP, obj.timestamp)
@@ -60,8 +60,20 @@ class BlueshiftEventRepositoryImpl(
     }
 
     override suspend fun deleteEvents(events: List<BlueshiftEvent>) {
-        val ids = events.joinToString { it.id.toString() } // CSV of ID
-        deleteAll(whereClause = "$ID IN (?)", selectionArgs = arrayOf(ids))
+        if (events.isEmpty()) return
+
+        val placeholder = StringBuilder()
+        val ids = mutableListOf<String>()
+
+        for (event in events) {
+            ids.add("${event.id}")
+            placeholder.append("?, ")
+        }
+
+        // delete the tailing coma and space
+        placeholder.delete(placeholder.length - 2, placeholder.length)
+
+        deleteAll(whereClause = "$ID IN ($placeholder)", selectionArgs = ids.toTypedArray())
     }
 
     override suspend fun readOneBatch(batchCount: Int): List<BlueshiftEvent> {

@@ -18,7 +18,7 @@ class BlueshiftNetworkRepositoryImpl : BlueshiftNetworkRepository {
                 val url = URL(networkRequest.url)
                 connection = url.openConnection() as HttpsURLConnection
 
-                BlueshiftLogger.d("$TAG - networkRequest = $networkRequest")
+                BlueshiftLogger.d("$TAG: $networkRequest")
 
                 if (networkRequest.authorizationRequired) {
                     val authorization = networkRequest.authorization
@@ -59,7 +59,7 @@ class BlueshiftNetworkRepositoryImpl : BlueshiftNetworkRepository {
                 }
             }
 
-            BlueshiftLogger.d("$TAG - networkResponse = $response")
+            BlueshiftLogger.d("$TAG: $response")
 
             response
         }
