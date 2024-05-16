@@ -14,11 +14,16 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.blueshift.batch.BulkEventManager;
-import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
 import com.blueshift.batch.FailedEventsTable;
-import com.blueshift.core.schedule.bulkevents.BlueshiftBulkEventScheduler;
-import com.blueshift.core.schedule.networkqueue.BlueshiftNetworkQueueScheduler;
+import com.blueshift.core.BlueshiftEventManager;
+import com.blueshift.core.BlueshiftNetworkRequestQueueManager;
+import com.blueshift.core.events.BlueshiftEvent;
+import com.blueshift.core.events.BlueshiftEventRepositoryImpl;
+import com.blueshift.core.network.BlueshiftNetworkConfiguration;
+import com.blueshift.core.network.BlueshiftNetworkRepositoryImpl;
+import com.blueshift.core.network.BlueshiftNetworkRequestRepositoryImpl;
+import com.blueshift.core.schedule.network.BlueshiftNetworkChangeScheduler;
 import com.blueshift.httpmanager.Method;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.inappmessage.InAppActionCallback;
@@ -40,7 +45,6 @@ import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NetworkUtils;
-import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,7 +60,7 @@ import java.util.Set;
 /**
  * @author Rahul Raveendran V P
  * Created on 17/2/15 @ 3:08 PM
- * https://github.com/rahulrvp
+ * <a href="https://github.com/rahulrvp">...</a>
  */
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
@@ -366,19 +370,15 @@ public class Blueshift {
 
         // set app icon as notification icon if not set
         initAppIcon(mContext);
-        // Sync the http request queue.
-        RequestQueue.getInstance().syncInBackground(mContext);
-        // schedule job to sync request queue on nw change
-        RequestQueue.scheduleQueueSyncJob(mContext);
 
-        BlueshiftBulkEventScheduler.INSTANCE.scheduleWithJobScheduler(mContext, mConfiguration);
-        BlueshiftNetworkQueueScheduler.INSTANCE.scheduleWithJobScheduler(mContext, mConfiguration);
+        BlueshiftNetworkConfiguration.INSTANCE.configureBasicAuthentication(mConfiguration.getApiKey(), "");
+        initializeEventSyncModule(mContext, mConfiguration);
+        initializeLegacyEventSyncModule(mContext);
 
-        // schedule the bulk events dispatch
-        BulkEventManager.scheduleBulkEventEnqueue(mContext);
         // fire an app open automatically if enabled
-        if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)
-                && BlueshiftUtils.canAutomaticAppOpenBeSentNow(mContext)) {
+        boolean isAppOpenEnabled = BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext);
+        boolean sendAppOpenNow = BlueshiftUtils.canAutomaticAppOpenBeSentNow(mContext);
+        if (isAppOpenEnabled && sendAppOpenNow) {
             trackAppOpen(false);
             // mark the tracking time
             long now = System.currentTimeMillis() / 1000;
@@ -390,6 +390,32 @@ public class Blueshift {
         // fetch from API
         if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
             InAppManager.fetchInAppFromServer(mContext, null);
+        }
+    }
+
+    void initializeLegacyEventSyncModule(Context context) {
+        // Sync the http request queue.
+        RequestQueue.getInstance().syncInBackground(context);
+        // schedule job to sync request queue on nw change
+        RequestQueue.scheduleQueueSyncJob(context);
+        // schedule the bulk events dispatch
+        BulkEventManager.scheduleBulkEventEnqueue(context);
+    }
+
+    void initializeEventSyncModule(Context context, Configuration configuration) {
+        BlueshiftNetworkChangeScheduler.INSTANCE.scheduleWithJobScheduler(context, configuration);
+
+        try (BlueshiftNetworkRequestRepositoryImpl networkRequestRepository = new BlueshiftNetworkRequestRepositoryImpl(context)) {
+            try (BlueshiftEventRepositoryImpl eventRepository = new BlueshiftEventRepositoryImpl(context)) {
+                BlueshiftEventManager.INSTANCE.initialize(eventRepository, networkRequestRepository);
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            BlueshiftNetworkRepositoryImpl networkRepository = new BlueshiftNetworkRepositoryImpl();
+            BlueshiftNetworkRequestQueueManager.INSTANCE.initialize(networkRequestRepository, networkRepository);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 
@@ -531,42 +557,6 @@ public class Blueshift {
     }
 
     /**
-     * Appending the optional user info to params
-     *
-     * @param params source hash map to append details
-     * @return params - updated params object
-     */
-    private HashMap<String, Object> appendOptionalUserInfo(HashMap<String, Object> params) {
-        if (params != null) {
-            UserInfo userInfo = UserInfo.getInstance(mContext);
-            if (userInfo != null) {
-                params.put(BlueshiftConstants.KEY_FIRST_NAME, userInfo.getFirstname());
-                params.put(BlueshiftConstants.KEY_LAST_NAME, userInfo.getLastname());
-                params.put(BlueshiftConstants.KEY_GENDER, userInfo.getGender());
-                if (userInfo.getJoinedAt() > 0) {
-                    params.put(BlueshiftConstants.KEY_JOINED_AT, userInfo.getJoinedAt());
-                }
-                if (userInfo.getDateOfBirth() != null) {
-                    params.put(BlueshiftConstants.KEY_DATE_OF_BIRTH, userInfo.getDateOfBirth().getTime() / 1000);
-                }
-                params.put(BlueshiftConstants.KEY_FACEBOOK_ID, userInfo.getFacebookId());
-                params.put(BlueshiftConstants.KEY_EDUCATION, userInfo.getEducation());
-
-                if (userInfo.isUnsubscribed()) {
-                    // we don't need to send this key if it set to false
-                    params.put(BlueshiftConstants.KEY_UNSUBSCRIBED_PUSH, true);
-                }
-
-                if (userInfo.getDetails() != null) {
-                    params.putAll(userInfo.getDetails());
-                }
-            }
-        }
-
-        return params;
-    }
-
-    /**
      * Private method that receives params and send to server using request queue.
      *
      * @param params            hash-map filled with parameters required for api call
@@ -594,52 +584,23 @@ public class Blueshift {
             BlueshiftAttributesUser userInfo = BlueshiftAttributesUser.getInstance().sync(mContext);
             eventParams.putAll(userInfo);
 
-            if (params != null && params.size() > 0) {
+            if (params != null && !params.isEmpty()) {
                 eventParams.putAll(params);
             }
 
-            HashMap<String, Object> map = eventParams.toHasMap();
+            // We should insert an event as batch event in two cases.
+            // 1. If the app asks us to make it a batch event
+            // 2. If the app didn't ask, but we had no internet connection at the time of tracking
+            boolean isConnected = NetworkUtils.isConnected(mContext);
+            boolean isBatchEvent = canBatchThisEvent || !isConnected;
 
-            if (canBatchThisEvent) {
-                Event event = new Event();
-                event.setEventParams(map);
-
-                BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
-
-                EventsTable.getInstance(mContext).insert(event);
-            } else {
-                // Creating the request object.
-                Request request = new Request();
-                request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                request.setUrl(BlueshiftConstants.EVENT_API_URL(mContext));
-                request.setMethod(Method.POST);
-                request.setParamJson(new Gson().toJson(map));
-
-                BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
-
-                // Adding the request to the queue.
-                RequestQueue.getInstance().add(mContext, request);
-            }
+            BlueshiftEvent blueshiftEvent = new BlueshiftEvent(
+                    -1L, eventName, eventParams, System.currentTimeMillis()
+            );
+            BlueshiftEventManager.INSTANCE.trackEventAsync(blueshiftEvent, isBatchEvent);
 
             return true;
         }
-    }
-
-    private String getUrlParams(final HashMap<String, Object> params) {
-        StringBuilder bodyBuilder = new StringBuilder();
-
-        if (params != null) {
-            Iterator<Map.Entry<String, Object>> iterator = params.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, Object> param = iterator.next();
-                bodyBuilder.append(param.getKey()).append('=').append(param.getValue());
-                if (iterator.hasNext()) {
-                    bodyBuilder.append('&');
-                }
-            }
-        }
-
-        return bodyBuilder.toString();
     }
 
     /**
