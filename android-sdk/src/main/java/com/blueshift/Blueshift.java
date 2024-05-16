@@ -67,7 +67,7 @@ public class Blueshift {
     private static final String UTF8_SPACE = "%20";
 
     private Context mContext;
-    private static Configuration mConfiguration;
+    private Configuration mConfiguration;
     private static Blueshift instance = null;
     private static BlueshiftPushListener blueshiftPushListener;
     private static BlueshiftInAppListener blueshiftInAppListener;
@@ -364,32 +364,43 @@ public class Blueshift {
         if (configuration.shouldSaveUserInfoAsEncrypted()) {
             BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
         }
+        String apiKey = mConfiguration.getApiKey();
+        if (apiKey != null) {
+            BlueshiftNetworkConfiguration.INSTANCE.configureBasicAuthentication(apiKey, "");
+        }
+
+        BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
 
         BlueshiftAttributesApp.getInstance().init(mContext);
+
         doAppVersionChecks(mContext);
 
-        // set app icon as notification icon if not set
-        initAppIcon(mContext);
+        initAppIcon(mContext, mConfiguration);
 
-        BlueshiftNetworkConfiguration.INSTANCE.configureBasicAuthentication(mConfiguration.getApiKey(), "");
         initializeEventSyncModule(mContext, mConfiguration);
         initializeLegacyEventSyncModule(mContext);
 
-        // fire an app open automatically if enabled
-        boolean isAppOpenEnabled = BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext);
-        boolean sendAppOpenNow = BlueshiftUtils.canAutomaticAppOpenBeSentNow(mContext);
-        if (isAppOpenEnabled && sendAppOpenNow) {
+        handleAppOpenEvent(mContext);
+
+        InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
+
+        handleInAppSync(mContext, mConfiguration);
+    }
+
+    void handleInAppSync(Context context, @NonNull Configuration configuration) {
+        if (!configuration.isInAppManualTriggerEnabled()) {
+            InAppManager.fetchInAppFromServer(context, null);
+        }
+    }
+
+    void handleAppOpenEvent(Context context) {
+        boolean isAutoAppOpenEnabled = BlueshiftUtils.isAutomaticAppOpenFiringEnabled(context);
+        boolean canSendAppOpenNow = BlueshiftUtils.canAutomaticAppOpenBeSentNow(context);
+        if (isAutoAppOpenEnabled && canSendAppOpenNow) {
             trackAppOpen(false);
             // mark the tracking time
             long now = System.currentTimeMillis() / 1000;
-            BlueShiftPreference.setAppOpenTrackedAt(mContext, now);
-        }
-        // pull latest font from server
-        InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
-
-        // fetch from API
-        if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
-            InAppManager.fetchInAppFromServer(mContext, null);
+            BlueShiftPreference.setAppOpenTrackedAt(context, now);
         }
     }
 
@@ -510,12 +521,12 @@ public class Blueshift {
      *
      * @param context valid context object
      */
-    private void initAppIcon(Context context) {
+    private void initAppIcon(Context context, @NonNull Configuration configuration) {
         try {
-            if (mConfiguration != null && mConfiguration.getAppIcon() == 0) {
+            if (configuration.getAppIcon() == 0) {
                 if (context != null) {
                     ApplicationInfo applicationInfo = context.getApplicationInfo();
-                    mConfiguration.setAppIcon(applicationInfo.icon);
+                    configuration.setAppIcon(applicationInfo.icon);
                 }
             }
         } catch (Exception e) {
