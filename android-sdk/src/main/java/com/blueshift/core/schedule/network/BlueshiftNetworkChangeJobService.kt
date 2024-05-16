@@ -1,14 +1,16 @@
-package com.blueshift.core.schedule.bulkevents
+package com.blueshift.core.schedule.network
 
 import android.app.job.JobParameters
 import android.app.job.JobService
 import com.blueshift.core.BlueshiftEventManager
+import com.blueshift.core.BlueshiftNetworkRequestQueueManager
 import com.blueshift.core.common.BlueshiftLogger
+import com.blueshift.util.NetworkUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class BlueshiftBulkEventJobService : JobService() {
+class BlueshiftNetworkChangeJobService : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         doBackgroundWork(jobParameters = params)
 
@@ -18,13 +20,21 @@ class BlueshiftBulkEventJobService : JobService() {
     }
 
     private fun doBackgroundWork(jobParameters: JobParameters?) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             try {
-                BlueshiftLogger.d("EventManager.sync - START")
-                BlueshiftEventManager.sync()
-                BlueshiftLogger.d("EventManager.sync - FINISH")
+                BlueshiftLogger.d("$TAG: doBackgroundWork - START")
+
+                // Create batches of events and add it to request queue
+                BlueshiftEventManager.buildAndEnqueueBatchEvents()
+
+                // If internet is available, sync the queue
+                if (NetworkUtils.isConnected(applicationContext)) {
+                    BlueshiftNetworkRequestQueueManager.sync()
+                }
+
+                BlueshiftLogger.d("$TAG: doBackgroundWork - FINISH")
             } catch (e: Exception) {
-                BlueshiftLogger.e("EventManager.sync - Exception: ${e.stackTraceToString()}")
+                BlueshiftLogger.e("$TAG: doBackgroundWork - ERROR : ${e.stackTraceToString()}")
             }
 
             // this is a periodic job, we don't need the job scheduler to
@@ -36,5 +46,9 @@ class BlueshiftBulkEventJobService : JobService() {
 
     override fun onStopJob(params: JobParameters?): Boolean {
         return false
+    }
+
+    companion object {
+        const val TAG = "BlueshiftNetworkChangeJobService"
     }
 }

@@ -1,4 +1,4 @@
-package com.blueshift.core.schedule.networkqueue
+package com.blueshift.core.schedule.network
 
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-object BlueshiftNetworkQueueScheduler {
+object BlueshiftNetworkChangeScheduler {
     fun scheduleWithJobScheduler(context: Context, configuration: Configuration) {
         val jobScheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         val jobID = configuration.networkChangeListenerJobId
@@ -21,7 +21,7 @@ object BlueshiftNetworkQueueScheduler {
         if (jobExists) return
 
         val intervalMillis = configuration.batchInterval
-        val componentName = ComponentName(context, BlueshiftNetworkQueueJobService::class.java)
+        val componentName = ComponentName(context, BlueshiftNetworkChangeJobService::class.java)
 
         val builder = JobInfo.Builder(jobID, componentName)
         // Send events on any network type
@@ -37,7 +37,7 @@ object BlueshiftNetworkQueueScheduler {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val isScheduled = jobScheduler.schedule(jobInfo)
-                BlueshiftLogger.d("job = BlueshiftNetworkQueueJobService, isScheduled = $isScheduled")
+                BlueshiftLogger.d("job = BlueshiftNetworkChangeJobService, isScheduled = $isScheduled")
             } catch (e: Exception) {
                 BlueshiftLogger.e(e.stackTraceToString())
             }

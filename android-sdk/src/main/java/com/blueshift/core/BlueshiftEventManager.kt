@@ -29,7 +29,7 @@ object BlueshiftEventManager {
     fun trackEventAsync(event: BlueshiftEvent, isBatchEvent: Boolean) {
         CoroutineScope(Dispatchers.Default).launch {
             trackEvent(event, isBatchEvent)
-            BlueshiftNetworkQueueManager.sync()
+            BlueshiftNetworkRequestQueueManager.sync()
         }
     }
 
@@ -51,10 +51,10 @@ object BlueshiftEventManager {
         }
     }
 
-    suspend fun sync() {
+    suspend fun buildAndEnqueueBatchEvents() {
         while (true) {
             val events = eventRepository.readOneBatch()
-
+            // break the loop when there are no pending events available for making a batch
             if (events.isEmpty()) break
 
             val eventsArray = JSONArray()

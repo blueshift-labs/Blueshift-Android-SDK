@@ -12,7 +12,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class BlueshiftNetworkQueueManagerTest {
+class BlueshiftNetworkRequestQueueManagerTest {
     private lateinit var networkRequestRepo: FakeNetworkRequestRepo
 
     companion object {
@@ -42,7 +42,7 @@ class BlueshiftNetworkQueueManagerTest {
 
     @Test
     fun insertRequest_TheQueueShouldContainsTheInsertedNumberOfRequests() = runBlocking {
-        val requestQueueManager = BlueshiftNetworkQueueManager
+        val requestQueueManager = BlueshiftNetworkRequestQueueManager
         requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPISuccess())
 
         val request = BlueshiftNetworkRequest(
@@ -60,7 +60,7 @@ class BlueshiftNetworkQueueManagerTest {
 
     @Test
     fun deleteRequest_TheQueueShouldNotContainTheDeletedRequest() = runBlocking {
-        val requestQueueManager = BlueshiftNetworkQueueManager
+        val requestQueueManager = BlueshiftNetworkRequestQueueManager
         requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPISuccess())
 
         val request = requestQueueManager.readNextRequest()
@@ -73,7 +73,7 @@ class BlueshiftNetworkQueueManagerTest {
     @Test
     fun updateRequest_TheQueueShouldContainTheUpdatedRequestWithUpdatedRetryTimestamp() =
         runBlocking {
-            val requestQueueManager = BlueshiftNetworkQueueManager
+            val requestQueueManager = BlueshiftNetworkRequestQueueManager
             requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPISuccess())
 
             val newRetryTimestamp = System.currentTimeMillis() + 100
@@ -91,7 +91,7 @@ class BlueshiftNetworkQueueManagerTest {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
 
-        val requestQueueManager = BlueshiftNetworkQueueManager
+        val requestQueueManager = BlueshiftNetworkRequestQueueManager
         requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPISuccess())
 
         requestQueueManager.sync()
@@ -104,7 +104,7 @@ class BlueshiftNetworkQueueManagerTest {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
 
-        val requestQueueManager = BlueshiftNetworkQueueManager
+        val requestQueueManager = BlueshiftNetworkRequestQueueManager
         requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPIError())
 
         requestQueueManager.sync()
@@ -117,7 +117,7 @@ class BlueshiftNetworkQueueManagerTest {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
 
-        val requestQueueManager = BlueshiftNetworkQueueManager
+        val requestQueueManager = BlueshiftNetworkRequestQueueManager
         requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPIError())
 
         requestQueueManager.sync()
@@ -130,7 +130,7 @@ class BlueshiftNetworkQueueManagerTest {
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
 
-        val requestQueueManager = BlueshiftNetworkQueueManager
+        val requestQueueManager = BlueshiftNetworkRequestQueueManager
         requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPIError())
 
         requestQueueManager.sync()

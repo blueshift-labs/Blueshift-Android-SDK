@@ -71,7 +71,7 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
                 if (db != null) {
                     if (t != null && t.id > 0) {
                         val count = db.update(tableName, getContentValues(t), "$ID=?", arrayOf("${t.id}"))
-                        BlueshiftLogger.d("Successfully updated $count record(s) in $tableName where id IN (${t.id})")
+                        BlueshiftLogger.d("$TAG: Successfully updated $count record(s) in $tableName where id IN (${t.id})")
                     }
                 }
             }
@@ -85,7 +85,7 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
                 if (db != null) {
                     val id = t?.id
                     val count = db.delete(tableName, "$ID=?", arrayOf("$id"))
-                    BlueshiftLogger.d("Successfully deleted $count record(s) from $tableName where id IN ($id)")
+                    BlueshiftLogger.d("$TAG: Successfully deleted $count record(s) from $tableName where id IN ($id)")
                 }
             }
         }
@@ -99,7 +99,7 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
                     val count = db.delete(tableName, whereClause, selectionArgs)
 
                     val csv = selectionArgs?.joinToString { it.toString() }
-                    BlueshiftLogger.d("Successfully deleted $count record(s) from $tableName where id IN ($csv)")
+                    BlueshiftLogger.d("$TAG: Successfully deleted $count record(s) from $tableName where id IN ($csv)")
                 }
             }
         }
@@ -147,6 +147,7 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
     }
 
     companion object {
+        const val TAG = "BlueshiftSQLiteOpenHelper"
         const val ID_DEFAULT = -1L
         const val ID = "_id"
         const val _AND_ = " AND "

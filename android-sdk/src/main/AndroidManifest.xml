@@ -79,12 +79,7 @@
 <!--            android:permission="android.permission.BIND_JOB_SERVICE" />-->
 
         <service
-            android:name=".core.schedule.networkqueue.BlueshiftNetworkQueueJobService"
-            android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
-        <service
-            android:name=".core.schedule.bulkevents.BlueshiftBulkEventJobService"
+            android:name=".core.schedule.network.BlueshiftNetworkChangeJobService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>

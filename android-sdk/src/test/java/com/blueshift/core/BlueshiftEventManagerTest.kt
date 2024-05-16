@@ -1,8 +1,11 @@
 package com.blueshift.core
 
+import android.util.Log
 import com.blueshift.core.events.BlueshiftEvent
 import com.blueshift.core.events.FakeEventsRepo
 import com.blueshift.core.network.FakeNetworkRequestRepo
+import io.mockk.every
+import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Before
@@ -14,6 +17,9 @@ class BlueshiftEventManagerTest {
 
     @Before
     fun setUp() {
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
+
         fakeNetworkRequestRepo = FakeNetworkRequestRepo()
         fakeEventsRepo = FakeEventsRepo()
 
@@ -22,8 +28,6 @@ class BlueshiftEventManagerTest {
 
     @Test
     fun trackEvent_shouldInsertOneNetworkRequestWhenOnline() = runBlocking {
-        val isOnline = true
-
         BlueshiftEventManager.trackEvent(
             event = BlueshiftEvent(
                 id = 1,
@@ -31,7 +35,7 @@ class BlueshiftEventManagerTest {
                 eventParams = JSONObject(),
                 timestamp = System.currentTimeMillis()
             ),
-            isBatchEvent = isOnline
+            isBatchEvent = false // when online, we don't add events as batched events.
         )
 
         // A new request should be added to network request repo
@@ -49,7 +53,7 @@ class BlueshiftEventManagerTest {
                 eventParams = JSONObject(),
                 timestamp = 0L
             ),
-            isBatchEvent = false
+            isBatchEvent = true // we add a batched event when we are offline
         )
 
         // No request should be added to network request repo
@@ -58,7 +62,7 @@ class BlueshiftEventManagerTest {
         assert(fakeEventsRepo.blueshiftEvents.size == 1)
     }
 
-    private suspend fun insertOfflineEvents(count: Int) {
+    private suspend fun insertBatchEvents(count: Int) {
         for (i in 1..count) {
             BlueshiftEventManager.trackEvent(
                 event = BlueshiftEvent(
@@ -67,16 +71,16 @@ class BlueshiftEventManagerTest {
                     eventParams = JSONObject(),
                     timestamp = 0L
                 ),
-                isBatchEvent = false
+                isBatchEvent = true
             )
         }
     }
 
     @Test
-    fun sync_shouldInsertABulkEventRequestPer100OfflineEvents() = runBlocking {
-        insertOfflineEvents(200)
+    fun buildAndEnqueueBatchEvents_shouldInsertABulkEventRequestPer100OfflineEvents() = runBlocking {
+        insertBatchEvents(200)
 
-        BlueshiftEventManager.sync()
+        BlueshiftEventManager.buildAndEnqueueBatchEvents()
 
         // Two bulk event requests should be added in the network request repo
         assert(fakeNetworkRequestRepo.requests.size == 2)
@@ -85,10 +89,10 @@ class BlueshiftEventManagerTest {
     }
 
     @Test
-    fun sync_shouldInsertOneBulkEventRequestForLessThan100OfflineEvents() = runBlocking {
-        insertOfflineEvents(50)
+    fun buildAndEnqueueBatchEvents_shouldInsertOneBulkEventRequestForLessThan100OfflineEvents() = runBlocking {
+        insertBatchEvents(50)
 
-        BlueshiftEventManager.sync()
+        BlueshiftEventManager.buildAndEnqueueBatchEvents()
 
         // Two bulk event requests should be added in the network request repo
         assert(fakeNetworkRequestRepo.requests.size == 1)
