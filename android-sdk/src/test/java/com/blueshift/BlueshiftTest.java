@@ -1,6 +1,6 @@
 package com.blueshift;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 
 public class BlueshiftTest {
     @Test
@@ -30,10 +31,14 @@ public class BlueshiftTest {
         when(CommonUtils.getAppVersion(context)).thenReturn("1.0.0");
 
         Blueshift blueshift = Blueshift.getInstance(context);
-        blueshift.doAppVersionChecks(context);
+        List<Object> result = blueshift.inferAppVersionChangeEvent(context);
 
-        // confirm if the sendEvent was called with event name app_install
-        assertFalse(blueshift.sendEvent("app_install", null, false));
+        // assert that the item in 0th index of result is "app_install"
+        assertEquals("app_install", result.get(0));
+
+        // assert that the hashmap in 1st index of result has key "app_installed_at"
+        HashMap<String, Object> map = (HashMap<String, Object>) result.get(1);
+        assertEquals("app_installed_at", map.keySet().iterator().next());
     }
 
     @Test
@@ -52,10 +57,14 @@ public class BlueshiftTest {
         when(CommonUtils.getAppVersion(context)).thenReturn("2.0.0");
 
         Blueshift blueshift = Blueshift.getInstance(context);
-        blueshift.doAppVersionChecks(context);
+        List<Object> result = blueshift.inferAppVersionChangeEvent(context);
 
-        // confirm if the sendEvent was called with event name app_update
-        assertFalse(blueshift.sendEvent("app_update", null, false));
+        // assert that the item in 0th index of result is "app_update"
+        assertEquals("app_update", result.get(0));
+
+        // assert that the hashmap in 1st index of result has key "app_updated_at"
+        HashMap<String, Object> map = (HashMap<String, Object>) result.get(1);
+        assertEquals("app_updated_at", map.keySet().iterator().next());
     }
 
     @Test
@@ -74,9 +83,13 @@ public class BlueshiftTest {
         when(CommonUtils.getAppVersion(context)).thenReturn("2.0.0");
 
         Blueshift blueshift = Blueshift.getInstance(context);
-        blueshift.doAppVersionChecks(context);
+        List<Object> result = blueshift.inferAppVersionChangeEvent(context);
 
-        // confirm if the sendEvent was called with event name app_update
-        assertFalse(blueshift.sendEvent("app_update", null, false));
+        // assert that the item in 0th index of result is "app_install"
+        assertEquals("app_install", result.get(0));
+
+        // assert that the hashmap in 1st index of result has key "app_installed_at"
+        HashMap<String, Object> map = (HashMap<String, Object>) result.get(1);
+        assertEquals("app_installed_at", map.keySet().iterator().next());
     }
 }
