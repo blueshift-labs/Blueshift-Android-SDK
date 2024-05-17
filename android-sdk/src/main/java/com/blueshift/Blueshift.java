@@ -467,7 +467,6 @@ public class Blueshift {
         return result;
     }
 
-
     /**
      * Check if a notification icon is provided, else use app icon
      * as notification icon.
