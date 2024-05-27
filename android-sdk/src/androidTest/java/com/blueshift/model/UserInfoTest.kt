@@ -47,9 +47,15 @@ class UserInfoTest {
         // Mock the presence of a user object in the old preference.
         legacyPreference.edit().putString(oldPreferenceKey(context), USER_JSON).apply()
 
-        // The loaded user info object should provide the same value for its members as we saved in the old preference.
-        val name = UserInfo.getInstance(context).name
-        assert(name == "name")
+        // When encryption is not enabled, the user info class should provide the same value
+        // for its members as we saved in the old preference.
+        val userinfo = UserInfo.load(context, false)
+        assert(userinfo.name == JOHN)
+
+        // When encryption is not enabled, the user info class should provide the same value
+        // for its members as we saved in the old preference.
+        val userinfo2 = UserInfo.load(context, true)
+        assert(userinfo2.name == JOHN)
 
         // Kill the existing instance for the next test.
         UserInfo.killInstance()
@@ -60,9 +66,12 @@ class UserInfoTest {
         // Mock the presence of a user object in the old preference.
         legacyPreference.edit().putString(oldPreferenceKey(context), USER_JSON).apply()
 
-        UserInfo.getInstance(context)
+        // case1 : When encryption is not enabled.
+        val userInfo = UserInfo.load(context, false)
+        assert(userInfo.name == JOHN)
 
-        // Double check the value stored in the secure store is same as the value in the old preference.
+        // case2 : When encryption is enabled.
+        UserInfo.load(context, true)
         val json = BlueshiftEncryptedPreferences.getString(PREF_KEY, null)
         assert(USER_JSON == json)
 
@@ -75,8 +84,12 @@ class UserInfoTest {
         // Mock the presence of a user object in the old preference.
         legacyPreference.edit().putString(oldPreferenceKey(context), USER_JSON).apply()
 
-        UserInfo.getInstance(context)
+        // case1 : When encryption is not enabled.
+        val userInfo = UserInfo.load(context, false)
+        assert(userInfo.name == JOHN)
 
+        // case2 : When encryption is enabled.
+        UserInfo.load(context, true)
         // Make sure the value stored in the old preferences is removed after copying it to the new preferences.
         val legacyJson = legacyPreference.getString(oldPreferenceKey(context), null)
         assert(legacyJson == null)
@@ -86,7 +99,8 @@ class UserInfoTest {
     }
 
     companion object {
+        const val JOHN = "John"
         const val PREF_KEY = "user_info"
-        const val USER_JSON = "{\"joined_at\":0,\"name\":\"name\",\"unsubscribed\":false}"
+        const val USER_JSON = "{\"joined_at\":0,\"name\":\"$JOHN\",\"unsubscribed\":false}"
     }
 }
