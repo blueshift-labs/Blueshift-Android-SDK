@@ -44,8 +44,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -385,6 +387,17 @@ public class Blueshift {
      * When a change is detected, an event will be sent to Blueshift to report the same.
      */
     void doAppVersionChecks(Context context) {
+        List<Object> result = inferAppVersionChangeEvent(context);
+        if (result != null && result.size() == 2) {
+            String eventName = (String) result.get(0);
+            HashMap<String, Object> extras = (HashMap<String, Object>) result.get(1);
+            trackEvent(eventName, extras, false);
+        }
+    }
+
+    List<Object> inferAppVersionChangeEvent(Context context) {
+        List<Object> result = new ArrayList<>();
+
         if (context != null) {
             final String appVersionString = CommonUtils.getAppVersion(context);
 
@@ -410,14 +423,18 @@ public class Blueshift {
 
                         HashMap<String, Object> extras = new HashMap<>();
                         extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
-                        sendEvent(BlueshiftConstants.EVENT_APP_UPDATE, extras, false);
+
+                        result.add(BlueshiftConstants.EVENT_APP_UPDATE);
+                        result.add(extras);
                     } else {
                         // cases 1 & 2
                         BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
 
                         HashMap<String, Object> extras = new HashMap<>();
                         extras.put(BlueshiftConstants.KEY_APP_INSTALLED_AT, CommonUtils.getCurrentUtcTimestamp());
-                        sendEvent(BlueshiftConstants.EVENT_APP_INSTALL, extras, false);
+
+                        result.add(BlueshiftConstants.EVENT_APP_INSTALL);
+                        result.add(extras);
                     }
 
                     BlueShiftPreference.saveAppVersionString(context, appVersionString);
@@ -435,7 +452,9 @@ public class Blueshift {
                         HashMap<String, Object> extras = new HashMap<>();
                         extras.put(BlueshiftConstants.KEY_PREVIOUS_APP_VERSION, storedAppVersionString);
                         extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
-                        sendEvent(BlueshiftConstants.EVENT_APP_UPDATE, extras, false);
+
+                        result.add(BlueshiftConstants.EVENT_APP_UPDATE);
+                        result.add(extras);
 
                         BlueShiftPreference.saveAppVersionString(context, appVersionString);
                     } else {
@@ -444,6 +463,8 @@ public class Blueshift {
                 }
             }
         }
+
+        return result;
     }
 
     /**
