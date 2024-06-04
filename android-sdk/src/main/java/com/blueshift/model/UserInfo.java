@@ -1,9 +1,14 @@
 package com.blueshift.model;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+
+import androidx.annotation.NonNull;
 
 import com.blueshift.BlueshiftConstants;
+import com.blueshift.BlueshiftEncryptedPreferences;
 import com.blueshift.BlueshiftLogger;
+import com.blueshift.util.BlueshiftUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -23,6 +28,7 @@ public class UserInfo {
     private static final String TAG = "UserInfo";
     private static final String PREF_FILE = "user_info_file";
     private static final String PREF_KEY = "user_info_key";
+    private static final String PREF_KEY_ENCRYPTED = "user_info";
     private static final Boolean lock = false;
 
     private String email;
@@ -49,6 +55,10 @@ public class UserInfo {
         unsubscribed = false;
     }
 
+    static void killInstance() {
+        instance = null;
+    }
+
     public static UserInfo getInstance(Context context) {
         synchronized (lock) {
             if (instance == null) {
@@ -60,22 +70,65 @@ public class UserInfo {
         }
     }
 
-    private static String getPrefFile(Context context) {
+    private static String getLegacyPreferenceFile(@NonNull Context context) {
         return context.getPackageName() + "." + PREF_FILE;
     }
 
-    private static String getPrefKey(Context context) {
+    private static String getLegacyPreferenceKey(@NonNull Context context) {
         return context.getPackageName() + "." + PREF_KEY;
     }
 
-    private static UserInfo load(Context context) {
+    private static UserInfo load(@NonNull Context context) {
+        Configuration configuration = BlueshiftUtils.getConfiguration(context);
+        boolean isEncryptionEnabled = configuration != null && configuration.shouldEncryptUserInfo();
+        return load(context, isEncryptionEnabled);
+    }
+
+    static UserInfo load(Context context, boolean encryptionEnabled) {
+        return encryptionEnabled ? loadEncrypted(context) : loadLegacy(context);
+    }
+
+    private static UserInfo loadLegacy(@NonNull Context context) {
         UserInfo userInfo = null;
-        String json = context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
-                .getString(getPrefKey(context), null);
+
+        SharedPreferences preferences = context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE);
+        String json = preferences.getString(getLegacyPreferenceKey(context), null);
         if (json != null) {
             try {
                 userInfo = new Gson().fromJson(json, UserInfo.class);
             } catch (JsonSyntaxException e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        }
+
+        return userInfo;
+    }
+
+    private static UserInfo loadEncrypted(@NonNull Context context) {
+        UserInfo userInfo = null;
+
+        String json = BlueshiftEncryptedPreferences.INSTANCE.getString(PREF_KEY_ENCRYPTED, null);
+        if (json == null) {
+            // The new secure store doesn't have the user info. Let's check in the old preference
+            // file and copy over the data if present.
+            SharedPreferences pref = context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE);
+            String legacyJson = pref.getString(getLegacyPreferenceKey(context), null);
+            if (legacyJson != null) {
+                try {
+                    userInfo = new Gson().fromJson(legacyJson, UserInfo.class);
+                    // Save it to secure store for loading next time.
+                    userInfo.saveEncrypted();
+                    // Clear the old preference for privacy reasons.
+                    pref.edit().clear().apply();
+                } catch (Exception e) {
+                    BlueshiftLogger.e(TAG, e);
+                }
+            }
+        } else {
+            // The new secure store has the user info. Let's load it.
+            try {
+                userInfo = new Gson().fromJson(json, UserInfo.class);
+            } catch (Exception e) {
                 BlueshiftLogger.e(TAG, e);
             }
         }
@@ -116,11 +169,29 @@ public class UserInfo {
         return map;
     }
 
-    public void save(Context context) {
-        context.getSharedPreferences(getPrefFile(context), Context.MODE_PRIVATE)
-                .edit()
-                .putString(getPrefKey(context), new Gson().toJson(this))
-                .apply();
+    public void save(@NonNull Context context) {
+        Configuration configuration = BlueshiftUtils.getConfiguration(context);
+        boolean isEncryptionEnabled = configuration != null && configuration.shouldEncryptUserInfo();
+        save(context, isEncryptionEnabled);
+    }
+
+    void save(Context context, boolean encryptionEnabled) {
+        if (encryptionEnabled) {
+            saveEncrypted();
+        } else {
+            saveLegacy(context);
+        }
+    }
+
+    private void saveLegacy(Context context) {
+        String json = new Gson().toJson(this);
+        context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE)
+                .edit().putString(getLegacyPreferenceKey(context), json).apply();
+    }
+
+    private void saveEncrypted() {
+        String json = new Gson().toJson(this);
+        BlueshiftEncryptedPreferences.INSTANCE.putString(PREF_KEY_ENCRYPTED, json);
     }
 
     public String getEmail() {

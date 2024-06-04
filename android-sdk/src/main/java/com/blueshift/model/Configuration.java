@@ -58,6 +58,10 @@ public class Configuration {
     private Blueshift.DeviceIdSource deviceIdSource;
     private String customDeviceId;
 
+    // Defines is we should store user info in plain text or in encrypted form.
+    // Default value is false to make it backward compatible.
+    private  boolean shouldEncryptUserInfo = false;
+
     public Configuration() {
         // Setting default region to the US.
         region = BlueshiftRegion.US;
@@ -92,6 +96,14 @@ public class Configuration {
         // The default value is 86400 seconds (24 hours). When set to 0, an app_open
         // event will be fired on each app restart.
         autoAppOpenInterval = 86400;
+    }
+
+    public boolean shouldEncryptUserInfo() {
+        return shouldEncryptUserInfo;
+    }
+
+    public void setShouldEncryptUserInfo(boolean shouldEncryptUserInfo) {
+        this.shouldEncryptUserInfo = shouldEncryptUserInfo;
     }
 
     public boolean isPushAppLinksEnabled() {
