@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftEncryptedPreferences;
 import com.blueshift.BlueshiftLogger;
@@ -91,6 +92,7 @@ public class UserInfo {
     private static UserInfo loadLegacy(@NonNull Context context) {
         UserInfo userInfo = null;
 
+        BlueshiftLogger.d(TAG, "Loading from legacy shared preference.");
         SharedPreferences preferences = context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE);
         String json = preferences.getString(getLegacyPreferenceKey(context), null);
         if (json != null) {
@@ -107,6 +109,7 @@ public class UserInfo {
     private static UserInfo loadEncrypted(@NonNull Context context) {
         UserInfo userInfo = null;
 
+        BlueshiftLogger.d(TAG, "Loading from encrypted preference.");
         String json = BlueshiftEncryptedPreferences.INSTANCE.getString(PREF_KEY_ENCRYPTED, null);
         if (json == null) {
             // The new secure store doesn't have the user info. Let's check in the old preference
@@ -114,12 +117,17 @@ public class UserInfo {
             SharedPreferences pref = context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE);
             String legacyJson = pref.getString(getLegacyPreferenceKey(context), null);
             if (legacyJson != null) {
+                BlueshiftLogger.d(TAG, "Found data inside the legacy preference. Copying it to the encrypted preference.");
                 try {
                     userInfo = new Gson().fromJson(legacyJson, UserInfo.class);
                     // Save it to secure store for loading next time.
                     userInfo.saveEncrypted();
                     // Clear the old preference for privacy reasons.
+                    BlueshiftLogger.d(TAG, "Clear the legacy preference.");
                     pref.edit().clear().apply();
+                    // Remove cached email address information (If found)
+                    BlueshiftLogger.d(TAG, "Clear the email preference.");
+                    BlueShiftPreference.removeCachedEmailAddress(context);
                 } catch (Exception e) {
                     BlueshiftLogger.e(TAG, e);
                 }

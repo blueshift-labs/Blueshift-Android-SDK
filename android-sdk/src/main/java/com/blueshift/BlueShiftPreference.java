@@ -126,31 +126,6 @@ public class BlueShiftPreference {
         return true;
     }
 
-    public static boolean isEmailAlreadyIdentified(Context context, String email) {
-        boolean result = false;
-
-        if (context != null && !TextUtils.isEmpty(email)) {
-            SharedPreferences preferences = getEmailPreference(context);
-            if (preferences != null) {
-                result = preferences.getBoolean(email, false);
-            }
-        }
-
-        return result;
-    }
-
-    public static void markEmailAsIdentified(Context context, String email) {
-        if (context != null && !TextUtils.isEmpty(email)) {
-            SharedPreferences preferences = getEmailPreference(context);
-            if (preferences != null) {
-                preferences
-                        .edit()
-                        .putBoolean(email, true)
-                        .apply();
-            }
-        }
-    }
-
     private static SharedPreferences getBlueshiftPreferences(Context context) {
         SharedPreferences preferences = null;
 
@@ -159,6 +134,13 @@ public class BlueShiftPreference {
         }
 
         return preferences;
+    }
+
+    public static void removeCachedEmailAddress(Context context) {
+        SharedPreferences preferences = getEmailPreference(context);
+        if (preferences != null) {
+            preferences.edit().clear().apply();
+        }
     }
 
     private static SharedPreferences getEmailPreference(Context context) {
