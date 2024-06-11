@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 ext {
     PUBLISH_GROUP_ID = 'com.blueshift'
@@ -64,4 +66,103 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.6.1'
 }
 
-apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
+tasks.register('androidJavadoc', Javadoc) {
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += files(project.android.bootClasspath)
+
+    // This task works only for java classes atm. Not for Kotlin objects.
+    // So, we exclude the Kotlin files from this task.
+    exclude '**/*.kt'
+
+    failOnError false
+}
+
+tasks.register('androidJavadocsJar', Jar) {
+    dependsOn androidJavadoc
+    archiveClassifier.set('javadoc')
+    from androidJavadoc.destinationDir
+}
+
+afterEvaluate {
+    group = PUBLISH_GROUP_ID
+    version = PUBLISH_VERSION
+
+    ext["signing.keyId"] = ''
+    ext["signing.password"] = ''
+    ext["signing.secretKeyRingFile"] = ''
+    ext["ossrhUsername"] = ''
+    ext["ossrhPassword"] = ''
+    ext["sonatypeStagingProfileId"] = ''
+
+    File secretPropsFile = project.rootProject.file('local.properties')
+    if (secretPropsFile.exists()) {
+        Properties p = new Properties()
+        new FileInputStream(secretPropsFile).withCloseable { is ->
+            p.load(is)
+        }
+        p.each { name, value ->
+            ext[name] = value
+        }
+    } else {
+        ext["signing.keyId"] = System.getenv('SIGNING_KEY_ID')
+        ext["signing.password"] = System.getenv('SIGNING_PASSWORD')
+        ext["signing.secretKeyRingFile"] = System.getenv('SIGNING_SECRET_KEY_RING_FILE')
+        ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
+        ext["ossrhPassword"] = System.getenv('OSSRH_PASSWORD')
+        ext["sonatypeStagingProfileId"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
+    }
+
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId PUBLISH_GROUP_ID
+                artifactId PUBLISH_ARTIFACT_ID
+                version PUBLISH_VERSION
+
+                if (project.plugins.findPlugin("com.android.library")) {
+                    from components.release
+                }
+
+                artifact androidJavadocsJar
+
+                pom {
+                    name = PUBLISH_ARTIFACT_ID
+                    description = 'Blueshift Android SDK'
+                    url = 'https://github.com/blueshift-labs/Blueshift-Android-SDK'
+                    licenses {
+                        license {
+                            name = 'MIT'
+                            url = 'https://opensource.org/licenses/mit-license.php'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'rahulrvp'
+                            name = 'Rahul Raveendran V P'
+                            email = 'rahul.raveendran@getblueshift.com'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:github.com/blueshift-labs/Blueshift-Android-SDK.git'
+                        developerConnection = 'scm:git:ssh://github.com/blueshift-labs/Blueshift-Android-SDK.git'
+                        url = 'https://github.com/blueshift-labs/Blueshift-Android-SDK/tree/main'
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                name = "sonatype"
+                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                credentials {
+                    username ossrhUsername
+                    password ossrhPassword
+                }
+            }
+        }
+    }
+
+    signing {
+        sign publishing.publications
+    }
+}
