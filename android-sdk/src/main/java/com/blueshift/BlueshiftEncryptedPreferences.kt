@@ -6,7 +6,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 
 object BlueshiftEncryptedPreferences {
-    private val PREF_NAME = "blueshift_sdk_preferences"
+    private const val PREF_NAME = "com.blueshift.encrypted.preferences"
 
     private lateinit var sharedPreferences: SharedPreferences
 
