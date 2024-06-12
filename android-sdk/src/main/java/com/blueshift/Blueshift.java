@@ -354,7 +354,10 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
-        BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
+        // initialize the encrypted shared preferences if enabled.
+        if (configuration.shouldSaveUserInfoAsEncrypted()) {
+            BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
+        }
 
         BlueshiftAttributesApp.getInstance().init(mContext);
         doAppVersionChecks(mContext);

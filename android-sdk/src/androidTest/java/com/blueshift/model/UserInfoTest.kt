@@ -9,13 +9,13 @@ import org.junit.Test
 
 class UserInfoTest {
     private lateinit var context: Context
-    private lateinit var legacyPreference: SharedPreferences
+    private lateinit var sharedPreferences: SharedPreferences
 
-    private fun oldPreferenceFile(context: Context): String {
+    private fun sharedPreferencesFilename(context: Context): String {
         return context.packageName + ".user_info_file"
     }
 
-    private fun oldPreferenceKey(context: Context): String {
+    private fun sharedPreferencesKey(context: Context): String {
         return context.packageName + ".user_info_key"
     }
 
@@ -24,10 +24,10 @@ class UserInfoTest {
         context = InstrumentationRegistry.getInstrumentation().targetContext
 
         // Reset old preferences
-        legacyPreference = context.getSharedPreferences(
-            oldPreferenceFile(context), Context.MODE_PRIVATE
+        sharedPreferences = context.getSharedPreferences(
+            sharedPreferencesFilename(context), Context.MODE_PRIVATE
         )
-        legacyPreference.edit().remove(oldPreferenceKey(context)).commit()
+        sharedPreferences.edit().remove(sharedPreferencesKey(context)).commit()
 
         // Reset new preferences
         BlueshiftEncryptedPreferences.init(context)
@@ -44,18 +44,27 @@ class UserInfoTest {
 
     @Test
     fun load_updatedFromOldSDK_returnSameUserInfoObject() {
+        val emailPreferencesKey = "john.doe@examplepetstore.com"
+        val emailPreferencesFileName = "${context.packageName}.BsftEmailPrefFile"
+        val emailPreferences = context.getSharedPreferences(emailPreferencesFileName, Context.MODE_PRIVATE)
+        emailPreferences.edit().putBoolean(emailPreferencesKey, true).apply()
+
         // Mock the presence of a user object in the old preference.
-        legacyPreference.edit().putString(oldPreferenceKey(context), USER_JSON).apply()
+        sharedPreferences.edit().putString(sharedPreferencesKey(context), USER_JSON).apply()
 
         // When encryption is not enabled, the user info class should provide the same value
         // for its members as we saved in the old preference.
-        val userinfo = UserInfo.load(context, false)
-        assert(userinfo.name == JOHN)
+        val name = UserInfo.load(context, false).name
+        assert(name == JOHN)
 
-        // When encryption is not enabled, the user info class should provide the same value
+        // When encryption is enabled, the user info class should provide the same value
         // for its members as we saved in the old preference.
-        val userinfo2 = UserInfo.load(context, true)
-        assert(userinfo2.name == JOHN)
+        val encryptedName = UserInfo.load(context, true).name
+        assert(encryptedName == JOHN)
+
+        // When encryption is enabled, the data stored in email preferences (if any) should be deleted.
+        val status = emailPreferences.getBoolean(emailPreferencesKey, false)
+        assert(!status)
 
         // Kill the existing instance for the next test.
         UserInfo.killInstance()
@@ -64,7 +73,7 @@ class UserInfoTest {
     @Test
     fun load_updatedFromOldSDK_copiesTheContentOfOldPrefToNewPref() {
         // Mock the presence of a user object in the old preference.
-        legacyPreference.edit().putString(oldPreferenceKey(context), USER_JSON).apply()
+        sharedPreferences.edit().putString(sharedPreferencesKey(context), USER_JSON).apply()
 
         // case1 : When encryption is not enabled.
         val userInfo = UserInfo.load(context, false)
@@ -82,7 +91,7 @@ class UserInfoTest {
     @Test
     fun load_updatedFromOldSDK_deletesTheDataInOldPreference() {
         // Mock the presence of a user object in the old preference.
-        legacyPreference.edit().putString(oldPreferenceKey(context), USER_JSON).apply()
+        sharedPreferences.edit().putString(sharedPreferencesKey(context), USER_JSON).apply()
 
         // case1 : When encryption is not enabled.
         val userInfo = UserInfo.load(context, false)
@@ -91,8 +100,8 @@ class UserInfoTest {
         // case2 : When encryption is enabled.
         UserInfo.load(context, true)
         // Make sure the value stored in the old preferences is removed after copying it to the new preferences.
-        val legacyJson = legacyPreference.getString(oldPreferenceKey(context), null)
-        assert(legacyJson == null)
+        val spUserJson = sharedPreferences.getString(sharedPreferencesKey(context), null)
+        assert(spUserJson == null)
 
         // Kill the existing instance for the next test.
         UserInfo.killInstance()

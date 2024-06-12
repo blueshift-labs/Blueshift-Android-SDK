@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import com.blueshift.BlueShiftPreference;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftEncryptedPreferences;
 import com.blueshift.BlueshiftLogger;
@@ -70,29 +71,30 @@ public class UserInfo {
         }
     }
 
-    private static String getLegacyPreferenceFile(@NonNull Context context) {
+    private static String getSharedPreferencesFilename(@NonNull Context context) {
         return context.getPackageName() + "." + PREF_FILE;
     }
 
-    private static String getLegacyPreferenceKey(@NonNull Context context) {
+    private static String getSharedPreferencesKey(@NonNull Context context) {
         return context.getPackageName() + "." + PREF_KEY;
     }
 
     private static UserInfo load(@NonNull Context context) {
         Configuration configuration = BlueshiftUtils.getConfiguration(context);
-        boolean isEncryptionEnabled = configuration != null && configuration.shouldEncryptUserInfo();
+        boolean isEncryptionEnabled = configuration != null && configuration.shouldSaveUserInfoAsEncrypted();
         return load(context, isEncryptionEnabled);
     }
 
     static UserInfo load(Context context, boolean encryptionEnabled) {
-        return encryptionEnabled ? loadEncrypted(context) : loadLegacy(context);
+        return encryptionEnabled ? loadFromEncryptedSharedPreferences(context) : loadFromSharedPreferences(context);
     }
 
-    private static UserInfo loadLegacy(@NonNull Context context) {
+    private static UserInfo loadFromSharedPreferences(@NonNull Context context) {
         UserInfo userInfo = null;
 
-        SharedPreferences preferences = context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE);
-        String json = preferences.getString(getLegacyPreferenceKey(context), null);
+        BlueshiftLogger.d(TAG, "Loading from SharedPreferences.");
+        SharedPreferences preferences = context.getSharedPreferences(getSharedPreferencesFilename(context), Context.MODE_PRIVATE);
+        String json = preferences.getString(getSharedPreferencesKey(context), null);
         if (json != null) {
             try {
                 userInfo = new Gson().fromJson(json, UserInfo.class);
@@ -104,22 +106,28 @@ public class UserInfo {
         return userInfo;
     }
 
-    private static UserInfo loadEncrypted(@NonNull Context context) {
+    private static UserInfo loadFromEncryptedSharedPreferences(@NonNull Context context) {
         UserInfo userInfo = null;
 
+        BlueshiftLogger.d(TAG, "Loading from encrypted preference.");
         String json = BlueshiftEncryptedPreferences.INSTANCE.getString(PREF_KEY_ENCRYPTED, null);
         if (json == null) {
             // The new secure store doesn't have the user info. Let's check in the old preference
             // file and copy over the data if present.
-            SharedPreferences pref = context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE);
-            String legacyJson = pref.getString(getLegacyPreferenceKey(context), null);
-            if (legacyJson != null) {
+            SharedPreferences pref = context.getSharedPreferences(getSharedPreferencesFilename(context), Context.MODE_PRIVATE);
+            String spUserJson = pref.getString(getSharedPreferencesKey(context), null);
+            if (spUserJson != null) {
+                BlueshiftLogger.d(TAG, "Found user data inside the SharedPreferences. Copying it to the EncryptedSharedPreferences.");
                 try {
-                    userInfo = new Gson().fromJson(legacyJson, UserInfo.class);
+                    userInfo = new Gson().fromJson(spUserJson, UserInfo.class);
                     // Save it to secure store for loading next time.
-                    userInfo.saveEncrypted();
+                    userInfo.saveToEncryptedSharedPreferences();
                     // Clear the old preference for privacy reasons.
+                    BlueshiftLogger.d(TAG, "Clear the SharedPreferences.");
                     pref.edit().clear().apply();
+                    // Remove cached email address information (If found)
+                    BlueshiftLogger.d(TAG, "Clear the email from SharedPreferences.");
+                    BlueShiftPreference.removeCachedEmailAddress(context);
                 } catch (Exception e) {
                     BlueshiftLogger.e(TAG, e);
                 }
@@ -171,25 +179,25 @@ public class UserInfo {
 
     public void save(@NonNull Context context) {
         Configuration configuration = BlueshiftUtils.getConfiguration(context);
-        boolean isEncryptionEnabled = configuration != null && configuration.shouldEncryptUserInfo();
+        boolean isEncryptionEnabled = configuration != null && configuration.shouldSaveUserInfoAsEncrypted();
         save(context, isEncryptionEnabled);
     }
 
     void save(Context context, boolean encryptionEnabled) {
         if (encryptionEnabled) {
-            saveEncrypted();
+            saveToEncryptedSharedPreferences();
         } else {
-            saveLegacy(context);
+            saveToSharedPreferences(context);
         }
     }
 
-    private void saveLegacy(Context context) {
+    private void saveToSharedPreferences(Context context) {
         String json = new Gson().toJson(this);
-        context.getSharedPreferences(getLegacyPreferenceFile(context), Context.MODE_PRIVATE)
-                .edit().putString(getLegacyPreferenceKey(context), json).apply();
+        context.getSharedPreferences(getSharedPreferencesFilename(context), Context.MODE_PRIVATE)
+                .edit().putString(getSharedPreferencesKey(context), json).apply();
     }
 
-    private void saveEncrypted() {
+    private void saveToEncryptedSharedPreferences() {
         String json = new Gson().toJson(this);
         BlueshiftEncryptedPreferences.INSTANCE.putString(PREF_KEY_ENCRYPTED, json);
     }
