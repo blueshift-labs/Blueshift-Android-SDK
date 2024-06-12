@@ -224,22 +224,8 @@ class RequestDispatcher {
     }
 
     private void doAutoIdentifyCheck(Context context) {
-        boolean identified = didEmailChange(context) || didPushPermissionChange(context);
+        boolean identified = didPushPermissionChange(context);
         if (identified) BlueshiftLogger.d(LOG_TAG, "Auto identify call fired.");
-    }
-
-    private boolean didEmailChange(Context context) {
-        UserInfo userInfo = UserInfo.getInstance(context);
-        if (userInfo != null && !TextUtils.isEmpty(userInfo.getEmail())) {
-            if (!BlueShiftPreference.isEmailAlreadyIdentified(context, userInfo.getEmail())) {
-                identify(context);
-                BlueShiftPreference.markEmailAsIdentified(context, userInfo.getEmail());
-                BlueshiftLogger.d(LOG_TAG, "Change in email detected. Sending \"identify\".");
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private boolean didPushPermissionChange(Context context) {
