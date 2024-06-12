@@ -81,7 +81,7 @@ public class UserInfo {
 
     private static UserInfo load(@NonNull Context context) {
         Configuration configuration = BlueshiftUtils.getConfiguration(context);
-        boolean isEncryptionEnabled = configuration != null && configuration.shouldEncryptUserInfo();
+        boolean isEncryptionEnabled = configuration != null && configuration.shouldSaveUserInfoAsEncrypted();
         return load(context, isEncryptionEnabled);
     }
 
@@ -179,7 +179,7 @@ public class UserInfo {
 
     public void save(@NonNull Context context) {
         Configuration configuration = BlueshiftUtils.getConfiguration(context);
-        boolean isEncryptionEnabled = configuration != null && configuration.shouldEncryptUserInfo();
+        boolean isEncryptionEnabled = configuration != null && configuration.shouldSaveUserInfoAsEncrypted();
         save(context, isEncryptionEnabled);
     }
 

@@ -355,7 +355,7 @@ public class Blueshift {
         mConfiguration = configuration;
 
         // initialize the encrypted shared preferences if enabled.
-        if (configuration.shouldEncryptUserInfo()) {
+        if (configuration.shouldSaveUserInfoAsEncrypted()) {
             BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
         }
 

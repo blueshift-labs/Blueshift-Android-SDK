@@ -60,7 +60,7 @@ public class Configuration {
 
     // Defines is we should store user info in plain text or in encrypted form.
     // Default value is false to make it backward compatible.
-    private  boolean shouldEncryptUserInfo = false;
+    private  boolean saveUserInfoAsEncrypted = false;
 
     public Configuration() {
         // Setting default region to the US.
@@ -98,12 +98,12 @@ public class Configuration {
         autoAppOpenInterval = 86400;
     }
 
-    public boolean shouldEncryptUserInfo() {
-        return shouldEncryptUserInfo;
+    public boolean shouldSaveUserInfoAsEncrypted() {
+        return saveUserInfoAsEncrypted;
     }
 
-    public void setShouldEncryptUserInfo(boolean shouldEncryptUserInfo) {
-        this.shouldEncryptUserInfo = shouldEncryptUserInfo;
+    public void setSaveUserInfoAsEncrypted(boolean saveUserInfoAsEncrypted) {
+        this.saveUserInfoAsEncrypted = saveUserInfoAsEncrypted;
     }
 
     public boolean isPushAppLinksEnabled() {
