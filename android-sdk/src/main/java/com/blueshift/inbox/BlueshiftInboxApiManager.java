@@ -12,6 +12,7 @@ import com.blueshift.BlueshiftHttpResponse;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.inappmessage.InAppManager;
 import com.blueshift.util.BlueshiftUtils;
+import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 
 import org.json.JSONArray;
@@ -225,7 +226,9 @@ public class BlueshiftInboxApiManager {
                                 }
                             }
 
-                            newContent.putOpt("created_at", data.optString("timestamp"));
+                            String timestamp = data.optString("timestamp");
+                            Long createdAtEpoch = CommonUtils.iso8601ToEpochSeconds(timestamp);
+                            newContent.putOpt("created_at", createdAtEpoch);
                             newContent.putOpt("message_uuid", data.optString("bsft_message_uuid"));
                             newContent.putOpt("user_uuid", data.optString("bsft_user_uuid"));
                             newContent.putOpt("account_uuid", data.optString("bsft_user_uuid"));
