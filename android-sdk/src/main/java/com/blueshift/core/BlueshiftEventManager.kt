@@ -39,7 +39,7 @@ object BlueshiftEventManager {
             eventRepository.insertEvent(event)
         } else {
             val request = BlueshiftNetworkRequest(
-                url = BlueshiftAPI.EVENTS,
+                url = BlueshiftAPI.getEventsApiUrl(),
                 authorization = BlueshiftNetworkConfiguration.authorization,
                 authorizationRequired = true,
                 method = BlueshiftNetworkRequest.Method.POST,
@@ -67,7 +67,7 @@ object BlueshiftEventManager {
             }
 
             val request = BlueshiftNetworkRequest(
-                url = BlueshiftAPI.BULK_EVENTS,
+                url = BlueshiftAPI.getBulkEventsApiUrl(),
                 authorization = BlueshiftNetworkConfiguration.authorization,
                 authorizationRequired = true,
                 method = BlueshiftNetworkRequest.Method.POST,

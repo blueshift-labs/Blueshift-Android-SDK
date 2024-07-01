@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -364,10 +363,8 @@ public class Blueshift {
         if (configuration.shouldSaveUserInfoAsEncrypted()) {
             BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
         }
-        String apiKey = mConfiguration.getApiKey();
-        if (apiKey != null) {
-            BlueshiftNetworkConfiguration.INSTANCE.configureBasicAuthentication(apiKey, "");
-        }
+
+        doNetworkConfigurations(mConfiguration);
 
         BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
 
@@ -385,6 +382,11 @@ public class Blueshift {
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
 
         handleInAppSync(mContext, mConfiguration);
+    }
+
+    void doNetworkConfigurations(Configuration configuration) {
+        BlueshiftNetworkConfiguration.INSTANCE.configureBasicAuthentication(configuration.getApiKey(), "");
+        BlueshiftNetworkConfiguration.INSTANCE.setDatacenter(configuration.getRegion());
     }
 
     void handleInAppSync(Context context, @NonNull Configuration configuration) {
@@ -405,12 +407,15 @@ public class Blueshift {
     }
 
     void initializeLegacyEventSyncModule(Context context) {
-        // Sync the http request queue.
-        RequestQueue.getInstance().syncInBackground(context);
-        // schedule job to sync request queue on nw change
-        RequestQueue.scheduleQueueSyncJob(context);
-        // schedule the bulk events dispatch
-        BulkEventManager.scheduleBulkEventEnqueue(context);
+        // Do not schedule any jobs. We have the new events module to do that.
+
+        // Cleanup any cached events by sending them to Blueshift.
+        BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+            // Move any pending bulk events in the db to request queue.
+            BulkEventManager.enqueueBulkEvents(context);
+            // Sync the http request queue.
+            RequestQueue.getInstance().sync(context);
+        });
     }
 
     void initializeEventSyncModule(Context context, Configuration configuration) {
@@ -438,6 +443,7 @@ public class Blueshift {
         List<Object> result = inferAppVersionChangeEvent(context);
         if (result != null && result.size() == 2) {
             String eventName = (String) result.get(0);
+            //noinspection unchecked
             HashMap<String, Object> extras = (HashMap<String, Object>) result.get(1);
             trackEvent(eventName, extras, false);
         }

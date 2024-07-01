@@ -1,19 +1,24 @@
 package com.blueshift.core.common
 
-object BlueshiftAPI {
-    sealed class Datacenter(val baseUrl: String) {
-        data object EU : Datacenter("https://api.eu.getblueshift.com/")
-        data object US : Datacenter("https://api.getblueshift.com/")
+class BlueshiftAPI {
+    enum class Datacenter(val baseUrl: String) {
+        US("https://api.getblueshift.com/"),
+        EU("https://api.eu.getblueshift.com/")
     }
 
-    private var currentDatacenter: Datacenter = Datacenter.US
+    companion object {
+        private var region = Datacenter.US
 
-    fun setDatacenter(datacenter: Datacenter) {
-        currentDatacenter = datacenter
+        fun setDatacenter(datacenter: Datacenter) {
+            region = datacenter
+        }
+
+        fun getEventsApiUrl(): String {
+            return "${region.baseUrl}api/v1/event"
+        }
+
+        fun getBulkEventsApiUrl(): String {
+            return "${region.baseUrl}api/v1/bulkevents"
+        }
     }
-
-    private val BASE_URL: String get() = currentDatacenter.baseUrl
-
-    val EVENTS = "${BASE_URL}api/v1/event"
-    val BULK_EVENTS = "${BASE_URL}api/v1/bulkevents"
 }
