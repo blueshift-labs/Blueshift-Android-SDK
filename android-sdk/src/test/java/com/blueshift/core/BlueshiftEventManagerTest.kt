@@ -23,7 +23,23 @@ class BlueshiftEventManagerTest {
         fakeNetworkRequestRepo = FakeNetworkRequestRepo()
         fakeEventsRepo = FakeEventsRepo()
 
-        BlueshiftEventManager.initialize(fakeEventsRepo, fakeNetworkRequestRepo)
+        BlueshiftEventManager.initialize(
+            fakeEventsRepo, fakeNetworkRequestRepo, BlueshiftLambdaQueue
+        )
+    }
+
+    @Test
+    fun trackCampaignEvent_shouldInsertOneNetworkRequestWhenQueryStringIsNotEmpty() = runBlocking {
+        // Empty query string
+        BlueshiftEventManager.trackCampaignEvent(queryString = "")
+        assert(fakeNetworkRequestRepo.requests.size == 0)
+
+        // Query string with key and value
+        BlueshiftEventManager.trackCampaignEvent(queryString = "key=value&number=1")
+        assert(fakeNetworkRequestRepo.requests.size == 1)
+
+        // The url should contain the query string
+        assert(fakeNetworkRequestRepo.requests[0].url.contains("key=value&number=1"))
     }
 
     @Test
@@ -77,26 +93,28 @@ class BlueshiftEventManagerTest {
     }
 
     @Test
-    fun buildAndEnqueueBatchEvents_shouldInsertABulkEventRequestPer100OfflineEvents() = runBlocking {
-        insertBatchEvents(200)
+    fun buildAndEnqueueBatchEvents_shouldInsertABulkEventRequestPer100OfflineEvents() =
+        runBlocking {
+            insertBatchEvents(200)
 
-        BlueshiftEventManager.buildAndEnqueueBatchEvents()
+            BlueshiftEventManager.buildAndEnqueueBatchEvents()
 
-        // Two bulk event requests should be added in the network request repo
-        assert(fakeNetworkRequestRepo.requests.size == 2)
-        // After sync, the events repo should be empty
-        assert(fakeEventsRepo.blueshiftEvents.size == 0)
-    }
+            // Two bulk event requests should be added in the network request repo
+            assert(fakeNetworkRequestRepo.requests.size == 2)
+            // After sync, the events repo should be empty
+            assert(fakeEventsRepo.blueshiftEvents.size == 0)
+        }
 
     @Test
-    fun buildAndEnqueueBatchEvents_shouldInsertOneBulkEventRequestForLessThan100OfflineEvents() = runBlocking {
-        insertBatchEvents(50)
+    fun buildAndEnqueueBatchEvents_shouldInsertOneBulkEventRequestForLessThan100OfflineEvents() =
+        runBlocking {
+            insertBatchEvents(50)
 
-        BlueshiftEventManager.buildAndEnqueueBatchEvents()
+            BlueshiftEventManager.buildAndEnqueueBatchEvents()
 
-        // Two bulk event requests should be added in the network request repo
-        assert(fakeNetworkRequestRepo.requests.size == 1)
-        // After sync, the events repo should be empty
-        assert(fakeEventsRepo.blueshiftEvents.size == 0)
-    }
+            // Two bulk event requests should be added in the network request repo
+            assert(fakeNetworkRequestRepo.requests.size == 1)
+            // After sync, the events repo should be empty
+            assert(fakeEventsRepo.blueshiftEvents.size == 0)
+        }
 }

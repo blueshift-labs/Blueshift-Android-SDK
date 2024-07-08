@@ -17,15 +17,13 @@ import com.blueshift.batch.BulkEventManager;
 import com.blueshift.batch.EventsTable;
 import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.core.BlueshiftEventManager;
+import com.blueshift.core.BlueshiftLambdaQueue;
 import com.blueshift.core.BlueshiftNetworkRequestQueueManager;
-import com.blueshift.core.events.BlueshiftEvent;
 import com.blueshift.core.events.BlueshiftEventRepositoryImpl;
 import com.blueshift.core.network.BlueshiftNetworkConfiguration;
 import com.blueshift.core.network.BlueshiftNetworkRepositoryImpl;
 import com.blueshift.core.network.BlueshiftNetworkRequestRepositoryImpl;
 import com.blueshift.core.schedule.network.BlueshiftNetworkChangeScheduler;
-import com.blueshift.httpmanager.Method;
-import com.blueshift.httpmanager.Request;
 import com.blueshift.inappmessage.InAppActionCallback;
 import com.blueshift.inappmessage.InAppApiCallback;
 import com.blueshift.inappmessage.InAppConstants;
@@ -423,7 +421,7 @@ public class Blueshift {
 
         try (BlueshiftNetworkRequestRepositoryImpl networkRequestRepository = new BlueshiftNetworkRequestRepositoryImpl(context)) {
             try (BlueshiftEventRepositoryImpl eventRepository = new BlueshiftEventRepositoryImpl(context)) {
-                BlueshiftEventManager.INSTANCE.initialize(eventRepository, networkRequestRepository);
+                BlueshiftEventManager.INSTANCE.initialize(eventRepository, networkRequestRepository, BlueshiftLambdaQueue.INSTANCE);
             } catch (Exception e) {
                 BlueshiftLogger.e(LOG_TAG, e);
             }
@@ -586,36 +584,7 @@ public class Blueshift {
             BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
             return false;
         } else {
-            BlueshiftJSONObject eventParams = new BlueshiftJSONObject();
-
-            try {
-                eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
-                eventParams.put(BlueshiftConstants.KEY_TIMESTAMP, CommonUtils.getCurrentUtcTimestamp());
-            } catch (JSONException e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-
-            BlueshiftAttributesApp appInfo = BlueshiftAttributesApp.getInstance().sync(mContext);
-            eventParams.putAll(appInfo);
-
-            BlueshiftAttributesUser userInfo = BlueshiftAttributesUser.getInstance().sync(mContext);
-            eventParams.putAll(userInfo);
-
-            if (params != null && !params.isEmpty()) {
-                eventParams.putAll(params);
-            }
-
-            // We should insert an event as batch event in two cases.
-            // 1. If the app asks us to make it a batch event
-            // 2. If the app didn't ask, but we had no internet connection at the time of tracking
-            boolean isConnected = NetworkUtils.isConnected(mContext);
-            boolean isBatchEvent = canBatchThisEvent || !isConnected;
-
-            BlueshiftEvent blueshiftEvent = new BlueshiftEvent(
-                    -1L, eventName, eventParams, System.currentTimeMillis()
-            );
-            BlueshiftEventManager.INSTANCE.trackEventAsync(blueshiftEvent, isBatchEvent);
-
+            BlueshiftEventManager.INSTANCE.trackEventWithData(mContext, eventName, params, canBatchThisEvent);
             return true;
         }
     }
@@ -630,19 +599,8 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
         if (Blueshift.isTrackingEnabled(mContext)) {
-            BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
-                                BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
-                            } catch (Exception e) {
-                                BlueshiftLogger.e(LOG_TAG, e);
-                            }
-                        }
-                    }
-            );
+            boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
+            BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
         } else {
             BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
         }
@@ -1268,25 +1226,7 @@ public class Blueshift {
                         }
                     }
 
-                    String reqUrl = BlueshiftConstants.TRACK_API_URL(mContext) + "?" + builder.toString();
-
-                    final Request request = new Request();
-                    request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                    request.setUrl(reqUrl);
-                    request.setMethod(Method.GET);
-
-                    BlueshiftLogger.d(LOG_TAG, reqUrl);
-                    BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
-
-                    BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    // Adding the request to the queue.
-                                    RequestQueue.getInstance().add(mContext, request);
-                                }
-                            }
-                    );
+                    BlueshiftEventManager.INSTANCE.trackCampaignEventAsync(builder.toString());
                 }
             }
         } catch (Exception e) {
@@ -1393,18 +1333,7 @@ public class Blueshift {
                 // replace whitespace with %20 to avoid URL damage.
                 paramsUrl = paramsUrl.replace(" ", UTF8_SPACE);
 
-                String reqUrl = BlueshiftConstants.TRACK_API_URL(mContext) + "?" + paramsUrl;
-
-                Request request = new Request();
-                request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                request.setUrl(reqUrl);
-                request.setMethod(Method.GET);
-
-                BlueshiftLogger.d(LOG_TAG, reqUrl);
-                BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
-
-                // Adding the request to the queue.
-                RequestQueue.getInstance().add(mContext, request);
+                BlueshiftEventManager.INSTANCE.trackCampaignEventAsync(paramsUrl);
 
                 return true;
             } else {
