@@ -29,11 +29,14 @@ class BlueshiftEventManagerTest {
     }
 
     @Test
-    fun trackCampaignEvent_shouldInsertOneNetworkRequestWhenQueryStringIsNotEmpty() = runBlocking {
+    fun trackCampaignEvent_shouldNotInsertAnyNetworkRequestWhenQueryStringIsNotEmpty() = runBlocking {
         // Empty query string
         BlueshiftEventManager.trackCampaignEvent(queryString = "")
         assert(fakeNetworkRequestRepo.requests.size == 0)
+    }
 
+    @Test
+    fun trackCampaignEvent_shouldInsertOneNetworkRequestWhenQueryStringIsNotEmpty() = runBlocking {
         // Query string with key and value
         BlueshiftEventManager.trackCampaignEvent(queryString = "key=value&number=1")
         assert(fakeNetworkRequestRepo.requests.size == 1)
