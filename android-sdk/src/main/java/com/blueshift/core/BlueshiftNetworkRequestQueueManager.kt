@@ -52,7 +52,7 @@ object BlueshiftNetworkRequestQueueManager {
             while (true) {
                 // break the look when networkRequest is null.
                 val networkRequest = readNextRequest() ?: break
-                BlueshiftLogger.d("$TAG: Dequeue -> $networkRequest")
+                BlueshiftLogger.d("$TAG: Dequeue -> (Request ID: ${networkRequest.id})")
 
                 if (networkRequest.authorizationRequired) {
                     networkRequest.authorization = BlueshiftNetworkConfiguration.authorization
@@ -60,7 +60,7 @@ object BlueshiftNetworkRequestQueueManager {
 
                 val response = networkRepository.makeNetworkRequest(networkRequest = networkRequest)
                 if (response.responseCode == HTTP_OK) {
-                    BlueshiftLogger.d("$TAG: Event sent to Blueshift. Delete -> $networkRequest")
+                    BlueshiftLogger.d("$TAG: Remove -> (Request ID: ${networkRequest.id})")
                     deleteRequest(networkRequest)
                 } else if (response.responseCode == 0) {
                     BlueshiftLogger.d("$TAG: No internet connection. Pause sync!")
@@ -78,10 +78,10 @@ object BlueshiftNetworkRequestQueueManager {
                         // reset authorization to avoid storing it in db
                         networkRequest.authorization = null
 
-                        BlueshiftLogger.d("$TAG: We should retry -> $networkRequest")
+                        BlueshiftLogger.d("$TAG: Retry later -> (Request ID: ${networkRequest.id})")
                         updateRequest(networkRequest)
                     } else {
-                        BlueshiftLogger.d("$TAG: Retry limit exceeded! Delete -> $networkRequest")
+                        BlueshiftLogger.d("$TAG: Retry limit exceeded! Remove -> (Request ID: ${networkRequest.id})")
                         deleteRequest(networkRequest)
                     }
                 }
