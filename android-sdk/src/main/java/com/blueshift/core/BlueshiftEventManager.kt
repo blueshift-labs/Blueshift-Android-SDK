@@ -33,6 +33,11 @@ object BlueshiftEventManager {
         this.blueshiftLambdaQueue = blueshiftLambdaQueue
     }
 
+    /**
+     * This method acts as a bridge between the java version of the sdk and the kotlin version of
+     * this class. It takes in the legacy params we used to take in when calling the sendEvent
+     * method inside the Blueshift.java class and uses the new events module to send the events.
+     */
     fun trackEventWithData(
         context: Context, eventName: String, data: HashMap<String, Any>?, isBatchEvent: Boolean
     ) {
@@ -49,22 +54,36 @@ object BlueshiftEventManager {
         data?.forEach { eventParams.put(it.key, it.value) }
 
         val isConnected = NetworkUtils.isConnected(context)
-        val blueshiftEvent = BlueshiftEvent(-1L, eventName, eventParams, System.currentTimeMillis())
+        val blueshiftEvent = BlueshiftEvent(
+            eventName = eventName,
+            eventParams = eventParams,
+            timestamp = System.currentTimeMillis()
+        )
 
         // We should insert an event as batch event in two cases.
         // 1. If the app asks us to make it a batch event
         // 2. If the app didn't ask, but we had no internet connection at the time of tracking
-        trackEventAsync(blueshiftEvent, isBatchEvent || !isConnected)
+        enqueueEvent(blueshiftEvent, isBatchEvent || !isConnected)
     }
 
-    private fun trackEventAsync(event: BlueshiftEvent, isBatchEvent: Boolean) {
+    /**
+     * This method accepts and event and adds it into a queue for processing, once added to the db,
+     * the method will call the sync method to send the event to the server (if the event is real-time)
+     */
+    fun enqueueEvent(event: BlueshiftEvent, isBatchEvent: Boolean) {
         blueshiftLambdaQueue.push {
             trackEvent(event, isBatchEvent)
-            BlueshiftNetworkRequestQueueManager.sync()
+            // let's not call sync for bulk events.
+            // the sync will be called by the scheduler when it's time.
+            if (!isBatchEvent) BlueshiftNetworkRequestQueueManager.sync()
         }
     }
 
-    fun trackCampaignEventAsync(queryString: String) {
+    /**
+     * This method accepts a query string for a campaign event and adds it into a queue for processing,
+     * once added to the db, the method will call the sync method to send the event to the server.
+     */
+    fun enqueueCampaignEvent(queryString: String) {
         blueshiftLambdaQueue.push {
             trackCampaignEvent(queryString)
             BlueshiftNetworkRequestQueueManager.sync()

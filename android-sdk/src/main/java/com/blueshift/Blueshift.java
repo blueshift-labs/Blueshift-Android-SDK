@@ -1226,7 +1226,7 @@ public class Blueshift {
                         }
                     }
 
-                    BlueshiftEventManager.INSTANCE.trackCampaignEventAsync(builder.toString());
+                    BlueshiftEventManager.INSTANCE.enqueueCampaignEvent(builder.toString());
                 }
             }
         } catch (Exception e) {
@@ -1333,7 +1333,7 @@ public class Blueshift {
                 // replace whitespace with %20 to avoid URL damage.
                 paramsUrl = paramsUrl.replace(" ", UTF8_SPACE);
 
-                BlueshiftEventManager.INSTANCE.trackCampaignEventAsync(paramsUrl);
+                BlueshiftEventManager.INSTANCE.enqueueCampaignEvent(paramsUrl);
 
                 return true;
             } else {
