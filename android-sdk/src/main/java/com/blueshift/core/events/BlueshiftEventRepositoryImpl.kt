@@ -81,7 +81,7 @@ class BlueshiftEventRepositoryImpl(
             synchronized(this) {
                 val events = mutableListOf<BlueshiftEvent>()
                 val cursor = readableDatabase.query(
-                    tableName, null, null, null, null, null, "$TIMESTAMP DESC", "$batchCount"
+                    tableName, null, null, null, null, null, "$TIMESTAMP ASC", "$batchCount"
                 )
 
                 while (cursor.moveToNext()) {
