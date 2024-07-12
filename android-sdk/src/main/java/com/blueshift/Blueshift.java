@@ -599,8 +599,7 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
         if (Blueshift.isTrackingEnabled(mContext)) {
-            boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
-            BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
+            sendEvent(eventName, params, canBatchThisEvent);
         } else {
             BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
         }

@@ -102,7 +102,7 @@ object BlueshiftEventManager {
 
     suspend fun trackEvent(event: BlueshiftEvent, isBatchEvent: Boolean) {
         if (isBatchEvent) {
-            BlueshiftLogger.d("$TAG: Inserting 1 batch event. Event = ${event.eventParams}")
+            BlueshiftLogger.d("$TAG: Inserting 1 batch event -> ${event.eventName}")
             eventRepository.insertEvent(event)
         } else {
             val request = BlueshiftNetworkRequest(
@@ -113,7 +113,7 @@ object BlueshiftEventManager {
                 body = event.eventParams,
             )
 
-            BlueshiftLogger.d("$TAG: Inserting 1 real-time event. Event = ${event.eventParams}")
+            BlueshiftLogger.d("$TAG: Inserting 1 real-time event -> ${event.eventName}")
             networkRequestRepository.insertRequest(request)
         }
     }
