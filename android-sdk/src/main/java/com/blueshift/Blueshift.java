@@ -19,6 +19,8 @@ import com.blueshift.batch.FailedEventsTable;
 import com.blueshift.core.BlueshiftEventManager;
 import com.blueshift.core.BlueshiftLambdaQueue;
 import com.blueshift.core.BlueshiftNetworkRequestQueueManager;
+import com.blueshift.core.app.BlueshiftInstallationStatus;
+import com.blueshift.core.app.BlueshiftInstallationStatusHelper;
 import com.blueshift.core.events.BlueshiftEventRepositoryImpl;
 import com.blueshift.core.network.BlueshiftNetworkConfiguration;
 import com.blueshift.core.network.BlueshiftNetworkRepositoryImpl;
@@ -357,6 +359,11 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
+        String appVersion = CommonUtils.getAppVersion(mContext);
+        String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
+        BlueshiftInstallationStatusHelper helper = new BlueshiftInstallationStatusHelper();
+        BlueshiftInstallationStatus status = helper.doVersionCheck(appVersion, previousAppVersion, mContext);
+
         // initialize the encrypted shared preferences if enabled.
         if (configuration.shouldSaveUserInfoAsEncrypted()) {
             BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
@@ -364,16 +371,20 @@ public class Blueshift {
 
         doNetworkConfigurations(mConfiguration);
 
-        BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
-
         BlueshiftAttributesApp.getInstance().init(mContext);
 
-        doAppVersionChecks(mContext);
+//        doAppVersionChecks(mContext);
 
         initAppIcon(mContext, mConfiguration);
 
         initializeEventSyncModule(mContext, mConfiguration);
         initializeLegacyEventSyncModule(mContext);
+
+        if (status == BlueshiftInstallationStatus.APP_INSTALL) {
+            trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, helper.getEventAttributes(status, previousAppVersion), false);
+        } else if (status == BlueshiftInstallationStatus.APP_UPDATE) {
+            trackEvent(BlueshiftConstants.EVENT_APP_UPDATE, helper.getEventAttributes(status, previousAppVersion), false);
+        }
 
         handleAppOpenEvent(mContext);
 
