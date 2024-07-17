@@ -1,14 +1,14 @@
 package com.blueshift.core.app
 
-import android.content.Context
 import com.blueshift.BlueshiftConstants
 import com.blueshift.core.common.BlueshiftLogger
 import com.blueshift.util.CommonUtils
+import java.io.File
 
 class BlueshiftInstallationStatusHelper {
 
-    fun doVersionCheck(
-        appVersion: String, previousAppVersion: String?, context: Context
+    fun getInstallationStatus(
+        appVersion: String, previousAppVersion: String?, database: File
     ): BlueshiftInstallationStatus {
         var status = BlueshiftInstallationStatus.NO_CHANGE
 
@@ -23,7 +23,6 @@ class BlueshiftInstallationStatusHelper {
             // of the database file created by the older version of blueshift SDK. If present,
             // it is app update, else it is app install.
 
-            val database = context.getDatabasePath("blueshift_db.sqlite3")
             if (database.exists()) {
                 // case 3
                 status = BlueshiftInstallationStatus.APP_UPDATE
