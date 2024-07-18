@@ -359,10 +359,12 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
+        // get the status of app version change
         String appVersion = CommonUtils.getAppVersion(mContext);
         String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
+        File database = mContext.getDatabasePath("blueshift_db.sqlite3");
         BlueshiftInstallationStatusHelper helper = new BlueshiftInstallationStatusHelper();
-        BlueshiftInstallationStatus status = helper.doVersionCheck(appVersion, previousAppVersion, mContext);
+        BlueshiftInstallationStatus status = helper.getInstallationStatus(appVersion, previousAppVersion, database);
 
         // initialize the encrypted shared preferences if enabled.
         if (configuration.shouldSaveUserInfoAsEncrypted()) {
@@ -373,17 +375,20 @@ public class Blueshift {
 
         BlueshiftAttributesApp.getInstance().init(mContext);
 
-//        doAppVersionChecks(mContext);
-
         initAppIcon(mContext, mConfiguration);
 
         initializeEventSyncModule(mContext, mConfiguration);
         initializeLegacyEventSyncModule(mContext);
 
-        if (status == BlueshiftInstallationStatus.APP_INSTALL) {
-            trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, helper.getEventAttributes(status, previousAppVersion), false);
-        } else if (status == BlueshiftInstallationStatus.APP_UPDATE) {
-            trackEvent(BlueshiftConstants.EVENT_APP_UPDATE, helper.getEventAttributes(status, previousAppVersion), false);
+        switch (status) {
+            case APP_INSTALL -> {
+                trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, helper.getEventAttributes(status, previousAppVersion), false);
+                BlueShiftPreference.saveAppVersionString(mContext, appVersion);
+            }
+            case APP_UPDATE -> {
+                trackEvent(BlueshiftConstants.EVENT_APP_UPDATE, helper.getEventAttributes(status, previousAppVersion), false);
+                BlueShiftPreference.saveAppVersionString(mContext, appVersion);
+            }
         }
 
         handleAppOpenEvent(mContext);
@@ -442,92 +447,6 @@ public class Blueshift {
         } catch (Exception e) {
             BlueshiftLogger.e(LOG_TAG, e);
         }
-    }
-
-    /**
-     * This method checks for app installs and app updates by looking at the app version changes.
-     * When a change is detected, an event will be sent to Blueshift to report the same.
-     */
-    void doAppVersionChecks(Context context) {
-        List<Object> result = inferAppVersionChangeEvent(context);
-        if (result != null && result.size() == 2) {
-            String eventName = (String) result.get(0);
-            //noinspection unchecked
-            HashMap<String, Object> extras = (HashMap<String, Object>) result.get(1);
-            trackEvent(eventName, extras, false);
-        }
-    }
-
-    List<Object> inferAppVersionChangeEvent(Context context) {
-        List<Object> result = new ArrayList<>();
-
-        if (context != null) {
-            final String appVersionString = CommonUtils.getAppVersion(context);
-
-            if (appVersionString != null) {
-                String storedAppVersionString = BlueShiftPreference.getStoredAppVersionString(context);
-                if (storedAppVersionString == null) {
-                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value NOT available");
-
-                    // When stored value for appVersion is absent. It could be because..
-                    // 1 - The app is freshly installed
-                    // 2 - The app is updated, but the old version did not have blueshift SDK
-                    // 3 - The app is updated, but the old version had blueshift SDK's old version.
-                    //
-                    // Case 1 & 2 will be treated as app_install.
-                    // Case 3 will be treated as app_update. We do this by checking the availability
-                    // of the database file created by the older version of blueshift SDK. If present,
-                    // it is app update, else it is app install.
-
-                    File database = context.getDatabasePath("blueshift_db.sqlite3");
-                    if (database.exists()) {
-                        // case 3
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file found at " + database.getAbsolutePath());
-
-                        HashMap<String, Object> extras = new HashMap<>();
-                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
-
-                        result.add(BlueshiftConstants.EVENT_APP_UPDATE);
-                        result.add(extras);
-                    } else {
-                        // cases 1 & 2
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
-
-                        HashMap<String, Object> extras = new HashMap<>();
-                        extras.put(BlueshiftConstants.KEY_APP_INSTALLED_AT, CommonUtils.getCurrentUtcTimestamp());
-
-                        result.add(BlueshiftConstants.EVENT_APP_INSTALL);
-                        result.add(extras);
-                    }
-
-                    BlueShiftPreference.saveAppVersionString(context, appVersionString);
-                } else {
-                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value available");
-
-                    // When a stored value for appVersion is found, we compare it with the existing
-                    // app version value. If there is a change, we consider it as app_update.
-                    //
-                    // PS: Android will not let you downgrade the app version without installing the old
-                    // version, so it will always be an app upgrade event.
-                    if (!storedAppVersionString.equals(appVersionString)) {
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value doesn't match (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
-
-                        HashMap<String, Object> extras = new HashMap<>();
-                        extras.put(BlueshiftConstants.KEY_PREVIOUS_APP_VERSION, storedAppVersionString);
-                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
-
-                        result.add(BlueshiftConstants.EVENT_APP_UPDATE);
-                        result.add(extras);
-
-                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
-                    } else {
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value matches (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
-                    }
-                }
-            }
-        }
-
-        return result;
     }
 
     /**
