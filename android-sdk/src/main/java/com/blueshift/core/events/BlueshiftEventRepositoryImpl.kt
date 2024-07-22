@@ -12,7 +12,7 @@ import org.json.JSONObject
 class BlueshiftEventRepositoryImpl(
     context: Context?
 ) : BlueshiftSQLiteOpenHelper<BlueshiftEvent>(
-    context, "blueshift_events.sqlite", null, 1
+    context, "com.blueshift.events.db", null, 1
 ), BlueshiftEventRepository {
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(buildCreateTableQuery())

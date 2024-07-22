@@ -12,7 +12,7 @@ import org.json.JSONObject
 class BlueshiftNetworkRequestRepositoryImpl(
     context: Context?
 ) : BlueshiftSQLiteOpenHelper<BlueshiftNetworkRequest>(
-    context, "blueshift_request_queue.sqlite", null, 1
+    context, "com.blueshift.network_request_queue.db", null, 1
 ), BlueshiftNetworkRequestRepository {
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL(buildCreateTableQuery())
