@@ -9,7 +9,7 @@ import java.net.HttpURLConnection.HTTP_OK
 import java.util.concurrent.atomic.AtomicBoolean
 
 object BlueshiftNetworkRequestQueueManager {
-    private const val TAG = "BlueshiftNetworkRequestQueueManager"
+    private const val TAG = "NetworkRequestQueueManager"
     private lateinit var networkRequestRepository: BlueshiftNetworkRequestRepository
     private lateinit var networkRepository: BlueshiftNetworkRepository
     private val isSyncing = AtomicBoolean(false) // to prevent concurrent access to the sync method

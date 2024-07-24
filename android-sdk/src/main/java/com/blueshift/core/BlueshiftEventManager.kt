@@ -18,7 +18,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object BlueshiftEventManager {
-    private const val TAG = "BlueshiftEventManager"
+    private const val TAG = "EventManager"
     private lateinit var eventRepository: BlueshiftEventRepository
     private lateinit var networkRequestRepository: BlueshiftNetworkRequestRepository
     private lateinit var blueshiftLambdaQueue: BlueshiftLambdaQueue

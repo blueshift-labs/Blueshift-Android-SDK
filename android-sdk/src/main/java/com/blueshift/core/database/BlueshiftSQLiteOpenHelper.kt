@@ -147,7 +147,7 @@ abstract class BlueshiftSQLiteOpenHelper<T : BlueshiftSQLiteModel?>(
     }
 
     companion object {
-        const val TAG = "BlueshiftSQLiteOpenHelper"
+        const val TAG = "SQLiteOpenHelper"
         const val ID_DEFAULT = -1L
         const val ID = "_id"
         const val _AND_ = " AND "

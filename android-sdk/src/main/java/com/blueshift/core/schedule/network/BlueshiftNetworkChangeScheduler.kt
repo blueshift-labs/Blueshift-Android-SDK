@@ -37,7 +37,7 @@ object BlueshiftNetworkChangeScheduler {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val isScheduled = jobScheduler.schedule(jobInfo)
-                BlueshiftLogger.d("job = BlueshiftNetworkChangeJobService, isScheduled = $isScheduled")
+                BlueshiftLogger.d("job = BlueshiftNetworkChangeJobService, jobId = $jobID, isScheduled = $isScheduled")
             } catch (e: Exception) {
                 BlueshiftLogger.e(e.stackTraceToString())
             }
