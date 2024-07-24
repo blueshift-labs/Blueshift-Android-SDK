@@ -91,7 +91,7 @@ public class Configuration {
         deviceIdSource = Blueshift.DeviceIdSource.INSTANCE_ID_PKG_NAME;
 
         // Default bulk event interval: 30min
-        batchInterval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+        batchInterval = AlarmManager.INTERVAL_HALF_HOUR;
 
         // Default app_open: will not be fired
         enableAutoAppOpen = false;
