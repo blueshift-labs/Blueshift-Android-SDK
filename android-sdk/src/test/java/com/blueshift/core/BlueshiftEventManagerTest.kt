@@ -29,7 +29,7 @@ class BlueshiftEventManagerTest {
     }
 
     @Test
-    fun trackCampaignEvent_shouldNotInsertAnyNetworkRequestWhenQueryStringIsNotEmpty() = runBlocking {
+    fun trackCampaignEvent_shouldNotInsertAnyNetworkRequestWhenQueryStringIsEmpty() = runBlocking {
         // Empty query string
         BlueshiftEventManager.trackCampaignEvent(queryString = "")
         assert(fakeNetworkRequestRepo.requests.size == 0)
