@@ -50,10 +50,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -394,19 +392,12 @@ public class Blueshift {
         handleAppOpenEvent(mContext);
 
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
-
-        handleInAppSync(mContext, mConfiguration);
+        InAppManager.fetchInAppFromServer(mContext, null);
     }
 
     void doNetworkConfigurations(Configuration configuration) {
         BlueshiftNetworkConfiguration.INSTANCE.configureBasicAuthentication(configuration.getApiKey(), "");
         BlueshiftNetworkConfiguration.INSTANCE.setDatacenter(configuration.getRegion());
-    }
-
-    void handleInAppSync(Context context, @NonNull Configuration configuration) {
-        if (!configuration.isInAppManualTriggerEnabled()) {
-            InAppManager.fetchInAppFromServer(context, null);
-        }
     }
 
     void handleAppOpenEvent(Context context) {
@@ -502,24 +493,6 @@ public class Blueshift {
     }
 
     /**
-     * Private method that receives params and send to server using request queue.
-     *
-     * @param params            hash-map filled with parameters required for api call
-     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
-     * @return true if everything works fine, else false
-     */
-    boolean sendEvent(String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
-        String apiKey = BlueshiftUtils.getApiKey(mContext);
-        if (apiKey == null || apiKey.isEmpty()) {
-            BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
-            return false;
-        } else {
-            BlueshiftEventManager.INSTANCE.trackEventWithData(mContext, eventName, params, canBatchThisEvent);
-            return true;
-        }
-    }
-
-    /**
      * Method to send generic events
      *
      * @param eventName         name of the event
@@ -529,7 +502,12 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
         if (Blueshift.isTrackingEnabled(mContext)) {
-            sendEvent(eventName, params, canBatchThisEvent);
+            String apiKey = BlueshiftUtils.getApiKey(mContext);
+            if (apiKey == null || apiKey.isEmpty()) {
+                BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
+            } else {
+                BlueshiftEventManager.INSTANCE.trackEventWithData(mContext, eventName, params, canBatchThisEvent);
+            }
         } else {
             BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
         }

@@ -4,7 +4,7 @@ import android.util.Log
 
 object BlueshiftLogger {
     private const val TAG = "Blueshift"
-    var enabled = true
+    var enabled = false
 
     fun d(message: String) {
         if (enabled) {

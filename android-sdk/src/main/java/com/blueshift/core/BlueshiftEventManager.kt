@@ -55,9 +55,7 @@ object BlueshiftEventManager {
 
         val isConnected = NetworkUtils.isConnected(context)
         val blueshiftEvent = BlueshiftEvent(
-            eventName = eventName,
-            eventParams = eventParams,
-            timestamp = System.currentTimeMillis()
+            eventName = eventName, eventParams = eventParams, timestamp = System.currentTimeMillis()
         )
 
         // We should insert an event as batch event in two cases.
@@ -135,7 +133,6 @@ object BlueshiftEventManager {
 
             val request = BlueshiftNetworkRequest(
                 url = BlueshiftAPI.bulkEventsURL(),
-                authorization = BlueshiftNetworkConfiguration.authorization,
                 authorizationRequired = true,
                 method = BlueshiftNetworkRequest.Method.POST,
                 body = bulkEventPayload,

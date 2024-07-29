@@ -1,6 +1,7 @@
 package com.blueshift.core
 
 import android.util.Log
+import com.blueshift.core.network.BlueshiftNetworkConfiguration
 import com.blueshift.core.network.BlueshiftNetworkRequest
 import com.blueshift.core.network.FakeNetworkRepoWithAPIError
 import com.blueshift.core.network.FakeNetworkRepoWithAPISuccess
@@ -33,6 +34,8 @@ class BlueshiftNetworkRequestQueueManagerTest {
 
             networkRequestRepo.insertRequest(networkRequest = networkRequest)
         }
+
+        BlueshiftNetworkConfiguration.authorization = "basicAuth"
     }
 
     @After
@@ -136,5 +139,20 @@ class BlueshiftNetworkRequestQueueManagerTest {
         requestQueueManager.sync()
 
         assert(networkRequestRepo.requests.filter { it.retryAttemptTimestamp != 0L }.size == REQUEST_COUNT)
+    }
+
+    @Test
+    fun sync_ShouldNotMakeAnyChangesToTheQueueWhenAuthorizationIsNull() = runBlocking {
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
+
+        BlueshiftNetworkConfiguration.authorization = null
+
+        val requestQueueManager = BlueshiftNetworkRequestQueueManager
+        requestQueueManager.initialize(networkRequestRepo, FakeNetworkRepoWithAPISuccess())
+
+        requestQueueManager.sync()
+
+        assert(networkRequestRepo.requests.size == REQUEST_COUNT)
     }
 }
