@@ -87,15 +87,15 @@ class BlueshiftNetworkRequestRepositoryImpl(
     }
 
     override suspend fun insertRequest(networkRequest: BlueshiftNetworkRequest) {
-            insert(networkRequest)
+        insert(networkRequest)
     }
 
     override suspend fun updateRequest(networkRequest: BlueshiftNetworkRequest) {
-            update(networkRequest)
+        update(networkRequest)
     }
 
     override suspend fun deleteRequest(networkRequest: BlueshiftNetworkRequest) {
-            delete(networkRequest)
+        delete(networkRequest)
     }
 
     override suspend fun readNextRequest(): BlueshiftNetworkRequest? {
@@ -123,5 +123,4 @@ class BlueshiftNetworkRequestRepositoryImpl(
             }
         }
     }
-
 }
