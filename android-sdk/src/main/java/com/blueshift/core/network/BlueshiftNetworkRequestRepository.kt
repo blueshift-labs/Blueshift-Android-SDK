@@ -5,4 +5,5 @@ interface BlueshiftNetworkRequestRepository {
     suspend fun updateRequest(networkRequest: BlueshiftNetworkRequest)
     suspend fun deleteRequest(networkRequest: BlueshiftNetworkRequest)
     suspend fun readNextRequest(): BlueshiftNetworkRequest?
+    suspend fun clear()
 }

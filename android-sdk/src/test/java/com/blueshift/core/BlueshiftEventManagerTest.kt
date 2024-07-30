@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -26,6 +27,12 @@ class BlueshiftEventManagerTest {
         BlueshiftEventManager.initialize(
             fakeEventsRepo, fakeNetworkRequestRepo, BlueshiftLambdaQueue
         )
+    }
+
+    @After
+    fun tearDown() = runBlocking {
+        fakeEventsRepo.clear()
+        fakeNetworkRequestRepo.clear()
     }
 
     @Test
@@ -53,8 +60,7 @@ class BlueshiftEventManagerTest {
                 eventName = "test",
                 eventParams = JSONObject(),
                 timestamp = System.currentTimeMillis()
-            ),
-            isBatchEvent = false // when online, we don't add events as batched events.
+            ), isBatchEvent = false // when online, we don't add events as batched events.
         )
 
         // A new request should be added to network request repo
@@ -67,12 +73,8 @@ class BlueshiftEventManagerTest {
     fun trackEvent_shouldInsertOneEventWhenOffline() = runBlocking {
         BlueshiftEventManager.trackEvent(
             event = BlueshiftEvent(
-                id = 1,
-                eventName = "test",
-                eventParams = JSONObject(),
-                timestamp = 0L
-            ),
-            isBatchEvent = true // we add a batched event when we are offline
+                id = 1, eventName = "test", eventParams = JSONObject(), timestamp = 0L
+            ), isBatchEvent = true // we add a batched event when we are offline
         )
 
         // No request should be added to network request repo
@@ -85,12 +87,8 @@ class BlueshiftEventManagerTest {
         for (i in 1..count) {
             BlueshiftEventManager.trackEvent(
                 event = BlueshiftEvent(
-                    id = i.toLong(),
-                    eventName = "test",
-                    eventParams = JSONObject(),
-                    timestamp = 0L
-                ),
-                isBatchEvent = true
+                    id = i.toLong(), eventName = "test", eventParams = JSONObject(), timestamp = 0L
+                ), isBatchEvent = true
             )
         }
     }
@@ -120,4 +118,32 @@ class BlueshiftEventManagerTest {
             // After sync, the events repo should be empty
             assert(fakeEventsRepo.blueshiftEvents.size == 0)
         }
+
+    @Test
+    fun clear_shouldDeleteAllEventsAndNetworkRequests() = runBlocking {
+        BlueshiftEventManager.trackEvent(
+            event = BlueshiftEvent(
+                id = 1,
+                eventName = "offline_event",
+                eventParams = JSONObject(),
+                timestamp = System.currentTimeMillis()
+            ), isBatchEvent = false
+        )
+        BlueshiftEventManager.trackEvent(
+            event = BlueshiftEvent(
+                id = 1,
+                eventName = "realtime_event",
+                eventParams = JSONObject(),
+                timestamp = System.currentTimeMillis()
+            ), isBatchEvent = true
+        )
+
+        assert(fakeNetworkRequestRepo.requests.size == 1)
+        assert(fakeEventsRepo.blueshiftEvents.size == 1)
+
+        BlueshiftEventManager.clear()
+
+        assert(fakeNetworkRequestRepo.requests.size == 0)
+        assert(fakeEventsRepo.blueshiftEvents.size == 0)
+    }
 }

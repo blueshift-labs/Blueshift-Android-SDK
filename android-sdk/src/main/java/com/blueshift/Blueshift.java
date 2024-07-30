@@ -165,6 +165,9 @@ public class Blueshift {
             EventsTable.getInstance(context).deleteAllAsync();
             // Failed events table. These will also get batched periodically.
             FailedEventsTable.getInstance(context).deleteAllAsync();
+
+            // Delete the data from events and request queue
+            BlueshiftEventManager.INSTANCE.clearAsync();
         }
     }
 

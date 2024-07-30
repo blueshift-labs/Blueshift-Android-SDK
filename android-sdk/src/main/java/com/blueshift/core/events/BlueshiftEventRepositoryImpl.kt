@@ -94,4 +94,10 @@ class BlueshiftEventRepositoryImpl(
             }
         }
     }
+
+    override suspend fun clear() {
+        withContext(Dispatchers.IO) {
+            deleteAll(whereClause = null, selectionArgs = null)
+        }
+    }
 }

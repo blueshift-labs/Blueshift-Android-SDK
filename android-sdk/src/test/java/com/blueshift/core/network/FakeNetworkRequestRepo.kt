@@ -26,4 +26,8 @@ class FakeNetworkRequestRepo : BlueshiftNetworkRequestRepository {
             requests.find { it.retryAttemptBalance > 0 && it.retryAttemptTimestamp < System.currentTimeMillis() }
         }
     }
+
+    override suspend fun clear() {
+        requests.clear()
+    }
 }

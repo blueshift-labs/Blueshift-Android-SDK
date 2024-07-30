@@ -77,6 +77,24 @@ object BlueshiftEventManager {
         }
     }
 
+    suspend fun trackEvent(event: BlueshiftEvent, isBatchEvent: Boolean) {
+        if (isBatchEvent) {
+            BlueshiftLogger.d("$TAG: Inserting 1 batch event -> ${event.eventName}")
+            eventRepository.insertEvent(event)
+        } else {
+            val request = BlueshiftNetworkRequest(
+                url = BlueshiftAPI.eventURL(),
+                authorization = BlueshiftNetworkConfiguration.authorization,
+                authorizationRequired = true,
+                method = BlueshiftNetworkRequest.Method.POST,
+                body = event.eventParams,
+            )
+
+            BlueshiftLogger.d("$TAG: Inserting 1 real-time event -> ${event.eventName}")
+            networkRequestRepository.insertRequest(request)
+        }
+    }
+
     /**
      * This method accepts a query string for a campaign event and adds it into a queue for processing,
      * once added to the db, the method will call the sync method to send the event to the server.
@@ -98,22 +116,16 @@ object BlueshiftEventManager {
         }
     }
 
-    suspend fun trackEvent(event: BlueshiftEvent, isBatchEvent: Boolean) {
-        if (isBatchEvent) {
-            BlueshiftLogger.d("$TAG: Inserting 1 batch event -> ${event.eventName}")
-            eventRepository.insertEvent(event)
-        } else {
-            val request = BlueshiftNetworkRequest(
-                url = BlueshiftAPI.eventURL(),
-                authorization = BlueshiftNetworkConfiguration.authorization,
-                authorizationRequired = true,
-                method = BlueshiftNetworkRequest.Method.POST,
-                body = event.eventParams,
-            )
+    /**
+     * Deletes ALL entries from the batch events table as well as the network requests table.
+     */
+    fun clearAsync() {
+        blueshiftLambdaQueue.push { clear() }
+    }
 
-            BlueshiftLogger.d("$TAG: Inserting 1 real-time event -> ${event.eventName}")
-            networkRequestRepository.insertRequest(request)
-        }
+    suspend fun clear() {
+        eventRepository.clear()
+        networkRequestRepository.clear()
     }
 
     suspend fun buildAndEnqueueBatchEvents() {

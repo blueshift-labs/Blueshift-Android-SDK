@@ -21,4 +21,8 @@ class FakeEventsRepo : BlueshiftEventRepository {
 
         return result
     }
+
+    override suspend fun clear() {
+        blueshiftEvents.clear()
+    }
 }
