@@ -27,8 +27,11 @@ class BlueshiftNetworkRequestRepositoryImpl(
         if (obj.id != ID_DEFAULT) contentValues.put(ID, obj.id)
         contentValues.put(URL, obj.url)
         contentValues.put(METHOD, obj.method.name)
+        obj.header?.let {
+            contentValues.put(HEADER, it.toString().toByteArray(charset = Charsets.UTF_8))
+        }
         obj.body?.let {
-            contentValues.put(BODY, obj.body.toString().toByteArray(charset = Charsets.UTF_8))
+            contentValues.put(BODY, it.toString().toByteArray(charset = Charsets.UTF_8))
         }
         contentValues.put(AUTH_REQUIRED, if (obj.authorizationRequired) 1 else 0)
         contentValues.put(RETRY_BALANCE, obj.retryAttemptBalance)
@@ -42,6 +45,12 @@ class BlueshiftNetworkRequestRepositoryImpl(
         val id = cursor.getLong(cursor.getColumnIndexOrThrow(ID))
         val url = cursor.getString(cursor.getColumnIndexOrThrow(URL))
         val method = cursor.getString(cursor.getColumnIndexOrThrow(METHOD))
+        var headerJson: JSONObject? = null
+        val headerBytes = cursor.getBlob(cursor.getColumnIndexOrThrow(HEADER))
+        headerBytes?.let {
+            val headerString = String(it, Charsets.UTF_8)
+            headerJson = JSONObject(headerString)
+        }
         var bodyJson: JSONObject? = null
         val bodyBytes = cursor.getBlob(cursor.getColumnIndexOrThrow(BODY))
         bodyBytes?.let {
@@ -57,6 +66,7 @@ class BlueshiftNetworkRequestRepositoryImpl(
             id = id,
             url = url,
             method = BlueshiftNetworkRequest.Method.fromString(method),
+            header = headerJson,
             body = bodyJson,
             authorizationRequired = authRequired,
             retryAttemptBalance = retryBalance,
@@ -69,6 +79,7 @@ class BlueshiftNetworkRequestRepositoryImpl(
     override val fields: Map<String, FieldType> = mapOf(
         URL to FieldType.String,
         METHOD to FieldType.String,
+        HEADER to FieldType.Blob,
         BODY to FieldType.Blob,
         AUTH_REQUIRED to FieldType.Integer,
         RETRY_BALANCE to FieldType.Integer,
@@ -79,6 +90,7 @@ class BlueshiftNetworkRequestRepositoryImpl(
     companion object {
         private const val URL = "url"
         private const val METHOD = "method"
+        private const val HEADER = "header"
         private const val BODY = "body"
         private const val AUTH_REQUIRED = "auth_required"
         private const val RETRY_BALANCE = "retry_balance"

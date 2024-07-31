@@ -7,7 +7,7 @@ data class BlueshiftNetworkRequest(
     override val id: Long = -1,
     val url: String,
     val method: Method,
-    val headers: Map<String, String> = mapOf("Content-Type" to "application/json"),
+    val header: JSONObject? = null,
     val body: JSONObject? = null,
     var authorization: String? = null, // should add it from network config when needed
     val authorizationRequired: Boolean = false, // for db to store if auth is required

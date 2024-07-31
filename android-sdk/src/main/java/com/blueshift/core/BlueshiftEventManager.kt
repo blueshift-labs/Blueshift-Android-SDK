@@ -9,7 +9,6 @@ import com.blueshift.core.common.BlueshiftAPI
 import com.blueshift.core.common.BlueshiftLogger
 import com.blueshift.core.events.BlueshiftEvent
 import com.blueshift.core.events.BlueshiftEventRepository
-import com.blueshift.core.network.BlueshiftNetworkConfiguration
 import com.blueshift.core.network.BlueshiftNetworkRequest
 import com.blueshift.core.network.BlueshiftNetworkRequestRepository
 import com.blueshift.util.CommonUtils
@@ -84,7 +83,7 @@ object BlueshiftEventManager {
         } else {
             val request = BlueshiftNetworkRequest(
                 url = BlueshiftAPI.eventURL(),
-                authorization = BlueshiftNetworkConfiguration.authorization,
+                header = JSONObject(mapOf("Content-Type" to "application/json")),
                 authorizationRequired = true,
                 method = BlueshiftNetworkRequest.Method.POST,
                 body = event.eventParams,
@@ -145,6 +144,7 @@ object BlueshiftEventManager {
 
             val request = BlueshiftNetworkRequest(
                 url = BlueshiftAPI.bulkEventsURL(),
+                header = JSONObject(mapOf("Content-Type" to "application/json")),
                 authorizationRequired = true,
                 method = BlueshiftNetworkRequest.Method.POST,
                 body = bulkEventPayload,

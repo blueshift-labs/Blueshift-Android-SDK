@@ -25,9 +25,9 @@ class BlueshiftNetworkRepositoryImpl : BlueshiftNetworkRepository {
                     authorization?.let { connection.setRequestProperty("Authorization", it) }
                 }
 
-                networkRequest.headers.let { headers ->
-                    headers.forEach { entry ->
-                        connection.setRequestProperty(entry.key, entry.value)
+                networkRequest.header?.let { headers ->
+                    headers.keys().forEach { key ->
+                        connection.setRequestProperty(key, headers.optString(key))
                     }
                 }
 
