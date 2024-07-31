@@ -32,7 +32,7 @@ class BlueshiftEventRepositoryImpl(
 
     override fun getObject(cursor: Cursor): BlueshiftEvent {
         val id = cursor.getLong(cursor.getColumnIndexOrThrow(ID))
-        val name = cursor.getString(cursor.getColumnIndexOrThrow(NAME))
+        val name = cursor.getString(cursor.getColumnIndexOrThrow(NAME)) ?: ""
         var paramsJson = JSONObject()
         val paramsByes = cursor.getBlob(cursor.getColumnIndexOrThrow(PARAMS))
         paramsByes?.let {

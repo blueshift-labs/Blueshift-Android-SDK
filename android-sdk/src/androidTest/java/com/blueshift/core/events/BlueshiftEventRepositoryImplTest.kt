@@ -25,7 +25,7 @@ class BlueshiftEventRepositoryImplTest {
     fun insertEvent_insertsEventsToTheSQLiteDatabase() = runBlocking {
         val name = "test_event"
         val json = "{\"key\":\"val\"}"
-        val timestamp = 0L
+        val timestamp = System.currentTimeMillis()
         val event = BlueshiftEvent(
             eventName = name, eventParams = JSONObject(json), timestamp = timestamp
         )
