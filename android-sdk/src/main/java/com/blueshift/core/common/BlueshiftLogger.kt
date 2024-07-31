@@ -7,14 +7,10 @@ object BlueshiftLogger {
     var enabled = false
 
     fun d(message: String) {
-        if (enabled) {
-            Log.d(TAG, message)
-        }
+        if (enabled) Log.d(TAG, message)
     }
 
     fun e(message: String) {
-        if (enabled) {
-            Log.e(TAG, message)
-        }
+        if (enabled) Log.e(TAG, message)
     }
 }
