@@ -26,6 +26,7 @@ import com.blueshift.core.network.BlueshiftNetworkConfiguration;
 import com.blueshift.core.network.BlueshiftNetworkRepositoryImpl;
 import com.blueshift.core.network.BlueshiftNetworkRequestRepositoryImpl;
 import com.blueshift.core.schedule.network.BlueshiftNetworkChangeScheduler;
+import com.blueshift.httpmanager.Request;
 import com.blueshift.inappmessage.InAppActionCallback;
 import com.blueshift.inappmessage.InAppApiCallback;
 import com.blueshift.inappmessage.InAppConstants;
@@ -50,6 +51,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -417,13 +419,29 @@ public class Blueshift {
     void initializeLegacyEventSyncModule(Context context) {
         // Do not schedule any jobs. We have the new events module to do that.
 
-        // Cleanup any cached events by sending them to Blueshift.
-        BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
-            // Move any pending bulk events in the db to request queue.
-            BulkEventManager.enqueueBulkEvents(context);
-            // Sync the http request queue.
-            RequestQueue.getInstance().sync(context);
-        });
+        if (!BlueShiftPreference.isLegacyEventSyncComplete(context)) {
+            // Cleanup any cached events by sending them to Blueshift.
+            BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+                try {
+                    Request request = RequestQueueTable.getInstance(context).getFirstRecord();
+                    ArrayList<HashMap<String, Object>> fEvents = FailedEventsTable.getInstance(context).getBulkEventParameters(1);
+                    ArrayList<HashMap<String, Object>> bEvents = EventsTable.getInstance(context).getBulkEventParameters(1);
+
+                    if (request != null || !fEvents.isEmpty() || !bEvents.isEmpty()) {
+                        // Move any pending bulk events in the db to request queue.
+                        BulkEventManager.enqueueBulkEvents(context);
+                        // Sync the http request queue.
+                        RequestQueue.getInstance().sync(context);
+                    } else {
+                        // The request queue is empty and the event tables are also empty.
+                        // This could mean that there is nothing left to sync.
+                        BlueShiftPreference.markLegacyEventSyncAsComplete(context);
+                    }
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            });
+        }
     }
 
     void initializeEventSyncModule(Context context, Configuration configuration) {
