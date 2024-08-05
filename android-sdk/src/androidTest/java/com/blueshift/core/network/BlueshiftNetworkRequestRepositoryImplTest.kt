@@ -136,4 +136,99 @@ class BlueshiftNetworkRequestRepositoryImplTest {
         assert(request3 == null)
     }
 
+    @Test
+    fun readNextRequest_shouldReturnTheFirstRequestWhenAllRequestsInTheQueueRetryAttemptBalanceGreaterThanZero(): Unit =
+        runBlocking {
+            for (i in 1..3) {
+                val url = "https://api.com/$i"
+                val method = BlueshiftNetworkRequest.Method.GET
+                val header = JSONObject(mapOf("Content-Type" to "application/json"))
+                val body = JSONObject()
+                val authRequired = true
+                val retryBalance = 3
+                val retryTimestamp = 0L
+                val timestamp = System.currentTimeMillis()
+                val request = BlueshiftNetworkRequest(
+                    url = url,
+                    method = method,
+                    header = header,
+                    body = body,
+                    authorizationRequired = authRequired,
+                    retryAttemptBalance = retryBalance,
+                    retryAttemptTimestamp = retryTimestamp,
+                    timestamp = timestamp
+                )
+                repository.insertRequest(request)
+            }
+
+            val request = repository.readNextRequest()
+            assert(request != null)
+            request?.let {
+                assert(it.url == "https://api.com/1")
+            }
+        }
+
+    @Test
+    fun readNextRequest_shouldReturnNullWhenAllRequestsInTheQueueHasRetryAttemptBalanceEqualToZero(): Unit =
+        runBlocking {
+            for (i in 1..3) {
+                val url = "https://api.com/$i"
+                val method = BlueshiftNetworkRequest.Method.GET
+                val header = JSONObject(mapOf("Content-Type" to "application/json"))
+                val body = JSONObject()
+                val authRequired = true
+                val retryBalance = 0
+                val retryTimestamp = 0L
+                val timestamp = System.currentTimeMillis()
+                val request = BlueshiftNetworkRequest(
+                    url = url,
+                    method = method,
+                    header = header,
+                    body = body,
+                    authorizationRequired = authRequired,
+                    retryAttemptBalance = retryBalance,
+                    retryAttemptTimestamp = retryTimestamp,
+                    timestamp = timestamp
+                )
+                repository.insertRequest(request)
+            }
+
+            val request = repository.readNextRequest()
+            assert(request == null)
+        }
+
+    @Test
+    fun readNextRequest_shouldReturnTheRequestWithRetryAttemptTimestampLessThanCurrentTime(): Unit =
+        runBlocking {
+            for (i in 1..2) {
+                val fiveMinutes = 5 * 60 * 1000
+                val url = "https://api.com/$i"
+                val method = BlueshiftNetworkRequest.Method.GET
+                val header = JSONObject(mapOf("Content-Type" to "application/json"))
+                val body = JSONObject()
+                val authRequired = true
+                val retryBalance = 1
+                val retryTimestamp = if (i % 2 == 0) System.currentTimeMillis() + fiveMinutes else System.currentTimeMillis() - fiveMinutes
+                val timestamp = System.currentTimeMillis()
+                val request = BlueshiftNetworkRequest(
+                    url = url,
+                    method = method,
+                    header = header,
+                    body = body,
+                    authorizationRequired = authRequired,
+                    retryAttemptBalance = retryBalance,
+                    retryAttemptTimestamp = retryTimestamp,
+                    timestamp = timestamp
+                )
+                repository.insertRequest(request)
+            }
+
+            // i = 1 -> current time - 5min
+            // i = 2 -> current time + 5min
+            val request = repository.readNextRequest()
+            assert(request != null)
+            request?.let {
+                assert(it.url == "https://api.com/1")
+            }
+        }
 }
