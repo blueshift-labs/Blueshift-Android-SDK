@@ -26,9 +26,9 @@ class BlueshiftAPITest {
     fun setDatacenter_whenSetToEU_shouldReturnCorrectURLForAllAPIsWithEUBaseUrl() {
         BlueshiftAPI.setDatacenter(BlueshiftAPI.Datacenter.EU)
 
-        val baseUrlForUS = "https://api.eu.getblueshift.com/"
-        assertEquals("${baseUrlForUS}api/v1/event", BlueshiftAPI.eventURL())
-        assertEquals("${baseUrlForUS}api/v1/bulkevents", BlueshiftAPI.bulkEventsURL())
-        assertEquals("${baseUrlForUS}track?key=value", BlueshiftAPI.trackURL("key=value"))
+        val baseUrlForEU = "https://api.eu.getblueshift.com/"
+        assertEquals("${baseUrlForEU}api/v1/event", BlueshiftAPI.eventURL())
+        assertEquals("${baseUrlForEU}api/v1/bulkevents", BlueshiftAPI.bulkEventsURL())
+        assertEquals("${baseUrlForEU}track?key=value", BlueshiftAPI.trackURL("key=value"))
     }
 }
