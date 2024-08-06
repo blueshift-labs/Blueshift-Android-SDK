@@ -428,11 +428,14 @@ public class Blueshift {
                     ArrayList<HashMap<String, Object>> bEvents = EventsTable.getInstance(context).getBulkEventParameters(1);
 
                     if (request != null || !fEvents.isEmpty() || !bEvents.isEmpty()) {
+                        BlueshiftLogger.d(LOG_TAG, "Initiating legacy events sync... (request queue = " + (request != null ? "not empty" : "empty") + ", fEvents = " + fEvents.size() + ", bEvents = " + bEvents.size() + ")");
+
                         // Move any pending bulk events in the db to request queue.
                         BulkEventManager.enqueueBulkEvents(context);
                         // Sync the http request queue.
                         RequestQueue.getInstance().sync(context);
                     } else {
+                        BlueshiftLogger.d(LOG_TAG, "Legacy events sync is done!");
                         // The request queue is empty and the event tables are also empty.
                         // This could mean that there is nothing left to sync.
                         BlueShiftPreference.markLegacyEventSyncAsComplete(context);
@@ -527,7 +530,12 @@ public class Blueshift {
             if (apiKey == null || apiKey.isEmpty()) {
                 BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
             } else {
-                BlueshiftEventManager.INSTANCE.trackEventWithData(mContext, eventName, params, canBatchThisEvent);
+                //noinspection ConstantValue
+                if (eventName != null) {
+                    // Java allows passing null as eventName when calling trackEvent, but Kotlin
+                    // will crash the app if eventName is null in the next line.
+                    BlueshiftEventManager.INSTANCE.trackEventWithData(mContext, eventName, params, canBatchThisEvent);
+                }
             }
         } else {
             BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
