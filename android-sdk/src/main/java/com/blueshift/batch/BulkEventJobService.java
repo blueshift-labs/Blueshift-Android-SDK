@@ -9,6 +9,13 @@ import androidx.annotation.RequiresApi;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftLogger;
 
+/**
+ * @deprecated
+ * This class is deprecated and will be removed in a future release. The events module has been
+ * refactored to improve performance and reliability. This class is now used internally for legacy
+ * data migration and will not be supported going forward.
+ */
+@Deprecated
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class BulkEventJobService extends JobService {
     private static final String TAG = "BulkEventJobService";

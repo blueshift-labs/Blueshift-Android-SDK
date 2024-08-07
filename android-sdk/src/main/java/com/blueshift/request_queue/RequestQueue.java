@@ -20,7 +20,13 @@ import com.blueshift.util.NetworkUtils;
  * @author Rahul Raveendran V P
  * Created on 26/2/15 @ 3:07 PM
  * https://github.com/rahulrvp
+ *
+ * @deprecated
+ * This class is deprecated and will be removed in a future release. The events module has been
+ * refactored to improve performance and reliability. This class is now used internally for legacy
+ * data migration and will not be supported going forward.
  */
+@Deprecated
 public class RequestQueue {
     public static final int DEFAULT_RETRY_COUNT = 3;
 
