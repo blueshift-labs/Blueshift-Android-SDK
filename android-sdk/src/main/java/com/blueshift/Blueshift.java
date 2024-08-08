@@ -398,6 +398,16 @@ public class Blueshift {
 
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
         InAppManager.fetchInAppFromServer(mContext, null);
+
+        doAutomaticIdentifyChecks(mContext);
+    }
+
+    private void doAutomaticIdentifyChecks(Context context) {
+        if (BlueShiftPreference.didPushPermissionStatusChange(context)) {
+            BlueshiftLogger.d(LOG_TAG, "A change in push permission detected, sending an identify event.");
+            identifyUser(null, false);
+            BlueShiftPreference.saveCurrentPushPermissionStatus(context);
+        }
     }
 
     void doNetworkConfigurations(Configuration configuration) {
@@ -536,6 +546,8 @@ public class Blueshift {
                     // will crash the app if eventName is null in the next line.
                     BlueshiftEventManager.INSTANCE.trackEventWithData(mContext, eventName, params, canBatchThisEvent);
                 }
+
+                doAutomaticIdentifyChecks(mContext);
             }
         } else {
             BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
