@@ -404,9 +404,10 @@ public class Blueshift {
 
     private void doAutomaticIdentifyChecks(Context context) {
         if (BlueShiftPreference.didPushPermissionStatusChange(context)) {
+            BlueShiftPreference.saveCurrentPushPermissionStatus(context);
+
             BlueshiftLogger.d(LOG_TAG, "A change in push permission detected, sending an identify event.");
             identifyUser(null, false);
-            BlueShiftPreference.saveCurrentPushPermissionStatus(context);
         }
     }
 
