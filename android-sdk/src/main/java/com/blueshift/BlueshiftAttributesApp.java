@@ -590,19 +590,21 @@ public class BlueshiftAttributesApp extends JSONObject {
             BlueshiftLogger.e(TAG, e);
         }
 
-        try {
-            String adId = DeviceUtils.getAdvertisingId(context);
-            setDeviceAdId(adId);
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
-        }
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+            try {
+                String adId = DeviceUtils.getAdvertisingId(context);
+                setDeviceAdId(adId);
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
 
-        try {
-            boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
-            setAdTrackingStatus(isAdEnabled);
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
-        }
+            try {
+                boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+                setAdTrackingStatus(isAdEnabled);
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        });
 
         return instance;
     }

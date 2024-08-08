@@ -1,5 +1,6 @@
 package com.blueshift;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -50,11 +51,12 @@ public class BlueshiftAppPreferences extends BlueshiftJSONObject {
         return null;
     }
 
+    @SuppressLint("ApplySharedPref")
     public void save(Context context) {
         if (context != null) {
             SharedPreferences preferences = context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
             if (preferences != null) {
-                preferences.edit().putString(PREF_KEY, instance.toString()).apply();
+                preferences.edit().putString(PREF_KEY, instance.toString()).commit();
             }
         }
     }

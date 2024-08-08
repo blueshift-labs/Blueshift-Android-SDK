@@ -34,7 +34,7 @@ import java.util.Random;
 /**
  * @author Rahul Raveendran V P
  * Created on 18/2/15 @ 12:22 PM
- * https://github.com/rahulrvp
+ * <a href="https://github.com/rahulrvp">...</a>
  */
 public class NotificationFactory {
     private final static String LOG_TAG = NotificationFactory.class.getSimpleName();

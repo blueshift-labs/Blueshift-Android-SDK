@@ -10,9 +10,13 @@ import com.blueshift.BlueshiftLogger;
 
 /**
  * @author Rahul Raveendran V P
- *         Created on 17/3/15 @ 3:04 PM
- *         https://github.com/rahulrvp
+ * Created on 17/3/15 @ 3:04 PM
+ * <a href="https://github.com/rahulrvp">...</a>
+ * @deprecated Since version <a href="https://github.com/blueshift-labs/Blueshift-Android-SDK/releases/tag/v3.4.6">3.4.6</a>, the Blueshift SDK automatically detects app install and update events.
+ * Using this class to track app installs can lead to confusion. We recommend using the automatic detection instead.
+ * This class will be removed in a future release.
  */
+@Deprecated
 public class AppInstallReceiver extends BroadcastReceiver {
     private static final String LOG_TAG = AppInstallReceiver.class.getSimpleName();
 

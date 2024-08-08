@@ -10,7 +10,13 @@ import java.util.HashMap;
  * @author Rahul Raveendran V P
  *         Created on 25/2/15 @ 3:04 PM
  *         https://github.com/rahulrvp
+ *
+ * @deprecated
+ * This class is deprecated and will be removed in a future release. The events module has been
+ * refactored to improve performance and reliability. This class is now used internally for legacy
+ * data migration and will not be supported going forward.
  */
+@Deprecated
 public class Request implements Serializable {
     private long id;
     private String url;

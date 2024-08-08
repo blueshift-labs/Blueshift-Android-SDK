@@ -15,9 +15,13 @@ import com.blueshift.request_queue.RequestQueue;
  * @author Rahul Raveendran V P
  * Created on 13/03/18 @ 11:09 AM
  * https://github.com/rahulrvp
+ *
+ * @deprecated
+ * This class is deprecated and will be removed in a future release. The events module has been
+ * refactored to improve performance and reliability. This class is now used internally for legacy
+ * data migration and will not be supported going forward.
  */
-
-
+@Deprecated
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RequestQueueJobService extends JobService {
     private static final String TAG = "RequestQueueJobService";

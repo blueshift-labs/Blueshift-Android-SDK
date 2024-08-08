@@ -22,7 +22,13 @@ import java.util.HashMap;
  * These events will be taken to build the batch first.
  * The values from {@link EventsTable} will only be taken if this table has no entries,
  * or if this table contains less number of events than a max batch size.
+ *
+ * @deprecated
+ * This class is deprecated and will be removed in a future release. The events module has been
+ * refactored to improve performance and reliability. This class is now used internally for legacy
+ * data migration and will not be supported going forward.
  */
+@Deprecated
 public class FailedEventsTable extends BaseSqliteTable<Event> {
 
     public static final String TABLE_NAME = "failed_events";
