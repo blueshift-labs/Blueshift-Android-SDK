@@ -396,7 +396,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String newToken) {
         BlueshiftLogger.d(LOG_TAG, "onNewToken: " + newToken);
 
-        BlueshiftAttributesApp.getInstance().updateFirebaseToken(newToken);
+        BlueshiftAttributesApp.getInstance().updateFirebaseToken(this, newToken);
 
         // We are calling an identify here to make sure that the change in
         // device token is notified to the blueshift servers.
