@@ -395,12 +395,7 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String newToken) {
         BlueshiftLogger.d(LOG_TAG, "onNewToken: " + newToken);
-
-        BlueshiftAttributesApp.getInstance().updateFirebaseToken(newToken);
-
-        // We are calling an identify here to make sure that the change in
-        // device token is notified to the blueshift servers.
-        Blueshift.getInstance(this).identifyUser(null, false);
+        handleNewToken(getApplicationContext(), newToken);
     }
 
     /**
@@ -447,11 +442,18 @@ public class BlueshiftMessagingService extends FirebaseMessagingService {
     /**
      * Helper method for the host app to invoke the onNewToken method of the BlueshiftMessagingService class
      *
+     * @param context  Valid {@link Context} object
      * @param newToken Valid new token provided by FCM
      */
-    public static void handleNewToken(String newToken) {
-        if (newToken != null) {
-            new BlueshiftMessagingService().onNewToken(newToken);
+    public static void handleNewToken(Context context, String newToken) {
+        try {
+            BlueshiftAttributesApp.getInstance().updateFirebaseToken(context, newToken);
+
+            // We are calling an identify here to make sure that the change in
+            // device token is notified to the blueshift servers.
+            Blueshift.getInstance(context).identifyUser(null, false);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
         }
     }
 }

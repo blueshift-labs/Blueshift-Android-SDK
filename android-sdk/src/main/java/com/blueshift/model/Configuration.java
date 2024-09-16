@@ -35,6 +35,13 @@ public class Configuration {
 
     // job scheduler
     private int networkChangeListenerJobId;
+    // todo: Fix the version in comments
+    /**
+     * @deprecated starting v3.5.? we are deprecating this field. The bulk events will be created
+     * and sent to blueshift when internet connection is available at a periodic interval. This process
+     * will be done using the network change job scheduler we have created.
+     */
+    @Deprecated
     private int bulkEventsJobId;
 
     // push
@@ -213,10 +220,20 @@ public class Configuration {
         this.networkChangeListenerJobId = networkChangeListenerJobId;
     }
 
+    /**
+     * @deprecated The field bulkEventsJobId is deprecated.
+     * @return bulkEventsJobId
+     */
+    @Deprecated
     public int getBulkEventsJobId() {
         return bulkEventsJobId;
     }
 
+    /**
+     * @deprecated The field bulkEventsJobId is deprecated.
+     * @param bulkEventsJobId bulkEventsJobId
+     */
+    @Deprecated
     public void setBulkEventsJobId(int bulkEventsJobId) {
         this.bulkEventsJobId = bulkEventsJobId;
     }

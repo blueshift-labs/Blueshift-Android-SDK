@@ -7,7 +7,13 @@ import java.util.Map;
  * @author Rahul Raveendran V P
  *         Created on 05/12/13 @ 3:04 PM
  *         https://github.com/rahulrvp
+ *
+ * @deprecated
+ * This class is deprecated and will be removed in a future release. The events module has been
+ * refactored to improve performance and reliability. This class is now used internally for legacy
+ * data migration and will not be supported going forward.
  */
+@Deprecated
 public class Response {
     private int statusCode; // HTTP Status Code
     private String responseBody;

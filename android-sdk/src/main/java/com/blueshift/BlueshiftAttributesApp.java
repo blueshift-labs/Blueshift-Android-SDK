@@ -3,8 +3,6 @@ package com.blueshift;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -102,7 +100,7 @@ public class BlueshiftAttributesApp extends JSONObject {
         addInAppEnabledStatus(context);
         addPushEnabledStatus(context);
         addFirebaseInstanceId(context);
-        addFirebaseToken(context);
+        addDeviceToken(context);
         addDeviceId(context);
         addDeviceAdId(context);
         addDeviceLocation(context);
@@ -373,30 +371,36 @@ public class BlueshiftAttributesApp extends JSONObject {
         }
     }
 
-    private void addFirebaseToken(Context context) {
+    private void addDeviceToken(Context context) {
         if (!BlueshiftUtils.isPushEnabled(context)) return;
 
+        String cachedToken = BlueShiftPreference.getSavedDeviceToken(context);
+        if (cachedToken != null) {
+            setFirebaseToken(cachedToken);
+        }
+
         try {
-            addFirebaseToken();
+            addFirebaseToken(context);
         } catch (Exception e) {
             // tickets#8919 reported an issue with fcm token fetch. this is the
             // fix for the same. we are manually calling initializeApp and trying
             // to get token again.
             FirebaseApp.initializeApp(context);
             try {
-                addFirebaseToken();
+                addFirebaseToken(context);
             } catch (Exception e1) {
                 BlueshiftLogger.e(TAG, e1);
             }
         }
     }
 
-    private void addFirebaseToken() {
+    private void addFirebaseToken(Context context) {
         try {
             FirebaseMessaging.getInstance().getToken()
                     .addOnSuccessListener(new OnSuccessListener<String>() {
                         @Override
                         public void onSuccess(String token) {
+                            BlueShiftPreference.saveDeviceToken(context, token);
                             setFirebaseToken(token);
                         }
                     })
@@ -480,8 +484,9 @@ public class BlueshiftAttributesApp extends JSONObject {
         }
     }
 
-    public void updateFirebaseToken(String newToken) {
+    public void updateFirebaseToken(Context context, String newToken) {
         if (newToken != null) {
+            BlueShiftPreference.saveDeviceToken(context, newToken);
             setFirebaseToken(newToken);
         }
     }
@@ -590,19 +595,21 @@ public class BlueshiftAttributesApp extends JSONObject {
             BlueshiftLogger.e(TAG, e);
         }
 
-        try {
-            String adId = DeviceUtils.getAdvertisingId(context);
-            setDeviceAdId(adId);
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
-        }
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+            try {
+                String adId = DeviceUtils.getAdvertisingId(context);
+                setDeviceAdId(adId);
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
 
-        try {
-            boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
-            setAdTrackingStatus(isAdEnabled);
-        } catch (Exception e) {
-            BlueshiftLogger.e(TAG, e);
-        }
+            try {
+                boolean isAdEnabled = DeviceUtils.isLimitAdTrackingEnabled(context);
+                setAdTrackingStatus(isAdEnabled);
+            } catch (Exception e) {
+                BlueshiftLogger.e(TAG, e);
+            }
+        });
 
         return instance;
     }

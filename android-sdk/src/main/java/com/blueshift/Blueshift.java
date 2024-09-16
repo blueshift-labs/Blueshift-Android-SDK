@@ -14,10 +14,18 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.blueshift.batch.BulkEventManager;
-import com.blueshift.batch.Event;
 import com.blueshift.batch.EventsTable;
 import com.blueshift.batch.FailedEventsTable;
-import com.blueshift.httpmanager.Method;
+import com.blueshift.core.BlueshiftEventManager;
+import com.blueshift.core.BlueshiftLambdaQueue;
+import com.blueshift.core.BlueshiftNetworkRequestQueueManager;
+import com.blueshift.core.app.BlueshiftInstallationStatus;
+import com.blueshift.core.app.BlueshiftInstallationStatusHelper;
+import com.blueshift.core.events.BlueshiftEventRepositoryImpl;
+import com.blueshift.core.network.BlueshiftNetworkConfiguration;
+import com.blueshift.core.network.BlueshiftNetworkRepositoryImpl;
+import com.blueshift.core.network.BlueshiftNetworkRequestRepositoryImpl;
+import com.blueshift.core.schedule.network.BlueshiftNetworkChangeScheduler;
 import com.blueshift.httpmanager.Request;
 import com.blueshift.inappmessage.InAppActionCallback;
 import com.blueshift.inappmessage.InAppApiCallback;
@@ -38,7 +46,6 @@ import com.blueshift.util.BlueshiftUtils;
 import com.blueshift.util.CommonUtils;
 import com.blueshift.util.DeviceUtils;
 import com.blueshift.util.NetworkUtils;
-import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,21 +54,19 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Rahul Raveendran V P
  * Created on 17/2/15 @ 3:08 PM
- * https://github.com/rahulrvp
+ * <a href="https://github.com/rahulrvp">...</a>
  */
 public class Blueshift {
     private static final String LOG_TAG = Blueshift.class.getSimpleName();
     private static final String UTF8_SPACE = "%20";
 
     private Context mContext;
-    private static Configuration mConfiguration;
+    private Configuration mConfiguration;
     private static Blueshift instance = null;
     private static BlueshiftPushListener blueshiftPushListener;
     private static BlueshiftInAppListener blueshiftInAppListener;
@@ -162,6 +167,9 @@ public class Blueshift {
             EventsTable.getInstance(context).deleteAllAsync();
             // Failed events table. These will also get batched periodically.
             FailedEventsTable.getInstance(context).deleteAllAsync();
+
+            // Delete the data from events and request queue
+            BlueshiftEventManager.INSTANCE.clearAsync();
         }
     }
 
@@ -354,122 +362,117 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
+        // get the status of app version change
+        String appVersion = CommonUtils.getAppVersion(mContext);
+        String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
+        File database = mContext.getDatabasePath("blueshift_db.sqlite3");
+        BlueshiftInstallationStatusHelper helper = new BlueshiftInstallationStatusHelper();
+        BlueshiftInstallationStatus status = helper.getInstallationStatus(appVersion, previousAppVersion, database);
+
         // initialize the encrypted shared preferences if enabled.
         if (configuration.shouldSaveUserInfoAsEncrypted()) {
             BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
         }
 
+        doNetworkConfigurations(mConfiguration);
+
         BlueshiftAttributesApp.getInstance().init(mContext);
-        doAppVersionChecks(mContext);
 
-        // set app icon as notification icon if not set
-        initAppIcon(mContext);
-        // Sync the http request queue.
-        RequestQueue.getInstance().syncInBackground(mContext);
-        // schedule job to sync request queue on nw change
-        RequestQueue.scheduleQueueSyncJob(mContext);
-        // schedule the bulk events dispatch
-        BulkEventManager.scheduleBulkEventEnqueue(mContext);
-        // fire an app open automatically if enabled
-        if (BlueshiftUtils.isAutomaticAppOpenFiringEnabled(mContext)
-                && BlueshiftUtils.canAutomaticAppOpenBeSentNow(mContext)) {
-            trackAppOpen(false);
-            // mark the tracking time
-            long now = System.currentTimeMillis() / 1000;
-            BlueShiftPreference.setAppOpenTrackedAt(mContext, now);
-        }
-        // pull latest font from server
-        InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
+        initAppIcon(mContext, mConfiguration);
 
-        // fetch from API
-        if (mConfiguration != null && !mConfiguration.isInAppManualTriggerEnabled()) {
-            InAppManager.fetchInAppFromServer(mContext, null);
-        }
-    }
+        initializeEventSyncModule(mContext, mConfiguration);
+        initializeLegacyEventSyncModule(mContext);
 
-    /**
-     * This method checks for app installs and app updates by looking at the app version changes.
-     * When a change is detected, an event will be sent to Blueshift to report the same.
-     */
-    void doAppVersionChecks(Context context) {
-        List<Object> result = inferAppVersionChangeEvent(context);
-        if (result != null && result.size() == 2) {
-            String eventName = (String) result.get(0);
-            HashMap<String, Object> extras = (HashMap<String, Object>) result.get(1);
-            trackEvent(eventName, extras, false);
-        }
-    }
-
-    List<Object> inferAppVersionChangeEvent(Context context) {
-        List<Object> result = new ArrayList<>();
-
-        if (context != null) {
-            final String appVersionString = CommonUtils.getAppVersion(context);
-
-            if (appVersionString != null) {
-                String storedAppVersionString = BlueShiftPreference.getStoredAppVersionString(context);
-                if (storedAppVersionString == null) {
-                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value NOT available");
-
-                    // When stored value for appVersion is absent. It could be because..
-                    // 1 - The app is freshly installed
-                    // 2 - The app is updated, but the old version did not have blueshift SDK
-                    // 3 - The app is updated, but the old version had blueshift SDK's old version.
-                    //
-                    // Case 1 & 2 will be treated as app_install.
-                    // Case 3 will be treated as app_update. We do this by checking the availability
-                    // of the database file created by the older version of blueshift SDK. If present,
-                    // it is app update, else it is app install.
-
-                    File database = context.getDatabasePath("blueshift_db.sqlite3");
-                    if (database.exists()) {
-                        // case 3
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file found at " + database.getAbsolutePath());
-
-                        HashMap<String, Object> extras = new HashMap<>();
-                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
-
-                        result.add(BlueshiftConstants.EVENT_APP_UPDATE);
-                        result.add(extras);
-                    } else {
-                        // cases 1 & 2
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: db file NOT found at " + database.getAbsolutePath());
-
-                        HashMap<String, Object> extras = new HashMap<>();
-                        extras.put(BlueshiftConstants.KEY_APP_INSTALLED_AT, CommonUtils.getCurrentUtcTimestamp());
-
-                        result.add(BlueshiftConstants.EVENT_APP_INSTALL);
-                        result.add(extras);
-                    }
-
-                    BlueShiftPreference.saveAppVersionString(context, appVersionString);
-                } else {
-                    BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value available");
-
-                    // When a stored value for appVersion is found, we compare it with the existing
-                    // app version value. If there is a change, we consider it as app_update.
-                    //
-                    // PS: Android will not let you downgrade the app version without installing the old
-                    // version, so it will always be an app upgrade event.
-                    if (!storedAppVersionString.equals(appVersionString)) {
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value doesn't match (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
-
-                        HashMap<String, Object> extras = new HashMap<>();
-                        extras.put(BlueshiftConstants.KEY_PREVIOUS_APP_VERSION, storedAppVersionString);
-                        extras.put(BlueshiftConstants.KEY_APP_UPDATED_AT, CommonUtils.getCurrentUtcTimestamp());
-
-                        result.add(BlueshiftConstants.EVENT_APP_UPDATE);
-                        result.add(extras);
-
-                        BlueShiftPreference.saveAppVersionString(context, appVersionString);
-                    } else {
-                        BlueshiftLogger.d(LOG_TAG, "appVersion: Stored value and current value matches (stored = " + storedAppVersionString + ", current = " + appVersionString + ")");
-                    }
-                }
+        switch (status) {
+            case APP_INSTALL -> {
+                trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, helper.getEventAttributes(status, previousAppVersion), false);
+                BlueShiftPreference.saveAppVersionString(mContext, appVersion);
+            }
+            case APP_UPDATE -> {
+                trackEvent(BlueshiftConstants.EVENT_APP_UPDATE, helper.getEventAttributes(status, previousAppVersion), false);
+                BlueShiftPreference.saveAppVersionString(mContext, appVersion);
             }
         }
 
-        return result;
+        handleAppOpenEvent(mContext);
+
+        InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
+        InAppManager.fetchInAppFromServer(mContext, null);
+
+        doAutomaticIdentifyChecks(mContext);
+    }
+
+    private void doAutomaticIdentifyChecks(Context context) {
+        if (BlueShiftPreference.didPushPermissionStatusChange(context)) {
+            BlueShiftPreference.saveCurrentPushPermissionStatus(context);
+
+            BlueshiftLogger.d(LOG_TAG, "A change in push permission detected, sending an identify event.");
+            identifyUser(null, false);
+        }
+    }
+
+    void doNetworkConfigurations(Configuration configuration) {
+        BlueshiftNetworkConfiguration.INSTANCE.configureBasicAuthentication(configuration.getApiKey(), "");
+        BlueshiftNetworkConfiguration.INSTANCE.setDatacenter(configuration.getRegion());
+    }
+
+    void handleAppOpenEvent(Context context) {
+        boolean isAutoAppOpenEnabled = BlueshiftUtils.isAutomaticAppOpenFiringEnabled(context);
+        boolean canSendAppOpenNow = BlueshiftUtils.canAutomaticAppOpenBeSentNow(context);
+        if (isAutoAppOpenEnabled && canSendAppOpenNow) {
+            trackAppOpen(false);
+            // mark the tracking time
+            long now = System.currentTimeMillis() / 1000;
+            BlueShiftPreference.setAppOpenTrackedAt(context, now);
+        }
+    }
+
+    void initializeLegacyEventSyncModule(Context context) {
+        // Do not schedule any jobs. We have the new events module to do that.
+
+        if (!BlueShiftPreference.isLegacyEventSyncComplete(context)) {
+            // Cleanup any cached events by sending them to Blueshift.
+            BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+                try {
+                    Request request = RequestQueueTable.getInstance(context).getFirstRecord();
+                    ArrayList<HashMap<String, Object>> fEvents = FailedEventsTable.getInstance(context).getBulkEventParameters(1);
+                    ArrayList<HashMap<String, Object>> bEvents = EventsTable.getInstance(context).getBulkEventParameters(1);
+
+                    if (request != null || !fEvents.isEmpty() || !bEvents.isEmpty()) {
+                        BlueshiftLogger.d(LOG_TAG, "Initiating legacy events sync... (request queue = " + (request != null ? "not empty" : "empty") + ", fEvents = " + fEvents.size() + ", bEvents = " + bEvents.size() + ")");
+
+                        // Move any pending bulk events in the db to request queue.
+                        BulkEventManager.enqueueBulkEvents(context);
+                        // Sync the http request queue.
+                        RequestQueue.getInstance().sync(context);
+                    } else {
+                        BlueshiftLogger.d(LOG_TAG, "Legacy events sync is done!");
+                        // The request queue is empty and the event tables are also empty.
+                        // This could mean that there is nothing left to sync.
+                        BlueShiftPreference.markLegacyEventSyncAsComplete(context);
+                    }
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
+                }
+            });
+        }
+    }
+
+    void initializeEventSyncModule(Context context, Configuration configuration) {
+        BlueshiftNetworkChangeScheduler.INSTANCE.scheduleWithJobScheduler(context, configuration);
+
+        try (BlueshiftNetworkRequestRepositoryImpl networkRequestRepository = new BlueshiftNetworkRequestRepositoryImpl(context)) {
+            try (BlueshiftEventRepositoryImpl eventRepository = new BlueshiftEventRepositoryImpl(context)) {
+                BlueshiftEventManager.INSTANCE.initialize(eventRepository, networkRequestRepository, BlueshiftLambdaQueue.INSTANCE);
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+
+            BlueshiftNetworkRepositoryImpl networkRepository = new BlueshiftNetworkRepositoryImpl();
+            BlueshiftNetworkRequestQueueManager.INSTANCE.initialize(networkRequestRepository, networkRepository);
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, e);
+        }
     }
 
     /**
@@ -478,12 +481,12 @@ public class Blueshift {
      *
      * @param context valid context object
      */
-    private void initAppIcon(Context context) {
+    private void initAppIcon(Context context, @NonNull Configuration configuration) {
         try {
-            if (mConfiguration != null && mConfiguration.getAppIcon() == 0) {
+            if (configuration.getAppIcon() == 0) {
                 if (context != null) {
                     ApplicationInfo applicationInfo = context.getApplicationInfo();
-                    mConfiguration.setAppIcon(applicationInfo.icon);
+                    configuration.setAppIcon(applicationInfo.icon);
                 }
             }
         } catch (Exception e) {
@@ -525,118 +528,6 @@ public class Blueshift {
     }
 
     /**
-     * Appending the optional user info to params
-     *
-     * @param params source hash map to append details
-     * @return params - updated params object
-     */
-    private HashMap<String, Object> appendOptionalUserInfo(HashMap<String, Object> params) {
-        if (params != null) {
-            UserInfo userInfo = UserInfo.getInstance(mContext);
-            if (userInfo != null) {
-                params.put(BlueshiftConstants.KEY_FIRST_NAME, userInfo.getFirstname());
-                params.put(BlueshiftConstants.KEY_LAST_NAME, userInfo.getLastname());
-                params.put(BlueshiftConstants.KEY_GENDER, userInfo.getGender());
-                if (userInfo.getJoinedAt() > 0) {
-                    params.put(BlueshiftConstants.KEY_JOINED_AT, userInfo.getJoinedAt());
-                }
-                if (userInfo.getDateOfBirth() != null) {
-                    params.put(BlueshiftConstants.KEY_DATE_OF_BIRTH, userInfo.getDateOfBirth().getTime() / 1000);
-                }
-                params.put(BlueshiftConstants.KEY_FACEBOOK_ID, userInfo.getFacebookId());
-                params.put(BlueshiftConstants.KEY_EDUCATION, userInfo.getEducation());
-
-                if (userInfo.isUnsubscribed()) {
-                    // we don't need to send this key if it set to false
-                    params.put(BlueshiftConstants.KEY_UNSUBSCRIBED_PUSH, true);
-                }
-
-                if (userInfo.getDetails() != null) {
-                    params.putAll(userInfo.getDetails());
-                }
-            }
-        }
-
-        return params;
-    }
-
-    /**
-     * Private method that receives params and send to server using request queue.
-     *
-     * @param params            hash-map filled with parameters required for api call
-     * @param canBatchThisEvent flag to indicate if this event can be sent in bulk event API
-     * @return true if everything works fine, else false
-     */
-    boolean sendEvent(String eventName, HashMap<String, Object> params, boolean canBatchThisEvent) {
-        String apiKey = BlueshiftUtils.getApiKey(mContext);
-        if (apiKey == null || apiKey.isEmpty()) {
-            BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
-            return false;
-        } else {
-            BlueshiftJSONObject eventParams = new BlueshiftJSONObject();
-
-            try {
-                eventParams.put(BlueshiftConstants.KEY_EVENT, eventName);
-                eventParams.put(BlueshiftConstants.KEY_TIMESTAMP, CommonUtils.getCurrentUtcTimestamp());
-            } catch (JSONException e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-
-            BlueshiftAttributesApp appInfo = BlueshiftAttributesApp.getInstance().sync(mContext);
-            eventParams.putAll(appInfo);
-
-            BlueshiftAttributesUser userInfo = BlueshiftAttributesUser.getInstance().sync(mContext);
-            eventParams.putAll(userInfo);
-
-            if (params != null && params.size() > 0) {
-                eventParams.putAll(params);
-            }
-
-            HashMap<String, Object> map = eventParams.toHasMap();
-
-            if (canBatchThisEvent) {
-                Event event = new Event();
-                event.setEventParams(map);
-
-                BlueshiftLogger.i(LOG_TAG, "Adding event to events table for batching.");
-
-                EventsTable.getInstance(mContext).insert(event);
-            } else {
-                // Creating the request object.
-                Request request = new Request();
-                request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                request.setUrl(BlueshiftConstants.EVENT_API_URL(mContext));
-                request.setMethod(Method.POST);
-                request.setParamJson(new Gson().toJson(map));
-
-                BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
-
-                // Adding the request to the queue.
-                RequestQueue.getInstance().add(mContext, request);
-            }
-
-            return true;
-        }
-    }
-
-    private String getUrlParams(final HashMap<String, Object> params) {
-        StringBuilder bodyBuilder = new StringBuilder();
-
-        if (params != null) {
-            Iterator<Map.Entry<String, Object>> iterator = params.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, Object> param = iterator.next();
-                bodyBuilder.append(param.getKey()).append('=').append(param.getValue());
-                if (iterator.hasNext()) {
-                    bodyBuilder.append('&');
-                }
-            }
-        }
-
-        return bodyBuilder.toString();
-    }
-
-    /**
      * Method to send generic events
      *
      * @param eventName         name of the event
@@ -646,19 +537,19 @@ public class Blueshift {
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
         if (Blueshift.isTrackingEnabled(mContext)) {
-            BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                boolean tracked = sendEvent(eventName, params, canBatchThisEvent);
-                                BlueshiftLogger.d(LOG_TAG, "Event tracking { name: " + eventName + ", status: " + tracked + " }");
-                            } catch (Exception e) {
-                                BlueshiftLogger.e(LOG_TAG, e);
-                            }
-                        }
-                    }
-            );
+            String apiKey = BlueshiftUtils.getApiKey(mContext);
+            if (apiKey == null || apiKey.isEmpty()) {
+                BlueshiftLogger.e(LOG_TAG, "Please set a valid API key in your configuration object before initialization.");
+            } else {
+                //noinspection ConstantValue
+                if (eventName != null) {
+                    // Java allows passing null as eventName when calling trackEvent, but Kotlin
+                    // will crash the app if eventName is null in the next line.
+                    BlueshiftEventManager.INSTANCE.trackEventWithData(mContext, eventName, params, canBatchThisEvent);
+                }
+
+                doAutomaticIdentifyChecks(mContext);
+            }
         } else {
             BlueshiftLogger.i(LOG_TAG, "Blueshift SDK's event tracking is disabled. Dropping event: " + eventName);
         }
@@ -1284,25 +1175,7 @@ public class Blueshift {
                         }
                     }
 
-                    String reqUrl = BlueshiftConstants.TRACK_API_URL(mContext) + "?" + builder.toString();
-
-                    final Request request = new Request();
-                    request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                    request.setUrl(reqUrl);
-                    request.setMethod(Method.GET);
-
-                    BlueshiftLogger.d(LOG_TAG, reqUrl);
-                    BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
-
-                    BlueshiftExecutor.getInstance().runOnDiskIOThread(
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    // Adding the request to the queue.
-                                    RequestQueue.getInstance().add(mContext, request);
-                                }
-                            }
-                    );
+                    BlueshiftEventManager.INSTANCE.enqueueCampaignEvent(builder.toString());
                 }
             }
         } catch (Exception e) {
@@ -1409,18 +1282,7 @@ public class Blueshift {
                 // replace whitespace with %20 to avoid URL damage.
                 paramsUrl = paramsUrl.replace(" ", UTF8_SPACE);
 
-                String reqUrl = BlueshiftConstants.TRACK_API_URL(mContext) + "?" + paramsUrl;
-
-                Request request = new Request();
-                request.setPendingRetryCount(RequestQueue.DEFAULT_RETRY_COUNT);
-                request.setUrl(reqUrl);
-                request.setMethod(Method.GET);
-
-                BlueshiftLogger.d(LOG_TAG, reqUrl);
-                BlueshiftLogger.i(LOG_TAG, "Adding real-time event to request queue.");
-
-                // Adding the request to the queue.
-                RequestQueue.getInstance().add(mContext, request);
+                BlueshiftEventManager.INSTANCE.enqueueCampaignEvent(paramsUrl);
 
                 return true;
             } else {

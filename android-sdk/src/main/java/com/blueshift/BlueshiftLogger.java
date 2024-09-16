@@ -17,6 +17,9 @@ public class BlueshiftLogger {
 
     public static void setLogLevel(int logLevel) {
         sLogLevel = logLevel;
+        if (logLevel > 0) {
+            com.blueshift.core.common.BlueshiftLogger.INSTANCE.setEnabled(true);
+        }
     }
 
     private static String prepareMessage(String tag, String message) {
