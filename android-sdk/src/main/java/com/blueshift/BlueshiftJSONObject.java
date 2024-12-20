@@ -1,40 +1,32 @@
 package com.blueshift;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 public class BlueshiftJSONObject extends JSONObject {
 
-    public void putAll(JSONObject jsonObject) {
+    public synchronized void putAll(JSONObject jsonObject) {
         if (jsonObject != null) {
-            Iterator<String> keys = jsonObject.keys();
-            while (keys.hasNext()) {
-                try {
-                    String key = keys.next();
-                    Object val = jsonObject.get(key);
-                    put(key, val);
-                } catch (JSONException ignored) {
+            try {
+                JSONArray names = jsonObject.names();
+                if (names != null) {
+                    for (int i = 0; i < names.length(); i++) {
+                        String key = names.getString(i);
+                        Object value = jsonObject.get(key);
+                        put(key, value);
+                    }
                 }
+            } catch (Exception exception) {
+                BlueshiftLogger.e("BlueshiftJSONObject", exception);
             }
         }
     }
 
-    public void putAll(Map<String, Object> map){
-        if (map != null) {
-            for (String key : map.keySet()) {
-                try {
-                    put(key, map.get(key));
-                } catch (JSONException ignored) {
-                }
-            }
-        }
-    }
-
-    public HashMap<String, Object> toHasMap() {
+    public synchronized HashMap<String, Object> toHasMap() {
         HashMap<String, Object> map = new HashMap<>();
 
         Iterator<String> keys = keys();
@@ -43,7 +35,8 @@ public class BlueshiftJSONObject extends JSONObject {
                 String key = keys.next();
                 Object val = get(key);
                 map.put(key, val);
-            } catch (JSONException ignored) {
+            } catch (JSONException exception) {
+                BlueshiftLogger.e("BlueshiftJSONObject", exception);
             }
         }
 
