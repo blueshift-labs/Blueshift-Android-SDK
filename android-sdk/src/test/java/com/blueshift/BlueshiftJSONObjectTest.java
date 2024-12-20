@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import androidx.annotation.NonNull;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -15,7 +17,7 @@ public class BlueshiftJSONObjectTest {
     @Test
     public void testPutAll_WithNullInput() {
         BlueshiftJSONObject target = new BlueshiftJSONObject();
-        target.putAll((JSONObject) null);
+        target.putAll(null);
         assertEquals(0, target.length());
     }
 
@@ -93,8 +95,9 @@ public class BlueshiftJSONObjectTest {
 
         // Create a custom BlueshiftJSONObject that modifies itself during putAll
         BlueshiftJSONObject target = new BlueshiftJSONObject() {
+            @NonNull
             @Override
-            public JSONObject put(String key, Object value) throws JSONException {
+            public JSONObject put(@NonNull String key, Object value) throws JSONException {
                 JSONObject result = super.put(key, value);
                 // When we see the trigger key, add a new key
                 if ("trigger".equals(key)) {
