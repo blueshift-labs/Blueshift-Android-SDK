@@ -10,6 +10,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class BlueshiftJSONObjectTest {
@@ -162,6 +166,51 @@ public class BlueshiftJSONObjectTest {
             assertTrue("Should contain key: " + key, target.has(key));
             assertEquals("Value should match for key: " + key,
                     "value" + i, target.getString(key));
+        }
+    }
+
+    @Test
+    public void testToHashMap_WithConcurrentAccess() throws Exception {
+        // Prepare test data
+        BlueshiftJSONObject jsonObject = new BlueshiftJSONObject();
+        for (int i = 0; i < 100; i++) {
+            jsonObject.put("key" + i, "value" + i);
+        }
+
+        // Create multiple threads to access toHashMap simultaneously
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch completionLatch = new CountDownLatch(10);
+        List<HashMap<String, Object>> results = Collections.synchronizedList(new ArrayList<>());
+
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                try {
+                    startLatch.await();
+                    HashMap<String, Object> map = jsonObject.toHasMap();
+                    results.add(map);
+                } catch (Exception e) {
+                    fail("Exception occurred: " + e.getMessage());
+                } finally {
+                    completionLatch.countDown();
+                }
+            }).start();
+        }
+
+        // Start all threads
+        startLatch.countDown();
+
+        // Wait for completion
+        completionLatch.await();
+
+        // Verify results
+        assertEquals(10, results.size());
+        for (HashMap<String, Object> map : results) {
+            assertEquals(100, map.size());
+            for (int i = 0; i < 100; i++) {
+                String key = "key" + i;
+                assertTrue(map.containsKey(key));
+                assertEquals("value" + i, map.get(key));
+            }
         }
     }
 }
