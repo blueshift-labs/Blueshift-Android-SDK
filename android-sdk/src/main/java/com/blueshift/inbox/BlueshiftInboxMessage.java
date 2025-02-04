@@ -53,7 +53,7 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
                 displayOn = inapp.optString("display_on_android", "");
                 scope = Scope.fromString(inapp.optString("scope"));
                 messageType = inapp.optString("type");
-                expiresAt = new Date(inapp.optLong("expires_at", 0));
+                expiresAt = new Date(inapp.optLong("expires_at", 0) * 1000);
             }
         }
     }
