@@ -45,7 +45,7 @@ fi
 
 # Step 4: Commit the changes (Including the AAR)
 git add "$BUILD_GRADLE" "$AAR_DEST"
-git commit -m "Released ${VERSION}"
+git commit -m "Published v${VERSION} via Maven Central"
 
 # Step 5: Tag the release
 git tag "$VERSION"
