@@ -10,7 +10,7 @@ if [ -z "$1" ]; then
 fi
 
 VERSION=$1
-BRANCH="main"
+BRANCH=$(git rev-parse --abbrev-ref HEAD) # get the current branch
 BUILD_GRADLE="android-sdk/build.gradle"
 AAR_DEST="dist/"
 M2_REPO="$HOME/.m2/repository/com/blueshift/android-sdk-x/$VERSION/"
@@ -48,7 +48,7 @@ git add "$BUILD_GRADLE" "$AAR_DEST"
 git commit -m "Published v${VERSION} via Maven Central"
 
 # Step 5: Tag the release
-git tag "$VERSION"
+git tag "v$VERSION"
 
 # Step 6: Push to the main branch
 git push origin "$BRANCH"
