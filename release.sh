@@ -10,28 +10,41 @@ if [ -z "$1" ]; then
 fi
 
 VERSION=$1
-BRANCH="automate_release"
+BRANCH="main"
+BUILD_GRADLE="android-sdk/build.gradle"
+AAR_DEST="dist/"
+M2_REPO="$HOME/.m2/repository/com/blueshift/android-sdk-x/$VERSION/"
 
 echo "Releasing version: $VERSION"
 
 # Step 1: Update PUBLISH_VERSION in build.gradle
 echo "Updating PUBLISH_VERSION in build.gradle..."
-sed -i '' "s/ext.PUBLISH_VERSION = \".*\"/ext.PUBLISH_VERSION = \"$VERSION\"/" android-sdk/build.gradle
+sed -i '' "s/PUBLISH_VERSION = '[0-9]*\.[0-9]*\.[0-9]*'/PUBLISH_VERSION = '$VERSION'/" "$BUILD_GRADLE"
+
+# Verify the change
+grep "PUBLISH_VERSION" "$BUILD_GRADLE"
 
 # Step 2: Build the AAR file
 echo "Building release AAR..."
-./gradlew assembleRelease
+./gradlew assembleRelease publishToMavenLocal
 
-# Step 3: Copy the AAR file to /dist
-AAR_SOURCE=$(find ~/.m2 -name "*.aar" | tail -n 1)
-AAR_DEST="dist/"
-mkdir -p $AAR_DEST
-cp "$AAR_SOURCE" "$AAR_DEST"
+# Step 3: Clear old files in /dist and copy the new AAR
+echo "Cleaning old files in /dist/..."
+rm -rf "$AAR_DEST"/*
 
-echo "Copied AAR to /dist."
+AAR_SOURCE=$(find "$M2_REPO" -name "*.aar" | head -n 1)
 
-# Step 4: Commit the changes
-git add .
+if [ -f "$AAR_SOURCE" ]; then
+  mkdir -p "$AAR_DEST"
+  cp "$AAR_SOURCE" "$AAR_DEST"
+  echo "Copied new AAR to /dist."
+else
+  echo "Error: AAR file not found in $M2_REPO"
+  exit 1
+fi
+
+# Step 4: Commit the changes (Including the AAR)
+git add "$BUILD_GRADLE" "$AAR_DEST"
 git commit -m "Released ${VERSION}"
 
 # Step 5: Tag the release
