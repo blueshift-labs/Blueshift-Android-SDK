@@ -40,7 +40,7 @@ printf "%s✅  Build completed successfully.%s\n" "$GREEN" "$RESET"
 
 # Step 3: Clear old files in /dist and copy the new AAR
 printf "\n%s📌 Step 3: Cleaning old files in /dist/...%s\n" "$YELLOW" "$RESET"
-rm -rf "$AAR_DEST"/*
+rm -rf "$AAR_DEST"/android-sdk-x-*
 
 AAR_SOURCE=$(find "$M2_REPO" -name "*.aar" | head -n 1)
 
