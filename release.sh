@@ -13,8 +13,8 @@ RESET=$(tput sgr0)
 
 # Check if version argument is provided
 if [ -z "$1" ]; then
-  printf "${RED}❌ Error: Missing version argument.${RESET}\n"
-  printf "${YELLOW}Usage: ./release.sh <version>${RESET}\n"
+  printf "%s❌ Error: Missing version argument.%s\n" "$RED" "$RESET"
+  printf "%sUsage: ./release.sh <version>%s\n" "$YELLOW" "$RESET"
   exit 1
 fi
 
@@ -25,21 +25,21 @@ AAR_DEST="dist/"
 M2_REPO="$HOME/.m2/repository/com/blueshift/android-sdk-x/$VERSION/"
 TAG_NAME="v${VERSION}"
 
-printf "\n${CYAN}🚀 Releasing version: ${BOLD}${VERSION}${RESET}\n"
-printf "🔍 Current branch: ${BOLD}${BRANCH}${RESET}\n"
+printf "\n%s🚀 Releasing version: %s%s\n" "$CYAN" "$BOLD" "$VERSION"
+printf "🔍 Current branch: %s%s%s\n" "$BOLD" "$BRANCH" "$RESET"
 
 # Step 1: Update PUBLISH_VERSION in build.gradle
-printf "\n${YELLOW}➡️ Step 1: Updating PUBLISH_VERSION in build.gradle...${RESET}\n"
+printf "\n%s📌 Step 1: Updating PUBLISH_VERSION in build.gradle...%s\n" "$YELLOW" "$RESET"
 sed -i '' "s/PUBLISH_VERSION = '[0-9]*\.[0-9]*\.[0-9]*'/PUBLISH_VERSION = '$VERSION'/" "$BUILD_GRADLE"
-printf "${GREEN}✅  PUBLISH_VERSION updated successfully.${RESET}\n"
+printf "%s✅  PUBLISH_VERSION updated successfully.%s\n" "$GREEN" "$RESET"
 
 # Step 2: Build the AAR file
-printf "\n${YELLOW}➡️ Step 2: Building release AAR...${RESET}\n"
+printf "\n%s📌 Step 2: Building release AAR...%s\n" "$YELLOW" "$RESET"
 ./gradlew assembleRelease publishToMavenLocal
-printf "${GREEN}✅  Build completed successfully.${RESET}\n"
+printf "%s✅  Build completed successfully.%s\n" "$GREEN" "$RESET"
 
 # Step 3: Clear old files in /dist and copy the new AAR
-printf "\n${YELLOW}➡️ Step 3: Cleaning old files in /dist/...${RESET}\n"
+printf "\n%s📌 Step 3: Cleaning old files in /dist/...%s\n" "$YELLOW" "$RESET"
 rm -rf "$AAR_DEST"/*
 
 AAR_SOURCE=$(find "$M2_REPO" -name "*.aar" | head -n 1)
@@ -47,38 +47,38 @@ AAR_SOURCE=$(find "$M2_REPO" -name "*.aar" | head -n 1)
 if [ -f "$AAR_SOURCE" ]; then
   mkdir -p "$AAR_DEST"
   cp "$AAR_SOURCE" "$AAR_DEST"
-  printf "${GREEN}✅  Copied new AAR to /dist.${RESET}\n"
+  printf "%s✅  Copied new AAR to /dist.%s\n" "$GREEN" "$RESET"
 else
-  printf "${RED}❌  Error: AAR file not found in $M2_REPO${RESET}\n"
+  printf "%s❌ Error: AAR file not found in %s%s\n" "$RED" "$M2_REPO" "$RESET"
   exit 1
 fi
 
 # Step 4: Commit the changes (Including the AAR)
-printf "\n${YELLOW}➡️ Step 4: Committing changes...${RESET}\n"
+printf "\n%s📌 Step 4: Committing changes...%s\n" "$YELLOW" "$RESET"
 git add "$BUILD_GRADLE" "$AAR_DEST"
 git commit -m "Published ${TAG_NAME} via Maven Central"
-printf "${GREEN}✅  Changes committed.${RESET}\n"
+printf "%s✅  Changes committed.%s\n" "$GREEN" "$RESET"
 
 # Step 5: Tag the release
-printf "\n${YELLOW}➡️ Step 5: Tagging release...${RESET}\n"
+printf "\n%s📌 Step 5: Tagging release...%s\n" "$YELLOW" "$RESET"
 git tag "$TAG_NAME"
-printf "${GREEN}✅  Created tag: ${TAG_NAME}${RESET}\n"
+printf "%s✅  Created tag: %s%s\n" "$GREEN" "$TAG_NAME" "$RESET"
 
 # Step 6: Push changes to repository
-printf "\n${YELLOW}➡️ Step 6: Pushing changes to ${BOLD}${BRANCH}${RESET}...${RESET}\n"
+printf "\n%s📌 Step 6: Pushing changes to %s%s...%s\n" "$YELLOW" "$BOLD" "$BRANCH" "$RESET"
 git push origin "$BRANCH"
 git push origin "$TAG_NAME"
-printf "${GREEN}✅  Pushed code and tag to repository.${RESET}\n"
+printf "%s✅  Pushed code and tag to repository.%s\n" "$GREEN" "$RESET"
 
 # Step 7: Publish to Maven Central
-printf "\n${YELLOW}➡️ Step 7: Publishing to Maven Central...${RESET}\n"
+printf "\n%s📌 Step 7: Publishing to Maven Central...%s\n" "$YELLOW" "$RESET"
 ./gradlew publish
-printf "${GREEN}✅  Library published successfully!${RESET}\n"
+printf "%s✅  Library published successfully!%s\n" "$GREEN" "$RESET"
 
 # Reminder to manually complete the release on Sonatype
-printf "\n${BOLD}${CYAN}⚠️ Final Step Required: Complete the release process on Sonatype!${RESET}\n"
-printf "👉 Go to ${BOLD}https://oss.sonatype.org/${RESET}, log in, and publish the release.\n"
+printf "\n%s⚠️  Final Step Required: Complete the release process on Sonatype!%s\n" "$BOLD" "$RESET"
+printf "👉 Go to %shttps://oss.sonatype.org/%s, log in, and publish the release.\n" "$BOLD" "$RESET"
 printf "📌 Navigate to 'Staging Repositories', find your release, and click 'Close' and then 'Release'.\n"
 printf "🔔 This step is required to make the library publicly available on Maven Central.\n\n"
 
-printf "${BOLD}${GREEN}🎉 Release process completed successfully! 🚀${RESET}\n"
+printf "%s🎉 Release process completed successfully! 🚀%s\n" "$BOLD" "$GREEN"
