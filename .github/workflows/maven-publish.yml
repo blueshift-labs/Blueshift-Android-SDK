@@ -1,0 +1,102 @@
+name: Publish Library to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 4.0.2)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # This ensures only users with write access can run the workflow
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning and changelog
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: Set version from input
+        run: |
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          echo "Version to publish: ${{ github.event.inputs.version }}"
+
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No previous tags found. Including all commits."
+            CHANGELOG=$(git log --pretty=format:"* %s (%an)" --reverse)
+          else
+            echo "Found latest tag: $LATEST_TAG"
+            CHANGELOG=$(git log ${LATEST_TAG}..HEAD --pretty=format:"* %s (%an)" --reverse)
+          fi
+          
+          # Escape multiline string for GitHub Actions
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          
+          echo "CHANGELOG=$CHANGELOG" >> $GITHUB_ENV
+          echo "Previous tag: $LATEST_TAG"
+          echo "Changes since last release:"
+          git log ${LATEST_TAG}..HEAD --pretty=format:"* %s (%an)" --reverse
+          echo "${{ env.CHANGELOG }}"
+
+      - name: Set up GPG signing key
+        run: |
+          echo "${{ secrets.GPG_KEY_RING_FILE }}" | base64 -d > signing-key.gpg
+          echo "signing.secretKeyRingFile=$(pwd)/signing-key.gpg" >> local.properties
+          echo "signing.keyId=${{ secrets.SIGNING_KEY_ID }}" >> local.properties
+          echo "signing.password=${{ secrets.SIGNING_PASSWORD }}" >> local.properties
+          echo "ossrhUsername=${{ secrets.OSSRH_USERNAME }}" >> local.properties
+          echo "ossrhPassword=${{ secrets.OSSRH_PASSWORD }}" >> local.properties
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Grant execute permission for release script
+        run: chmod +x ./release.sh
+
+      - name: Run release script
+        run: ./release.sh ${{ env.VERSION }}
+
+#      - name: Create GitHub Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          tag_name: v${{ env.VERSION }}
+#          name: Release v${{ env.VERSION }}
+#          body: |
+#            Released version ${{ env.VERSION }} to Maven Central
+#
+#            ## How to use
+#            ```gradle
+#            implementation 'com.blueshift:android-sdk-x:${{ env.VERSION }}'
+#            ```
+#
+#            ## Changes in this release
+#            ${{ env.CHANGELOG }}
+#
+#            ## Manual Steps Required
+#            - Complete the release process on Sonatype:
+#              1. Go to https://oss.sonatype.org/ and log in
+#              2. Navigate to 'Staging Repositories'
+#              3. Find your release and click 'Close' and then 'Release'
+#          files: |
+#            dist/android-sdk-x-${{ env.VERSION }}.aar
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
