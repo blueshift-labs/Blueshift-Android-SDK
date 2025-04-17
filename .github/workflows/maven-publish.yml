@@ -28,6 +28,11 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      - name: Configure Git User
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
       - name: Set version from input
         run: |
           echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV

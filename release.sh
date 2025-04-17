@@ -3,18 +3,10 @@
 # Exit if any command fails
 set -e
 
-# Define text formatting variables
-GREEN=$(tput setaf 2)
-RED=$(tput setaf 1)
-YELLOW=$(tput setaf 3)
-CYAN=$(tput setaf 6)
-BOLD=$(tput bold)
-RESET=$(tput sgr0)
-
 # Check if version argument is provided
 if [ -z "$1" ]; then
-  printf "%s❌ Error: Missing version argument.%s\n" "$RED" "$RESET"
-  printf "%sUsage: ./release.sh <version>%s\n" "$YELLOW" "$RESET"
+  printf "❌ Error: Missing version argument.\n"
+  printf "Usage: ./release.sh <version>\n"
   exit 1
 fi
 
@@ -22,63 +14,81 @@ VERSION=$1
 BRANCH=$(git rev-parse --abbrev-ref HEAD) # pick the current branch
 BUILD_GRADLE="android-sdk/build.gradle"
 AAR_DEST="dist/"
-M2_REPO="$HOME/.m2/repository/com/blueshift/android-sdk-x/$VERSION/"
+# Construct the expected path pattern within the local Maven repository
+# Using $HOME is generally reliable in most CI/CD environments
+M2_REPO_BASE="$HOME/.m2/repository/com/blueshift/android-sdk-x"
+M2_REPO_VERSION_DIR="$M2_REPO_BASE/$VERSION"
 TAG_NAME="v${VERSION}"
 
-printf "\n%s🚀 Releasing version: %s%s\n" "$CYAN" "$BOLD" "$VERSION"
-printf "🔍 Current branch: %s%s%s\n" "$BOLD" "$BRANCH" "$RESET"
+printf "\n🚀 Releasing version: %s\n" "$VERSION"
+printf "🔍 Current branch: %s\n" "$BRANCH"
 
-# Step 1: Update PUBLISH_VERSION in build.gradle
-printf "\n%s📌 Step 1: Updating PUBLISH_VERSION in build.gradle...%s\n" "$YELLOW" "$RESET"
-sed -i '' "s/PUBLISH_VERSION = '[0-9]*\.[0-9]*\.[0-9]*'/PUBLISH_VERSION = '$VERSION'/" "$BUILD_GRADLE"
-printf "%s✅  PUBLISH_VERSION updated successfully.%s\n" "$GREEN" "$RESET"
+# --- Step 1: Update PUBLISH_VERSION in build.gradle ---
+printf "\n📌 Step 1: Updating PUBLISH_VERSION in build.gradle...\n"
+# Use a temporary file for sed to ensure cross-platform compatibility (macOS vs Linux sed -i)
+sed "s/PUBLISH_VERSION = '[0-9]*\.[0-9]*\.[0-9]*'/PUBLISH_VERSION = '$VERSION'/" "$BUILD_GRADLE" > "$BUILD_GRADLE.tmp" && mv "$BUILD_GRADLE.tmp" "$BUILD_GRADLE"
+if [ $? -ne 0 ]; then
+    printf "❌ Error: Failed to update version in %s.\n" "$BUILD_GRADLE"
+    rm -f "$BUILD_GRADLE.tmp" # Clean up temp file on error
+    exit 1
+fi
+printf "✅ PUBLISH_VERSION updated successfully.\n"
 
-# Step 2: Build the AAR file
-printf "\n%s📌 Step 2: Building release AAR...%s\n" "$YELLOW" "$RESET"
+# --- Step 2: Build the AAR file and publish locally ---
+printf "\n📌 Step 2: Building release AAR and publishing locally...\n"
 ./gradlew assembleRelease publishToMavenLocal
-printf "%s✅  Build completed successfully.%s\n" "$GREEN" "$RESET"
+printf "✅ Build and local publish completed successfully.\n"
 
-# Step 3: Clear old files in /dist and copy the new AAR
-printf "\n%s📌 Step 3: Cleaning old files in /dist/...%s\n" "$YELLOW" "$RESET"
-rm -rf "$AAR_DEST"/android-sdk-x-*
+# --- Step 3: Clear old files in /dist and copy the new AAR ---
+printf "\n📌 Step 3: Cleaning old files in %s and copying new AAR...\n" "$AAR_DEST"
+# Create dist directory if it doesn't exist
+mkdir -p "$AAR_DEST"
+# Remove potentially existing old AARs matching a pattern
+rm -f "$AAR_DEST"/android-sdk-x-*.aar
 
-AAR_SOURCE=$(find "$M2_REPO" -name "*.aar" | head -n 1)
+# Find the newly published AAR file in the local Maven repo
+# Use find with -maxdepth 1 to avoid searching too deep unnecessarily
+AAR_SOURCE=$(find "$M2_REPO_VERSION_DIR" -maxdepth 1 -name "android-sdk-x-$VERSION.aar" -print -quit)
 
 if [ -f "$AAR_SOURCE" ]; then
-  mkdir -p "$AAR_DEST"
   cp "$AAR_SOURCE" "$AAR_DEST"
-  printf "%s✅  Copied new AAR to /dist.%s\n" "$GREEN" "$RESET"
+  printf "✅ Copied new AAR (%s) to %s.\n" "$(basename "$AAR_SOURCE")" "$AAR_DEST"
 else
-  printf "%s❌ Error: AAR file not found in %s%s\n" "$RED" "$M2_REPO" "$RESET"
+  printf "❌ Error: AAR file not found in %s\n" "$M2_REPO_VERSION_DIR"
+  printf "🔍 Searched for pattern: android-sdk-x-%s.aar\n" "$VERSION"
+  # Optional: List contents for debugging
+  # ls -l "$M2_REPO_VERSION_DIR"
   exit 1
 fi
 
-# Step 4: Commit the changes (Including the AAR)
-printf "\n%s📌 Step 4: Committing changes...%s\n" "$YELLOW" "$RESET"
+# --- Step 4: Commit the changes (Including the AAR) ---
+printf "\n📌 Step 4: Committing changes...\n"
 git add "$BUILD_GRADLE" "$AAR_DEST"
 git commit -m "Published ${TAG_NAME} via Maven Central"
-printf "%s✅  Changes committed.%s\n" "$GREEN" "$RESET"
+printf "✅ Changes committed.\n"
 
-# Step 5: Tag the release
-printf "\n%s📌 Step 5: Tagging release...%s\n" "$YELLOW" "$RESET"
+# --- Step 5: Tag the release ---
+printf "\n📌 Step 5: Tagging release...\n"
 git tag "$TAG_NAME"
-printf "%s✅  Created tag: %s%s\n" "$GREEN" "$TAG_NAME" "$RESET"
+printf "✅ Created tag: %s\n" "$TAG_NAME"
 
-# Step 6: Push changes to repository
-printf "\n%s📌 Step 6: Pushing changes to %s%s...%s\n" "$YELLOW" "$BOLD" "$BRANCH" "$RESET"
+# --- Step 6: Push changes to repository ---
+printf "\n📌 Step 6: Pushing changes to %s...\n" "$BRANCH"
 git push origin "$BRANCH"
 git push origin "$TAG_NAME"
-printf "%s✅  Pushed code and tag to repository.%s\n" "$GREEN" "$RESET"
+printf "✅ Pushed code and tag to repository.\n"
 
-# Step 7: Publish to Maven Central
-printf "\n%s📌 Step 7: Publishing to Maven Central...%s\n" "$YELLOW" "$RESET"
+# --- Step 7: Publish to Maven Central ---
+printf "\n📌 Step 7: Publishing to Maven Central...\n"
+# Ensure necessary credentials (SONATYPE_USERNAME, SONATYPE_PASSWORD, SIGNING_KEY_ID, etc.)
+# are available as environment variables in the GitHub Actions environment.
 ./gradlew publish
-printf "%s✅  Library published successfully!%s\n" "$GREEN" "$RESET"
+printf "✅ Library publish task submitted successfully!\n"
 
-# Reminder to manually complete the release on Sonatype
-printf "\n%s⚠️ Final Step Required: Complete the release process on Sonatype!%s\n" "$BOLD" "$RESET"
-printf "👉 Go to %shttps://oss.sonatype.org/%s, log in, and publish the release.\n" "$BOLD" "$RESET"
+# --- Final Manual Step Reminder ---
+printf "\n⚠️ Final Step Required: Complete the release process on Sonatype!\n"
+printf "👉 Go to https://oss.sonatype.org/, log in, and publish the release.\n"
 printf "📌 Navigate to 'Staging Repositories', find your release, and click 'Close' and then 'Release'.\n"
 printf "🔔 This step is required to make the library publicly available on Maven Central.\n\n"
 
-printf "%s🎉 Release process completed successfully! 🚀%s\n" "$BOLD" "$GREEN"
+printf "🎉 Release script completed successfully! 🚀\n"
