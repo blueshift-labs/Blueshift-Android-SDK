@@ -506,6 +506,17 @@ public class BlueshiftAttributesApp extends JSONObject {
         }
     }
 
+    public boolean getPushEnabledStatus() {
+        synchronized (instance) {
+            try {
+                return instance.getBoolean(BlueshiftConstants.KEY_ENABLE_PUSH);
+            } catch (JSONException e) {
+                BlueshiftLogger.w(TAG, "push status is not ready yet. Try again later.");
+            }
+        }
+        return false;
+    }
+
     private void addInAppEnabledStatus(Context context) {
         boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
         setInAppEnabledStatus(isEnabled);

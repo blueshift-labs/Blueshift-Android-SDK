@@ -195,7 +195,7 @@ public class NotificationUtils {
             BlueshiftLogger.d(LOG_TAG, "Notification Channel Name: " + channelName);
 
             channel = new NotificationChannel(
-                    channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+                    channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
 
             if (!TextUtils.isEmpty(channelDescription)) {
                 BlueshiftLogger.d(LOG_TAG, "Notification Channel Description: " + channelDescription);
