@@ -2,7 +2,7 @@ package com.blueshift.core.common
 
 class BlueshiftAPI {
     enum class Datacenter(val baseUrl: String) {
-        US("https://api.getblueshift.com/"), EU("https://api.eu.getblueshift.com/")
+        US("https://api.bsftstaging.com/"), EU("https://api.eu.getblueshift.com/")
     }
 
     companion object {

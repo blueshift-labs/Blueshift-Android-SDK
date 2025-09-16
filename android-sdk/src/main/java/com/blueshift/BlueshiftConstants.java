@@ -15,7 +15,7 @@ public class BlueshiftConstants {
     /**
      * URLs for server communication
      */
-    public static final String BASE_URL_US = "https://api.getblueshift.com";
+    public static final String BASE_URL_US = "https://api.bsftstaging.com";
     public static final String BASE_URL_EU = "https://api.eu.getblueshift.com";
 
     public static String BASE_URL(Context context) {
