@@ -1183,6 +1183,10 @@ public class Blueshift {
         }
     }
 
+    public boolean getPushEnabledStatus() {
+        return BlueshiftAttributesApp.getInstance().getPushEnabledStatus();
+    }
+
     private void appendAnd(StringBuilder builder) {
         if (builder != null && builder.length() > 0) {
             builder.append("&");
