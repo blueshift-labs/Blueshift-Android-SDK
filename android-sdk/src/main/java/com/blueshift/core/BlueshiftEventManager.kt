@@ -147,32 +147,29 @@ object BlueshiftEventManager {
 
     suspend fun buildAndEnqueueBatchEvents() {
         while (true) {
-            val events = eventRepository?.readOneBatch()
-            events?.let {
-                // break the loop when there are no pending events available for making a batch
-                if (events.isEmpty()) return@let
+            val events = eventRepository?.readOneBatch() ?: break
+            if (events.isEmpty()) break
 
-                val eventsArray = JSONArray()
-                events.forEach { eventsArray.put(it.eventParams) }
+            val eventsArray = JSONArray()
+            events.forEach { eventsArray.put(it.eventParams) }
 
-                BlueshiftLogger.d("$TAG: Creating 1 bulk event with ${eventsArray.length()} event(s). Events = $eventsArray")
+            BlueshiftLogger.d("$TAG: Creating 1 bulk event with ${eventsArray.length()} event(s). Events = $eventsArray")
 
-                val bulkEventPayload = JSONObject().apply {
-                    put("events", eventsArray)
-                }
-
-                val request = BlueshiftNetworkRequest(
-                    url = BlueshiftAPI.bulkEventsURL(),
-                    header = JSONObject(mapOf("Content-Type" to "application/json")),
-                    authorizationRequired = true,
-                    method = BlueshiftNetworkRequest.Method.POST,
-                    body = bulkEventPayload,
-                )
-
-                networkRequestRepository?.insertRequest(request)
-
-                eventRepository?.deleteEvents(events)
+            val bulkEventPayload = JSONObject().apply {
+                put("events", eventsArray)
             }
+
+            val request = BlueshiftNetworkRequest(
+                url = BlueshiftAPI.bulkEventsURL(),
+                header = JSONObject(mapOf("Content-Type" to "application/json")),
+                authorizationRequired = true,
+                method = BlueshiftNetworkRequest.Method.POST,
+                body = bulkEventPayload,
+            )
+
+            networkRequestRepository?.insertRequest(request)
+
+            eventRepository?.deleteEvents(events)
         }
     }
 }
