@@ -82,7 +82,7 @@ printf "✅ Pushed code and tag to repository.\n"
 printf "\n📌 Step 7: Publishing to Maven Central...\n"
 # Ensure necessary credentials (SONATYPE_USERNAME, SONATYPE_PASSWORD, SIGNING_KEY_ID, etc.)
 # are available as environment variables in the GitHub Actions environment.
-./gradlew publish
+./gradlew publishToMavenCentral
 printf "✅ Library publish task submitted successfully!\n"
 
 # --- Final Manual Step Reminder ---
