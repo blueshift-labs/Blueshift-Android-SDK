@@ -17,19 +17,37 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object BlueshiftEventManager {
+
     private const val TAG = "EventManager"
-    private lateinit var eventRepository: BlueshiftEventRepository
-    private lateinit var networkRequestRepository: BlueshiftNetworkRequestRepository
-    private lateinit var blueshiftLambdaQueue: BlueshiftLambdaQueue
+    private var _eventRepository: BlueshiftEventRepository? = null
+    private val eventRepository: BlueshiftEventRepository?
+        get() = _eventRepository ?: run {
+            BlueshiftLogger.d("$TAG eventRepository is null! Did you forget to initialize the SDK?")
+            null
+        }
+
+    private var _networkRequestRepository: BlueshiftNetworkRequestRepository? = null
+    private val networkRequestRepository: BlueshiftNetworkRequestRepository?
+        get() = _networkRequestRepository ?: run {
+            BlueshiftLogger.d("$TAG networkRequestRepository is null! Did you forget to initialize the SDK?")
+            null
+        }
+
+    private var _blueshiftLambdaQueue: BlueshiftLambdaQueue? = null
+    private val blueshiftLambdaQueue: BlueshiftLambdaQueue?
+        get() = _blueshiftLambdaQueue ?: run {
+            BlueshiftLogger.d("$TAG blueshiftLambdaQueue is null! Did you forget to initialize the SDK?")
+            null
+        }
 
     fun initialize(
         eventRepository: BlueshiftEventRepository,
         networkRequestRepository: BlueshiftNetworkRequestRepository,
         blueshiftLambdaQueue: BlueshiftLambdaQueue
     ) {
-        this.eventRepository = eventRepository
-        this.networkRequestRepository = networkRequestRepository
-        this.blueshiftLambdaQueue = blueshiftLambdaQueue
+        this._eventRepository = eventRepository
+        this._networkRequestRepository = networkRequestRepository
+        this._blueshiftLambdaQueue = blueshiftLambdaQueue
     }
 
     /**
@@ -68,7 +86,7 @@ object BlueshiftEventManager {
      * the method will call the sync method to send the event to the server (if the event is real-time)
      */
     fun enqueueEvent(event: BlueshiftEvent, isBatchEvent: Boolean) {
-        blueshiftLambdaQueue.push {
+        blueshiftLambdaQueue?.push {
             trackEvent(event, isBatchEvent)
             // let's not call sync for bulk events.
             // the sync will be called by the scheduler when it's time.
@@ -79,7 +97,7 @@ object BlueshiftEventManager {
     suspend fun trackEvent(event: BlueshiftEvent, isBatchEvent: Boolean) {
         if (isBatchEvent) {
             BlueshiftLogger.d("$TAG: Inserting 1 batch event -> ${event.eventName}")
-            eventRepository.insertEvent(event)
+            eventRepository?.insertEvent(event)
         } else {
             val request = BlueshiftNetworkRequest(
                 url = BlueshiftAPI.eventURL(),
@@ -90,7 +108,7 @@ object BlueshiftEventManager {
             )
 
             BlueshiftLogger.d("$TAG: Inserting 1 real-time event -> ${event.eventName}")
-            networkRequestRepository.insertRequest(request)
+            networkRequestRepository?.insertRequest(request)
         }
     }
 
@@ -99,7 +117,7 @@ object BlueshiftEventManager {
      * once added to the db, the method will call the sync method to send the event to the server.
      */
     fun enqueueCampaignEvent(queryString: String) {
-        blueshiftLambdaQueue.push {
+        blueshiftLambdaQueue?.push {
             trackCampaignEvent(queryString)
             BlueshiftNetworkRequestQueueManager.sync()
         }
@@ -111,7 +129,7 @@ object BlueshiftEventManager {
                 url = BlueshiftAPI.trackURL(queryString),
                 method = BlueshiftNetworkRequest.Method.GET,
             )
-            networkRequestRepository.insertRequest(request)
+            networkRequestRepository?.insertRequest(request)
         }
     }
 
@@ -119,18 +137,17 @@ object BlueshiftEventManager {
      * Deletes ALL entries from the batch events table as well as the network requests table.
      */
     fun clearAsync() {
-        blueshiftLambdaQueue.push { clear() }
+        blueshiftLambdaQueue?.push { clear() }
     }
 
     suspend fun clear() {
-        eventRepository.clear()
-        networkRequestRepository.clear()
+        eventRepository?.clear()
+        networkRequestRepository?.clear()
     }
 
     suspend fun buildAndEnqueueBatchEvents() {
         while (true) {
-            val events = eventRepository.readOneBatch()
-            // break the loop when there are no pending events available for making a batch
+            val events = eventRepository?.readOneBatch() ?: break
             if (events.isEmpty()) break
 
             val eventsArray = JSONArray()
@@ -150,9 +167,9 @@ object BlueshiftEventManager {
                 body = bulkEventPayload,
             )
 
-            networkRequestRepository.insertRequest(request)
+            networkRequestRepository?.insertRequest(request)
 
-            eventRepository.deleteEvents(events)
+            eventRepository?.deleteEvents(events)
         }
     }
 }

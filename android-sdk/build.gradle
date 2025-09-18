@@ -40,6 +40,10 @@ android {
     }
 }
 
+tasks.withType(Test).configureEach {
+    jvmArgs "-XX:+EnableDynamicAgentLoading"
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.core:core-ktx:1.13.0'
@@ -68,8 +72,10 @@ dependencies {
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("com.google.truth:truth:1.1.4")
-    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("io.mockk:mockk:1.13.14")
+    testImplementation "net.bytebuddy:byte-buddy:1.15.0"
     testImplementation("org.json:json:20140107")
+    testImplementation "org.slf4j:slf4j-simple:2.0.9"
 }
 
 tasks.register('androidJavadoc', Javadoc) {
