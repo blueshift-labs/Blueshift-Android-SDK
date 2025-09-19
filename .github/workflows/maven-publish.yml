@@ -64,11 +64,11 @@ jobs:
 
       - name: Set up GPG signing key
         run: |
-          echo "ORG_GRADLE_PROJECT_mavenCentralUsername=${{ secrets.OSSRH_USERNAME }}" >> gradle.properties
-          echo "ORG_GRADLE_PROJECT_mavenCentralPassword=${{ secrets.OSSRH_PASSWORD }}" >> gradle.properties
-          echo "ORG_GRADLE_PROJECT_signingInMemoryKey=$(cat signing-key.asc | tr -d '\n')" >> gradle.properties
-          echo "ORG_GRADLE_PROJECT_signingInMemoryKeyId=${{ secrets.SIGNING_KEY_ID }}" >> gradle.properties
-          echo "ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}" >> gradle.properties
+          echo "ORG_GRADLE_PROJECT_mavenCentralUsername=${{ secrets.OSSRH_USERNAME }}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_mavenCentralPassword=${{ secrets.OSSRH_PASSWORD }}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_signingInMemoryKey=$(echo '${{ secrets.SIGNING_KEY_B64 }}' | base64 -d | tr -d '\n')" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_signingInMemoryKeyId=${{ secrets.SIGNING_KEY_ID }}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
