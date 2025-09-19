@@ -66,7 +66,9 @@ jobs:
         run: |
           echo "ORG_GRADLE_PROJECT_mavenCentralUsername=${{ secrets.OSSRH_USERNAME }}" >> $GITHUB_ENV
           echo "ORG_GRADLE_PROJECT_mavenCentralPassword=${{ secrets.OSSRH_PASSWORD }}" >> $GITHUB_ENV
-          echo "ORG_GRADLE_PROJECT_signingInMemoryKey=$(echo '${{ secrets.SIGNING_KEY_B64 }}' | base64 -d | tr -d '\n')" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_signingInMemoryKey<<EOF" >> $GITHUB_ENV
+          echo "${{ secrets.SIGNING_KEY_B64 }}" | base64 -d >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           echo "ORG_GRADLE_PROJECT_signingInMemoryKeyId=${{ secrets.SIGNING_KEY_ID }}" >> $GITHUB_ENV
           echo "ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}" >> $GITHUB_ENV
 
