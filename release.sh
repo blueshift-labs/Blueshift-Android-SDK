@@ -11,7 +11,7 @@ if [ -z "$1" ]; then
 fi
 
 VERSION=$1
-BRANCH=$(git rev-parse --abbrev-ref HEAD) # pick the current branch
+BRANCH="main" # pick the current branch
 BUILD_GRADLE="android-sdk/build.gradle"
 AAR_DEST="dist/"
 # Construct the expected path pattern within the local Maven repository
