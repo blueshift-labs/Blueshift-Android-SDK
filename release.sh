@@ -69,8 +69,12 @@ printf "✅ Changes committed.\n"
 
 # --- Step 5: Tag the release ---
 printf "\n📌 Step 5: Tagging release...\n"
-git tag "$TAG_NAME"
-printf "✅ Created tag: %s\n" "$TAG_NAME"
+if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+  printf "ℹ️ Tag %s already exists. Skipping tag creation.\n" "$TAG_NAME"
+else
+  git tag "$TAG_NAME"
+  printf "✅ Created tag: %s\n" "$TAG_NAME"
+fi
 
 # --- Step 6: Push changes to repository ---
 printf "\n📌 Step 6: Pushing changes to %s...\n" "$BRANCH"
