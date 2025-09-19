@@ -64,7 +64,7 @@ fi
 # --- Step 4: Commit the changes (Including the AAR) ---
 printf "\n📌 Step 4: Committing changes...\n"
 git add "$BUILD_GRADLE" "$AAR_DEST"
-git commit -m "Published ${TAG_NAME} via Maven Central"
+git commit -m "Published ${TAG_NAME} via Maven Central" || echo "ℹ️ No changes to commit"
 printf "✅ Changes committed.\n"
 
 # --- Step 5: Tag the release ---
