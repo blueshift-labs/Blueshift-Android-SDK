@@ -204,8 +204,8 @@ public class InAppManager {
     }
 
     public static void fetchInAppFromServer(final Context context, final InAppApiCallback callback) {
-        if (BlueshiftUtils.isOptedInForInboxMessages(context)) {
-            // Opted in for inbox messages.
+        boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
+        if(isEnabled) {
             BlueshiftInboxManager.syncMessages(context, result -> {
                 // this block runs on main thread
                 if (callback != null) {
@@ -217,34 +217,8 @@ public class InAppManager {
                 }
             });
         } else {
-            boolean isEnabled = BlueshiftUtils.isOptedInForInAppMessages(context);
-            if (isEnabled) {
-                BlueshiftExecutor.getInstance().runOnWorkerThread(() -> {
-                    List<BlueshiftInboxMessage> messages = BlueshiftInboxApiManager.getNewMessagesLegacy(context);
-                    if (!messages.isEmpty()) {
-                        BlueshiftInboxStoreSQLite.getInstance(context).insertOrReplace(messages);
-
-                        // Track delivered event for all the messages from legacy API.
-                        for (BlueshiftInboxMessage message : messages) {
-                            if (message != null) {
-                                InAppMessage inAppMessage = message.getInAppMessage();
-                                if (inAppMessage != null && !inAppMessage.isExpired()) {
-                                    InAppUtils.invokeInAppDelivered(context, inAppMessage);
-                                }
-                            }
-                        }
-                    }
-
-                    BlueshiftExecutor.getInstance().runOnMainThread(() -> {
-                        if (callback != null) {
-                            callback.onSuccess();
-                        }
-                    });
-                });
-            } else {
-                if (callback != null) {
-                    callback.onFailure(0, "Neither inbox nor inapp is enabled.");
-                }
+            if (callback != null) {
+                callback.onFailure(0, "inapp is disabled.");
             }
         }
     }
