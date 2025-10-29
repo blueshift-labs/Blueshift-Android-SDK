@@ -363,25 +363,32 @@ public class Blueshift {
         mConfiguration = configuration;
 
         // get the status of app version change
+        //todo - Bg thread
         String appVersion = CommonUtils.getAppVersion(mContext);
+        //todo - Bg thread
         String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
+        //todo - Bg Thread
         File database = mContext.getDatabasePath("blueshift_db.sqlite3");
         BlueshiftInstallationStatusHelper helper = new BlueshiftInstallationStatusHelper();
+        //todo - Bg thread
         BlueshiftInstallationStatus status = helper.getInstallationStatus(appVersion, previousAppVersion, database);
 
         // initialize the encrypted shared preferences if enabled.
         if (configuration.shouldSaveUserInfoAsEncrypted()) {
+            //todo - Bg thread
             BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
         }
+        //todo - Bg thread
+        boolean isLegacySyncCompleted = BlueShiftPreference.isLegacyEventSyncComplete(mContext);
 
         doNetworkConfigurations(mConfiguration);
-
+        //todo - Bg thread
         BlueshiftAttributesApp.getInstance().init(mContext);
 
         initAppIcon(mContext, mConfiguration);
 
         initializeEventSyncModule(mContext, mConfiguration);
-        initializeLegacyEventSyncModule(mContext);
+        initializeLegacyEventSyncModule(mContext, isLegacySyncCompleted);
 
         switch (status) {
             case APP_INSTALL -> {
@@ -394,11 +401,13 @@ public class Blueshift {
             }
         }
 
+        //todo bg thread
         handleAppOpenEvent(mContext);
 
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
         InAppManager.fetchInAppFromServer(mContext, null);
 
+        //todo bg thread
         doAutomaticIdentifyChecks(mContext);
     }
 
@@ -427,10 +436,9 @@ public class Blueshift {
         }
     }
 
-    void initializeLegacyEventSyncModule(Context context) {
+    void initializeLegacyEventSyncModule(Context context, boolean isLegacySyncCompleted) {
         // Do not schedule any jobs. We have the new events module to do that.
-
-        if (!BlueShiftPreference.isLegacyEventSyncComplete(context)) {
+        if (!isLegacySyncCompleted) {
             // Cleanup any cached events by sending them to Blueshift.
             BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
                 try {
@@ -536,6 +544,7 @@ public class Blueshift {
      */
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
+        //todo - move this function to bg thread
         if (Blueshift.isTrackingEnabled(mContext)) {
             String apiKey = BlueshiftUtils.getApiKey(mContext);
             if (apiKey == null || apiKey.isEmpty()) {
