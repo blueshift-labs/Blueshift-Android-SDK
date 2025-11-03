@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.blueshift.batch.BulkEventManager;
@@ -354,61 +355,69 @@ public class Blueshift {
         fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
     }
 
+    public interface BlueshiftInitializationCallback {
+        /**
+         * Called when core Blueshift SDK initialization is complete
+         * @param success true if initialization completed successfully
+         * @param error optional error message if initialization failed
+         */
+        void onInitializationComplete(boolean success, String error);
+    }
+
     /**
      * This method initializes the sdk with the configuration set by user
      *
      * @param configuration this object contains all the mandatory parameters like api key, deep-link pages etc.
      */
-    public void initialize(@NonNull Configuration configuration) {
+    public void initialize(@NonNull Configuration configuration, @Nullable BlueshiftInitializationCallback callback) {
         mConfiguration = configuration;
-
-        // get the status of app version change
-        //todo - Bg thread
-        String appVersion = CommonUtils.getAppVersion(mContext);
-        //todo - Bg thread
-        String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
-        //todo - Bg Thread
-        File database = mContext.getDatabasePath("blueshift_db.sqlite3");
-        BlueshiftInstallationStatusHelper helper = new BlueshiftInstallationStatusHelper();
-        //todo - Bg thread
-        BlueshiftInstallationStatus status = helper.getInstallationStatus(appVersion, previousAppVersion, database);
-
-        // initialize the encrypted shared preferences if enabled.
-        if (configuration.shouldSaveUserInfoAsEncrypted()) {
-            //todo - Bg thread
-            BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
-        }
-        //todo - Bg thread
-        boolean isLegacySyncCompleted = BlueShiftPreference.isLegacyEventSyncComplete(mContext);
-
         doNetworkConfigurations(mConfiguration);
-        //todo - Bg thread
-        BlueshiftAttributesApp.getInstance().init(mContext);
-
         initAppIcon(mContext, mConfiguration);
-
         initializeEventSyncModule(mContext, mConfiguration);
-        initializeLegacyEventSyncModule(mContext, isLegacySyncCompleted);
-
-        switch (status) {
-            case APP_INSTALL -> {
-                trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, helper.getEventAttributes(status, previousAppVersion), false);
-                BlueShiftPreference.saveAppVersionString(mContext, appVersion);
-            }
-            case APP_UPDATE -> {
-                trackEvent(BlueshiftConstants.EVENT_APP_UPDATE, helper.getEventAttributes(status, previousAppVersion), false);
-                BlueShiftPreference.saveAppVersionString(mContext, appVersion);
-            }
-        }
-
-        //todo bg thread
-        handleAppOpenEvent(mContext);
-
         InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
         InAppManager.fetchInAppFromServer(mContext, null);
-
-        //todo bg thread
-        doAutomaticIdentifyChecks(mContext);
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+            try {
+                // Initialize encrypted preferences if enabled
+                if (configuration.shouldSaveUserInfoAsEncrypted()) {
+                    BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
+                }
+                boolean isLegacySyncCompleted = BlueShiftPreference.isLegacyEventSyncComplete(mContext);
+                BlueshiftAttributesApp.getInstance().init(mContext);
+                if (!isLegacySyncCompleted) {
+                    initializeLegacyEventSyncModule(mContext);
+                }
+                if(callback != null) {
+                    BlueshiftExecutor.getInstance().runOnMainThread(() ->
+                            callback.onInitializationComplete(true, null));
+                }
+                // get the status of app version change
+                String appVersion = CommonUtils.getAppVersion(mContext);
+                String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
+                File database = mContext.getDatabasePath("blueshift_db.sqlite3");
+                BlueshiftInstallationStatusHelper helper = new BlueshiftInstallationStatusHelper();
+                BlueshiftInstallationStatus status = helper.getInstallationStatus(appVersion, previousAppVersion, database);
+                switch (status) {
+                    case APP_INSTALL -> {
+                        trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, helper.getEventAttributes(status, previousAppVersion), false);
+                        BlueShiftPreference.saveAppVersionString(mContext, appVersion);
+                    }
+                    case APP_UPDATE -> {
+                        trackEvent(BlueshiftConstants.EVENT_APP_UPDATE, helper.getEventAttributes(status, previousAppVersion), false);
+                        BlueShiftPreference.saveAppVersionString(mContext, appVersion);
+                    }
+                }
+                handleAppOpenEvent(mContext);
+                doAutomaticIdentifyChecks(mContext);
+                BlueshiftLogger.d(LOG_TAG, "Background initialization completed successfully");
+            } catch (Exception e) {
+                BlueshiftLogger.d(LOG_TAG, "Error in background initialization:" + e);
+                if (callback != null) {
+                    BlueshiftExecutor.getInstance().runOnMainThread(() ->
+                            callback.onInitializationComplete(false, e.getMessage()));
+                }
+            }
+        });
     }
 
     private void doAutomaticIdentifyChecks(Context context) {
@@ -436,34 +445,31 @@ public class Blueshift {
         }
     }
 
-    void initializeLegacyEventSyncModule(Context context, boolean isLegacySyncCompleted) {
-        // Do not schedule any jobs. We have the new events module to do that.
-        if (!isLegacySyncCompleted) {
-            // Cleanup any cached events by sending them to Blueshift.
-            BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
-                try {
-                    Request request = RequestQueueTable.getInstance(context).getFirstRecord();
-                    ArrayList<HashMap<String, Object>> fEvents = FailedEventsTable.getInstance(context).getBulkEventParameters(1);
-                    ArrayList<HashMap<String, Object>> bEvents = EventsTable.getInstance(context).getBulkEventParameters(1);
+    void initializeLegacyEventSyncModule(Context context) {
+        // Cleanup any cached events by sending them to Blueshift.
+        BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+            try {
+                Request request = RequestQueueTable.getInstance(context).getFirstRecord();
+                ArrayList<HashMap<String, Object>> fEvents = FailedEventsTable.getInstance(context).getBulkEventParameters(1);
+                ArrayList<HashMap<String, Object>> bEvents = EventsTable.getInstance(context).getBulkEventParameters(1);
 
-                    if (request != null || !fEvents.isEmpty() || !bEvents.isEmpty()) {
-                        BlueshiftLogger.d(LOG_TAG, "Initiating legacy events sync... (request queue = " + (request != null ? "not empty" : "empty") + ", fEvents = " + fEvents.size() + ", bEvents = " + bEvents.size() + ")");
+                if (request != null || !fEvents.isEmpty() || !bEvents.isEmpty()) {
+                    BlueshiftLogger.d(LOG_TAG, "Initiating legacy events sync... (request queue = " + (request != null ? "not empty" : "empty") + ", fEvents = " + fEvents.size() + ", bEvents = " + bEvents.size() + ")");
 
-                        // Move any pending bulk events in the db to request queue.
-                        BulkEventManager.enqueueBulkEvents(context);
-                        // Sync the http request queue.
-                        RequestQueue.getInstance().sync(context);
-                    } else {
-                        BlueshiftLogger.d(LOG_TAG, "Legacy events sync is done!");
-                        // The request queue is empty and the event tables are also empty.
-                        // This could mean that there is nothing left to sync.
-                        BlueShiftPreference.markLegacyEventSyncAsComplete(context);
-                    }
-                } catch (Exception e) {
-                    BlueshiftLogger.e(LOG_TAG, e);
+                    // Move any pending bulk events in the db to request queue.
+                    BulkEventManager.enqueueBulkEvents(context);
+                    // Sync the http request queue.
+                    RequestQueue.getInstance().sync(context);
+                } else {
+                    BlueshiftLogger.d(LOG_TAG, "Legacy events sync is done!");
+                    // The request queue is empty and the event tables are also empty.
+                    // This could mean that there is nothing left to sync.
+                    BlueShiftPreference.markLegacyEventSyncAsComplete(context);
                 }
-            });
-        }
+            } catch (Exception e) {
+                BlueshiftLogger.e(LOG_TAG, e);
+            }
+        });
     }
 
     void initializeEventSyncModule(Context context, Configuration configuration) {
