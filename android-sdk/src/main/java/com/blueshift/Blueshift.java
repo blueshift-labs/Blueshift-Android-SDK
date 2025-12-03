@@ -550,7 +550,6 @@ public class Blueshift {
      */
     @SuppressWarnings("WeakerAccess")
     public void trackEvent(@NonNull final String eventName, final HashMap<String, Object> params, final boolean canBatchThisEvent) {
-        //todo - move this function to bg thread
         if (Blueshift.isTrackingEnabled(mContext)) {
             String apiKey = BlueshiftUtils.getApiKey(mContext);
             if (apiKey == null || apiKey.isEmpty()) {
