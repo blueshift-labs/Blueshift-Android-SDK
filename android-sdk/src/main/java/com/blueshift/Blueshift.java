@@ -355,7 +355,7 @@ public class Blueshift {
         fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
     }
 
-    public interface BlueshiftInitializationCallback {
+    public interface BlueshiftCallback {
         /**
          * Called when core Blueshift SDK initialization is complete
          * @param success true if initialization completed successfully
@@ -369,7 +369,7 @@ public class Blueshift {
      *
      * @param configuration this object contains all the mandatory parameters like api key, deep-link pages etc.
      */
-    public void initialize(@NonNull Configuration configuration, @Nullable BlueshiftInitializationCallback callback) {
+    public void initialize(@NonNull Configuration configuration, @Nullable BlueshiftCallback callback) {
         mConfiguration = configuration;
         doNetworkConfigurations(mConfiguration);
         initAppIcon(mContext, mConfiguration);
