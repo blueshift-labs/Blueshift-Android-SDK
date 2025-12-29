@@ -13,6 +13,8 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -193,14 +195,37 @@ public class NotificationUtils {
         // create channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             BlueshiftLogger.d(LOG_TAG, "Notification Channel Name: " + channelName);
-
+            int notificationImportance = NotificationManager.IMPORTANCE_DEFAULT;
+            if(message.interruptionLevel() == Message.MESSAGE_INTERRUPTION_LEVEL_HIGH)
+                notificationImportance = NotificationManager.IMPORTANCE_HIGH;
             channel = new NotificationChannel(
-                    channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+                    channelId, channelName, notificationImportance);
 
             if (!TextUtils.isEmpty(channelDescription)) {
                 BlueshiftLogger.d(LOG_TAG, "Notification Channel Description: " + channelDescription);
 
                 channel.setDescription(channelDescription);
+            }
+            String soundName = message.sound();
+            AudioAttributes attrs = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+            if(soundName != null && !soundName.isEmpty()) {
+                soundName = soundName.replace(".mp3", "").replace(".wav", "");
+
+                int soundResId = context.getResources().getIdentifier(soundName, "raw", context.getPackageName());
+                if (soundResId != 0) {
+                    Uri soundUri = Uri.parse("android.resource://" +
+                            context.getPackageName() + "/" + soundResId);
+                    channel.setSound(soundUri, attrs);
+                } else {
+                    Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    channel.setSound(defaultSoundUri, attrs);
+                }
+            } else {
+                Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                channel.setSound(defaultSoundUri, attrs);
             }
 
             // todo: add more channel setting here if needed.

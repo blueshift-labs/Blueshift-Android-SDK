@@ -28,6 +28,12 @@ public class Message implements Serializable {
     public static final String EXTRA_BSFT_MESSAGE_UUID = "bsft_message_uuid";
     public static final String EXTRA_BSFT_SEED_LIST_SEND = "bsft_seed_list_send";
 
+    public static final String NOTIFICATION_SOUND = "sound";
+
+    public static final String NOTIFICATION_INTERRUPTION_LEVEL = "interruption_level";
+
+    public static final int MESSAGE_INTERRUPTION_LEVEL_HIGH = 1;
+
     /**
      * Following are the campaign uuids. They come outside the 'message' object in push message.
      * We have added them inside this class to avoid major code change and to use them conveniently
@@ -49,6 +55,13 @@ public class Message implements Serializable {
      * id used for tracking the notification events
      */
     private String bsft_message_uuid;
+
+    /**
+     * used for defining the sound of the notification.
+     */
+    private String sound;
+
+    private int interruption_level;
 
     /**
      * ** mandatory **
@@ -212,7 +225,8 @@ public class Message implements Serializable {
         map.put("notification_channel_id", notification_channel_id);
         map.put("notification_channel_name", notification_channel_name);
         map.put("notification_channel_description", notification_channel_description);
-
+        map.put(Message.NOTIFICATION_SOUND, sound);
+        map.put(Message.NOTIFICATION_INTERRUPTION_LEVEL, interruption_level);
         return map;
     }
 
@@ -297,6 +311,14 @@ public class Message implements Serializable {
 
     public void setBsftExecutionKey(String bsftExecutionKey) {
         this.bsft_execution_key = bsftExecutionKey;
+    }
+
+    public int interruptionLevel() {
+        return interruption_level;
+    }
+
+    public String sound() {
+        return sound;
     }
 
     public String getBsftExperimentUuid() {
