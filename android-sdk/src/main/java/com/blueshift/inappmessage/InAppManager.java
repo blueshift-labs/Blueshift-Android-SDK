@@ -25,7 +25,6 @@ import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftImageCache;
-import com.blueshift.BlueshiftInAppListener;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
@@ -82,25 +81,6 @@ public class InAppManager {
     private static InAppMessage mInApp = null;
     private static String mInAppOngoingIn = null; // activity class name
     private static final IAMDisplayConfig displayConfig = new IAMDisplayConfig();
-
-    private static BlueshiftInAppListener inAppListener = null;
-
-    public static void registerForInAppMessages(Activity activity, String screenName, BlueshiftInAppListener callback) {
-        if(mActivity != null) {
-            unregisterForInAppMessages(mActivity);
-        }
-        mActivity = activity;
-        inAppListener = callback;
-        displayConfig.screenName = screenName != null ? screenName : activityClassCanonicalName(activity);
-
-        logScreen("REGISTER");
-
-        if (isOngoingInAppMessagePresent()) {
-            displayCachedOngoingInApp();
-        } else {
-            invokeTriggerWithinSdk();
-        }
-    }
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -458,15 +438,6 @@ public class InAppManager {
 
     public static void displayInAppMessage(final InAppMessage inAppMessage) {
         if (inAppMessage != null && mActivity != null) {
-            if (inAppListener != null) {
-                boolean clientHandled = inAppListener.handleInAppRendering(mActivity, inAppMessage);
-                if (clientHandled) {
-                    // Client handled rendering, just mark as displayed and schedule next
-                    markAsDisplayed(inAppMessage);
-                    scheduleNextInAppMessage(mActivity.getApplicationContext());
-                    return;
-                }
-            }
             cacheAssets(inAppMessage, mActivity.getApplicationContext());
 
             prepareTemplateSize(mActivity, inAppMessage);
@@ -630,6 +601,7 @@ public class InAppManager {
                     @Override
                     public void run() {
                         if (mActivity != null) {
+                            //TODO Rendering inApp
                             boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
                             if (isSuccess) {
                                 BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
