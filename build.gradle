@@ -6,6 +6,7 @@ buildscript {
         kotlin_version = '1.9.24'
     }
     repositories {
+        mavenLocal()
         google()
         mavenCentral()
     }
@@ -22,6 +23,7 @@ plugins {
 
 allprojects {
     repositories {
+        mavenLocal()
         google()
         mavenCentral()
     }

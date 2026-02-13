@@ -25,10 +25,10 @@ import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftImageCache;
+import com.blueshift.BlueshiftInAppListener;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
-import com.blueshift.inbox.BlueshiftInboxApiManager;
 import com.blueshift.inbox.BlueshiftInboxFragment;
 import com.blueshift.inbox.BlueshiftInboxManager;
 import com.blueshift.inbox.BlueshiftInboxMessage;
@@ -81,6 +81,8 @@ public class InAppManager {
     private static InAppMessage mInApp = null;
     private static String mInAppOngoingIn = null; // activity class name
     private static final IAMDisplayConfig displayConfig = new IAMDisplayConfig();
+
+    private static BlueshiftInAppListener blueshiftInAppListener = null;
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -595,14 +597,25 @@ public class InAppManager {
         displayConfig.templateHeight = height;
     }
 
+    public static void inAppRenderListener(BlueshiftInAppListener inAppListener) {
+        blueshiftInAppListener = inAppListener;
+    }
+
     private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
         BlueshiftExecutor.getInstance().runOnMainThread(
                 new Runnable() {
                     @Override
                     public void run() {
                         if (mActivity != null) {
-                            //TODO Rendering inApp
-                            boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                            boolean isSuccess = false;
+                            if(blueshiftInAppListener != null) {
+                                isSuccess = blueshiftInAppListener.renderInApp(inAppMessage, mActivity);
+                                if(!isSuccess) {
+                                    isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                                }
+                            } else {
+                                isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                            }
                             if (isSuccess) {
                                 BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
                                 mInApp = inAppMessage;
