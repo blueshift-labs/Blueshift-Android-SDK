@@ -43,8 +43,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.List;
-
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
     private static final int MAX_HEIGHT_PERCENTAGE = 90;
@@ -610,9 +608,6 @@ public class InAppManager {
                             boolean isSuccess = false;
                             if(blueshiftInAppListener != null) {
                                 isSuccess = blueshiftInAppListener.renderInApp(inAppMessage, mActivity);
-                                if(!isSuccess) {
-                                    isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
-                                }
                             } else {
                                 isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
                             }
@@ -622,6 +617,8 @@ public class InAppManager {
                                 markAsDisplayed(inAppMessage);
 
                                 BlueshiftInboxManager.notifyMessageRead(mActivity, inAppMessage.getMessageUuid());
+                            } else {
+                                BlueshiftLogger.e(LOG_TAG, "Error displaying in-app message!");
                             }
                         } else {
                             BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
