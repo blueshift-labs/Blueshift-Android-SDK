@@ -170,14 +170,11 @@ private fun InAppBannerOverlay(
         val dialogWindowProvider = LocalView.current.parent as? DialogWindowProvider
         dialogWindowProvider?.window?.let { window ->
             window.setGravity(gravity)
-            
-            // Configure obstrusive vs unobstrusive behavior
+
             if (enableBackgroundActions) {
-                // Unobstrusive: Allow background interaction (non-modal)
                 window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
                 window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             } else {
-                // Obstrusive: Block background interaction (modal) - default behavior
                 window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
                 window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             }

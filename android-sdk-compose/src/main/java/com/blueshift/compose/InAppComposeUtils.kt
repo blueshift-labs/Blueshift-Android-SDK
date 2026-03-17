@@ -64,7 +64,6 @@ internal object InAppComposeUtils {
         inAppMessage: InAppMessage,
         content: @Composable () -> Unit
     ) {
-        // Get background color and radius (equivalent to getTemplateBackgroundDrawable)
         val colorString = InAppUtils.getTemplateStyleString(
             context,
             inAppMessage,
@@ -89,7 +88,6 @@ internal object InAppComposeUtils {
             InAppConstants.BACKGROUND_IMAGE
         )
 
-        //TODO Bg task
         var backgroundBitmap by remember { mutableStateOf<Bitmap?>(null) }
         LaunchedEffect(backgroundImageUrl) {
             if (!TextUtils.isEmpty(backgroundImageUrl)) {
@@ -98,26 +96,22 @@ internal object InAppComposeUtils {
                         val bitmap = BlueshiftImageCache.getBitmap(context, backgroundImageUrl)
                         backgroundBitmap = bitmap
                     } catch (e: Exception) {
-                        // Handle image loading error silently
                         backgroundBitmap = null
                     }
                 }
             }
         }
-
-        // Create the layered container (matches View implementation exactly)
         Box(
             modifier = if (radiusDp > 0) {
                 val shape = RoundedCornerShape(radiusDp.dp)
                 Modifier
                     .fillMaxWidth()
                     .background(color = backgroundColor, shape = shape)
-                    .clip(shape) // Equivalent to setClipToOutline(true)
+                    .clip(shape)
             } else {
                 Modifier.fillMaxWidth().background(color = backgroundColor)
             }
         ) {
-            // Background image layer (equivalent to addBackgroundImageView)
             backgroundBitmap?.let { bitmap ->
                 Image(
                     bitmap = bitmap.asImageBitmap(),
@@ -126,8 +120,6 @@ internal object InAppComposeUtils {
                     contentScale = ContentScale.Crop
                 )
             }
-            
-            // Content layer on top (equivalent to addView(childView))
             content()
         }
     }
@@ -153,38 +145,30 @@ internal object InAppComposeUtils {
     ) {
         val textContent = inAppMessage.getContentString(contentName)
         if (!TextUtils.isEmpty(textContent)) {
-            // Calculate all styling properties (equivalent to setContentTextView)
             val (textColor, textSize, textAlign, styledModifier) = remember(inAppMessage, contentName) {
-                // TEXT COLOR
                 val colorString = InAppUtils.getContentColor(context, inAppMessage, contentName)
                 val color = if (InAppUtils.validateColorString(colorString)) {
                     parseColor(colorString)
                 } else {
                     Color.Unspecified
                 }
-                
-                // TEXT SIZE (default 14sp)
                 val size = InAppUtils.getContentSize(context, inAppMessage, contentName, 14)
-                
-                // TEXT ALIGNMENT (convert Android Gravity to Compose TextAlign)
                 val gravity = InAppUtils.getContentGravity(context, inAppMessage, contentName)
                 val align = when (gravity) {
                     android.view.Gravity.START -> TextAlign.Start
                     android.view.Gravity.END -> TextAlign.End
                     android.view.Gravity.CENTER -> TextAlign.Center
-                    android.view.Gravity.TOP -> TextAlign.Start // Top gravity doesn't apply to text alignment
-                    android.view.Gravity.BOTTOM -> TextAlign.Start // Bottom gravity doesn't apply to text alignment
+                    android.view.Gravity.TOP -> TextAlign.Start
+                    android.view.Gravity.BOTTOM -> TextAlign.Start
                     else -> TextAlign.Start
                 }
-                
-                // BACKGROUND and PADDING
+
                 val bgColorString = InAppUtils.getContentBackgroundColor(context, inAppMessage, contentName)
                 val bgRadius = InAppUtils.getContentBackgroundRadius(context, inAppMessage, contentName, 0)
                 val padding = InAppUtils.getContentPadding(context, inAppMessage, contentName)
                 
                 var textModifier = modifier
-                
-                // Apply background if specified
+
                 if (InAppUtils.validateColorString(bgColorString)) {
                     val bgColor = parseColor(bgColorString)
                     textModifier = if (bgRadius > 0) {
@@ -193,8 +177,6 @@ internal object InAppComposeUtils {
                         textModifier.background(color = bgColor)
                     }
                 }
-                
-                // Apply padding (default 4dp if not specified, matching View implementation)
                 textModifier = if (padding != null) {
                     textModifier.padding(
                         start = padding.left.dp,
@@ -203,7 +185,7 @@ internal object InAppComposeUtils {
                         bottom = padding.bottom.dp
                     )
                 } else {
-                    textModifier.padding(4.dp) // Default padding from View implementation
+                    textModifier.padding(4.dp)
                 }
                 
                 Tuple4(color, size, align, textModifier)
@@ -218,8 +200,7 @@ internal object InAppComposeUtils {
             )
         }
     }
-    
-    // Helper data class for multiple return values
+
     private data class Tuple4<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
     /**
@@ -239,7 +220,6 @@ internal object InAppComposeUtils {
         modifier: Modifier = Modifier
     ) {
         val iconText = inAppMessage.getContentString(contentName)
-        //TODO Bg task
         if (!TextUtils.isEmpty(iconText)) {
             var fontFamily by remember { mutableStateOf<FontFamily?>(null) }
             LaunchedEffect(Unit) {
@@ -269,11 +249,9 @@ internal object InAppComposeUtils {
                 val size = InAppUtils.getContentSize(context, inAppMessage, contentName, 14)
                 val bgColorString = InAppUtils.getContentBackgroundColor(context, inAppMessage, contentName)
                 val bgRadius = InAppUtils.getContentBackgroundRadius(context, inAppMessage, contentName, 0)
-                
-                // Padding (e.g., "icon_padding": {"left": 4, "top": 4, "right": 4, "bottom": 4})
+
                 val padding = InAppUtils.getContentPadding(context, inAppMessage, contentName)
                 var textModifier = modifier.fillMaxHeight()
-                // Apply background if specified
                 if (InAppUtils.validateColorString(bgColorString)) {
                     val bgColor = parseColor(bgColorString)
                     textModifier = if (bgRadius > 0) {
@@ -283,7 +261,6 @@ internal object InAppComposeUtils {
                     }
                 }
 
-                // Build combined modifier with vertical center alignment
                 textModifier = if (padding != null) {
                     textModifier.padding(
                         start = padding.left.dp,
@@ -337,31 +314,21 @@ internal object InAppComposeUtils {
                         val bitmap = BlueshiftImageCache.getBitmap(context, imageUrl)
                         imageBitmap = bitmap
                     } catch (e: Exception) {
-                        // Handle image loading error silently
                         imageBitmap = null
                     }
                 }
             }
 
-            // Calculate styling properties (equivalent to createContentIconView)
             val (containerModifier, imageModifier) = remember(inAppMessage, contentName) {
-                // IMAGE BACKGROUND (looks at "icon_image_background_color" and "icon_image_background_radius")
                 val bgColorString = InAppUtils.getContentBackgroundColor(context, inAppMessage, contentName)
                 val bgRadius = InAppUtils.getContentBackgroundRadius(context, inAppMessage, contentName, 0)
-                
-                // CONTAINER PADDING
                 val padding = InAppUtils.getContentPadding(context, inAppMessage, contentName)
-                
-                // Build container modifier (LinearLayout equivalent)
                 var containerMod = modifier
-                
-                // CONTAINER BACKGROUND COLOR (looks at "icon_image_background_color")
                 if (InAppUtils.validateColorString(bgColorString)) {
                     val bgColor = parseColor(bgColorString)
                     containerMod = containerMod.background(color = bgColor)
                 }
-                
-                // CONTAINER PADDING
+
                 containerMod = if (padding != null) {
                     containerMod.padding(
                         start = padding.left.dp,
@@ -372,18 +339,16 @@ internal object InAppComposeUtils {
                 } else {
                     containerMod
                 }
-                
-                // Build image modifier (ImageView equivalent)
+
                 var imageMod = Modifier.fillMaxSize()
-                
-                // IMAGE BACKGROUND
+
                 if (InAppUtils.validateColorString(bgColorString)) {
                     val bgColor = parseColor(bgColorString)
                     imageMod = if (bgRadius > 0) {
                         val shape = RoundedCornerShape(bgRadius.dp)
                         imageMod
                             .background(color = bgColor, shape = shape)
-                            .clip(shape) // Equivalent to setClipToOutline(true)
+                            .clip(shape)
                     } else {
                         imageMod.background(color = bgColor)
                     }
@@ -393,7 +358,6 @@ internal object InAppComposeUtils {
             }
 
             imageBitmap?.let { bitmap ->
-                // Container view (LinearLayout equivalent with gravity CENTER)
                 Box(
                     modifier = containerModifier,
                     contentAlignment = Alignment.Center

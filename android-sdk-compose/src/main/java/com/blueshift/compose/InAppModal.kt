@@ -493,7 +493,6 @@ private fun CloseButton(
     }
     var fontFamily by remember { mutableStateOf<FontFamily?>(null) }
 
-    //TODO Bg
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
