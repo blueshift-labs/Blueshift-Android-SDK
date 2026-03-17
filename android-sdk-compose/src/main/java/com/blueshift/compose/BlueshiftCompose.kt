@@ -3,7 +3,6 @@ package com.blueshift.compose
 import android.app.Activity
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
@@ -69,7 +68,7 @@ object BlueshiftCompose {
             rootView.addView(composeView)
             true
         } catch (e: Exception) {
-            Log.d(TAG, "error while rendering: ${e.message}")
+            BlueshiftLogger.e(TAG, "error while rendering: ${e.message}")
             true
         }
     }
@@ -91,7 +90,7 @@ object BlueshiftCompose {
             rootView.addView(composeView)
             true
         } catch (e: Exception) {
-            Log.d(TAG, "Error while rendering Modal in-app: ${e.message}")
+            BlueshiftLogger.e(TAG, "Error while rendering Modal in-app: ${e.message}")
             false
         }
     }
@@ -113,7 +112,7 @@ object BlueshiftCompose {
             rootView.addView(composeView)
             true
         } catch (e: Exception) {
-            Log.d(TAG, "Error while rendering HTML in-app: ${e.message}")
+            BlueshiftLogger.e(TAG, "Error while rendering HTML in-app: ${e.message}")
             false
         }
     }
@@ -160,7 +159,10 @@ private fun InAppBannerOverlay(
     val enableBackgroundActions = InAppUtils.shouldEnableBackgroundActions(context, inAppMessage)
     
     Dialog(
-        onDismissRequest = { onDismiss() },
+        onDismissRequest = {
+            InAppComposeUtils.bannerDismissedWhenClickedOutside(inAppMessage, context)
+            onDismiss()
+        },
         properties = DialogProperties(
             dismissOnClickOutside = true,
             dismissOnBackPress = true,

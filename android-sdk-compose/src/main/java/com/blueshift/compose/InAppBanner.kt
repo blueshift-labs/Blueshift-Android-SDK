@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.blueshift.BlueshiftConstants
+import com.blueshift.BlueshiftLogger
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.util.InAppUtils
@@ -102,6 +103,7 @@ private fun BannerContent(
             json.put(BlueshiftConstants.KEY_CLICK_ELEMENT, InAppConstants.ACT_SWIPE)
         } catch (ignored: JSONException) {
         }
+        BlueshiftLogger.d("InAppBanner", "handleSwipeDismiss: ${inAppMessage.messageUuid}")
         InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
         onDismiss?.invoke()
     }

@@ -30,13 +30,17 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftImageCache
+import com.blueshift.BlueshiftLogger
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.inappmessage.InAppMessageIconFont
 import com.blueshift.util.InAppUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
 
 /**
@@ -109,7 +113,9 @@ internal object InAppComposeUtils {
                     .background(color = backgroundColor, shape = shape)
                     .clip(shape)
             } else {
-                Modifier.fillMaxWidth().background(color = backgroundColor)
+                Modifier
+                    .fillMaxWidth()
+                    .background(color = backgroundColor)
             }
         ) {
             backgroundBitmap?.let { bitmap ->
@@ -386,5 +392,17 @@ internal object InAppComposeUtils {
         } catch (e: IllegalArgumentException) {
             Color.White
         }
+    }
+
+    fun bannerDismissedWhenClickedOutside(inAppMessage: InAppMessage, context: Context) {
+        val json = JSONObject()
+        try {
+            json.put(
+                BlueshiftConstants.KEY_CLICK_ELEMENT,
+                InAppConstants.ACT_TAP_OUTSIDE
+            )
+        } catch (ignored: JSONException) {
+        }
+        InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
     }
 }

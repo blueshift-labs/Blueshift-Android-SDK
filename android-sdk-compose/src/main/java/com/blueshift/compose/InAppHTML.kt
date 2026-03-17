@@ -6,7 +6,6 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.text.TextUtils
-import android.util.Log
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -282,17 +281,12 @@ private class InAppWebViewClient(
                 }
             }
         } else null
-        
-        handleDismiss(inAppMessage, json)
+        InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
         onDismiss?.invoke()
     }
     
     private fun handleClick(inAppMessage: InAppMessage, statsParams: JSONObject) {
         InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
-    }
-    
-    private fun handleDismiss(inAppMessage: InAppMessage, json: JSONObject?) {
-        InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
     }
     
     private fun getClickStatsJSONObject(): JSONObject {
