@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blueshift.BlueshiftConstants
 import com.blueshift.inappmessage.InAppConstants
+import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.inappmessage.InAppMessageIconFont
 import com.blueshift.util.CommonUtils
@@ -433,18 +434,34 @@ private fun handleActionClick(
             }
         } catch (ignored: JSONException) {
         }
-        when (actionName) {
-            InAppConstants.ACTION_DISMISS -> {
-                InAppUtils.invokeInAppDismiss(context, inAppMessage, statsParams)
-                onDismiss?.invoke()
-            }
-            InAppConstants.ACTION_OPEN -> {
-                InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
-                // TODO: Implement URL opening logic
-            }
-            else -> {
-                InAppUtils.invokeInAppDismiss(context, inAppMessage, statsParams)
-                onDismiss?.invoke()
+        if (InAppManager.getActionCallback() != null) {
+            val actionArgs = InAppComposeUtils.getActionArgsFromActionJson(actionJson)
+            val callback = InAppManager.getActionCallback()
+            callback?.onAction(actionName, actionArgs)
+            InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+        } else {
+            when (actionName) {
+                InAppConstants.ACTION_OPEN -> {
+                    InAppComposeUtils.open(actionJson, context)
+                    val link = actionJson.optString(InAppConstants.ANDROID_LINK)
+                    if (InAppUtils.isDismissUrl(link)) {
+                        InAppUtils.invokeInAppDismiss(context, inAppMessage, statsParams)
+                    } else {
+                        InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+                    }
+                }
+                InAppConstants.ACTION_SHARE -> {
+                    InAppComposeUtils.shareText(context, actionJson)
+                    InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+                }
+                InAppConstants.ACTION_RATE_APP -> {
+                    InAppComposeUtils.rateAppInGooglePlayStore(context, actionJson)
+                    InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+                }
+                else -> {
+                    InAppUtils.invokeInAppDismiss(context, inAppMessage, statsParams)
+                    onDismiss?.invoke()
+                }
             }
         }
     } catch (e: Exception) {
