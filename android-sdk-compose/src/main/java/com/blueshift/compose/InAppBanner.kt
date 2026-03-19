@@ -1,5 +1,7 @@
 package com.blueshift.compose
 
+import android.content.Context
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftLogger
 import com.blueshift.inappmessage.InAppConstants
+import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.util.InAppUtils
 import kotlinx.coroutines.launch
@@ -76,10 +79,11 @@ internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = 
  */
 @Composable
 private fun BannerContent(
-    context: android.content.Context,
+    context: Context,
     inAppMessage: InAppMessage,
     onDismiss: (() -> Unit)? = null
 ) {
+    val activity = LocalActivity.current
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -119,7 +123,7 @@ private fun BannerContent(
                 animationSpec = tween(durationMillis = 1000)
             )
             if (actionJson != null) {
-                executeAction(context, inAppMessage, actionJson)
+                executeAction(activity ?: context, inAppMessage, actionJson)
             }
         }
     }
@@ -138,13 +142,18 @@ private fun BannerContent(
                             currentOffset > threshold -> {
                                 handleSwipeDismiss()
                             }
+
                             currentOffset < -threshold -> {
                                 handleSwipeDismiss()
                             }
+
                             else -> {
                                 if (!isAnimating) {
                                     coroutineScope.launch {
-                                        offsetX.animateTo(0f, animationSpec = tween(durationMillis = 300))
+                                        offsetX.animateTo(
+                                            0f,
+                                            animationSpec = tween(durationMillis = 300)
+                                        )
                                     }
                                 }
                             }
@@ -198,7 +207,8 @@ private fun BannerContent(
 /**
  * Executes action functionality matching InAppMessageView.getActionClickListener()
  */
-private fun executeAction(context: android.content.Context, inAppMessage: InAppMessage, actionJson: JSONObject) {
+private fun executeAction(context: Context, inAppMessage: InAppMessage, actionJson: JSONObject) {
+    val actionName = actionJson.optString(InAppConstants.ACTION_TYPE)
     val statsParams = JSONObject()
     try {
         val androidLink = actionJson.optString(InAppConstants.ANDROID_LINK)
@@ -207,5 +217,33 @@ private fun executeAction(context: android.content.Context, inAppMessage: InAppM
         }
     } catch (ignored: JSONException) {
     }
-    InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+    if (InAppManager.getActionCallback() != null) {
+        val actionArgs = InAppComposeUtils.getActionArgsFromActionJson(actionJson)
+        val callback = InAppManager.getActionCallback()
+        callback?.onAction(actionName, actionArgs)
+        InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+    } else {
+        when (actionName) {
+            InAppConstants.ACTION_OPEN -> {
+                InAppComposeUtils.open(actionJson, context)
+                val link = actionJson.optString(InAppConstants.ANDROID_LINK)
+                if (InAppUtils.isDismissUrl(link)) {
+                    InAppUtils.invokeInAppDismiss(context, inAppMessage, statsParams)
+                } else {
+                    InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+                }
+            }
+            InAppConstants.ACTION_SHARE -> {
+                InAppComposeUtils.shareText(context, actionJson)
+                InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+            }
+            InAppConstants.ACTION_RATE_APP -> {
+                InAppComposeUtils.rateAppInGooglePlayStore(context, actionJson)
+                InAppUtils.invokeInAppClicked(context, inAppMessage, statsParams)
+            }
+            else -> {
+                InAppUtils.invokeInAppDismiss(context, inAppMessage, statsParams)
+            }
+        }
+    }
 }

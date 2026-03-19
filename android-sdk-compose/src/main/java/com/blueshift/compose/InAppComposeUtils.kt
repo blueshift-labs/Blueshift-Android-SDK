@@ -1,8 +1,12 @@
 package com.blueshift.compose
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Typeface
+import android.net.Uri
+import android.os.Bundle
 import android.text.TextUtils
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,12 +34,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.blueshift.Blueshift
 import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftImageCache
 import com.blueshift.BlueshiftLogger
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.inappmessage.InAppMessageIconFont
+import com.blueshift.util.BlueshiftUtils
 import com.blueshift.util.InAppUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -48,6 +54,8 @@ import java.io.File
  * with Compose modifiers for in-app messages.
  */
 internal object InAppComposeUtils {
+
+    private const val TAG = "InAppComposeUtils"
 
     /**
      * Creates a complete in-app message container that matches the View implementation exactly.
@@ -404,5 +412,129 @@ internal object InAppComposeUtils {
         } catch (ignored: JSONException) {
         }
         InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
+    }
+
+    fun getActionArgsFromActionJson(actionJson: JSONObject?): JSONObject? {
+        try {
+            if (actionJson != null) {
+                val actionName = actionJson.optString(InAppConstants.ACTION_TYPE)
+                val actionArgs = JSONObject()
+
+                when (actionName) {
+                    InAppConstants.ACTION_OPEN -> {
+                        val link = actionJson.optString(InAppConstants.ANDROID_LINK)
+                        actionArgs.put(InAppConstants.ANDROID_LINK, link)
+                    }
+
+                    InAppConstants.ACTION_SHARE -> {
+                        val shareContent = actionJson.optString(InAppConstants.SHAREABLE_TEXT)
+                        actionArgs.put(InAppConstants.SHAREABLE_TEXT, shareContent)
+                    }
+                }
+
+                val extras = actionJson.optJSONObject(InAppConstants.EXTRAS)
+                actionArgs.put(InAppConstants.EXTRAS, extras)
+
+                return actionArgs
+            }
+        } catch (e: java.lang.Exception) {
+            BlueshiftLogger.e(TAG, e)
+        }
+        return null
+    }
+
+    fun open(action: JSONObject?, context: Context) {
+        try {
+            if (action != null) {
+                val link = action.optString(InAppConstants.ANDROID_LINK)
+                BlueshiftLogger.d(
+                    TAG,
+                    "android_link: $link"
+                )
+
+                if (InAppUtils.isDismissUrl(link)) {
+                    BlueshiftLogger.d(TAG, "Dismiss URL detected.")
+                } else if (InAppUtils.isAskPNPermissionUri(Uri.parse(link))) {
+                    Blueshift.requestPushNotificationPermission(context)
+                } else {
+                    val extras = action.optJSONObject(InAppConstants.EXTRAS)
+                    var bundle: Bundle? = null
+                    if (extras != null) {
+                        bundle = Bundle()
+                        val keys = extras.keys()
+                        while (keys.hasNext()) {
+                            val key = keys.next()
+                            val `val` = extras.optString(key)
+                            bundle.putString(key, `val`)
+                        }
+                    }
+
+                    try {
+                        if (context is Activity) {
+                            BlueshiftUtils.openURL(
+                                link,
+                                context,
+                                bundle,
+                                BlueshiftConstants.LINK_SOURCE_INAPP
+                            )
+                        }
+                    } catch (e: java.lang.Exception) {
+                        BlueshiftLogger.e(TAG, e)
+                        try {
+                            val clazz = Class.forName(link)
+                            val intent = Intent(context, clazz)
+                            if (bundle != null) {
+                                intent.putExtras(bundle)
+                            }
+                            context.startActivity(intent)
+                        } catch (ex: Exception) {
+                            BlueshiftLogger.e(TAG, ex)
+                        }
+                    }
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            BlueshiftLogger.e(TAG, e)
+        }
+    }
+
+    fun shareText(context: Context, action: JSONObject?) {
+        try {
+            if (action != null) {
+                val text = action.optString(InAppConstants.SHAREABLE_TEXT)
+                if (!TextUtils.isEmpty(text)) {
+                    val shareIntent = Intent(Intent.ACTION_SEND)
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, text)
+                    shareIntent.setType("text/plain")
+                    context.startActivity(shareIntent)
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            BlueshiftLogger.e(TAG, e)
+        }
+    }
+
+    fun rateAppInGooglePlayStore(context: Context, action: JSONObject) {
+        try {
+            val pkgName: String = context.packageName
+            try {
+                val marketUri = Uri.parse("market://details?id=$pkgName")
+                val marketIntent = Intent(Intent.ACTION_VIEW, marketUri)
+                context.startActivity(marketIntent)
+            } catch (e: java.lang.Exception) {
+                BlueshiftLogger.e(TAG, e)
+
+                try {
+                    val marketWebUri =
+                        Uri.parse("https://play.google.com/store/apps/details?id=$pkgName")
+                    val marketWebIntent = Intent(Intent.ACTION_VIEW, marketWebUri)
+                    context.startActivity(marketWebIntent)
+                } catch (ex: java.lang.Exception) {
+                    BlueshiftLogger.e(TAG, ex)
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            BlueshiftLogger.e(TAG, e)
+        }
     }
 }
