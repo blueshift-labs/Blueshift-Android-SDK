@@ -12,13 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,18 +69,40 @@ internal fun InAppModal(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = n
         }
     }
 
-    val maxWidth = with(LocalDensity.current) {
-        (context.resources.displayMetrics.widthPixels * 0.9f).toDp()
+    // Calculate template dimensions exactly like View implementation
+    val templateDimensions = remember(inAppMessage) {
+        calculateTemplateDimensions(context, inAppMessage)
     }
-    val maxHeight = with(LocalDensity.current) {
-        (context.resources.displayMetrics.heightPixels * 0.8f).toDp()
+
+    val density = LocalDensity.current
+
+    // Convert template dimensions to Compose constraints
+    val widthModifier = if (templateDimensions.width == -2) { // WRAP_CONTENT
+        Modifier.wrapContentWidth()
+    } else {
+        val adjustedWidth = templateDimensions.width - (templateMargins.left + templateMargins.right)
+        if (adjustedWidth > 0) {
+            Modifier.width(with(density) { adjustedWidth.toDp() })
+        } else {
+            Modifier.wrapContentWidth()
+        }
+    }
+
+    val heightModifier = if (templateDimensions.height == -2) { // WRAP_CONTENT
+        Modifier.wrapContentHeight()
+    } else {
+        val adjustedHeight = templateDimensions.height - (templateMargins.top + templateMargins.bottom)
+        if (adjustedHeight > 0) {
+            Modifier.height(with(density) { adjustedHeight.toDp() })
+        } else {
+            Modifier.wrapContentHeight()
+        }
     }
     
     Box(
         modifier = Modifier
-            .wrapContentSize()
-            .widthIn(max = maxWidth)
-            .heightIn(max = maxHeight)
+            .then(widthModifier)
+            .then(heightModifier)
             .padding(
                 start = templateMargins.left.dp,
                 top = templateMargins.top.dp,
