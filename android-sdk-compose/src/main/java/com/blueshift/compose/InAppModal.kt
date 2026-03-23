@@ -2,6 +2,7 @@ package com.blueshift.compose
 
 import android.content.Context
 import android.graphics.Typeface
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -217,9 +218,9 @@ private fun ModalContent(
                     .wrapContentWidth(align = messageAlignment)
             )
         }
-
+        val localActivity = LocalActivity.current
         ActionButtons(
-            context = context,
+            context = localActivity ?: context,
             inAppMessage = inAppMessage,
             onDismiss = onDismiss
         )
@@ -350,6 +351,8 @@ private fun ActionButton(
         InAppUtils.getStringFromJSONObject(actionJson, InAppConstants.TEXT) ?: ""
     }
     
+    val interactionSource = remember { MutableInteractionSource() }
+    
     if (buttonText.isNotEmpty()) {
         val (textColor, textSize, textAlign, styledModifier) = remember(actionJson) {
             val colorString = InAppUtils.getStringFromJSONObject(actionJson, InAppConstants.COLOR(InAppConstants.TEXT))
@@ -379,7 +382,10 @@ private fun ActionButton(
             val margin = InAppUtils.getRectFromJSONObject(actionJson, InAppConstants.MARGIN)
             
             var buttonModifier = modifier
-                .clickable {
+                .clickable(
+                    indication = null,
+                    interactionSource = interactionSource
+                ) {
                     handleActionClick(context, inAppMessage, actionJson, element, onDismiss)
                 }
 

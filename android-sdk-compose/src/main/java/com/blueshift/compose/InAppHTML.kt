@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,9 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -152,9 +151,9 @@ private fun HTMLContent(
     val htmlContent = remember(inAppMessage) {
         inAppMessage.getContentString(InAppConstants.HTML)
     }
-    
+    val localActivity = LocalActivity.current
     val webViewClient = remember(inAppMessage, onDismiss) {
-        InAppWebViewClient(context, inAppMessage, onDismiss)
+        InAppWebViewClient(localActivity ?: context, inAppMessage, onDismiss)
     }
     
     if (!TextUtils.isEmpty(htmlContent)) {
