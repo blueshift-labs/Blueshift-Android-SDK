@@ -9,8 +9,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +33,7 @@ import com.blueshift.BlueshiftLogger
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage
+import com.blueshift.util.CommonUtils
 import com.blueshift.util.InAppUtils
 import kotlinx.coroutines.launch
 import org.json.JSONException
@@ -43,6 +45,23 @@ internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = 
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
+    
+    // Calculate template margins exactly like InAppModal does
+    val templateMargins = remember(inAppMessage) {
+        val margins = inAppMessage.getTemplateMargin(context)
+        if (margins != null) {
+            val density = context.resources.displayMetrics.density
+            android.graphics.Rect(
+                (CommonUtils.dpToPx(margins.left, context) / density).toInt(),
+                (CommonUtils.dpToPx(margins.top, context) / density).toInt(),
+                (CommonUtils.dpToPx(margins.right, context) / density).toInt(),
+                (CommonUtils.dpToPx(margins.bottom, context) / density).toInt()
+            )
+        } else {
+            android.graphics.Rect(0, 0, 0, 0)
+        }
+    }
+    
     val slideInOffsetX = remember { Animatable(-1f) }
     LaunchedEffect(Unit) {
         slideInOffsetX.animateTo(
@@ -51,9 +70,16 @@ internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = 
         )
     }
     val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+    
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(
+                start = templateMargins.left.dp,
+                top = templateMargins.top.dp,
+                end = templateMargins.right.dp,
+                bottom = templateMargins.bottom.dp
+            )
             .offset {
                 val offsetXPx = (slideInOffsetX.value * screenWidthPx).roundToInt()
                 IntOffset(offsetXPx, 0)
@@ -131,7 +157,7 @@ private fun BannerContent(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .heightIn(min = 48.dp)
             .offset { IntOffset(offsetX.value.roundToInt(), 0) }
             .pointerInput(Unit) {
                 detectDragGestures(
@@ -181,13 +207,17 @@ private fun BannerContent(
             context = context,
             inAppMessage = inAppMessage,
             contentName = InAppConstants.ICON,
-            modifier = Modifier.width(48.dp)
+            modifier = Modifier
+                .width(48.dp)
+                .heightIn(max = 48.dp)
         )
         InAppComposeUtils.ContentIconImage(
             context = context,
             inAppMessage = inAppMessage,
             contentName = InAppConstants.ICON_IMAGE,
-            modifier = Modifier.width(48.dp)
+            modifier = Modifier
+                .width(48.dp)
+                .heightIn(max = 48.dp)
         )
         InAppComposeUtils.ContentText(
             context = context,
@@ -199,7 +229,9 @@ private fun BannerContent(
             context = context,
             inAppMessage = inAppMessage,
             contentName = InAppConstants.SECONDARY_ICON,
-            modifier = Modifier.width(48.dp)
+            modifier = Modifier
+                .width(48.dp)
+                .heightIn(max = 48.dp)
         )
     }
 }

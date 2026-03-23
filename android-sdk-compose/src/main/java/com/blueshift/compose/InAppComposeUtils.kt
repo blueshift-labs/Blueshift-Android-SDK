@@ -338,9 +338,16 @@ internal object InAppComposeUtils {
                 val bgRadius = InAppUtils.getContentBackgroundRadius(context, inAppMessage, contentName, 0)
                 val padding = InAppUtils.getContentPadding(context, inAppMessage, contentName)
                 var containerMod = modifier
+                
+                // Apply background color and roundness to the container (which includes padding)
                 if (InAppUtils.validateColorString(bgColorString)) {
                     val bgColor = parseColor(bgColorString)
-                    containerMod = containerMod.background(color = bgColor)
+                    containerMod = if (bgRadius > 0) {
+                        val shape = RoundedCornerShape(bgRadius.dp)
+                        containerMod.background(color = bgColor, shape = shape)
+                    } else {
+                        containerMod.background(color = bgColor)
+                    }
                 }
 
                 containerMod = if (padding != null) {
@@ -354,18 +361,11 @@ internal object InAppComposeUtils {
                     containerMod
                 }
 
+                // Image should just fill the available space and clip to the same shape if rounded
                 var imageMod = Modifier.fillMaxSize()
-
-                if (InAppUtils.validateColorString(bgColorString)) {
-                    val bgColor = parseColor(bgColorString)
-                    imageMod = if (bgRadius > 0) {
-                        val shape = RoundedCornerShape(bgRadius.dp)
-                        imageMod
-                            .background(color = bgColor, shape = shape)
-                            .clip(shape)
-                    } else {
-                        imageMod.background(color = bgColor)
-                    }
+                if (bgRadius > 0) {
+                    val shape = RoundedCornerShape(bgRadius.dp)
+                    imageMod = imageMod.clip(shape)
                 }
                 
                 Pair(containerMod, imageMod)
