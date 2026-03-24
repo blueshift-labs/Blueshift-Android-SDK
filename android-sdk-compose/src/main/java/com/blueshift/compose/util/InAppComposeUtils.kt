@@ -1,4 +1,4 @@
-package com.blueshift.compose
+package com.blueshift.compose.util
 
 import android.app.Activity
 import android.content.Context
@@ -38,10 +38,12 @@ import com.blueshift.Blueshift
 import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftImageCache
 import com.blueshift.BlueshiftLogger
+import com.blueshift.compose.model.TemplateDimensions
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.inappmessage.InAppMessageIconFont
 import com.blueshift.util.BlueshiftUtils
+import com.blueshift.util.CommonUtils
 import com.blueshift.util.InAppUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -402,6 +404,100 @@ internal object InAppComposeUtils {
         }
     }
 
+    /**
+     * Calculates template dimensions exactly like the View implementation's prepareTemplateSize function
+     */
+    internal fun calculateTemplateDimensions(context: Context, inAppMessage: InAppMessage): TemplateDimensions {
+        val topMargin = (24 * context.resources.displayMetrics.density).toInt()
+
+        val maxWidth = context.resources.displayMetrics.widthPixels.toDouble()
+        val maxHeight = (context.resources.displayMetrics.heightPixels - topMargin).toDouble()
+        val widthPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.WIDTH, -1)
+        val heightPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1)
+
+        val url = InAppUtils.getTemplateStyleString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE)
+        val bitmap = if (url != null) BlueshiftImageCache.getBitmap(context, url) else null
+
+        var width: Int
+        var height: Int
+
+        if (bitmap != null) {
+            val iWidth = bitmap.width.toDouble()
+            val iHeight = bitmap.height.toDouble()
+            val iRatio = iHeight / iWidth
+
+            if (widthPercentage < 0 && heightPercentage < 0) {
+                val adjustedWidthPercentage = 90
+                val adjustedHeightPercentage = 90
+
+                val adjustedMaxWidth = (maxWidth * adjustedWidthPercentage) / 100
+                val adjustedMaxHeight = (maxHeight * adjustedHeightPercentage) / 100
+
+                val iWidthPx = CommonUtils.dpToPx(iWidth.toInt(), context)
+                val iHeightPx = CommonUtils.dpToPx(iHeight.toInt(), context)
+
+                if (iWidthPx < adjustedMaxWidth && iHeightPx < adjustedMaxHeight) {
+                    width = iWidthPx
+                    height = iHeightPx
+                } else {
+                    width = adjustedMaxWidth.toInt()
+                    height = (adjustedMaxWidth * iRatio).toInt()
+
+                    if (height > adjustedMaxHeight.toInt()) {
+                        width = (adjustedMaxHeight / iRatio).toInt()
+                        height = adjustedMaxHeight.toInt()
+                    }
+                }
+            } else {
+                if (widthPercentage > 0) {
+                    val adjustedMaxHeight = if (widthPercentage != 100) {
+                        (maxHeight * 90) / 100
+                    } else {
+                        maxHeight
+                    }
+
+                    val adjustedMaxWidth = (maxWidth * widthPercentage) / 100
+
+                    width = adjustedMaxWidth.toInt()
+                    height = (width.toDouble() * iRatio).toInt()
+
+                    if (height > adjustedMaxHeight.toInt()) {
+                        width = (adjustedMaxHeight / iRatio).toInt()
+                        height = adjustedMaxHeight.toInt()
+                    }
+                } else {
+                    val adjustedMaxHeight = (maxHeight * heightPercentage) / 100
+                    val adjustedMaxWidth = if (heightPercentage != 100) {
+                        (maxWidth * 90) / 100
+                    } else {
+                        maxWidth
+                    }
+
+                    height = adjustedMaxHeight.toInt()
+                    width = (height.toDouble() / iRatio).toInt()
+
+                    if (width > adjustedMaxWidth.toInt()) {
+                        width = adjustedMaxWidth.toInt()
+                        height = (width.toDouble() * iRatio).toInt()
+                    }
+                }
+            }
+        } else {
+            width = if (widthPercentage < 0) {
+                -2
+            } else {
+                ((maxWidth * widthPercentage) / 100).toInt()
+            }
+
+            height = if (heightPercentage < 0) {
+                -2
+            } else {
+                ((maxHeight * heightPercentage) / 100).toInt()
+            }
+        }
+        return TemplateDimensions(width, height)
+    }
+
     fun bannerDismissedWhenClickedOutside(inAppMessage: InAppMessage, context: Context) {
         val json = JSONObject()
         try {
@@ -538,3 +634,4 @@ internal object InAppComposeUtils {
         }
     }
 }
+

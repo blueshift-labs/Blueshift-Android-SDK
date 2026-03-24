@@ -1,4 +1,4 @@
-package com.blueshift.compose
+package com.blueshift.compose.inapp
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -44,6 +44,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.blueshift.Blueshift
 import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftLogger
+import com.blueshift.compose.util.InAppComposeUtils
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage
@@ -76,7 +77,7 @@ internal fun InAppHTML(inAppMessage: InAppMessage, onDismiss: (() -> Unit)) {
     }
     // Calculate template dimensions exactly like View implementation
     val templateDimensions = remember(inAppMessage) {
-        calculateTemplateDimensions(context, inAppMessage)
+        InAppComposeUtils.calculateTemplateDimensions(context, inAppMessage)
     }
 
     val density = LocalDensity.current

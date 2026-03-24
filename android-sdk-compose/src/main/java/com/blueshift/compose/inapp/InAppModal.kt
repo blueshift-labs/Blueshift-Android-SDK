@@ -1,4 +1,4 @@
-package com.blueshift.compose
+package com.blueshift.compose.inapp
 
 import android.content.Context
 import android.graphics.Typeface
@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blueshift.BlueshiftConstants
+import com.blueshift.compose.util.InAppComposeUtils
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage
@@ -54,7 +55,6 @@ import java.io.File
 @Composable
 internal fun InAppModal(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = null) {
     val context = LocalContext.current
-
     val templateMargins = remember(inAppMessage) {
         val margins = inAppMessage.getTemplateMargin(context)
         if (margins != null) {
@@ -72,7 +72,7 @@ internal fun InAppModal(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = n
 
     // Calculate template dimensions exactly like View implementation
     val templateDimensions = remember(inAppMessage) {
-        calculateTemplateDimensions(context, inAppMessage)
+        InAppComposeUtils.calculateTemplateDimensions(context, inAppMessage)
     }
 
     val density = LocalDensity.current
@@ -178,7 +178,7 @@ private fun ModalContent(
             android.view.Gravity.CENTER -> Alignment.CenterHorizontally
             else -> Alignment.Start
         }
-        
+
         InAppComposeUtils.ContentText(
             context = context,
             inAppMessage = inAppMessage,

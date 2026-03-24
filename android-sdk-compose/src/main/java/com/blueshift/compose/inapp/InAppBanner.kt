@@ -1,4 +1,4 @@
-package com.blueshift.compose
+package com.blueshift.compose.inapp
 
 import android.content.Context
 import androidx.activity.compose.LocalActivity
@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftLogger
+import com.blueshift.compose.util.InAppComposeUtils
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage

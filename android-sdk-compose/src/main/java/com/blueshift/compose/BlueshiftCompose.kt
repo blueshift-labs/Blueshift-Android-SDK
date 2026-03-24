@@ -17,14 +17,16 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftExecutor
-import com.blueshift.BlueshiftImageCache
 import com.blueshift.BlueshiftInAppListener
 import com.blueshift.BlueshiftLogger
+import com.blueshift.compose.inapp.InAppBanner
+import com.blueshift.compose.inapp.InAppHTML
+import com.blueshift.compose.inapp.InAppModal
+import com.blueshift.compose.util.InAppComposeUtils
 import com.blueshift.inappmessage.InAppConstants
 import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.inappmessage.InAppTemplate
-import com.blueshift.util.CommonUtils
 import com.blueshift.util.InAppUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,9 +55,6 @@ object BlueshiftCompose {
                     }
                     InAppTemplate.HTML -> {
                         renderHtmlInApp(inAppMessage, activity)
-                    }
-                    InAppTemplate.RATING -> {
-                        renderRatingInApp(inAppMessage, activity)
                     }
                     else -> false
                 }
@@ -129,10 +128,6 @@ object BlueshiftCompose {
         }
     }
 
-    private fun renderRatingInApp(inAppMessage: InAppMessage, activity: Activity?): Boolean {
-        return false
-    }
-
     private fun dismiss(current: ViewGroup, rootView: ViewGroup, inAppMessage: InAppMessage, context: Context){
         val safeRemoval = {
             try {
@@ -145,8 +140,6 @@ object BlueshiftCompose {
                 BlueshiftLogger.d(TAG, "Safe view removal: ${e.message}")
             }
         }
-        
-        // Perform cleanup operations on background thread (matching traditional implementation)
         BlueshiftExecutor.getInstance().runOnDiskIOThread {
             InAppManager.clearCachedAssets(inAppMessage, context)
             InAppManager.scheduleNextInAppMessage(context)
@@ -177,8 +170,6 @@ private fun InAppBannerOverlay(
     val context = LocalContext.current
     val gravity = InAppUtils.getTemplateGravity(context, inAppMessage)
     val enableBackgroundActions = InAppUtils.shouldEnableBackgroundActions(context, inAppMessage)
-    
-    // Add InApp Viewed Analytics (Operation 2)
     LaunchedEffect(inAppMessage) {
         withContext(Dispatchers.IO) {
             InAppManager.invokeOnInAppViewed(inAppMessage)
@@ -187,7 +178,6 @@ private fun InAppBannerOverlay(
     
     Dialog(
         onDismissRequest = {
-            // For Banner, both back button and tap outside should send ACT_TAP_OUTSIDE analytics
             InAppComposeUtils.bannerDismissedWhenClickedOutside(inAppMessage, context)
             onDismiss()
         },
@@ -225,20 +215,14 @@ private fun InAppHtmlOverlay(
 ) {
     val context = LocalContext.current
     val gravity = InAppUtils.getTemplateGravity(context, inAppMessage)
-    
-    // Add InApp Viewed Analytics (Operation 2)
     LaunchedEffect(inAppMessage) {
         withContext(Dispatchers.IO) {
             InAppManager.invokeOnInAppViewed(inAppMessage)
         }
     }
-    
-    // Calculate template dimensions exactly like View implementation
     val templateDimensions = remember(inAppMessage) {
-        calculateTemplateDimensions(context, inAppMessage)
+        InAppComposeUtils.calculateTemplateDimensions(context, inAppMessage)
     }
-    
-    // Check if tap outside should be allowed
     val cancelOnTouchOutside = remember(inAppMessage) {
         InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage)
     }
@@ -261,7 +245,6 @@ private fun InAppHtmlOverlay(
         val dialogWindowProvider = LocalView.current.parent as? DialogWindowProvider
         dialogWindowProvider?.window?.let { window ->
             window.setGravity(gravity)
-            // Set window layout exactly like View implementation
             window.setLayout(templateDimensions.width, templateDimensions.height)
         }
         InAppHTML(inAppMessage, onDismiss)
@@ -285,13 +268,9 @@ private fun InAppModalOverlay(
             InAppManager.invokeOnInAppViewed(inAppMessage)
         }
     }
-    
-    // Calculate template dimensions exactly like View implementation
     val templateDimensions = remember(inAppMessage) {
-        calculateTemplateDimensions(context, inAppMessage)
+        InAppComposeUtils.calculateTemplateDimensions(context, inAppMessage)
     }
-    
-    // Check if tap outside should be allowed (matching traditional implementation)
     val cancelOnTouchOutside = remember(inAppMessage) {
         InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage)
     }
@@ -314,120 +293,8 @@ private fun InAppModalOverlay(
         val dialogWindowProvider = LocalView.current.parent as? DialogWindowProvider
         dialogWindowProvider?.window?.let { window ->
             window.setGravity(gravity)
-            // Set window layout exactly like View implementation
             window.setLayout(templateDimensions.width, templateDimensions.height)
         }
         InAppModal(inAppMessage, onDismiss)
     }
-}
-
-/**
- * Data class to hold template dimensions
- */
-internal data class TemplateDimensions(
-    val width: Int,
-    val height: Int
-)
-
-/**
- * Calculates template dimensions exactly like the View implementation's prepareTemplateSize function
- */
-internal fun calculateTemplateDimensions(context: Context, inAppMessage: InAppMessage): TemplateDimensions {
-    // Calculate the space consumed by the status bar
-    val topMargin = (24 * context.resources.displayMetrics.density).toInt()
-    
-    val maxWidth = context.resources.displayMetrics.widthPixels.toDouble()
-    val maxHeight = (context.resources.displayMetrics.heightPixels - topMargin).toDouble()
-    
-    // Read the width % and height % available in the payload
-    val widthPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.WIDTH, -1)
-    val heightPercentage = InAppUtils.getTemplateStyleInt(context, inAppMessage, InAppConstants.HEIGHT, -1)
-    
-    val url = InAppUtils.getTemplateStyleString(context, inAppMessage, InAppConstants.BACKGROUND_IMAGE)
-    val bitmap = if (url != null) BlueshiftImageCache.getBitmap(context, url) else null
-    
-    var width: Int
-    var height: Int
-    
-    if (bitmap != null) {
-        // We have a background image! Calculate dimensions based on aspect ratio
-        val iWidth = bitmap.width.toDouble()
-        val iHeight = bitmap.height.toDouble()
-        val iRatio = iHeight / iWidth
-        
-        if (widthPercentage < 0 && heightPercentage < 0) {
-            // No dimension provided in the template
-            val adjustedWidthPercentage = 90 // MAX_WIDTH_PERCENTAGE
-            val adjustedHeightPercentage = 90 // MAX_HEIGHT_PERCENTAGE
-            
-            val adjustedMaxWidth = (maxWidth * adjustedWidthPercentage) / 100
-            val adjustedMaxHeight = (maxHeight * adjustedHeightPercentage) / 100
-            
-            val iWidthPx = CommonUtils.dpToPx(iWidth.toInt(), context)
-            val iHeightPx = CommonUtils.dpToPx(iHeight.toInt(), context)
-            
-            if (iWidthPx < adjustedMaxWidth && iHeightPx < adjustedMaxHeight) {
-                width = iWidthPx
-                height = iHeightPx
-            } else {
-                width = adjustedMaxWidth.toInt()
-                height = (adjustedMaxWidth * iRatio).toInt()
-                
-                if (height > adjustedMaxHeight.toInt()) {
-                    width = (adjustedMaxHeight / iRatio).toInt()
-                    height = adjustedMaxHeight.toInt()
-                }
-            }
-        } else {
-            // We have dimensions provided in the payload
-            if (widthPercentage > 0) {
-                val adjustedMaxHeight = if (widthPercentage != 100) {
-                    (maxHeight * 90) / 100 // MAX_HEIGHT_PERCENTAGE
-                } else {
-                    maxHeight
-                }
-                
-                val adjustedMaxWidth = (maxWidth * widthPercentage) / 100
-                
-                width = adjustedMaxWidth.toInt()
-                height = (width.toDouble() * iRatio).toInt()
-                
-                if (height > adjustedMaxHeight.toInt()) {
-                    width = (adjustedMaxHeight / iRatio).toInt()
-                    height = adjustedMaxHeight.toInt()
-                }
-            } else {
-                // heightPercentage > 0 and widthPercentage = -1 (auto)
-                val adjustedMaxHeight = (maxHeight * heightPercentage) / 100
-                val adjustedMaxWidth = if (heightPercentage != 100) {
-                    (maxWidth * 90) / 100 // MAX_WIDTH_PERCENTAGE
-                } else {
-                    maxWidth
-                }
-                
-                height = adjustedMaxHeight.toInt()
-                width = (height.toDouble() / iRatio).toInt()
-                
-                if (width > adjustedMaxWidth.toInt()) {
-                    width = adjustedMaxWidth.toInt()
-                    height = (width.toDouble() * iRatio).toInt()
-                }
-            }
-        }
-    } else {
-        // No background image - this is the key case for "min" settings
-        width = if (widthPercentage < 0) {
-            -2 // ViewGroup.LayoutParams.WRAP_CONTENT
-        } else {
-            ((maxWidth * widthPercentage) / 100).toInt()
-        }
-        
-        height = if (heightPercentage < 0) {
-            -2 // ViewGroup.LayoutParams.WRAP_CONTENT
-        } else {
-            ((maxHeight * heightPercentage) / 100).toInt()
-        }
-    }
-    
-    return TemplateDimensions(width, height)
 }
