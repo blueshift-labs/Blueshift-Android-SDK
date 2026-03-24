@@ -7,6 +7,7 @@ import android.os.Looper
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
@@ -14,6 +15,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import com.blueshift.BlueshiftConstants
+import com.blueshift.BlueshiftExecutor
 import com.blueshift.BlueshiftImageCache
 import com.blueshift.BlueshiftInAppListener
 import com.blueshift.BlueshiftLogger
@@ -23,6 +26,10 @@ import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.inappmessage.InAppTemplate
 import com.blueshift.util.CommonUtils
 import com.blueshift.util.InAppUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONException
+import org.json.JSONObject
 
 object BlueshiftCompose {
 
@@ -65,7 +72,7 @@ object BlueshiftCompose {
                     InAppBannerOverlay(
                         inAppMessage = inAppMessage,
                         onDismiss = {
-                            dismiss(this@apply, rootView)
+                            dismiss(this@apply, rootView, inAppMessage, activity.applicationContext)
                         }
                     )
                 }
@@ -87,7 +94,7 @@ object BlueshiftCompose {
                     InAppModalOverlay(
                         inAppMessage = inAppMessage,
                         onDismiss = {
-                            dismiss(this@apply, rootView)
+                            dismiss(this@apply, rootView, inAppMessage, activity.applicationContext)
                         }
                     )
                 }
@@ -109,7 +116,7 @@ object BlueshiftCompose {
                     InAppHtmlOverlay(
                         inAppMessage = inAppMessage,
                         onDismiss = {
-                            dismiss(this@apply, rootView)
+                            dismiss(this@apply, rootView, inAppMessage, activity.applicationContext)
                         }
                     )
                 }
@@ -126,7 +133,7 @@ object BlueshiftCompose {
         return false
     }
 
-    private fun dismiss(current: ViewGroup, rootView: ViewGroup){
+    private fun dismiss(current: ViewGroup, rootView: ViewGroup, inAppMessage: InAppMessage, context: Context){
         val safeRemoval = {
             try {
                 if (current.parent == rootView) {
@@ -138,6 +145,14 @@ object BlueshiftCompose {
                 BlueshiftLogger.d(TAG, "Safe view removal: ${e.message}")
             }
         }
+        
+        // Perform cleanup operations on background thread (matching traditional implementation)
+        BlueshiftExecutor.getInstance().runOnDiskIOThread {
+            InAppManager.clearCachedAssets(inAppMessage, context)
+            InAppManager.scheduleNextInAppMessage(context)
+            InAppManager.cleanUpOngoingInAppCache()
+        }
+        
         if (Looper.myLooper() == Looper.getMainLooper()) {
             safeRemoval()
         } else {
@@ -163,8 +178,16 @@ private fun InAppBannerOverlay(
     val gravity = InAppUtils.getTemplateGravity(context, inAppMessage)
     val enableBackgroundActions = InAppUtils.shouldEnableBackgroundActions(context, inAppMessage)
     
+    // Add InApp Viewed Analytics (Operation 2)
+    LaunchedEffect(inAppMessage) {
+        withContext(Dispatchers.IO) {
+            InAppManager.invokeOnInAppViewed(inAppMessage)
+        }
+    }
+    
     Dialog(
         onDismissRequest = {
+            // For Banner, both back button and tap outside should send ACT_TAP_OUTSIDE analytics
             InAppComposeUtils.bannerDismissedWhenClickedOutside(inAppMessage, context)
             onDismiss()
         },
@@ -203,15 +226,34 @@ private fun InAppHtmlOverlay(
     val context = LocalContext.current
     val gravity = InAppUtils.getTemplateGravity(context, inAppMessage)
     
+    // Add InApp Viewed Analytics (Operation 2)
+    LaunchedEffect(inAppMessage) {
+        withContext(Dispatchers.IO) {
+            InAppManager.invokeOnInAppViewed(inAppMessage)
+        }
+    }
+    
     // Calculate template dimensions exactly like View implementation
     val templateDimensions = remember(inAppMessage) {
         calculateTemplateDimensions(context, inAppMessage)
     }
     
+    // Check if tap outside should be allowed
+    val cancelOnTouchOutside = remember(inAppMessage) {
+        InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage)
+    }
+    
     Dialog(
-        onDismissRequest = { onDismiss() },
+        onDismissRequest = {
+            val json = JSONObject()
+            try {
+                json.put(BlueshiftConstants.KEY_CLICK_ELEMENT, InAppConstants.ACT_BACK)
+            } catch (ignored: JSONException) {}
+            InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
+            onDismiss()
+        },
         properties = DialogProperties(
-            dismissOnClickOutside = false,
+            dismissOnClickOutside = cancelOnTouchOutside,
             dismissOnBackPress = true,
             usePlatformDefaultWidth = false
         )
@@ -238,16 +280,33 @@ private fun InAppModalOverlay(
 ) {
     val context = LocalContext.current
     val gravity = InAppUtils.getTemplateGravity(context, inAppMessage)
+    LaunchedEffect(inAppMessage) {
+        withContext(Dispatchers.IO) {
+            InAppManager.invokeOnInAppViewed(inAppMessage)
+        }
+    }
     
     // Calculate template dimensions exactly like View implementation
     val templateDimensions = remember(inAppMessage) {
         calculateTemplateDimensions(context, inAppMessage)
     }
     
+    // Check if tap outside should be allowed (matching traditional implementation)
+    val cancelOnTouchOutside = remember(inAppMessage) {
+        InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage)
+    }
+    
     Dialog(
-        onDismissRequest = { onDismiss() },
+        onDismissRequest = {
+            val json = JSONObject()
+            try {
+                json.put(BlueshiftConstants.KEY_CLICK_ELEMENT, InAppConstants.ACT_BACK)
+            } catch (ignored: JSONException) {}
+            InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
+            onDismiss()
+        },
         properties = DialogProperties(
-            dismissOnClickOutside = false,
+            dismissOnClickOutside = cancelOnTouchOutside,
             dismissOnBackPress = true,
             usePlatformDefaultWidth = false
         )

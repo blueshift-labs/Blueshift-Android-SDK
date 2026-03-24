@@ -178,7 +178,7 @@ public class InAppManager {
         displayInAppMessage(mInApp);
     }
 
-    private static void cleanUpOngoingInAppCache() {
+    public static void cleanUpOngoingInAppCache() {
         mInApp = null;
         mInAppOngoingIn = null;
     }
@@ -417,7 +417,7 @@ public class InAppManager {
         }
     }
 
-    private static void scheduleNextInAppMessage(final Context context) {
+    public static void scheduleNextInAppMessage(final Context context) {
         try {
             Configuration config = BlueshiftUtils.getConfiguration(context);
             if (config != null) {
@@ -839,7 +839,7 @@ public class InAppManager {
         dismissAndCleanupDialog();
     }
 
-    private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
+    public static void invokeOnInAppViewed(InAppMessage inAppMessage) {
         if (isRedundantDisplay()) return;
 
         // use app context to avoid leaks on this activity
@@ -1032,7 +1032,7 @@ public class InAppManager {
         return false;
     }
 
-    private static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
+    public static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
         if (inAppMessage != null && context != null) {
             //noinspection StatementWithEmptyBody
             if (InAppConstants.HTML.equals(inAppMessage.getType())) {

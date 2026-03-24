@@ -41,10 +41,12 @@ import org.json.JSONObject
 import kotlin.math.roundToInt
 
 @Composable
-internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = null) {
+internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
+    val activity = LocalActivity.current
+    val coroutineScope = rememberCoroutineScope()
     
     // Calculate template margins exactly like InAppModal does
     val templateMargins = remember(inAppMessage) {
@@ -63,13 +65,46 @@ internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = 
     }
     
     val slideInOffsetX = remember { Animatable(-1f) }
+    var isAnimating by remember { mutableStateOf(false) }
+    
     LaunchedEffect(Unit) {
         slideInOffsetX.animateTo(
             targetValue = 0f,
             animationSpec = tween(durationMillis = 700)
         )
     }
+    
     val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+    
+    val actionJson = remember(inAppMessage) {
+        val actions = inAppMessage.actionsJSONArray
+        if (actions != null && actions.length() > 0) {
+            try {
+                actions.getJSONObject(0)
+            } catch (e: JSONException) {
+                null
+            }
+        } else null
+    }
+    
+    fun handleTapAction() {
+        if (isAnimating) return
+        isAnimating = true
+        
+        coroutineScope.launch {
+            // Animate the entire banner out to the right
+            slideInOffsetX.animateTo(
+                targetValue = 1f, // Move to right side of screen
+                animationSpec = tween(durationMillis = 1000)
+            )
+            
+            // Execute action after animation
+            if (actionJson != null) {
+                executeAction(activity ?: context, inAppMessage, actionJson)
+            }
+            onDismiss()
+        }
+    }
     
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
@@ -92,7 +127,8 @@ internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = 
             BannerContent(
                 context = context,
                 inAppMessage = inAppMessage,
-                onDismiss = onDismiss
+                onDismiss = onDismiss,
+                onTapAction = ::handleTapAction
             )
         }
     }
@@ -107,25 +143,14 @@ internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = 
 private fun BannerContent(
     context: Context,
     inAppMessage: InAppMessage,
-    onDismiss: (() -> Unit)? = null
+    onDismiss: (() -> Unit),
+    onTapAction: () -> Unit
 ) {
-    val activity = LocalActivity.current
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
     val offsetX = remember { Animatable(0f) }
     var isAnimating by remember { mutableStateOf(false) }
-
-    val actionJson = remember(inAppMessage) {
-        val actions = inAppMessage.actionsJSONArray
-        if (actions != null && actions.length() > 0) {
-            try {
-                actions.getJSONObject(0)
-            } catch (e: JSONException) {
-                null
-            }
-        } else null
-    }
 
     fun handleSwipeDismiss() {
         val json = JSONObject()
@@ -135,23 +160,7 @@ private fun BannerContent(
         }
         BlueshiftLogger.d("InAppBanner", "handleSwipeDismiss: ${inAppMessage.messageUuid}")
         InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
-        onDismiss?.invoke()
-    }
-    
-    fun handleTapAction() {
-        if (isAnimating) return
-        isAnimating = true
-        
-        coroutineScope.launch {
-            val bannerWidth = with(density) { 300.dp.toPx() }
-            offsetX.animateTo(
-                targetValue = bannerWidth,
-                animationSpec = tween(durationMillis = 1000)
-            )
-            if (actionJson != null) {
-                executeAction(activity ?: context, inAppMessage, actionJson)
-            }
-        }
+        onDismiss.invoke()
     }
     
     Row(
@@ -196,7 +205,7 @@ private fun BannerContent(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        handleTapAction()
+                        onTapAction()
                     }
                 )
             },
@@ -239,7 +248,11 @@ private fun BannerContent(
 /**
  * Executes action functionality matching InAppMessageView.getActionClickListener()
  */
-private fun executeAction(context: Context, inAppMessage: InAppMessage, actionJson: JSONObject) {
+private fun executeAction(
+    context: Context,
+    inAppMessage: InAppMessage,
+    actionJson: JSONObject
+) {
     val actionName = actionJson.optString(InAppConstants.ACTION_TYPE)
     val statsParams = JSONObject()
     try {

@@ -487,9 +487,9 @@ private fun handleActionClick(
                 }
                 else -> {
                     InAppUtils.invokeInAppDismiss(context, inAppMessage, statsParams)
-                    onDismiss?.invoke()
                 }
             }
+            onDismiss?.invoke()
         }
     } catch (e: Exception) {
         InAppUtils.invokeInAppDismiss(context, inAppMessage, JSONObject())

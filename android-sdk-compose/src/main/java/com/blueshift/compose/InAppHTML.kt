@@ -58,7 +58,7 @@ import org.json.JSONObject
 import java.io.File
 
 @Composable
-internal fun InAppHTML(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = null) {
+internal fun InAppHTML(inAppMessage: InAppMessage, onDismiss: (() -> Unit)) {
     val context = LocalContext.current
     val templateMargins = remember(inAppMessage) {
         val margins = inAppMessage.getTemplateMargin(context)
@@ -147,7 +147,7 @@ internal fun InAppHTML(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = nu
 private fun HTMLContent(
     context: Context,
     inAppMessage: InAppMessage,
-    onDismiss: (() -> Unit)? = null
+    onDismiss: (() -> Unit)
 ) {
     val htmlContent = remember(inAppMessage) {
         inAppMessage.getContentString(InAppConstants.HTML)
@@ -192,7 +192,7 @@ private fun getWebViewDimension(context: Context, inAppMessage: InAppMessage, di
 private class InAppWebViewClient(
     private val context: Context,
     private val inAppMessage: InAppMessage,
-    private val onDismiss: (() -> Unit)?
+    private val onDismiss: (() -> Unit)
 ) : WebViewClient() {
     
     companion object {
@@ -203,7 +203,7 @@ private class InAppWebViewClient(
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             try {
                 val uri = request.url
-                launchUri(uri)
+                launchUri(uri, dismiss = onDismiss)
             } catch (e: Exception) {
                 handleClick(inAppMessage, getClickStatsJSONObject())
             }
@@ -216,7 +216,7 @@ private class InAppWebViewClient(
     override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
         return try {
             val uri = Uri.parse(url)
-            launchUri(uri)
+            launchUri(uri, onDismiss)
             true
         } catch (e: Exception) {
             handleClick(inAppMessage, getClickStatsJSONObject())
@@ -224,7 +224,7 @@ private class InAppWebViewClient(
         }
     }
     
-    private fun launchUri(uri: Uri) {
+    private fun launchUri(uri: Uri, dismiss: () -> Unit) {
         when {
             InAppUtils.isDismissUri(uri) -> invokeDismiss(uri)
             InAppUtils.isAskPNPermissionUri(uri) -> invokeNotificationPermissionReq(uri)
@@ -254,6 +254,7 @@ private class InAppWebViewClient(
                 }
             }
         }
+        dismiss()
     }
     
     private fun openUri(uri: Uri) {
