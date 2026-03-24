@@ -1,6 +1,7 @@
 package com.blueshift.compose
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.Typeface
 import android.net.Uri
@@ -261,7 +262,7 @@ private class InAppWebViewClient(
             InAppUtils.isAskPNPermissionUri(uri) -> invokeNotificationPermissionReq(uri)
             else -> {
                 try {
-                    if (context is android.app.Activity) {
+                    if (context is Activity) {
                         BlueshiftUtils.openURL(
                             uri.toString(),
                             context,
