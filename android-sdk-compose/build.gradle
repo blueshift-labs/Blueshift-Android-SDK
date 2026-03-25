@@ -50,7 +50,7 @@ android {
 }
 
 dependencies {
-    api "com.blueshift:android-sdk-x:4.1.0-SNAPSHOT"
+    api project(':android-sdk')
     implementation 'androidx.core:core-ktx:1.13.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.13.0'
