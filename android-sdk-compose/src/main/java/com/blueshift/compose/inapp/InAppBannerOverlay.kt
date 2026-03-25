@@ -1,6 +1,7 @@
 package com.blueshift.compose.inapp
 
 import android.content.Context
+import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -26,8 +27,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import com.blueshift.BlueshiftConstants
 import com.blueshift.BlueshiftLogger
 import com.blueshift.compose.util.InAppComposeUtils
@@ -36,13 +41,62 @@ import com.blueshift.inappmessage.InAppManager
 import com.blueshift.inappmessage.InAppMessage
 import com.blueshift.util.CommonUtils
 import com.blueshift.util.InAppUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
 import kotlin.math.roundToInt
 
+/**
+ * Compose overlay for banner in-app messages that positions the banner correctly
+ * and handles background interactions like the View implementation.
+ * Respects system UI (status bar, navigation bar) to show only in app content area.
+ * Supports both obstrusive (modal) and unobstrusive (non-modal) modes based on enable_background_action.
+ */
 @Composable
-internal fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)) {
+internal fun InAppBannerOverlay(
+    inAppMessage: InAppMessage,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val gravity = InAppUtils.getTemplateGravity(context, inAppMessage)
+    val enableBackgroundActions = InAppUtils.shouldEnableBackgroundActions(context, inAppMessage)
+    LaunchedEffect(inAppMessage) {
+        withContext(Dispatchers.IO) {
+            InAppManager.invokeOnInAppViewed(inAppMessage)
+        }
+    }
+
+    Dialog(
+        onDismissRequest = {
+            InAppComposeUtils.bannerDismissedWhenClickedOutside(inAppMessage, context)
+            onDismiss()
+        },
+        properties = DialogProperties(
+            dismissOnClickOutside = true,
+            dismissOnBackPress = true,
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        val dialogWindowProvider = LocalView.current.parent as? DialogWindowProvider
+        dialogWindowProvider?.window?.let { window ->
+            window.setGravity(gravity)
+
+            if (enableBackgroundActions) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
+                window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
+                window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            }
+        }
+        InAppBanner(inAppMessage, onDismiss)
+    }
+}
+
+@Composable
+private fun InAppBanner(inAppMessage: InAppMessage, onDismiss: (() -> Unit)) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
@@ -198,7 +252,9 @@ private fun BannerContent(
                 ) { _, dragAmount ->
                     if (!isAnimating) {
                         coroutineScope.launch {
-                            offsetX.snapTo(offsetX.value + dragAmount.x)
+                            // Reduce drag sensitivity to make it smoother and more controlled
+                            val dampedDrag = dragAmount.x * 0.6f // Reduce sensitivity by 40%
+                            offsetX.snapTo(offsetX.value + dampedDrag)
                         }
                     }
                 }

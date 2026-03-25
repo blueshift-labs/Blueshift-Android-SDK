@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import android.widget.LinearLayout;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AlertDialog;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
@@ -80,7 +82,7 @@ public class InAppManager {
     private static String mInAppOngoingIn = null; // activity class name
     private static final IAMDisplayConfig displayConfig = new IAMDisplayConfig();
 
-    private static BlueshiftInAppListener blueshiftInAppListener = null;
+    private static Pair<String, BlueshiftInAppListener> blueshiftInAppListener = null;
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -595,8 +597,14 @@ public class InAppManager {
         displayConfig.templateHeight = height;
     }
 
-    public static void inAppRenderListener(BlueshiftInAppListener inAppListener) {
-        blueshiftInAppListener = inAppListener;
+    public static void inAppRenderListener(String screenName, BlueshiftInAppListener inAppListener) {
+        blueshiftInAppListener = new Pair<String, BlueshiftInAppListener>(screenName, inAppListener);
+    }
+
+    public static void removeInAppRenderListener(String screen) {
+        if(blueshiftInAppListener != null && blueshiftInAppListener.first.equals(screen)) {
+            blueshiftInAppListener = null;
+        }
     }
 
     private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
@@ -604,10 +612,16 @@ public class InAppManager {
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (mActivity != null) {
+                        Configuration config = BlueshiftUtils.getConfiguration(mActivity);
+                        if (mActivity != null && config != null) {
                             boolean isSuccess = false;
-                            if(blueshiftInAppListener != null) {
-                                isSuccess = blueshiftInAppListener.renderInApp(inAppMessage, mActivity);
+                            if(config.isCompose()) {
+                                if(blueshiftInAppListener != null) {
+                                    isSuccess = blueshiftInAppListener.second.renderInApp(
+                                            inAppMessage,
+                                            mActivity
+                                    );
+                                }
                             } else {
                                 isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
                             }

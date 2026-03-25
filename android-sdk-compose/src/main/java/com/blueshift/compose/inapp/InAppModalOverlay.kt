@@ -34,10 +34,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import com.blueshift.BlueshiftConstants
 import com.blueshift.compose.util.InAppComposeUtils
 import com.blueshift.inappmessage.InAppConstants
@@ -52,8 +56,56 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 
+/**
+ * Compose overlay for Modal in-app messages that positions the modal content correctly
+ * and handles background interactions like the View implementation.
+ * Uses Dialog to create a modal overlay for modal content.
+ */
 @Composable
-internal fun InAppModal(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = null) {
+internal fun InAppModalOverlay(
+    inAppMessage: InAppMessage,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val gravity = InAppUtils.getTemplateGravity(context, inAppMessage)
+    LaunchedEffect(inAppMessage) {
+        withContext(Dispatchers.IO) {
+            InAppManager.invokeOnInAppViewed(inAppMessage)
+        }
+    }
+    val templateDimensions = remember(inAppMessage) {
+        InAppComposeUtils.calculateTemplateDimensions(context, inAppMessage)
+    }
+    val cancelOnTouchOutside = remember(inAppMessage) {
+        InAppUtils.shouldCancelOnTouchOutside(context, inAppMessage)
+    }
+
+    Dialog(
+        onDismissRequest = {
+            val json = JSONObject()
+            try {
+                json.put(BlueshiftConstants.KEY_CLICK_ELEMENT, InAppConstants.ACT_BACK)
+            } catch (ignored: JSONException) {}
+            InAppUtils.invokeInAppDismiss(context, inAppMessage, json)
+            onDismiss()
+        },
+        properties = DialogProperties(
+            dismissOnClickOutside = cancelOnTouchOutside,
+            dismissOnBackPress = true,
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        val dialogWindowProvider = LocalView.current.parent as? DialogWindowProvider
+        dialogWindowProvider?.window?.let { window ->
+            window.setGravity(gravity)
+            window.setLayout(templateDimensions.width, templateDimensions.height)
+        }
+        InAppModal(inAppMessage, onDismiss)
+    }
+}
+
+@Composable
+private fun InAppModal(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = null) {
     val context = LocalContext.current
     val templateMargins = remember(inAppMessage) {
         val margins = inAppMessage.getTemplateMargin(context)
@@ -70,14 +122,12 @@ internal fun InAppModal(inAppMessage: InAppMessage, onDismiss: (() -> Unit)? = n
         }
     }
 
-    // Calculate template dimensions exactly like View implementation
     val templateDimensions = remember(inAppMessage) {
         InAppComposeUtils.calculateTemplateDimensions(context, inAppMessage)
     }
 
     val density = LocalDensity.current
 
-    // Convert template dimensions to Compose constraints
     val widthModifier = if (templateDimensions.width == -2) { // WRAP_CONTENT
         Modifier.wrapContentWidth()
     } else {

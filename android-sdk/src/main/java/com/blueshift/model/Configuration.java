@@ -68,6 +68,7 @@ public class Configuration {
     // Defines is we should store user info in plain text or in encrypted form.
     // Default value is false to make it backward compatible.
     private  boolean saveUserInfoAsEncrypted = false;
+    private boolean composeRendering = false;
 
     public Configuration() {
         // Setting default region to the US.
@@ -103,6 +104,14 @@ public class Configuration {
         // The default value is 86400 seconds (24 hours). When set to 0, an app_open
         // event will be fired on each app restart.
         autoAppOpenInterval = 86400;
+    }
+
+    public void addCompose() {
+        this.composeRendering = true;
+    }
+
+    public boolean isCompose() {
+        return composeRendering;
     }
 
     public boolean shouldSaveUserInfoAsEncrypted() {
