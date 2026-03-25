@@ -2,7 +2,6 @@ package com.blueshift.compose
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
