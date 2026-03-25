@@ -17,7 +17,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Use gradle wrapper (if applicable)
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/wrapper-validation-action@v2
 
       - name: Grant execute permissions for gradlew
         run: chmod +x gradlew
