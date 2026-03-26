@@ -9,7 +9,7 @@ plugins {
 ext {
     PUBLISH_GROUP_ID = 'com.blueshift'
     PUBLISH_ARTIFACT_ID = 'android-sdk-compose'
-    PUBLISH_VERSION = '4.1.0-SNAPSHOT'
+    PUBLISH_VERSION = '4.1.0'
 }
 
 
@@ -50,7 +50,7 @@ android {
 }
 
 dependencies {
-    api project(':android-sdk')
+    api "com.blueshift:android-sdk-x:4.2.0"
     implementation 'androidx.core:core-ktx:1.13.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.13.0'
