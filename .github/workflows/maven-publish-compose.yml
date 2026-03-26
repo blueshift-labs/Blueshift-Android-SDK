@@ -1,0 +1,108 @@
+name: Publish Compose Library to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 4.2.0)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # This ensures only users with write access can run the workflow
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning and changelog
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Set version from input
+        run: |
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          echo "Version to publish: ${{ github.event.inputs.version }}"
+
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match="compose-v*" 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No previous compose tags found. Including all commits."
+            CHANGELOG=$(git log --pretty=format:"* %s (%an)" --reverse)
+          else
+            echo "Found latest compose tag: $LATEST_TAG"
+            CHANGELOG=$(git log ${LATEST_TAG}..HEAD --pretty=format:"* %s (%an)" --reverse)
+          fi
+          
+          # Escape multiline string for GitHub Actions
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+          
+          echo "CHANGELOG=$CHANGELOG" >> $GITHUB_ENV
+          echo "Previous compose tag: $LATEST_TAG"
+          echo "Changes since last compose release:"
+          git log ${LATEST_TAG}..HEAD --pretty=format:"* %s (%an)" --reverse
+          echo "${{ env.CHANGELOG }}"
+
+      - name: Set up GPG signing key
+        run: |
+          echo "ORG_GRADLE_PROJECT_mavenCentralUsername=${{ secrets.OSSRH_USERNAME }}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_mavenCentralPassword=${{ secrets.OSSRH_PASSWORD }}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_signingInMemoryKey<<EOF" >> $GITHUB_ENV
+          echo "${{ secrets.SIGNING_KEY_B64 }}" | base64 -d >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_signingInMemoryKeyId=${{ secrets.SIGNING_KEY_ID }}" >> $GITHUB_ENV
+          echo "ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Grant execute permission for compose release script
+        run: chmod +x ./release-compose.sh
+
+      - name: Run compose release script
+        run: ./release-compose.sh ${{ env.VERSION }}
+
+#      - name: Create GitHub Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          tag_name: compose-v${{ env.VERSION }}
+#          name: Compose Release v${{ env.VERSION }}
+#          body: |
+#            Released android-sdk-compose version ${{ env.VERSION }} to Maven Central
+#
+#            ## How to use
+#            ```gradle
+#            implementation 'com.blueshift:android-sdk-compose:${{ env.VERSION }}'
+#            ```
+#
+#            ## Changes in this release
+#            ${{ env.CHANGELOG }}
+#
+#            ## Manual Steps Required
+#            - Complete the release process on Sonatype:
+#              1. Go to https://oss.sonatype.org/ and log in
+#              2. Navigate to 'Staging Repositories'
+#              3. Find your release and click 'Close' and then 'Release'
+#          files: |
+#            dist/android-sdk-compose-${{ env.VERSION }}.aar
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
