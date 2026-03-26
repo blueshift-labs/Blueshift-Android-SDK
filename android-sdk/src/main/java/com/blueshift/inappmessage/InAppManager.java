@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,15 +21,16 @@ import android.widget.LinearLayout;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AlertDialog;
 
+import com.blueshift.Blueshift;
 import com.blueshift.BlueshiftAttributesApp;
 import com.blueshift.BlueshiftAttributesUser;
 import com.blueshift.BlueshiftConstants;
 import com.blueshift.BlueshiftExecutor;
 import com.blueshift.BlueshiftImageCache;
+import com.blueshift.BlueshiftInAppListener;
 import com.blueshift.BlueshiftJSONObject;
 import com.blueshift.BlueshiftLogger;
 import com.blueshift.R;
-import com.blueshift.inbox.BlueshiftInboxApiManager;
 import com.blueshift.inbox.BlueshiftInboxFragment;
 import com.blueshift.inbox.BlueshiftInboxManager;
 import com.blueshift.inbox.BlueshiftInboxMessage;
@@ -42,8 +44,6 @@ import com.blueshift.util.InAppUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.List;
 
 public class InAppManager {
     private static final String LOG_TAG = InAppManager.class.getSimpleName();
@@ -81,6 +81,8 @@ public class InAppManager {
     private static InAppMessage mInApp = null;
     private static String mInAppOngoingIn = null; // activity class name
     private static final IAMDisplayConfig displayConfig = new IAMDisplayConfig();
+
+    private static Pair<String, BlueshiftInAppListener> blueshiftInAppListener = null;
 
     /**
      * Calling this method makes the activity eligible for displaying InAppMessage
@@ -178,7 +180,7 @@ public class InAppManager {
         displayInAppMessage(mInApp);
     }
 
-    private static void cleanUpOngoingInAppCache() {
+    public static void cleanUpOngoingInAppCache() {
         mInApp = null;
         mInAppOngoingIn = null;
     }
@@ -417,7 +419,7 @@ public class InAppManager {
         }
     }
 
-    private static void scheduleNextInAppMessage(final Context context) {
+    public static void scheduleNextInAppMessage(final Context context) {
         try {
             Configuration config = BlueshiftUtils.getConfiguration(context);
             if (config != null) {
@@ -595,19 +597,42 @@ public class InAppManager {
         displayConfig.templateHeight = height;
     }
 
+    public static void inAppRenderListener(String screenName, BlueshiftInAppListener inAppListener) {
+        blueshiftInAppListener = new Pair<String, BlueshiftInAppListener>(screenName, inAppListener);
+    }
+
+    public static void removeInAppRenderListener(String screen) {
+        if(blueshiftInAppListener != null && blueshiftInAppListener.first.equals(screen)) {
+            blueshiftInAppListener = null;
+        }
+    }
+
     private static void showInAppOnMainThread(final InAppMessage inAppMessage) {
         BlueshiftExecutor.getInstance().runOnMainThread(
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (mActivity != null) {
-                            boolean isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                        Configuration config = BlueshiftUtils.getConfiguration(mActivity);
+                        if (mActivity != null && config != null) {
+                            boolean isSuccess = false;
+                            if(config.isCompose()) {
+                                if(blueshiftInAppListener != null) {
+                                    isSuccess = blueshiftInAppListener.second.renderInApp(
+                                            inAppMessage,
+                                            mActivity
+                                    );
+                                }
+                            } else {
+                                isSuccess = buildAndShowInAppMessage(mActivity, inAppMessage);
+                            }
                             if (isSuccess) {
                                 BlueshiftLogger.d(LOG_TAG, "InApp message displayed successfully!");
                                 mInApp = inAppMessage;
                                 markAsDisplayed(inAppMessage);
 
                                 BlueshiftInboxManager.notifyMessageRead(mActivity, inAppMessage.getMessageUuid());
+                            } else {
+                                BlueshiftLogger.e(LOG_TAG, "Error displaying in-app message!");
                             }
                         } else {
                             BlueshiftLogger.e(LOG_TAG, "No activity is running, skipping in-app display.");
@@ -828,7 +853,7 @@ public class InAppManager {
         dismissAndCleanupDialog();
     }
 
-    private static void invokeOnInAppViewed(InAppMessage inAppMessage) {
+    public static void invokeOnInAppViewed(InAppMessage inAppMessage) {
         if (isRedundantDisplay()) return;
 
         // use app context to avoid leaks on this activity
@@ -1021,7 +1046,7 @@ public class InAppManager {
         return false;
     }
 
-    private static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
+    public static void clearCachedAssets(InAppMessage inAppMessage, Context context) {
         if (inAppMessage != null && context != null) {
             //noinspection StatementWithEmptyBody
             if (InAppConstants.HTML.equals(inAppMessage.getType())) {
