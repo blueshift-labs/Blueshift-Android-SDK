@@ -36,7 +36,7 @@ printf "✅ PUBLISH_VERSION updated successfully.\n"
 
 # --- Step 2: Build the AAR file and publish locally ---
 printf "\n📌 Step 2: Building release AAR and publishing locally...\n"
-./gradlew assembleRelease publishToMavenLocal
+./gradlew :android-sdk:assembleRelease :android-sdk:publishToMavenLocal
 printf "✅ Build and local publish completed successfully.\n"
 
 # --- Step 3: Clear old files in /dist and copy the new AAR ---
@@ -83,11 +83,11 @@ git push origin "$TAG_NAME"
 printf "✅ Pushed code and tag to repository.\n"
 
 # --- Step 7: Publish to Maven Central ---
-printf "\n📌 Step 7: Publishing to Maven Central...\n"
+printf "\n📌 Step 7: Publishing android-sdk to Maven Central...\n"
 # Ensure necessary credentials (SONATYPE_USERNAME, SONATYPE_PASSWORD, SIGNING_KEY_ID, etc.)
 # are available as environment variables in the GitHub Actions environment.
-./gradlew publishToMavenCentral
-printf "✅ Library publish task submitted successfully!\n"
+./gradlew :android-sdk:publishToMavenCentral
+printf "✅ android-sdk publish task submitted successfully!\n"
 
 # --- Final Manual Step Reminder ---
 printf "\n⚠️ Final Step Required: Complete the release process on Sonatype!\n"
