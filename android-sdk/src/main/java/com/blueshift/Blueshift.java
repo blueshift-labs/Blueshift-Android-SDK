@@ -362,6 +362,9 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
+        // Log memory page size information for 16KB compatibility debugging
+        com.blueshift.util.MemoryUtils.logPageSizeInfo(mContext);
+
         // get the status of app version change
         String appVersion = CommonUtils.getAppVersion(mContext);
         String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
@@ -400,6 +403,31 @@ public class Blueshift {
         InAppManager.fetchInAppFromServer(mContext, null);
 
         doAutomaticIdentifyChecks(mContext);
+
+        // Initialize app state recovery for Android 15+ package stopped state handling
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            BlueshiftLogger.d(LOG_TAG, "Initializing app state recovery for Android 15+ package stopped state handling");
+            onApplicationResumed(mContext);
+        }
+
+    }
+
+    /**
+     * Called when the application resumes from background or stopped state.
+     * This method should be called from the app's Application class or main activity lifecycle.
+     * Handles recovery of cancelled PendingIntents for Android 15+.
+     *
+     * @param context Application context
+     */
+    public static void onApplicationResumed(Context context) {
+        if (context == null) return;
+
+        BlueshiftLogger.d(LOG_TAG, "Application resumed");
+
+        // Handle Android 15+ stopped state recovery
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            com.blueshift.core.app.AppStateManager.onAppResumed(context);
+        }
     }
 
     private void doAutomaticIdentifyChecks(Context context) {
