@@ -15,11 +15,11 @@ ext {
 
 android {
     namespace 'com.blueshift.compose'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 36
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -38,6 +38,19 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    
+    // Add support for 16KB page size testing
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+    
+    // Ensure proper native library handling for 16KB page size compatibility
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
     }
 
     compileOptions {

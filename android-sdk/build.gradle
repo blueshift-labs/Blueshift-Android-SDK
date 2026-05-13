@@ -12,11 +12,11 @@ ext {
 
 android {
     namespace "$PUBLISH_GROUP_ID"
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 36
         multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -32,6 +32,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    
+    // Add support for 16KB page size testing
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+    
+    // Ensure proper native library handling for 16KB page size compatibility
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
+    }
+    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -62,9 +76,10 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'androidx.security:security-crypto:1.0.0'
 
-    // Firebase
-    implementation 'com.google.firebase:firebase-core:17.4.4'
-    implementation 'com.google.firebase:firebase-messaging:20.3.0'
+    // Firebase - Updated for 16KB page size compatibility
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    implementation 'com.google.firebase:firebase-messaging'
+    // Note: firebase-core is deprecated and replaced by firebase-bom
 
     // Test
     testImplementation 'junit:junit:4.13.2'

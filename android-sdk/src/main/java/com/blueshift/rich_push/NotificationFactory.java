@@ -266,6 +266,11 @@ public class NotificationFactory {
 
                                     alarmManager.set(AlarmManager.RTC_WAKEUP, timeToDisplay, pendingIntent);
                                     BlueshiftLogger.i(LOG_TAG, "Scheduled a notification. Display time: " + sdf.format(timeToDisplay));
+                                    
+                                    // Track scheduled notification for Android 15+ recovery
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                                        com.blueshift.core.app.AppStateManager.trackScheduledNotification(context, item, timeToDisplay);
+                                    }
                                 } else {
                                     BlueshiftLogger.i(LOG_TAG, "Display time (" + sdf.format(timeToDisplay) + ") elapsed! Showing the notification now.");
                                     bcIntent.setPackage(context.getPackageName());
@@ -331,5 +336,29 @@ public class NotificationFactory {
         int reqCode = NotificationFactory.getRandomPIRequestCode();
         return taskStackBuilder.getPendingIntent(
                 reqCode, CommonUtils.appendImmutableFlag(PendingIntent.FLAG_ONE_SHOT));
+    }
+
+    /**
+     * Schedules a notification with fallback tracking for Android 15+ package stopped state recovery.
+     * This method wraps the regular scheduling with additional tracking to handle PendingIntent cancellation.
+     *
+     * @param context Application context
+     * @param message Notification message to schedule
+     * @param timeToDisplay Time when notification should be displayed (in milliseconds)
+     */
+    public static void scheduleNotificationWithFallback(Context context, Message message, long timeToDisplay) {
+        if (context == null || message == null) {
+            BlueshiftLogger.e(LOG_TAG, "Cannot schedule notification: context or message is null");
+            return;
+        }
+
+        try {
+            // Use the existing scheduling logic
+            scheduleNotifications(context, message);
+            
+            BlueshiftLogger.d(LOG_TAG, "Scheduled notification with fallback tracking: " + message.getId());
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, "Failed to schedule notification with fallback: " + e.getMessage());
+        }
     }
 }

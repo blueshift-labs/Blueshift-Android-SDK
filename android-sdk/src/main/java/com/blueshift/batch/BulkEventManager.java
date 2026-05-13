@@ -245,4 +245,30 @@ public class BulkEventManager {
             RequestQueue.getInstance().add(context, request);
         }
     }
+
+    /**
+     * Ensures that the bulk event alarm is scheduled.
+     * This method checks if the alarm is still active and reschedules it if necessary.
+     * Used for Android 15+ package stopped state recovery.
+     *
+     * @param context Application context
+     */
+    public static void ensureAlarmIsScheduled(Context context) {
+        if (context == null) return;
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                // Check if alarm is still active by trying to get it with FLAG_NO_CREATE
+                PendingIntent testIntent = getAlarmPendingIntent(context, PendingIntent.FLAG_NO_CREATE);
+                if (testIntent == null) {
+                    BlueshiftLogger.i(LOG_TAG, "Bulk event alarm was cancelled, rescheduling...");
+                    scheduleBulkEventEnqueue(context);
+                } else {
+                    BlueshiftLogger.d(LOG_TAG, "Bulk event alarm is still active");
+                }
+            }
+        } catch (Exception e) {
+            BlueshiftLogger.e(LOG_TAG, "Failed to ensure alarm is scheduled: " + e.getMessage());
+        }
+    }
 }
