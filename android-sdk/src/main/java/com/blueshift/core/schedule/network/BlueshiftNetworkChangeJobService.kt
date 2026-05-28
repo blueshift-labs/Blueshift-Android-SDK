@@ -142,7 +142,7 @@ class BlueshiftNetworkChangeJobService : JobService() {
             }
             else -> {
                 // Handle Android 16+ specific reasons if available
-                if (Build.VERSION.SDK_INT >= 35) { // Android 16+ API level
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 16+ API level
                     handleAndroid16StopReasons(stopReason)
                 } else {
                     BlueshiftLogger.d("$TAG: Job stopped, reason: $stopReason")
@@ -151,7 +151,7 @@ class BlueshiftNetworkChangeJobService : JobService() {
         }
     }
 
-    @RequiresApi(35) // Android 16+ API level
+    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM) // Android 16+ API level
     private fun handleAndroid16StopReasons(stopReason: Int) {
         when (stopReason) {
             // Note: STOP_REASON_TIMEOUT_ABANDONED is expected to be available in Android 16

@@ -63,7 +63,7 @@ object BlueshiftNetworkChangeScheduler {
      * This helps adapt to the new JobScheduler quota system
      */
     private fun getOptimizedInterval(context: Context, defaultInterval: Long): Long {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             try {
                 val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
                 val appStandbyBucket = usageStatsManager?.getAppStandbyBucket()
