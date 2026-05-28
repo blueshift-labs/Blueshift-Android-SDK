@@ -44,7 +44,7 @@ internal object MemoryUtils {
             // Default to 4KB if unable to determine
             cachedPageSize = PAGE_SIZE_4KB
             BlueshiftLogger.d(TAG, "Using default page size: $cachedPageSize bytes")
-            return cachedPageSize!!
+            return cachedPageSize ?: 0
         }
     }
     
