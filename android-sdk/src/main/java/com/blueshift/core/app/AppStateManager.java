@@ -43,7 +43,7 @@ public class AppStateManager {
         updateLastResumeTime(context);
 
         // Handle Android 15+ stopped state recovery
-        if (Build.VERSION.SDK_INT >= 35) { // Android 15+ API level
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             checkAndRescheduleNotifications(context);
             BulkEventManager.ensureAlarmIsScheduled(context);
         }
