@@ -362,9 +362,6 @@ public class Blueshift {
     public void initialize(@NonNull Configuration configuration) {
         mConfiguration = configuration;
 
-        // Log memory page size information for 16KB compatibility debugging
-        com.blueshift.util.MemoryUtils.logPageSizeInfo(mContext);
-
         // get the status of app version change
         String appVersion = CommonUtils.getAppVersion(mContext);
         String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);

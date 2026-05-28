@@ -84,7 +84,7 @@ internal object InAppComposeUtils {
             InAppConstants.BACKGROUND_COLOR
         )
         val backgroundColor = if (InAppUtils.validateColorString(colorString)) {
-            parseColor(colorString!!)
+            parseColor(colorString ?: "#FFFFFF")
         } else {
             Color.White
         }
