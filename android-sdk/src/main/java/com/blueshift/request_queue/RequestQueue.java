@@ -31,7 +31,7 @@ public class RequestQueue {
     public static final int DEFAULT_RETRY_COUNT = 3;
 
     private static final String LOG_TAG = RequestQueue.class.getSimpleName();
-    private static final Boolean lock = true;
+    private static final Object lock = new Object();
 
     private Status mStatus;
     private static RequestQueue mInstance = null;

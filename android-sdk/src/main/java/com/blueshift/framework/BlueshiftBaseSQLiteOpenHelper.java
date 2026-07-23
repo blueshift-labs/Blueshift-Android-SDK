@@ -19,7 +19,7 @@ import java.util.Set;
 public abstract class BlueshiftBaseSQLiteOpenHelper<T extends BlueshiftBaseSQLiteModel> extends SQLiteOpenHelper {
     private static final String TAG = BlueshiftBaseSQLiteOpenHelper.class.getSimpleName();
     protected static final String _ID = "_id";
-    protected static final Boolean _LOCK = true;
+    protected static final Object _LOCK = new Object();
     protected static final String _AND_ = " AND ";
     protected static final String _AND = " AND";
     protected static final String _OR_ = " OR ";

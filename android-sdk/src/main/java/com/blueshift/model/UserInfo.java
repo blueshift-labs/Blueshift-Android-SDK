@@ -30,7 +30,7 @@ public class UserInfo {
     private static final String PREF_FILE = "user_info_file";
     private static final String PREF_KEY = "user_info_key";
     private static final String PREF_KEY_ENCRYPTED = "user_info";
-    private static final Boolean lock = false;
+    private static final Object lock = new Object();
 
     private String email;
     private String email_hash;
