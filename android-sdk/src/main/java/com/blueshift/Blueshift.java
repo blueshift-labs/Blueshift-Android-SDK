@@ -391,10 +391,7 @@ public class Blueshift {
         initAppIcon(mContext, mConfiguration);
 
         initializeEventSyncModule(mContext, mConfiguration);
-        boolean isLegacySyncCompleted = BlueShiftPreference.isLegacyEventSyncComplete(mContext);
-        if(!isLegacySyncCompleted) {
-            initializeLegacyEventSyncModule(mContext);
-        }
+        initializeLegacyEventSyncModule(mContext);
 
         switch (status) {
             case APP_INSTALL -> {
@@ -436,11 +433,8 @@ public class Blueshift {
                 }
             }
             try {
-                boolean isLegacySyncCompleted = BlueShiftPreference.isLegacyEventSyncComplete(mContext);
                 BlueshiftAttributesApp.getInstance().init(mContext);
-                if (!isLegacySyncCompleted) {
-                    initializeLegacyEventSyncModule(mContext);
-                }
+                initializeLegacyEventSyncModule(mContext);
                 BlueshiftExecutor.getInstance().runOnMainThread(() ->
                         callback.onInitializationComplete(true, null));
             } catch (Exception e) {
@@ -501,30 +495,36 @@ public class Blueshift {
     }
 
     void initializeLegacyEventSyncModule(Context context) {
-        // Cleanup any cached events by sending them to Blueshift.
-        BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
-            try {
-                Request request = RequestQueueTable.getInstance(context).getFirstRecord();
-                ArrayList<HashMap<String, Object>> fEvents = FailedEventsTable.getInstance(context).getBulkEventParameters(1);
-                ArrayList<HashMap<String, Object>> bEvents = EventsTable.getInstance(context).getBulkEventParameters(1);
+        // Do not schedule any jobs. We have the new events module to do that.
 
-                if (request != null || !fEvents.isEmpty() || !bEvents.isEmpty()) {
-                    BlueshiftLogger.d(LOG_TAG, "Initiating legacy events sync... (request queue = " + (request != null ? "not empty" : "empty") + ", fEvents = " + fEvents.size() + ", bEvents = " + bEvents.size() + ")");
+        if (!BlueShiftPreference.isLegacyEventSyncComplete(context)) {
+            // Cleanup any cached events by sending them to Blueshift.
 
-                    // Move any pending bulk events in the db to request queue.
-                    BulkEventManager.enqueueBulkEvents(context);
-                    // Sync the http request queue.
-                    RequestQueue.getInstance().sync(context);
-                } else {
-                    BlueshiftLogger.d(LOG_TAG, "Legacy events sync is done!");
-                    // The request queue is empty and the event tables are also empty.
-                    // This could mean that there is nothing left to sync.
-                    BlueShiftPreference.markLegacyEventSyncAsComplete(context);
+            BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
+                try {
+                    Request request = RequestQueueTable.getInstance(context).getFirstRecord();
+                    ArrayList<HashMap<String, Object>> fEvents = FailedEventsTable.getInstance(context).getBulkEventParameters(1);
+                    ArrayList<HashMap<String, Object>> bEvents = EventsTable.getInstance(context).getBulkEventParameters(1);
+
+                    if (request != null || !fEvents.isEmpty() || !bEvents.isEmpty()) {
+                        BlueshiftLogger.d(LOG_TAG, "Initiating legacy events sync... (request queue = " + (request != null ? "not empty" : "empty") + ", fEvents = " + fEvents.size() + ", bEvents = " + bEvents.size() + ")");
+
+                        // Move any pending bulk events in the db to request queue.
+                        BulkEventManager.enqueueBulkEvents(context);
+                        // Sync the http request queue.
+                        RequestQueue.getInstance().sync(context);
+                    } else {
+                        BlueshiftLogger.d(LOG_TAG, "Legacy events sync is done!");
+                        // The request queue is empty and the event tables are also empty.
+                        // This could mean that there is nothing left to sync.
+                        BlueShiftPreference.markLegacyEventSyncAsComplete(context);
+                    }
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e);
                 }
-            } catch (Exception e) {
-                BlueshiftLogger.e(LOG_TAG, e);
-            }
-        });
+            });
+        }
+
     }
 
     void initializeEventSyncModule(Context context, Configuration configuration) {
