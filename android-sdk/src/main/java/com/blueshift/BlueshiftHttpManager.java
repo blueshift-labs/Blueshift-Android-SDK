@@ -15,7 +15,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class BlueshiftHttpManager {
     private static final String TAG = "BlueshiftHttpManager";
-    private static final Boolean lock = true;
+    private static final Object lock = new Object();
     private static BlueshiftHttpManager instance = null;
 
     private BlueshiftHttpManager() {

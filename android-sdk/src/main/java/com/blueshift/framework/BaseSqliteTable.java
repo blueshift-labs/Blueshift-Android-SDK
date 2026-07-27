@@ -25,7 +25,7 @@ import java.util.Set;
  * https://github.com/rahulrvp
  */
 public abstract class BaseSqliteTable<T> extends SQLiteOpenHelper {
-    protected static final Boolean lock = true;
+    protected static final Object lock = new Object();
 
     private static final int DB_VERSION = 1;
     private static final String DB_NAME = "blueshift_db.sqlite3";
