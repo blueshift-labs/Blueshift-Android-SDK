@@ -499,7 +499,6 @@ public class Blueshift {
 
         if (!BlueShiftPreference.isLegacyEventSyncComplete(context)) {
             // Cleanup any cached events by sending them to Blueshift.
-
             BlueshiftExecutor.getInstance().runOnNetworkThread(() -> {
                 try {
                     Request request = RequestQueueTable.getInstance(context).getFirstRecord();
@@ -524,7 +523,6 @@ public class Blueshift {
                 }
             });
         }
-
     }
 
     void initializeEventSyncModule(Context context, Configuration configuration) {
