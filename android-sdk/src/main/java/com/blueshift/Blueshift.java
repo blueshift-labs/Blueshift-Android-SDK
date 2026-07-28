@@ -492,6 +492,11 @@ public class Blueshift {
                 BlueshiftLogger.d(LOG_TAG, "Error in initialization: " + e.getMessage());
             }
         });
+        // Initialize app state recovery for Android 15+ package stopped state handling
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            BlueshiftLogger.d(LOG_TAG, "Initializing app state recovery for Android 15+ package stopped state handling");
+            onApplicationResumed(mContext);
+        }
     }
 
     private void doAutomaticIdentifyChecks(Context context) {
