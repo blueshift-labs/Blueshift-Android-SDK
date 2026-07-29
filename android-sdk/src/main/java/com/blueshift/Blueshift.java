@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.blueshift.batch.BulkEventManager;
@@ -354,6 +355,15 @@ public class Blueshift {
         fetchLiveContentAsync(mContext, slot, BlueshiftConstants.KEY_CUSTOMER_ID, liveContentContext, callback);
     }
 
+    public interface BlueshiftCallback {
+        /**
+         * Called when core Blueshift SDK initialization is complete
+         * @param success true if initialization completed successfully
+         * @param error optional error message if initialization failed
+         */
+        void onInitializationComplete(boolean success, String error);
+    }
+
     /**
      * This method initializes the sdk with the configuration set by user
      *
@@ -424,6 +434,68 @@ public class Blueshift {
         // Handle Android 15+ stopped state recovery
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             com.blueshift.core.app.AppStateManager.onAppResumed(context);
+        }
+    }
+
+    /**
+     * This method initializes the sdk with the configuration set by user
+     *
+     * @param configuration this object contains all the mandatory parameters like api key, deep-link pages etc.
+     */
+    public void initialize(@NonNull Configuration configuration, @NonNull BlueshiftCallback callback) {
+        mConfiguration = configuration;
+        doNetworkConfigurations(mConfiguration);
+        initAppIcon(mContext, mConfiguration);
+        initializeEventSyncModule(mContext, mConfiguration);
+        InAppMessageIconFont.getInstance(mContext).updateFont(mContext);
+        BlueshiftExecutor.getInstance().runOnDiskIOThread(() -> {
+            // Initialize encrypted preferences if enabled
+            if (configuration.shouldSaveUserInfoAsEncrypted()) {
+                try {
+                    BlueshiftEncryptedPreferences.INSTANCE.init(mContext);
+                } catch (Exception e) {
+                    BlueshiftLogger.e(LOG_TAG, e + "Failed to init BlueshiftEncryptedPreferences");
+                }
+            }
+            try {
+                BlueshiftAttributesApp.getInstance().init(mContext);
+                initializeLegacyEventSyncModule(mContext);
+                BlueshiftExecutor.getInstance().runOnMainThread(() ->
+                        callback.onInitializationComplete(true, null));
+            } catch (Exception e) {
+                BlueshiftLogger.d(LOG_TAG, "Error in pre background initialization:" + e);
+                BlueshiftExecutor.getInstance().runOnMainThread(() ->
+                        callback.onInitializationComplete(false, e.getMessage()));
+            }
+            try {
+                InAppManager.fetchInAppFromServer(mContext, null);
+                // get the status of app version change
+                String appVersion = CommonUtils.getAppVersion(mContext);
+                String previousAppVersion = BlueShiftPreference.getStoredAppVersionString(mContext);
+                File database = mContext.getDatabasePath("blueshift_db.sqlite3");
+                BlueshiftInstallationStatusHelper helper = new BlueshiftInstallationStatusHelper();
+                BlueshiftInstallationStatus status = helper.getInstallationStatus(appVersion, previousAppVersion, database);
+                switch (status) {
+                    case APP_INSTALL -> {
+                        trackEvent(BlueshiftConstants.EVENT_APP_INSTALL, helper.getEventAttributes(status, previousAppVersion), false);
+                        BlueShiftPreference.saveAppVersionString(mContext, appVersion);
+                    }
+                    case APP_UPDATE -> {
+                        trackEvent(BlueshiftConstants.EVENT_APP_UPDATE, helper.getEventAttributes(status, previousAppVersion), false);
+                        BlueShiftPreference.saveAppVersionString(mContext, appVersion);
+                    }
+                }
+                handleAppOpenEvent(mContext);
+                doAutomaticIdentifyChecks(mContext);
+                BlueshiftLogger.d(LOG_TAG, "Background initialization completed successfully");
+            } catch (Exception e) {
+                BlueshiftLogger.d(LOG_TAG, "Error in initialization: " + e.getMessage());
+            }
+        });
+        // Initialize app state recovery for Android 15+ package stopped state handling
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            BlueshiftLogger.d(LOG_TAG, "Initializing app state recovery for Android 15+ package stopped state handling");
+            onApplicationResumed(mContext);
         }
     }
 

@@ -11,7 +11,7 @@ import com.blueshift.util.NetworkUtils;
 import java.io.File;
 
 public class InAppMessageIconFont {
-    private static final Boolean _LOCK = false;
+    private static final Object _LOCK = new Object();
     private static final String TAG = "InAppMessageIconFont";
     private static final String FILE_NAME = "Font+Awesome+5+Free-Solid-900.otf";
     private static Typeface sFontAwesomeFont = null;
