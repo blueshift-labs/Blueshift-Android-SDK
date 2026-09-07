@@ -6,3 +6,10 @@
 .idea
 .gradle
 build
+
+# Support knowledge base - raw exports contain customer data, never commit
+support-kb/raw/
+
+# Local markdown docs (CLAUDE.md, runbooks, working notes) - kept out of git for now.
+# README.md is already tracked, so this rule does not affect it.
+*.md
