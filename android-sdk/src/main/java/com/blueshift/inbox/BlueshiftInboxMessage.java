@@ -70,6 +70,10 @@ public class BlueshiftInboxMessage extends BlueshiftBaseSQLiteModel {
         return InAppMessage.getInstance(data);
     }
 
+    public JSONObject getMetaData() {
+        return data != null ? data.optJSONObject("metadata") : null;
+    }
+
     @Override
     protected long getId() {
         return id;

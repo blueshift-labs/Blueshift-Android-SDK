@@ -22,6 +22,7 @@ import java.util.Map;
 public class InAppMessage extends BlueshiftBaseSQLiteModel {
     public static final String TAG = InAppMessage.class.getSimpleName();
     public static final String EXTRA_IN_APP = "inapp";
+    public static final String EXTRA_METADATA = "metadata";
 
     public enum OpenedBy {user, prefetch}
 
@@ -36,6 +37,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
     private JSONObject content_style_dark;
     private JSONObject content;
     private JSONObject extras;
+    private JSONObject metadata;
 
     private long displayed_at;
 
@@ -95,6 +97,7 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
             inAppMessage.content_style_dark = inAppPayload.optJSONObject(InAppConstants.CONTENT_STYLE_DARK);
             inAppMessage.content = inAppPayload.optJSONObject(InAppConstants.CONTENT);
             inAppMessage.extras = inAppPayload.optJSONObject(InAppConstants.EXTRAS);
+            inAppMessage.metadata = jsonObject.optJSONObject(EXTRA_METADATA);
 
             inAppMessage.adapter_uuid = jsonObject.optString(Message.EXTRA_ADAPTER_UUID);
             inAppMessage.execution_key = jsonObject.optString(Message.EXTRA_BSFT_EXECUTION_KEY);
@@ -329,6 +332,10 @@ public class InAppMessage extends BlueshiftBaseSQLiteModel {
 
     public void setExtras(JSONObject extras) {
         this.extras = extras;
+    }
+
+    public JSONObject getMetaData() {
+        return metadata;
     }
 
     public boolean showCloseButton() {
